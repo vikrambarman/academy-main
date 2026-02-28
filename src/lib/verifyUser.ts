@@ -1,11 +1,20 @@
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 
+/**
+ * Verify user from accessToken cookie
+ */
 export async function verifyUser() {
-    const cookieStore = await cookies();
+    const cookieStore = await cookies(); // IMPORTANT
     const token = cookieStore.get("accessToken")?.value;
 
-    if (!token) throw new Error("Unauthorized");
+    if (!token) {
+        throw new Error("NO_TOKEN");
+    }
 
-    return jwt.verify(token, process.env.JWT_SECRET!);
+    try {
+        return jwt.verify(token, process.env.JWT_SECRET!);
+    } catch (error) {
+        throw new Error("TOKEN_EXPIRED");
+    }
 }
