@@ -43,7 +43,7 @@ export default function AdminCourses() {
 
     // Fetch courses
     const fetchCourses = async () => {
-        const res = await fetchWithAuth("/api/courses");
+        const res = await fetchWithAuth("/api/admin/courses");
         const data = await res.json();
         setCourses(data);
     };

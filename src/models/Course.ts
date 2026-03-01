@@ -1,10 +1,5 @@
 /**
- * Course Model (Enhanced Version)
- * ---------------------------------
- * - Supports SEO slug
- * - Module-based syllabus
- * - Career & design segmentation
- * - Future notes linking ready
+ * Course Model (Production Ready Version)
  */
 
 import mongoose, { Schema, Document, Model } from "mongoose";
@@ -25,6 +20,8 @@ export interface ICourse extends Document {
     slug: string;
     level: string;
     authority: string;
+    externalPortalUrl?: string;
+    externalLoginRequired: boolean;
     verification?: string;
     duration?: string;
     eligibility?: string;
@@ -38,17 +35,22 @@ export interface ICourse extends Document {
 /**
  * Syllabus Schema
  */
-const syllabusSchema = new Schema<ISyllabus>({
-    module: {
-        type: String,
-        required: true,
-    },
-    topics: [
-        {
+const syllabusSchema = new Schema<ISyllabus>(
+    {
+        module: {
             type: String,
+            required: true,
+            trim: true,
         },
-    ],
-});
+        topics: [
+            {
+                type: String,
+                trim: true,
+            },
+        ],
+    },
+    { _id: false } // prevent unnecessary _id for each module
+);
 
 /**
  * Course Schema
@@ -65,45 +67,66 @@ const courseSchema = new Schema<ICourse>(
             type: String,
             unique: true,
             required: true,
-            index: true, // improves public page fetching
+            index: true,
+            lowercase: true,
+            trim: true,
+            match: /^[a-z0-9-]+$/, // SEO safe slug validation
         },
 
         level: {
             type: String,
             required: true,
+            trim: true,
         },
 
         authority: {
             type: String,
             required: true,
+            trim: true,
+        },
+
+        externalPortalUrl: {
+            type: String,
+            trim: true,
+        },
+
+        externalLoginRequired: {
+            type: Boolean,
+            default: true,
         },
 
         verification: {
             type: String,
+            trim: true,
         },
 
         duration: {
             type: String,
+            trim: true,
         },
 
         eligibility: {
             type: String,
+            trim: true,
         },
 
         designedFor: [
             {
                 type: String,
+                trim: true,
             },
         ],
 
         careerOpportunities: [
             {
                 type: String,
+                trim: true,
             },
         ],
 
         certificate: {
             type: String,
+            trim: true,
         },
 
         syllabus: [syllabusSchema],
