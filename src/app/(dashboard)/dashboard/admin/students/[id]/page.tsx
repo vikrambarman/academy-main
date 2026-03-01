@@ -12,12 +12,18 @@ export default function StudentDetail() {
     const [student, setStudent] = useState<any>(null);
     const [paymentAmount, setPaymentAmount] = useState("");
     const [remark, setRemark] = useState("");
+    const [paymentDate, setPaymentDate] = useState("");
     const [certificateStatus, setCertificateStatus] = useState("");
+
+    const [editingPayment, setEditingPayment] = useState<any>(null);
+    const [editAmount, setEditAmount] = useState("");
+    const [editRemark, setEditRemark] = useState("");
+    const [editDate, setEditDate] = useState("");
 
     const loadStudent = async () => {
         const res = await fetchWithAuth(`/api/admin/students/${id}`);
         const data = await res.json();
-        if (!res.ok || !data) return;
+        if (!res.ok) return;
 
         setStudent(data);
         setCertificateStatus(data?.certificateStatus || "Not Applied");
@@ -27,8 +33,10 @@ export default function StudentDetail() {
         if (id) loadStudent();
     }, [id]);
 
+    /* ================= ADD PAYMENT ================= */
+
     const addPayment = async () => {
-        if (!paymentAmount) return;
+        if (!paymentAmount) return alert("Enter payment amount");
 
         const res = await fetchWithAuth(`/api/admin/students/${id}`, {
             method: "PATCH",
@@ -36,20 +44,49 @@ export default function StudentDetail() {
             body: JSON.stringify({
                 paymentAmount: Number(paymentAmount),
                 remark,
+                date: paymentDate,
             }),
         });
 
         const data = await res.json();
-
-        if (!res.ok) {
-            alert(data.message);
-            return;
-        }
+        if (!res.ok) return alert(data.message);
 
         setPaymentAmount("");
         setRemark("");
+        setPaymentDate("");
         loadStudent();
     };
+
+    /* ================= EDIT PAYMENT ================= */
+
+    const openEdit = (payment: any) => {
+        setEditingPayment(payment);
+        setEditAmount(payment.amount.toString());
+        setEditRemark(payment.remark || "");
+        setEditDate(payment.date?.split("T")[0]);
+    };
+
+    const updatePayment = async () => {
+        if (!student) return;
+        const res = await fetchWithAuth(`/api/admin/students/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                editPaymentId: editingPayment._id,
+                amount: Number(editAmount),
+                remark: editRemark,
+                date: editDate,
+            }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) return alert(data.message);
+
+        setEditingPayment(null);
+        loadStudent();
+    };
+
+    /* ================= CERTIFICATE ================= */
 
     const updateCertificate = async () => {
         await fetchWithAuth(`/api/admin/students/${id}`, {
@@ -63,7 +100,6 @@ export default function StudentDetail() {
 
     const toggleActive = async () => {
         if (!student) return;
-
         await fetchWithAuth(`/api/admin/students/${id}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -78,7 +114,11 @@ export default function StudentDetail() {
     if (!student) return <p>Loading...</p>;
 
     const feesTotal = student.feesTotal || 0;
-    const feesPaid = student.feesPaid || 0;
+    const feesPaid = student.payments?.reduce(
+        (sum: number, p: any) => sum + p.amount,
+        0
+    );
+
     const due = feesTotal - feesPaid;
     const progress =
         feesTotal > 0 ? Math.min((feesPaid / feesTotal) * 100, 100) : 0;
@@ -88,9 +128,7 @@ export default function StudentDetail() {
 
             {/* HEADER */}
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold">
-                    Student Controller
-                </h1>
+                <h1 className="text-2xl font-bold">Student Controller</h1>
 
                 <span
                     className={`px-3 py-1 rounded-full text-sm font-medium ${student.isActive
@@ -104,7 +142,7 @@ export default function StudentDetail() {
 
             <div className="bg-white shadow-lg rounded-xl p-8 space-y-8">
 
-                {/* STUDENT INFO */}
+                {/* INFO */}
                 <div className="grid md:grid-cols-2 gap-6 text-sm">
                     <div>
                         <p><strong>ID:</strong> {student.studentId}</p>
@@ -119,18 +157,15 @@ export default function StudentDetail() {
                     </div>
                 </div>
 
-                {/* FEES PROGRESS */}
-                <div className="space-y-3">
-                    <h3 className="font-semibold">Fees Overview</h3>
-
+                {/* PROGRESS */}
+                <div>
                     <div className="w-full bg-gray-200 rounded-full h-3">
                         <div
-                            className="bg-blue-600 h-3 rounded-full transition-all duration-500"
+                            className="bg-blue-600 h-3 rounded-full transition-all"
                             style={{ width: `${progress}%` }}
-                        ></div>
+                        />
                     </div>
-
-                    <p className="text-sm text-red-600 font-medium">
+                    <p className="text-sm text-red-600 mt-2 font-medium">
                         Due: ₹{due}
                     </p>
                 </div>
@@ -139,18 +174,25 @@ export default function StudentDetail() {
                 <div className="border-t pt-6 space-y-4">
                     <h3 className="font-semibold">Add Installment</h3>
 
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid md:grid-cols-3 gap-4">
                         <input
                             type="number"
-                            placeholder="Payment amount"
+                            placeholder="Amount"
                             className="border p-3 rounded-lg"
                             value={paymentAmount}
                             onChange={(e) => setPaymentAmount(e.target.value)}
                         />
 
                         <input
+                            type="date"
+                            className="border p-3 rounded-lg"
+                            value={paymentDate}
+                            onChange={(e) => setPaymentDate(e.target.value)}
+                        />
+
+                        <input
                             type="text"
-                            placeholder="Remark (optional)"
+                            placeholder="Remark"
                             className="border p-3 rounded-lg"
                             value={remark}
                             onChange={(e) => setRemark(e.target.value)}
@@ -159,57 +201,53 @@ export default function StudentDetail() {
 
                     <button
                         onClick={addPayment}
-                        className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg transition"
+                        className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg"
                     >
                         Add Payment
                     </button>
                 </div>
 
                 {/* PAYMENT HISTORY */}
-                <div className="border-t pt-6 space-y-3">
+                <div className="border-t pt-6 space-y-4">
                     <h3 className="font-semibold">Payment History</h3>
 
-                    {student.payments?.length === 0 && (
-                        <p className="text-sm text-gray-500">
-                            No payments yet.
-                        </p>
-                    )}
-
-                    {student.payments?.map((payment: any, index: number) => (
+                    {student.payments?.map((payment: any) => (
                         <div
-                            key={index}
+                            key={payment._id}
                             className="flex justify-between items-center border rounded-lg p-4 text-sm"
                         >
                             <div>
-                                <p className="font-medium">
+                                <p className="font-medium text-lg">
                                     ₹{payment.amount}
                                 </p>
                                 <p className="text-xs text-gray-500">
                                     {new Date(payment.date).toLocaleDateString()}
                                 </p>
-                            </div>
-
-                            <div className="text-right">
-                                <p className="text-xs text-gray-600">
+                                <p className="text-xs text-gray-500">
                                     Receipt: {payment.receiptNo}
                                 </p>
                                 {payment.remark && (
-                                    <p className="text-xs text-gray-500">
+                                    <p className="text-xs text-gray-400">
                                         {payment.remark}
                                     </p>
                                 )}
                             </div>
+
+                            <button
+                                onClick={() => openEdit(payment)}
+                                className="text-blue-600 text-sm underline"
+                            >
+                                Edit
+                            </button>
                         </div>
                     ))}
                 </div>
 
                 {/* CERTIFICATE */}
                 <div className="border-t pt-6 space-y-3">
-                    <h3 className="font-semibold">
-                        Certificate Status
-                    </h3>
+                    <h3 className="font-semibold">Certificate Status</h3>
 
-                    <div className="flex gap-4 items-center">
+                    <div className="flex gap-4">
                         <select
                             className="border p-2 rounded-lg"
                             value={certificateStatus}
@@ -226,31 +264,77 @@ export default function StudentDetail() {
 
                         <button
                             onClick={updateCertificate}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
+                            className="bg-blue-600 text-white px-4 py-2 rounded-lg"
                         >
                             Update
                         </button>
                     </div>
                 </div>
 
-                {/* ACTION BUTTONS */}
+                {/* ACTIONS */}
                 <div className="border-t pt-6 flex justify-between">
                     <button
                         onClick={toggleActive}
-                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition"
+                        className="bg-yellow-500 text-white px-4 py-2 rounded-lg"
                     >
                         {student.isActive ? "Deactivate" : "Activate"}
                     </button>
 
                     <button
                         onClick={() => router.back()}
-                        className="text-gray-600 hover:text-black underline"
+                        className="text-gray-600 underline"
                     >
                         Back
                     </button>
                 </div>
-
             </div>
+
+            {/* EDIT MODAL */}
+            {editingPayment && (
+                <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                    <div className="bg-white p-6 rounded-lg w-96 space-y-4">
+                        <h3 className="font-semibold">Edit Payment</h3>
+
+                        <input
+                            type="number"
+                            className="border p-2 w-full rounded"
+                            value={editAmount}
+                            onChange={(e) => setEditAmount(e.target.value)}
+                        />
+
+                        <input
+                            type="date"
+                            className="border p-2 w-full rounded"
+                            value={editDate}
+                            onChange={(e) => setEditDate(e.target.value)}
+                        />
+
+                        <input
+                            type="text"
+                            className="border p-2 w-full rounded"
+                            value={editRemark}
+                            onChange={(e) => setEditRemark(e.target.value)}
+                        />
+
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setEditingPayment(null)}
+                                className="text-gray-500"
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                onClick={updatePayment}
+                                className="bg-blue-600 text-white px-4 py-2 rounded"
+                            >
+                                Save
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 }

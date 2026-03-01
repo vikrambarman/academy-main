@@ -2,7 +2,7 @@
  * Student Model (Academic + Payment System)
  */
 
-import mongoose, { Schema, Document, Model } from "mongoose";
+import mongoose, { Schema, Document, Model, Types } from "mongoose";
 
 /**
  * Payment Subdocument Interface
