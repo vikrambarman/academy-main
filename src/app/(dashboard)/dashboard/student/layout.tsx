@@ -2,9 +2,72 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import {
+    LayoutDashboard,
+    User,
+    FileText,
+    BookOpen,
+    GraduationCap,
+    LogOut,
+    Menu,
+    Sun,
+    Moon,
+} from "lucide-react";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import AuthGuard from "@/components/AuthGaurd";
+
+/* ================= TYPES ================= */
+
+interface StudentData {
+    name: string;
+    feesTotal: number;
+    feesPaid: number;
+    certificateStatus: string;
+    course?: {
+        name?: string;
+    };
+}
+
+interface MenuItem {
+    name: string;
+    href?: string;
+    icon: any;
+    disabled?: boolean;
+}
+
+/* ================= MENU CONFIG ================= */
+
+const menuSections: {
+    title: string;
+    items: MenuItem[];
+}[] = [
+        {
+            title: "ACADEMIC",
+            items: [
+                {
+                    name: "Dashboard",
+                    href: "/dashboard/student",
+                    icon: LayoutDashboard,
+                },
+                {
+                    name: "Profile",
+                    href: "/dashboard/student/profile",
+                    icon: User,
+                },
+            ],
+        },
+        {
+            title: "LEARNING",
+            items: [
+                { name: "Notes", icon: BookOpen, disabled: true },
+                { name: "Exams", icon: FileText, disabled: true },
+                { name: "Certificates", icon: GraduationCap, disabled: true },
+            ],
+        },
+    ];
+
+/* ================= COMPONENT ================= */
 
 export default function StudentLayout({
     children,
@@ -13,143 +76,243 @@ export default function StudentLayout({
 }) {
     const router = useRouter();
     const pathname = usePathname();
+
     const [sidebarOpen, setSidebarOpen] = useState(true);
-    const [student, setStudent] = useState<any>(null);
+    const [mobileOpen, setMobileOpen] = useState(false);
+    const [darkMode, setDarkMode] = useState(false);
+    const [student, setStudent] = useState<StudentData | null>(null);
+    const [profileOpen, setProfileOpen] = useState(false);
+
+    const profileRef = useRef<HTMLDivElement>(null);
+
+    /* ================= LOAD STUDENT ================= */
 
     useEffect(() => {
         const loadStudent = async () => {
-            const res = await fetchWithAuth("/api/student/me");
-            const data = await res.json();
-            setStudent(data);
+            try {
+                const res = await fetchWithAuth("/api/student/me");
+                const data = await res.json();
+                setStudent(data);
+            } catch (error) {
+                console.error("Failed to load student");
+            }
         };
+
         loadStudent();
     }, []);
 
+    /* ================= OUTSIDE CLICK CLOSE ================= */
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                profileRef.current &&
+                !profileRef.current.contains(event.target as Node)
+            ) {
+                setProfileOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
+    /* ================= HANDLERS ================= */
+
     const handleLogout = async () => {
-        await fetch("/api/auth/logout", {
-            method: "POST",
-            credentials: "include",
-        });
-        router.push("/login");
+        try {
+            await fetch("/api/auth/logout", {
+                method: "POST",
+                credentials: "include",
+            });
+
+            router.replace("/login");
+        } catch (error) {
+            console.error("Logout failed");
+        }
     };
+
+    const toggleDarkMode = () => {
+        document.documentElement.classList.toggle("dark");
+        setDarkMode(!darkMode);
+    };
+
+    const feesDue =
+        (student?.feesTotal ?? 0) - (student?.feesPaid ?? 0);
+
+    /* ================= RETURN ================= */
 
     return (
         <AuthGuard>
-            <div className="flex h-screen bg-gray-100">
+            <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
 
-                {/* SIDEBAR */}
-                <div
-                    className={`bg-white shadow-lg transition-all duration-300 ${sidebarOpen ? "w-64" : "w-16"
-                        }`}
+                {/* ================= MOBILE OVERLAY ================= */}
+                {mobileOpen && (
+                    <div
+                        onClick={() => setMobileOpen(false)}
+                        className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+                    />
+                )}
+
+                {/* ================= SIDEBAR ================= */}
+                <aside
+                    className={`fixed lg:static z-50 top-0 left-0 h-full 
+          bg-white dark:bg-gray-800 shadow-xl transition-all duration-300
+          ${sidebarOpen ? "w-64" : "w-20"}
+          ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+          `}
                 >
-                    <div className="p-4 text-xl font-bold border-b">
-                        {sidebarOpen ? "Student Portal" : "SP"}
-                    </div>
-
-                    <nav className="mt-4 space-y-6 px-2 text-sm">
-
-                        {/* Academic Section */}
-                        <div>
-                            <p className="text-gray-400 uppercase text-xs px-4 mb-2">
-                                Academic
-                            </p>
-
-                            <Link
-                                href="/dashboard/student"
-                                className={`block px-4 py-2 rounded-md ${pathname === "/dashboard/student"
-                                        ? "bg-blue-600 text-white"
-                                        : "hover:bg-gray-200"
-                                    }`}
-                            >
-                                Dashboard
-                            </Link>
-
-                            <Link
-                                href="/dashboard/student/profile"
-                                className={`block px-4 py-2 rounded-md ${pathname.includes("profile")
-                                        ? "bg-blue-600 text-white"
-                                        : "hover:bg-gray-200"
-                                    }`}
-                            >
-                                Profile
-                            </Link>
-                        </div>
-
-                        {/* Future Ready Section */}
-                        <div>
-                            <p className="text-gray-400 uppercase text-xs px-4 mb-2">
-                                Coming Soon
-                            </p>
-
-                            <div className="px-4 py-2 text-gray-400">
-                                Notes
-                            </div>
-
-                            <div className="px-4 py-2 text-gray-400">
-                                Exams
-                            </div>
-
-                            <div className="px-4 py-2 text-gray-400">
-                                Certificates
-                            </div>
-                        </div>
-                    </nav>
-                </div>
-
-                {/* MAIN SECTION */}
-                <div className="flex-1 flex flex-col">
-
-                    {/* TOPBAR */}
-                    <div className="bg-white shadow-sm px-6 py-4 flex justify-between items-center">
+                    <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
+                        <h2 className="font-bold text-lg dark:text-white">
+                            {sidebarOpen ? "Student Portal" : "SP"}
+                        </h2>
 
                         <button
                             onClick={() => setSidebarOpen(!sidebarOpen)}
-                            className="text-gray-600"
+                            className="hidden lg:block"
                         >
-                            ☰
+                            <Menu size={18} />
                         </button>
-
-                        <div className="flex items-center gap-4">
-                            {student && (
-                                <div className="text-right">
-                                    <p className="text-sm font-medium">
-                                        {student.name}
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                        {student.course?.name}
-                                    </p>
-                                </div>
-                            )}
-
-                            <button
-                                onClick={handleLogout}
-                                className="bg-red-500 text-white px-3 py-1 rounded-md text-sm"
-                            >
-                                Logout
-                            </button>
-                        </div>
                     </div>
 
-                    {/* QUICK INFO STRIP */}
-                    {student && (
-                        <div className="bg-blue-50 px-6 py-3 flex justify-between text-sm">
+                    <nav className="p-4 space-y-6">
 
+                        {menuSections.map((section) => (
+                            <div key={section.title}>
+                                {sidebarOpen && (
+                                    <p className="text-xs text-gray-400 mb-2">
+                                        {section.title}
+                                    </p>
+                                )}
+
+                                <div className="space-y-2">
+                                    {section.items.map((item) => {
+                                        const Icon = item.icon;
+                                        const active =
+                                            item.href && pathname === item.href;
+
+                                        if (item.disabled) {
+                                            return (
+                                                <div
+                                                    key={item.name}
+                                                    className="flex items-center gap-3 px-3 py-2 rounded-lg opacity-40 cursor-not-allowed"
+                                                >
+                                                    <Icon size={18} />
+                                                    {sidebarOpen && <span>{item.name}</span>}
+                                                </div>
+                                            );
+                                        }
+
+                                        return (
+                                            <Link
+                                                key={item.name}
+                                                href={item.href!}
+                                                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition
+                        ${active
+                                                        ? "bg-indigo-600 text-white"
+                                                        : "hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300"
+                                                    }`}
+                                            >
+                                                <Icon size={18} />
+                                                {sidebarOpen && <span>{item.name}</span>}
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        ))}
+
+                    </nav>
+                </aside>
+
+                {/* ================= MAIN ================= */}
+                <div className="flex-1 flex flex-col overflow-hidden">
+
+                    {/* ================= TOPBAR ================= */}
+                    <header className="bg-white dark:bg-gray-800 shadow-sm px-6 py-4 flex justify-between items-center">
+
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={() => setMobileOpen(true)}
+                                className="lg:hidden"
+                            >
+                                <Menu />
+                            </button>
+
+                            <h1 className="text-lg font-semibold dark:text-white">
+                                Student Dashboard
+                            </h1>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+
+                            {/* Dark Mode Toggle */}
+                            <button
+                                onClick={toggleDarkMode}
+                                className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                            >
+                                {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+                            </button>
+
+                            {/* Profile Dropdown */}
+                            <div className="relative" ref={profileRef}>
+                                <button
+                                    onClick={() => setProfileOpen(!profileOpen)}
+                                    className="flex items-center gap-2 bg-gray-200 dark:bg-gray-700 px-3 py-2 rounded-md text-sm dark:text-white hover:opacity-90 transition"
+                                >
+                                    <div className="w-8 h-8 bg-indigo-600 text-white flex items-center justify-center rounded-full text-xs font-semibold">
+                                        {student?.name?.charAt(0) ?? "S"}
+                                    </div>
+                                    <span>{student?.name ?? "Student"}</span>
+                                </button>
+
+                                {profileOpen && (
+                                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 shadow-xl rounded-lg py-2 z-50">
+
+                                        <Link
+                                            href="/dashboard/student/profile"
+                                            className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            onClick={() => setProfileOpen(false)}
+                                        >
+                                            View Profile
+                                        </Link>
+
+                                        <button
+                                            onClick={handleLogout}
+                                            className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        >
+                                            <LogOut size={16} />
+                                            Logout
+                                        </button>
+
+                                    </div>
+                                )}
+                            </div>
+
+                        </div>
+                    </header>
+
+                    {/* ================= QUICK INFO STRIP ================= */}
+                    {student && (
+                        <div className="bg-indigo-50 dark:bg-indigo-900/30 px-6 py-3 flex flex-wrap justify-between text-sm dark:text-gray-200">
                             <div>
                                 Course:{" "}
                                 <span className="font-medium">
-                                    {student.course?.name}
+                                    {student.course?.name ?? "N/A"}
                                 </span>
                             </div>
 
                             <div>
                                 Fees Due:{" "}
                                 <span className="font-medium text-red-600">
-                                    ₹{student.feesTotal - student.feesPaid}
+                                    ₹{feesDue}
                                 </span>
                             </div>
 
                             <div>
-                                Certificate Status:{" "}
+                                Certificate:{" "}
                                 <span className="font-medium">
                                     {student.certificateStatus}
                                 </span>
@@ -157,10 +320,11 @@ export default function StudentLayout({
                         </div>
                     )}
 
-                    {/* CONTENT */}
-                    <div className="p-6 overflow-y-auto">
+                    {/* ================= PAGE CONTENT ================= */}
+                    <main className="flex-1 overflow-y-auto p-6 bg-blue-300 dark:bg-white-900">
                         {children}
-                    </div>
+                    </main>
+
                 </div>
             </div>
         </AuthGuard>
