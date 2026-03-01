@@ -1,8 +1,18 @@
 /**
- * Student Model (Academic Entity Only)
+ * Student Model (Academic + Payment System)
  */
 
 import mongoose, { Schema, Document, Model } from "mongoose";
+
+/**
+ * Payment Subdocument Interface
+ */
+interface IPayment {
+    amount: number;
+    date: Date;
+    remark?: string;
+    receiptNo: string;
+}
 
 /**
  * Student Interface
@@ -13,8 +23,7 @@ export interface IStudent extends Document {
     email?: string;
     phone?: string;
 
-    user: mongoose.Types.ObjectId; // link to User
-
+    user: mongoose.Types.ObjectId;
     course: mongoose.Types.ObjectId;
 
     externalStudentId?: string;
@@ -22,6 +31,8 @@ export interface IStudent extends Document {
 
     feesTotal: number;
     feesPaid: number;
+
+    payments: IPayment[];
 
     certificateStatus:
     | "Not Applied"
@@ -37,6 +48,33 @@ interface StudentModel extends Model<IStudent> {
     generateStudentId(): Promise<string>;
 }
 
+/**
+ * Payment Schema
+ */
+const paymentSchema = new Schema<IPayment>(
+    {
+        amount: {
+            type: Number,
+            required: true,
+            min: 1,
+        },
+        date: {
+            type: Date,
+            required: true,
+        },
+        remark: {
+            type: String,
+            trim: true,
+        },
+        receiptNo: {
+            type: String,
+        },
+    },
+);
+
+/**
+ * Student Schema
+ */
 const studentSchema = new Schema<IStudent, StudentModel>(
     {
         studentId: {
@@ -63,7 +101,6 @@ const studentSchema = new Schema<IStudent, StudentModel>(
             trim: true,
         },
 
-        // 🔗 Link to User collection
         user: {
             type: Schema.Types.ObjectId,
             ref: "User",
@@ -93,11 +130,15 @@ const studentSchema = new Schema<IStudent, StudentModel>(
             min: 0,
         },
 
+        // 🔥 Auto calculated field
         feesPaid: {
             type: Number,
             default: 0,
             min: 0,
         },
+
+        // 🔥 New Installment System
+        payments: [paymentSchema],
 
         certificateStatus: {
             type: String,
@@ -118,6 +159,20 @@ const studentSchema = new Schema<IStudent, StudentModel>(
     },
     { timestamps: true }
 );
+
+/**
+ * 🔥 Auto Recalculate feesPaid Before Save
+ */
+studentSchema.pre("save", function () {
+    if (this.payments && this.payments.length > 0) {
+        this.feesPaid = this.payments.reduce(
+            (sum, payment) => sum + payment.amount,
+            0
+        );
+    } else {
+        this.feesPaid = 0;
+    }
+});
 
 /**
  * Student ID Generator

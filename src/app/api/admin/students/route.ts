@@ -117,3 +117,25 @@ export async function POST(req: NextRequest) {
         );
     }
 }
+
+
+export async function GET(req: NextRequest) {
+    try {
+        await connectDB();
+
+        const students = await Student.find()
+            .populate({
+                path: "course",
+                select: "name",
+            })
+            .sort({ createdAt: -1 });
+
+        return NextResponse.json(students);
+
+    } catch (error) {
+        return NextResponse.json(
+            { message: "Server Error" },
+            { status: 500 }
+        );
+    }
+}
