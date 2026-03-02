@@ -1,8 +1,8 @@
-import Navbar from "@/app/(public)/layout/Navbar";
+import Navbar from "@/components/layout/Navbar";
 import "./globals.css";
 import type { Metadata } from "next";
-import TopBar from "@/app/(public)/layout/TopBar";
-import Footer from "@/app/(public)/layout/Footer";
+import TopBar from "@/components/layout/TopBar";
+import Footer from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.shivshakticomputer.in"),

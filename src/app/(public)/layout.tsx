@@ -1,6 +1,6 @@
-import TopBar from "@/app/(public)/layout/TopBar";
-import Navbar from "@/app/(public)/layout/Navbar";
-import Footer from "@/app/(public)/layout/Footer";
+import TopBar from "@/components/layout/TopBar";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 
 export default function PublicLayout({
     children,
