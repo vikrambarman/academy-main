@@ -205,9 +205,8 @@ export default function AdminStudents() {
                 return (
                   <tr
                     key={student._id}
-                    className={`border-t ${
-                      due > 0 ? "bg-red-50" : ""
-                    }`}
+                    className={`border-t ${due > 0 ? "bg-red-50" : ""
+                      }`}
                   >
 
                     <td className="p-3 font-medium">

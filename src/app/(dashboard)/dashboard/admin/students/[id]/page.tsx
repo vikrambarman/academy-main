@@ -123,6 +123,26 @@ export default function StudentDetail() {
     const progress =
         feesTotal > 0 ? Math.min((feesPaid / feesTotal) * 100, 100) : 0;
 
+    const handleReset = async (userId: string) => {
+        if (!confirm("Are you sure you want to reset this student's password?")) {
+            return;
+        }
+
+        const res = await fetch(`/api/admin/students/${userId}/reset-password`, {
+            method: "PATCH",
+            credentials: "include",
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            alert(data.message);
+            return;
+        }
+
+        alert("Password reset successfully. New credentials sent to student email.");
+    };
+
     return (
         <div className="space-y-8">
 
@@ -132,8 +152,8 @@ export default function StudentDetail() {
 
                 <span
                     className={`px-3 py-1 rounded-full text-sm font-medium ${student.isActive
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-700"
                         }`}
                 >
                     {student.isActive ? "Active" : "Inactive"}
@@ -281,12 +301,21 @@ export default function StudentDetail() {
                     </button>
 
                     <button
+                        onClick={() => handleReset(student.user)}
+                        className="text-sm bg-amber-500 text-white px-3 py-1 rounded-md hover:bg-amber-600"
+                    >
+                        Reset Password
+                    </button>
+
+                    <button
                         onClick={() => router.back()}
                         className="text-gray-600 underline"
                     >
                         Back
                     </button>
+
                 </div>
+
             </div>
 
             {/* EDIT MODAL */}
