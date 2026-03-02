@@ -33,7 +33,11 @@ export async function POST() {
         }
 
         const newAccessToken = jwt.sign(
-            { id: user._id, role: user.role },
+            {
+                id: user._id,
+                role: user.role,
+                isFirstLogin: user.isFirstLogin,
+            },
             process.env.JWT_SECRET!,
             { expiresIn: "15m" }
         );

@@ -15,6 +15,7 @@ import {
     generateAccessToken,
     generateRefreshToken,
 } from "@/lib/auth";
+import { sendOTPEmail } from "@/lib/mail";
 
 export async function POST(req: Request) {
     try {
@@ -38,43 +39,70 @@ export async function POST(req: Request) {
             );
         }
 
+        // 🔐 ADMIN → 2FA FLOW
+        if (user.role === "admin") {
+
+            const otp = Math.floor(100000 + 900000 * Math.random()).toString();
+
+            user.twoFactorCode = otp;
+            user.twoFactorExpiry = new Date(Date.now() + 5 * 60 * 1000);
+            await user.save();
+
+            await sendOTPEmail(user.email, otp);
+
+            return NextResponse.json({
+                requires2FA: true,
+                userId: user._id,
+            });
+        }
+
+        // 🎓 STUDENT → NORMAL LOGIN FLOW
+
         const payload = {
             id: user._id,
             role: user.role,
+            isFirstLogin: user.isFirstLogin,
         };
 
         const accessToken = generateAccessToken(payload);
         const refreshToken = generateRefreshToken(payload);
 
-        // Save refresh token in DB
         user.refreshToken = refreshToken;
         await user.save();
+
+        if (!user.isActive) {
+            return NextResponse.json(
+                { message: "Account disabled" },
+                { status: 403 }
+            );
+        }
 
         const response = NextResponse.json({
             message: "Login successful",
             role: user.role,
+            forceChangePassword: user.isFirstLogin,
         });
 
-        // Set Access Token Cookie (Short Expiry)
         response.cookies.set("accessToken", accessToken, {
             httpOnly: true,
-            secure: false, // change to true in production
+            secure: false,
             sameSite: "lax",
             path: "/",
-            maxAge: 60 * 15, // 15 minutes
+            maxAge: 60 * 15,
         });
 
-        // Set Refresh Token Cookie (Long Expiry)
         response.cookies.set("refreshToken", refreshToken, {
             httpOnly: true,
             secure: false,
             sameSite: "lax",
             path: "/",
-            maxAge: 60 * 60 * 24 * 7, // 7 days
+            maxAge: 60 * 60 * 24 * 7,
         });
 
         return response;
+
     } catch (error) {
+        console.error("LOGIN ERROR:", error);
         return NextResponse.json(
             { message: "Server error" },
             { status: 500 }

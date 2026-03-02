@@ -9,6 +9,12 @@ export interface IUser extends Document {
     courseId?: string;
     refreshToken?: string;
     isActive: boolean;
+    twoFactorCode?: string;
+    twoFactorExpiry?: Date;
+    isTwoFactorEnabled: boolean;
+    resetPasswordToken?: string;
+    resetPasswordExpiry?: Date;
+    isFirstLogin: boolean;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -21,6 +27,12 @@ const UserSchema = new Schema<IUser>(
         courseId: { type: String },
         refreshToken: { type: String },
         isActive: { type: Boolean, default: true },
+        isTwoFactorEnabled: { type: Boolean, default: false },
+        twoFactorCode: { type: String },
+        twoFactorExpiry: { type: Date },
+        resetPasswordToken: { type: String },
+        resetPasswordExpiry: { type: Date },
+        isFirstLogin: { type: Boolean, default: true },
     },
     { timestamps: true }
 );

@@ -42,14 +42,14 @@ async function seedAdmin() {
         const admin = await User.create({
             academyId: "ADMIN001",
             name: "Super Admin",
-            email: "admin@shivshakti.com",
+            email: "vikrambarman1207@gmail.com",
             password: hashedPassword,
             role: "admin",
             isActive: true,
         });
 
         console.log("🎉 Admin created successfully!");
-        console.log("Email: admin@shivshakti.com");
+        console.log("Email: vikrambarman1207@gmail.com");
         console.log("Password: Admin@123");
 
         process.exit(0);
