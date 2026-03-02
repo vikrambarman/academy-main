@@ -19,9 +19,9 @@ export default async function CoursesPage() {
 
                 {/* Heading */}
                 <div className="text-center max-w-3xl mx-auto">
-                    <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900">
+                    <h2 className="text-4xl font-semibold text-gray-900">
                         Professional Computer Courses
-                    </h1>
+                    </h2>
 
                     <p className="mt-6 text-gray-600 text-lg">
                         Government-recognized and career-focused digital skill programs

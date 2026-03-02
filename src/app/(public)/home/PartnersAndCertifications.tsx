@@ -49,11 +49,8 @@ export default function PartnersAndCertifications() {
 
                 {/* Heading */}
                 <div className="text-center max-w-3xl mx-auto">
-                    <h2
-                        id="affiliations-heading"
-                        className="text-3xl md:text-4xl font-semibold tracking-tight text-gray-900"
-                    >
-                        Our Affiliations & Recognitions
+                    <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-gray-900">
+                        Recognitions & Partnerships
                     </h2>
 
                     <p className="mt-4 text-gray-600 text-base md:text-lg">

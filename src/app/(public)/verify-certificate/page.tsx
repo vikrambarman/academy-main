@@ -14,9 +14,9 @@ export default function VerifyCertificatePage() {
 
                 {/* Header */}
                 <div className="text-center max-w-3xl mx-auto">
-                    <h1 className="text-4xl font-bold tracking-tight text-gray-900">
+                    <h2 className="text-4xl font-semibold text-gray-900">
                         Certificate Verification
-                    </h1>
+                    </h2>
 
                     <p className="mt-4 text-gray-600 text-lg">
                         Verify certificates through official issuing authorities.

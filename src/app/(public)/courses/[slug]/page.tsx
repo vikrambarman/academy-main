@@ -50,9 +50,9 @@ export default async function CourseDetail({
                         {course.level}
                     </span>
 
-                    <h1 className="mt-6 text-4xl font-bold">
+                    <h2 className="mt-6 text-4xl font-bold">
                         {course.name}
-                    </h1>
+                    </h2>
 
                     <p className="mt-4 text-gray-600">
                         {course.duration && `Duration: ${course.duration} • `}
@@ -97,7 +97,7 @@ export default async function CourseDetail({
                 {/* Syllabus */}
                 {course.syllabus?.length > 0 && (
                     <div className="mt-16">
-                        <h2 className="text-xl font-semibold">
+                        <h2 className="text-4xl font-semibold text-gray-900">
                             Course Syllabus
                         </h2>
 

@@ -1,50 +1,22 @@
 import Link from "next/link";
+import { getNotices } from "@/lib/notices";
 
-const notices = [
-    {
-        id: 1,
-        title: "Academy Picnic – December 27",
-        desc: "Annual student picnic successfully organized with participation from various computer courses.",
-        date: "2025-12-27",
-        label: "27 Dec 2025",
-    },
-    {
-        id: 2,
-        title: "New Admissions Open",
-        desc: "Admissions now open for DCA, ADCA, Tally, Web Development and Software Development programs.",
-        date: "2025-01-01",
-        label: "Ongoing",
-    },
-    {
-        id: 3,
-        title: "GSDM Certificate Update",
-        desc: "GSDM certificates for selected students have started generating and are available for verification.",
-        date: "2025-02-01",
-        label: "Latest",
-    },
-];
+export default async function Notices() {
+    const notices = await getNotices();
 
-export default function Notices() {
     return (
-        <section
-            className="bg-gray-50"
-            aria-labelledby="notices-heading"
-        >
-            <div className="max-w-7xl mx-auto px-6 md:px-12 py-20">
+        <section className="bg-gray-50 py-24">
+            <div className="max-w-7xl mx-auto px-6">
 
-                {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
 
                     <div>
-                        <h2
-                            id="notices-heading"
-                            className="text-3xl md:text-4xl font-semibold tracking-tight text-gray-900"
-                        >
-                            Latest Notices & Updates
+                        <h2 className="text-3xl md:text-4xl font-semibold text-gray-900">
+                            Latest Notices
                         </h2>
 
-                        <p className="mt-3 text-gray-600 text-base md:text-lg">
-                            Important announcements, admission updates and official academy notices.
+                        <p className="mt-3 text-gray-600">
+                            Stay updated with important announcements and official updates.
                         </p>
                     </div>
 
@@ -52,27 +24,23 @@ export default function Notices() {
                         href="/notices"
                         className="text-sm font-medium text-black hover:underline"
                     >
-                        View All Notices →
+                        View All →
                     </Link>
 
                 </div>
 
-                {/* Grid */}
-                <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+                <div className="mt-14 grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
 
-                    {notices.map((notice) => (
+                    {notices.slice(0, 3).map((notice) => (
                         <article
-                            key={notice.id}
-                            className="bg-white border border-gray-100 rounded-2xl p-8 hover:shadow-md transition"
+                            key={notice._id}
+                            className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition"
                         >
-                            <time
-                                dateTime={notice.date}
-                                className="text-xs font-medium text-gray-500"
-                            >
+                            <span className="text-xs font-medium bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
                                 {notice.label}
-                            </time>
+                            </span>
 
-                            <h3 className="mt-3 text-lg font-semibold text-gray-900">
+                            <h3 className="mt-4 text-lg font-semibold text-gray-900">
                                 {notice.title}
                             </h3>
 
@@ -90,7 +58,6 @@ export default function Notices() {
                     ))}
 
                 </div>
-
             </div>
         </section>
     );
