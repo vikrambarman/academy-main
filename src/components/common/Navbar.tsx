@@ -51,13 +51,14 @@ export default function Navbar() {
                 setNoticeCount(data.data?.length || 0);
             } catch { }
         };
-
         fetchNoticeCount();
     }, []);
 
     return (
         <header
-            className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? "bg-white shadow-md" : "bg-white/90 backdrop-blur"
+            className={`sticky top-0 z-30 transition-all duration-300 ${scrolled
+                    ? "bg-white shadow-md"
+                    : "bg-white/90 backdrop-blur"
                 }`}
         >
             <div className="max-w-7xl mx-auto px-4 md:px-12 h-16 flex items-center justify-between">
@@ -129,14 +130,14 @@ export default function Navbar() {
             {/* Mobile Overlay */}
             {mobileOpen && (
                 <div
-                    className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+                    className="fixed inset-0 bg-black/40 z-[60] lg:hidden"
                     onClick={closeMobile}
                 />
             )}
 
             {/* Mobile Drawer */}
             <div
-                className={`fixed top-0 left-0 h-full w-80 bg-white z-50 shadow-xl transform transition-transform duration-300 lg:hidden ${mobileOpen ? "translate-x-0" : "-translate-x-full"
+                className={`fixed top-0 left-0 h-full w-80 bg-white z-[70] shadow-xl transform transition-transform duration-300 lg:hidden ${mobileOpen ? "translate-x-0" : "-translate-x-full"
                     }`}
             >
                 {/* Drawer Header */}
@@ -177,17 +178,13 @@ export default function Navbar() {
 
                         {mobileAccordion === "academy" && (
                             <div className="mt-2 pl-4 flex flex-col gap-3 text-gray-600">
-                                <Link href="/about" className="block" onClick={closeMobile}>
+                                <Link href="/about" onClick={closeMobile}>
                                     About
                                 </Link>
-                                <Link
-                                    href="/accreditations"
-                                    className="block"
-                                    onClick={closeMobile}
-                                >
+                                <Link href="/accreditations" onClick={closeMobile}>
                                     Accreditations
                                 </Link>
-                                <Link href="/gallery" className="block" onClick={closeMobile}>
+                                <Link href="/gallery" onClick={closeMobile}>
                                     Gallery
                                 </Link>
                             </div>
@@ -214,17 +211,13 @@ export default function Navbar() {
 
                         {mobileAccordion === "resources" && (
                             <div className="mt-2 pl-4 flex flex-col gap-3 text-gray-600">
-                                <Link href="/notices" className="block" onClick={closeMobile}>
+                                <Link href="/notices" onClick={closeMobile}>
                                     Notices
                                 </Link>
-                                <Link href="/faq" className="block" onClick={closeMobile}>
+                                <Link href="/faq" onClick={closeMobile}>
                                     FAQ
                                 </Link>
-                                <Link
-                                    href="/verify-certificate"
-                                    className="block"
-                                    onClick={closeMobile}
-                                >
+                                <Link href="/verify-certificate" onClick={closeMobile}>
                                     Verify Certificate
                                 </Link>
                             </div>

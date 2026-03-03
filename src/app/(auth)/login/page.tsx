@@ -103,7 +103,6 @@ export default function LoginPage() {
 
 
             {/* RIGHT LOGIN SIDE */}
-            {/* RIGHT LOGIN SIDE */}
             <div className="flex items-center justify-center px-6">
 
                 <div className="w-full max-w-md bg-white border border-slate-200 rounded-xl shadow-sm p-8">
