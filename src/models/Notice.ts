@@ -1,9 +1,7 @@
 /**
  * Notice Model (Production Ready Version)
  */
-
 import mongoose, { Schema, Document, Model } from "mongoose";
-
 /**
  * Notice Interface
  */
