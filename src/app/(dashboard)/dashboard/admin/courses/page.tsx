@@ -122,7 +122,7 @@ export default function AdminCourses() {
 
             const method = editId ? "PUT" : "POST";
 
-            await fetchWithAuth("/api/courses", {
+            await fetchWithAuth("/api/admin/courses", {
                 method,
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -179,7 +179,7 @@ export default function AdminCourses() {
     const handleDelete = async (id: string) => {
         if (!confirm("Are you sure?")) return;
 
-        await fetchWithAuth(`/api/courses?id=${id}`, {
+        await fetchWithAuth(`/api/admin/courses?id=${id}`, {
             method: "DELETE",
         });
 
@@ -189,7 +189,7 @@ export default function AdminCourses() {
     // ---------- TOGGLE ACTIVE ----------
 
     const toggleActive = async (course: any) => {
-        await fetchWithAuth("/api/courses", {
+        await fetchWithAuth("/api/admin/courses", {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
