@@ -2,7 +2,7 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import {
     LayoutDashboard,
     User,
@@ -13,6 +13,7 @@ import {
     Menu,
     Sun,
     Moon,
+    Bell,
 } from "lucide-react";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import AuthGuard from "@/components/AuthGaurd";
@@ -55,6 +56,11 @@ const menuSections: {
                     href: "/dashboard/student/profile",
                     icon: User,
                 },
+                {
+                    name: "Notices",
+                    href: "/dashboard/student/notices",
+                    icon: FileText,
+                },
             ],
         },
         {
@@ -93,15 +99,39 @@ export default function StudentLayout({
                 const res = await fetchWithAuth("/api/student/me");
                 const data = await res.json();
                 setStudent(data);
-            } catch (error) {
+            } catch {
                 console.error("Failed to load student");
             }
         };
-
         loadStudent();
     }, []);
 
-    /* ================= OUTSIDE CLICK CLOSE ================= */
+    /* ================= DARK MODE SAFE ================= */
+
+    useEffect(() => {
+        const storedTheme = localStorage.getItem("theme");
+        if (storedTheme === "dark") {
+            document.documentElement.classList.add("dark");
+            setDarkMode(true);
+        }
+    }, []);
+
+    const toggleDarkMode = () => {
+        const isDark =
+            document.documentElement.classList.contains("dark");
+
+        if (isDark) {
+            document.documentElement.classList.remove("dark");
+            localStorage.setItem("theme", "light");
+            setDarkMode(false);
+        } else {
+            document.documentElement.classList.add("dark");
+            localStorage.setItem("theme", "dark");
+            setDarkMode(true);
+        }
+    };
+
+    /* ================= OUTSIDE CLICK ================= */
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -114,29 +144,33 @@ export default function StudentLayout({
         };
 
         document.addEventListener("mousedown", handleClickOutside);
-        return () => {
+        return () =>
             document.removeEventListener("mousedown", handleClickOutside);
-        };
     }, []);
 
-    /* ================= HANDLERS ================= */
+    /* ================= PAGE TITLE FIX ================= */
+
+    const currentPageTitle = useMemo(() => {
+        const allItems = menuSections.flatMap((section) =>
+            section.items.filter((item) => item.href)
+        );
+
+        const matched = allItems.find((item) =>
+            pathname?.startsWith(item.href as string)
+        );
+
+        return matched?.name || "Student Portal";
+    }, [pathname]);
+
+    /* ================= LOGOUT ================= */
 
     const handleLogout = async () => {
-        try {
-            await fetch("/api/auth/logout", {
-                method: "POST",
-                credentials: "include",
-            });
+        await fetch("/api/auth/logout", {
+            method: "POST",
+            credentials: "include",
+        });
 
-            router.replace("/login");
-        } catch (error) {
-            console.error("Logout failed");
-        }
-    };
-
-    const toggleDarkMode = () => {
-        document.documentElement.classList.toggle("dark");
-        setDarkMode(!darkMode);
+        router.replace("/login");
     };
 
     const feesDue =
@@ -148,7 +182,6 @@ export default function StudentLayout({
         <AuthGuard>
             <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
 
-                {/* ================= MOBILE OVERLAY ================= */}
                 {mobileOpen && (
                     <div
                         onClick={() => setMobileOpen(false)}
@@ -156,13 +189,13 @@ export default function StudentLayout({
                     />
                 )}
 
-                {/* ================= SIDEBAR ================= */}
+                {/* SIDEBAR */}
                 <aside
                     className={`fixed lg:static z-50 top-0 left-0 h-full 
-          bg-white dark:bg-gray-800 shadow-xl transition-all duration-300
-          ${sidebarOpen ? "w-64" : "w-20"}
-          ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-          `}
+                    bg-white dark:bg-gray-800 shadow-xl transition-all duration-300
+                    ${sidebarOpen ? "w-64" : "w-20"}
+                    ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+                    `}
                 >
                     <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
                         <h2 className="font-bold text-lg dark:text-white">
@@ -178,7 +211,6 @@ export default function StudentLayout({
                     </div>
 
                     <nav className="p-4 space-y-6">
-
                         {menuSections.map((section) => (
                             <div key={section.title}>
                                 {sidebarOpen && (
@@ -191,7 +223,8 @@ export default function StudentLayout({
                                     {section.items.map((item) => {
                                         const Icon = item.icon;
                                         const active =
-                                            item.href && pathname === item.href;
+                                            item.href &&
+                                            pathname?.startsWith(item.href);
 
                                         if (item.disabled) {
                                             return (
@@ -210,7 +243,7 @@ export default function StudentLayout({
                                                 key={item.name}
                                                 href={item.href!}
                                                 className={`flex items-center gap-3 px-3 py-2 rounded-lg transition
-                        ${active
+                                                ${active
                                                         ? "bg-indigo-600 text-white"
                                                         : "hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300"
                                                     }`}
@@ -223,16 +256,14 @@ export default function StudentLayout({
                                 </div>
                             </div>
                         ))}
-
                     </nav>
                 </aside>
 
-                {/* ================= MAIN ================= */}
+                {/* MAIN */}
                 <div className="flex-1 flex flex-col overflow-hidden">
 
-                    {/* ================= TOPBAR ================= */}
+                    {/* TOPBAR */}
                     <header className="bg-white dark:bg-gray-800 shadow-sm px-6 py-4 flex justify-between items-center">
-
                         <div className="flex items-center gap-4">
                             <button
                                 onClick={() => setMobileOpen(true)}
@@ -242,13 +273,18 @@ export default function StudentLayout({
                             </button>
 
                             <h1 className="text-lg font-semibold dark:text-white">
-                                Student Dashboard
+                                {currentPageTitle}
                             </h1>
                         </div>
 
                         <div className="flex items-center gap-4">
 
-                            {/* Dark Mode Toggle */}
+                            {/* Bell Placeholder */}
+                            <button className="relative p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                                <Bell size={18} />
+                            </button>
+
+                            {/* Dark Mode */}
                             <button
                                 onClick={toggleDarkMode}
                                 className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -256,11 +292,11 @@ export default function StudentLayout({
                                 {darkMode ? <Sun size={18} /> : <Moon size={18} />}
                             </button>
 
-                            {/* Profile Dropdown */}
+                            {/* Profile */}
                             <div className="relative" ref={profileRef}>
                                 <button
                                     onClick={() => setProfileOpen(!profileOpen)}
-                                    className="flex items-center gap-2 bg-gray-200 dark:bg-gray-700 px-3 py-2 rounded-md text-sm dark:text-white hover:opacity-90 transition"
+                                    className="flex items-center gap-2 bg-gray-200 dark:bg-gray-700 px-3 py-2 rounded-md text-sm dark:text-white"
                                 >
                                     <div className="w-8 h-8 bg-indigo-600 text-white flex items-center justify-center rounded-full text-xs font-semibold">
                                         {student?.name?.charAt(0) ?? "S"}
@@ -270,21 +306,11 @@ export default function StudentLayout({
 
                                 {profileOpen && (
                                     <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 shadow-xl rounded-lg py-2 z-50">
-
                                         <Link
                                             href="/dashboard/student/profile"
                                             className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
-                                            onClick={() => setProfileOpen(false)}
                                         >
                                             View Profile
-                                        </Link>
-
-                                        <Link
-                                            href="/change-password"
-                                            className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
-                                            onClick={() => setProfileOpen(false)}
-                                        >
-                                            Change Password
                                         </Link>
 
                                         <button
@@ -294,15 +320,13 @@ export default function StudentLayout({
                                             <LogOut size={16} />
                                             Logout
                                         </button>
-
                                     </div>
                                 )}
                             </div>
-
                         </div>
                     </header>
 
-                    {/* ================= QUICK INFO STRIP ================= */}
+                    {/* INFO STRIP */}
                     {student && (
                         <div className="bg-indigo-50 dark:bg-indigo-900/30 px-6 py-3 flex flex-wrap justify-between text-sm dark:text-gray-200">
                             <div>
@@ -328,11 +352,10 @@ export default function StudentLayout({
                         </div>
                     )}
 
-                    {/* ================= PAGE CONTENT ================= */}
-                    <main className="flex-1 overflow-y-auto p-6 bg-blue-300 dark:bg-white-900">
+                    {/* CONTENT */}
+                    <main className="flex-1 overflow-y-auto p-8 bg-gray-100 dark:bg-gray-950 transition-colors duration-200">
                         {children}
                     </main>
-
                 </div>
             </div>
         </AuthGuard>

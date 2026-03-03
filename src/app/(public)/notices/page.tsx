@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Script from "next/script";
+import { connectDB } from "@/lib/db";
+import Notice from "@/models/Notice";
 
 /* ---------------------------------------
    SEO Metadata
@@ -15,33 +17,33 @@ export const metadata: Metadata = {
 };
 
 /* ---------------------------------------
-   Temporary Fetch Function (Dynamic Ready)
+   Fetch Notices (Direct DB - Next 16)
 ---------------------------------------- */
 async function getNotices() {
-    // Later replace with DB fetch
-    return [
-        {
-            id: "1",
-            title: "New DCA Batch Starting March 2026",
-            slug: "new-dca-batch-march-2026",
-            excerpt:
-                "Admissions open for DCA course in Ambikapur. Limited seats available.",
-            date: "March 5, 2026",
-            category: "Admissions",
-        },
-        {
-            id: "2",
-            title: "PGDCA Exam Form Submission Notice",
-            slug: "pgdca-exam-form-notice",
-            excerpt:
-                "All PGDCA students must submit exam forms before 25th March.",
-            date: "March 1, 2026",
-            category: "Examination",
-        },
-    ];
+    try {
+        await connectDB();
+
+        const notices = await Notice.find({
+            isActive: true,
+            isPublished: true,
+        })
+            .sort({ createdAt: -1 })
+            .select("-content")
+            .lean();
+
+        return JSON.parse(JSON.stringify(notices));
+
+    } catch (error) {
+        console.error("DB FETCH ERROR:", error);
+        return [];
+    }
 }
 
+/* ---------------------------------------
+   Page Component
+---------------------------------------- */
 export default async function NoticesPage() {
+
     const notices = await getNotices();
 
     return (
@@ -54,7 +56,7 @@ export default async function NoticesPage() {
                     __html: JSON.stringify({
                         "@context": "https://schema.org",
                         "@type": "ItemList",
-                        itemListElement: notices.map((notice, index) => ({
+                        itemListElement: notices.map((notice: any, index: number) => ({
                             "@type": "ListItem",
                             position: index + 1,
                             url: `https://www.shivshakticomputer.in/notices/${notice.slug}`,
@@ -73,12 +75,11 @@ export default async function NoticesPage() {
                             Latest Notices & Announcements
                         </h1>
                         <p className="mt-6 text-gray-600">
-                            Stay updated with admission notices, exam schedules and important
-                            updates from Shivshakti Computer Academy Ambikapur.
+                            Stay updated with admission notices, exam schedules and important updates.
                         </p>
                     </div>
 
-                    {/* Notice Cards */}
+                    {/* Notices */}
                     <div className="mt-16 space-y-8">
 
                         {notices.length === 0 && (
@@ -87,16 +88,21 @@ export default async function NoticesPage() {
                             </p>
                         )}
 
-                        {notices.map((notice) => (
+                        {notices.map((notice: any) => (
                             <div
-                                key={notice.id}
+                                key={notice._id}
                                 className="bg-gray-50 border border-gray-100 rounded-2xl p-8 hover:shadow-lg transition"
                             >
-                                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-                                    <span>{notice.date}</span>
-                                    <span className="bg-black text-white px-3 py-1 rounded-full text-xs">
-                                        {notice.category}
+                                <div className="flex items-center gap-4 text-sm text-gray-500">
+                                    <span>
+                                        {new Date(notice.createdAt).toDateString()}
                                     </span>
+
+                                    {notice.category && (
+                                        <span className="bg-black text-white px-3 py-1 rounded-full text-xs">
+                                            {notice.category}
+                                        </span>
+                                    )}
                                 </div>
 
                                 <h2 className="mt-4 text-2xl font-semibold text-gray-900">
@@ -115,7 +121,6 @@ export default async function NoticesPage() {
                                 </Link>
                             </div>
                         ))}
-
                     </div>
                 </div>
             </section>

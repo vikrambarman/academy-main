@@ -43,6 +43,21 @@ const menuSections = [
                 href: "/dashboard/admin/courses",
                 icon: BookOpen,
             },
+            {
+                name: "Notices",
+                href: "/dashboard/admin/notices",
+                icon: FileText,
+            },
+            {
+                name: "Enquiries",
+                href: "/dashboard/admin/enquiries",
+                icon: BarChart3,
+            },
+            {
+                name: "Contacts",
+                href: "/dashboard/admin/contacts",
+                icon: Users,
+            },
         ],
     },
     {

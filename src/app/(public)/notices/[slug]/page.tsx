@@ -1,29 +1,36 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Script from "next/script";
+import { connectDB } from "@/lib/db";
+import Notice from "@/models/Notice";
 
 /* ---------------------------------------
-   Fetch Notice (Dynamic Ready)
+   Fetch Single Notice
 ---------------------------------------- */
 async function getNotice(slug: string) {
-    const notices = [
-        {
-            title: "New DCA Batch Starting March 2026",
-            slug: "new-dca-batch-march-2026",
-            content:
-                "Admissions are now open for the DCA course at Shivshakti Computer Academy Ambikapur. Interested students can visit the institute or contact via phone or WhatsApp.",
-            date: "March 5, 2026",
-        },
-        {
-            title: "PGDCA Exam Form Submission Notice",
-            slug: "pgdca-exam-form-notice",
-            content:
-                "All PGDCA students must submit their exam forms before 25th March at the institute office during working hours.",
-            date: "March 1, 2026",
-        },
-    ];
+    try {
+        await connectDB();
 
-    return notices.find((n) => n.slug === slug);
+        const notice = await Notice.findOne({
+            slug,
+            isActive: true,
+            isPublished: true,
+        }).lean();
+
+        if (!notice) return null;
+
+        // Increase views safely
+        await Notice.updateOne(
+            { _id: notice._id },
+            { $inc: { views: 1 } }
+        );
+
+        return JSON.parse(JSON.stringify(notice));
+
+    } catch (error) {
+        console.error("DB FETCH ERROR:", error);
+        return null;
+    }
 }
 
 /* ---------------------------------------
@@ -51,20 +58,23 @@ export async function generateMetadata({
     };
 }
 
+/* ---------------------------------------
+   Page Component
+---------------------------------------- */
 export default async function NoticeDetail({
     params,
 }: {
     params: Promise<{ slug: string }>;
 }) {
-    const { slug } = await params;
 
+    const { slug } = await params;
     const notice = await getNotice(slug);
 
     if (!notice) return notFound();
 
     return (
         <>
-            {/* Structured Article Schema */}
+            {/* Article Schema */}
             <Script
                 id="notice-schema"
                 type="application/ld+json"
@@ -73,7 +83,7 @@ export default async function NoticeDetail({
                         "@context": "https://schema.org",
                         "@type": "Article",
                         headline: notice.title,
-                        datePublished: notice.date,
+                        datePublished: notice.createdAt,
                         author: {
                             "@type": "Organization",
                             name: "Shivshakti Computer Academy",
@@ -86,14 +96,14 @@ export default async function NoticeDetail({
                 <div className="max-w-3xl mx-auto px-6">
 
                     <p className="text-sm text-gray-500">
-                        {notice.date}
+                        {new Date(notice.createdAt).toDateString()}
                     </p>
 
                     <h1 className="mt-4 text-4xl font-bold text-gray-900">
                         {notice.title}
                     </h1>
 
-                    <div className="mt-8 text-gray-700 leading-relaxed text-lg">
+                    <div className="mt-8 text-gray-700 leading-relaxed text-lg whitespace-pre-line">
                         {notice.content}
                     </div>
 
