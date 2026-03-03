@@ -61,7 +61,7 @@ export default function AboutPage() {
 
                     <div className="relative">
                         <Image
-                            src="/gallery/classrooms/classroom1.jpg"
+                            src="/about.png"
                             alt="Students learning practical computer training"
                             width={650}
                             height={500}
