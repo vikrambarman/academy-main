@@ -10,48 +10,39 @@ import TrustSection from "@/app/(public)/home/TrustSection";
 import VisitUs from "@/app/(public)/home/VisitUs";
 import WhyChooseUs from "@/app/(public)/home/WhyChooseUs";
 import type { Metadata } from "next";
-import Script from "next/script";
 
 
 export const metadata: Metadata = {
   title:
-    "Best Computer Institute & Training Center in Ambikapur",
+    "Best Computer Training Institute in Ambikapur | DCA, PGDCA, Tally, ADCA, Typing, Web & App Development Courses",
   description:
-    "Shivshakti Computer Academy is a leading computer training institute in Ambikapur offering professional computer courses and career-focused certifications.",
+    "Shivshakti Computer Academy is the best computer institute in Ambikapur, Surguja offering DCA, PGDCA, ADCA, Tally, CCC, Typing, Web Development, App Development, Software Development, Programmings, Networking, Linux, Cloud Computing and professional computer courses with government-recognized certifications.",
+  alternates: {
+    canonical: "https://www.shivshakticomputer.in",
+  },
+  openGraph: {
+    title:
+      "Best Computer Institute in Ambikapur | Shivshakti Computer Academy",
+    description:
+      "Join Shivshakti Computer Academy in Ambikapur for DCA, PGDCA, ADCA, Tally and job-oriented computer training programs.",
+    url: "https://www.shivshakticomputer.in",
+  },
 };
 
 export default function HomePage() {
   return (
     <>
-      {/* Structured Data */}
-      <Script
-        id="local-business-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "EducationalOrganization",
-            name: "Shivshakti Computer Academy",
-            url: "https://www.shivshakticomputer.in",
-            logo: "https://www.shivshakticomputer.in/logo.png",
-            areaServed: {
-              "@type": "Place",
-              name: "Ambikapur",
-            },
-          }),
-        }}
-      />
       <HeroSection />
-      <TrustSection/>
-      <CoursesPreview/>
-      <HowItWorks/>
-      <PartnersAndCertifications/>
-      <WhyChooseUs/>
-      <StudentReviews/>
-      <VisitUs/>
-      <Notices/>
-      <FAQSection/>
-      <HomeCTA/>
+      <TrustSection />
+      <CoursesPreview />
+      <HowItWorks />
+      <PartnersAndCertifications />
+      <WhyChooseUs />
+      <StudentReviews />
+      <VisitUs />
+      <Notices />
+      <FAQSection />
+      <HomeCTA />
     </>
   );
 }

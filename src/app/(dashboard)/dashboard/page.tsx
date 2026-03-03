@@ -1,6 +1,10 @@
 import { redirect } from "next/navigation";
 import { verifyUser } from "@/lib/verifyUser";
 
+export const metadata = {
+    robots: "noindex, nofollow",
+};
+
 export default async function DashboardRoot() {
     const user: any = await verifyUser();
 

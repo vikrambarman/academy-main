@@ -12,9 +12,9 @@ export default function PublicLayout({
         <>
             <TopBar />
             <Navbar />
-            {children}
+            <main>{children}</main>
             <Footer />
-            <FloatingWhatsapp/>
+            <FloatingWhatsapp />
         </>
     );
 }

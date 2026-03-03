@@ -15,24 +15,47 @@ export default function Footer() {
                             Shivshakti Computer Academy
                         </h3>
 
-                        <p className="mt-5 text-sm leading-relaxed text-gray-400">
-                            Government-recognized computer training institute in Ambikapur,
-                            delivering practical education, verified certifications and
-                            career-oriented digital skill programs.
+                        <p className="mt-5 text-sm leading-relaxed">
+                            Leading computer training institute in Ambikapur, Surguja,
+                            offering DCA, PGDCA, ADCA, Tally, CCC and government-recognized
+                            certification programs.
                         </p>
 
-                        {/* Contact Inline */}
+                        {/* Contact Numbers */}
                         <div className="mt-6 space-y-3 text-sm">
+
+                            {/* Call */}
                             <div className="flex items-center gap-2">
                                 <Phone size={14} />
-                                <a href="tel:+917477036832" className="hover:text-white transition">
-                                    +91 7477036832
+                                <a
+                                    href="tel:+917477036832"
+                                    className="hover:text-white transition"
+                                >
+                                    Call: +91 7477036832
                                 </a>
                             </div>
 
+                            {/* WhatsApp */}
+                            <div className="flex items-center gap-2">
+                                <Phone size={14} />
+                                <a
+                                    href="https://wa.me/919009087883"
+                                    target="_blank"
+                                    className="hover:text-white transition"
+                                >
+                                    WhatsApp: +91 9009087883
+                                </a>
+                            </div>
+
+                            {/* Email */}
                             <div className="flex items-center gap-2">
                                 <Mail size={14} />
-                                <span>shivshakticomputeracademy25@gmail.com</span>
+                                <a
+                                    href="mailto:shivshakticomputeracademy25@gmail.com"
+                                    className="hover:text-white transition"
+                                >
+                                    shivshakticomputeracademy25@gmail.com
+                                </a>
                             </div>
                         </div>
 
@@ -56,39 +79,42 @@ export default function Footer() {
                             Quick Links
                         </h4>
                         <ul className="space-y-4 text-sm">
-                            <li><Link href="/courses" className="hover:text-white transition">Courses</Link></li>
+                            <li><Link href="/courses" className="hover:text-white transition">Computer Courses in Ambikapur</Link></li>
                             <li><Link href="/gallery" className="hover:text-white transition">Gallery</Link></li>
                             <li><Link href="/accreditations" className="hover:text-white transition">Accreditations</Link></li>
-                            <li><Link href="/notices" className="hover:text-white transition">Notices</Link></li>
-                            <li><Link href="/contact" className="hover:text-white transition">Contact</Link></li>
+                            <li><Link href="/notices" className="hover:text-white transition">Latest Notices</Link></li>
+                            <li><Link href="/contact" className="hover:text-white transition">Contact Institute</Link></li>
                         </ul>
                     </div>
 
                     {/* Resources */}
                     <div>
                         <h4 className="text-white font-semibold mb-6 tracking-wide">
-                            Resources
+                            Student Resources
                         </h4>
                         <ul className="space-y-4 text-sm">
-                            <li><Link href="/verify-certificate" className="hover:text-white transition">Verify Certificate</Link></li>
-                            <li><Link href="/faq" className="hover:text-white transition">FAQ</Link></li>
+                            <li><Link href="/verify-certificate" className="hover:text-white transition">Verify Certificate Online</Link></li>
+                            <li><Link href="/faq" className="hover:text-white transition">FAQs</Link></li>
                             <li><Link href="/student-login" className="hover:text-white transition">Student Login</Link></li>
-                            <li><Link href="/admin-login" className="hover:text-white transition">Admin Login</Link></li>
+                            <li><Link href="/admin-login" className="hover:text-white transition">Admin Portal</Link></li>
                         </ul>
                     </div>
 
-                    {/* Location */}
+                    {/* Location Structured */}
                     <div>
                         <h4 className="text-white font-semibold mb-6 tracking-wide">
-                            Our Location
+                            Our Address
                         </h4>
 
-                        <p className="text-sm leading-relaxed">
-                            📍 1st floor above Usha Matching Center, Near Babra Petrol Pump, <br />
-                            Banaras Road, Phunderdihari <br />
-                            Ambikapur, Surguja, Chhattisgarh - 497001
-                            <br />Mon–Sat 8AM–6PM
-                        </p>
+                        <address className="not-italic text-sm leading-relaxed">
+                            <strong>Shivshakti Computer Academy</strong><br />
+                            1st Floor, Above Usha Matching Center<br />
+                            Near Babra Petrol Pump<br />
+                            Banaras Road, Phunderdihari<br />
+                            Ambikapur, Dist: Surguja<br />
+                            Chhattisgarh – 497001, India<br />
+                            Mon–Sat: 8AM – 6PM
+                        </address>
 
                         <Link
                             href="/enquiry"
@@ -106,7 +132,7 @@ export default function Footer() {
                     <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-sm">
 
                         <p className="text-gray-500 text-center md:text-left">
-                            © {new Date().getFullYear()} Shivshakti Computer Academy. All rights reserved.
+                            © {new Date().getFullYear()} Shivshakti Computer Academy, Ambikapur. All rights reserved.
                         </p>
 
                         <div className="flex gap-6 text-gray-500">

@@ -1,86 +1,104 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Link from "next/link";
-import { getNoticeById } from "@/lib/notices";
+import Script from "next/script";
 
-type Props = {
-    params: {
-        id: string;
-    };
-};
+/* ---------------------------------------
+   Fetch Notice (Dynamic Ready)
+---------------------------------------- */
+async function getNotice(slug: string) {
+    const notices = [
+        {
+            title: "New DCA Batch Starting March 2026",
+            slug: "new-dca-batch-march-2026",
+            content:
+                "Admissions are now open for the DCA course at Shivshakti Computer Academy Ambikapur. Interested students can visit the institute or contact via phone or WhatsApp.",
+            date: "March 5, 2026",
+        },
+        {
+            title: "PGDCA Exam Form Submission Notice",
+            slug: "pgdca-exam-form-notice",
+            content:
+                "All PGDCA students must submit their exam forms before 25th March at the institute office during working hours.",
+            date: "March 1, 2026",
+        },
+    ];
 
-export default async function NoticeDetailPage({ params }: Props) {
-    const notice = await getNoticeById(params.id);
+    return notices.find((n) => n.slug === slug);
+}
+
+/* ---------------------------------------
+   Dynamic Metadata
+---------------------------------------- */
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+
+    const { slug } = await params;
+    const notice = await getNotice(slug);
 
     if (!notice) {
-        return notFound();
+        return { title: "Notice Not Found" };
     }
 
+    return {
+        title: `${notice.title} | Shivshakti Computer Academy`,
+        description: notice.content.slice(0, 150),
+        alternates: {
+            canonical: `https://www.shivshakticomputer.in/notices/${notice.slug}`,
+        },
+    };
+}
+
+export default async function NoticeDetail({
+    params,
+}: {
+    params: Promise<{ slug: string }>;
+}) {
+    const { slug } = await params;
+
+    const notice = await getNotice(slug);
+
+    if (!notice) return notFound();
+
     return (
-        <section className="bg-gradient-to-b from-white to-gray-50 min-h-screen py-28">
-            <div className="max-w-4xl mx-auto px-6">
+        <>
+            {/* Structured Article Schema */}
+            <Script
+                id="notice-schema"
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                    __html: JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "Article",
+                        headline: notice.title,
+                        datePublished: notice.date,
+                        author: {
+                            "@type": "Organization",
+                            name: "Shivshakti Computer Academy",
+                        },
+                    }),
+                }}
+            />
 
-                {/* Back Link */}
-                <Link
-                    href="/notices"
-                    className="text-sm font-medium text-gray-600 hover:underline"
-                >
-                    ← Back to Notices
-                </Link>
+            <section className="bg-white min-h-screen py-24">
+                <div className="max-w-3xl mx-auto px-6">
 
-                {/* Header */}
-                <div className="mt-8">
+                    <p className="text-sm text-gray-500">
+                        {notice.date}
+                    </p>
 
-                    <span className="text-xs font-medium bg-gray-100 text-gray-600 px-4 py-1 rounded-full">
-                        {notice.label}
-                    </span>
-
-                    <h1 className="mt-6 text-3xl md:text-4xl font-semibold text-gray-900 leading-snug">
+                    <h1 className="mt-4 text-4xl font-bold text-gray-900">
                         {notice.title}
                     </h1>
 
-                    <div className="mt-6 w-20 h-1 bg-black rounded-full"></div>
+                    <div className="mt-8 text-gray-700 leading-relaxed text-lg">
+                        {notice.content}
+                    </div>
 
                 </div>
-
-                {/* Content */}
-                <div className="mt-10 text-gray-700 leading-relaxed space-y-6 text-base">
-                    <p>
-                        {notice.desc}
-                    </p>
-
-                    {/* Future: Full HTML content can go here */}
-                    <p>
-                        This notice was officially released by Shivshakti Computer Academy.
-                        Students are advised to follow the instructions carefully and stay
-                        updated through official communication channels.
-                    </p>
-
-                    <p>
-                        For further clarification, students may contact the academy office
-                        during working hours.
-                    </p>
-                </div>
-
-                {/* CTA Section */}
-                <div className="mt-14 border-t pt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-
-                    <Link
-                        href="/contact"
-                        className="px-6 py-3 bg-black text-white rounded-xl text-sm font-medium hover:bg-gray-800 transition text-center"
-                    >
-                        Contact Academy
-                    </Link>
-
-                    <Link
-                        href="/notices"
-                        className="text-sm font-medium text-black hover:underline text-center"
-                    >
-                        View All Notices →
-                    </Link>
-
-                </div>
-
-            </div>
-        </section>
+            </section>
+        </>
     );
 }
