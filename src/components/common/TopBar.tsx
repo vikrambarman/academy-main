@@ -19,7 +19,6 @@ export default function TopBar() {
                         Admin
                     </Link>
                 </div>
-
             </div>
         </div>
     );
