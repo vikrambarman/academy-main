@@ -4,6 +4,8 @@ import Script from "next/script";
 import { connectDB } from "@/lib/db";
 import Notice from "@/models/Notice";
 
+export const revalidate = 30;
+
 /* ---------------------------------------
    Fetch Single Notice
 ---------------------------------------- */

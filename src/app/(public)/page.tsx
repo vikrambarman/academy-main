@@ -11,6 +11,8 @@ import VisitUs from "@/app/(public)/home/VisitUs";
 import WhyChooseUs from "@/app/(public)/home/WhyChooseUs";
 import type { Metadata } from "next";
 
+export const revalidate = 30;
+
 
 export const metadata: Metadata = {
   title:
