@@ -5,30 +5,125 @@ import { fetchWithAuth } from "@/lib/fetchWithAuth";
 
 export default function StudentProfile() {
     const [student, setStudent] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
 
     useEffect(() => {
         const loadProfile = async () => {
-            const res = await fetchWithAuth("/api/student/me");
-            const data = await res.json();
-            setStudent(data);
+            try {
+                const res = await fetchWithAuth("/api/student/me");
+
+                if (!res.ok) {
+                    throw new Error("Unauthorized");
+                }
+
+                const data = await res.json();
+                setStudent(data);
+            } catch (err) {
+                console.error("Profile load error");
+                setError(true);
+            } finally {
+                setLoading(false);
+            }
         };
 
         loadProfile();
     }, []);
 
-    if (!student) return <p>Loading...</p>;
+    if (loading) {
+        return (
+            <div className="text-gray-500 animate-pulse">
+                Loading profile...
+            </div>
+        );
+    }
+
+    if (error || !student) {
+        return (
+            <div className="text-red-500">
+                Failed to load profile.
+            </div>
+        );
+    }
 
     return (
-        <div className="space-y-6">
-            <h1 className="text-2xl font-bold">My Profile</h1>
+        <div className="max-w-4xl space-y-8">
 
-            <div className="bg-white shadow rounded-lg p-6 space-y-3">
-                <p><strong>Name:</strong> {student.name}</p>
-                <p><strong>Email:</strong> {student.email}</p>
-                <p><strong>Phone:</strong> {student.phone}</p>
-                <p><strong>Student ID:</strong> {student.studentId}</p>
-                <p><strong>Course:</strong> {student.course.name}</p>
-                <p><strong>Duration:</strong> {student.course.duration}</p>
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
+                My Profile
+            </h1>
+
+            <div className="bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-8 space-y-6">
+
+                <div className="grid md:grid-cols-2 gap-6 text-sm">
+
+                    <div>
+                        <p className="text-gray-500">Full Name</p>
+                        <p className="font-semibold text-gray-800 dark:text-white">
+                            {student.name}
+                        </p>
+                    </div>
+
+                    <div>
+                        <p className="text-gray-500">Email</p>
+                        <p className="font-semibold text-gray-800 dark:text-white">
+                            {student.email}
+                        </p>
+                    </div>
+
+                    <div>
+                        <p className="text-gray-500">Phone</p>
+                        <p className="font-semibold text-gray-800 dark:text-white">
+                            {student.phone}
+                        </p>
+                    </div>
+
+                    <div>
+                        <p className="text-gray-500">Student ID</p>
+                        <p className="font-semibold text-gray-800 dark:text-white">
+                            {student.studentId}
+                        </p>
+                    </div>
+
+                </div>
+
+                {/* COURSE SECTION */}
+                {student.course && (
+                    <div className="border-t pt-6">
+
+                        <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
+                            Course Information
+                        </h2>
+
+                        <div className="grid md:grid-cols-2 gap-6 text-sm">
+
+                            <div>
+                                <p className="text-gray-500">Course Name</p>
+                                <p className="font-semibold text-gray-800 dark:text-white">
+                                    {student.course.name}
+                                </p>
+                            </div>
+
+                            <div>
+                                <p className="text-gray-500">Duration</p>
+                                <p className="font-semibold text-gray-800 dark:text-white">
+                                    {student.course.duration || "N/A"}
+                                </p>
+                            </div>
+
+                            {student.course.authority && (
+                                <div>
+                                    <p className="text-gray-500">Authority</p>
+                                    <p className="font-semibold text-gray-800 dark:text-white">
+                                        {student.course.authority}
+                                    </p>
+                                </div>
+                            )}
+
+                        </div>
+                    </div>
+                )}
+
             </div>
         </div>
     );

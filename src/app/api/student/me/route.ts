@@ -9,18 +9,21 @@ export async function GET() {
 
         const user: any = await verifyUser();
 
-        if (user.role !== "student") {
+        if (!user || user.role !== "student") {
             return NextResponse.json(
                 { message: "Unauthorized" },
                 { status: 403 }
             );
         }
 
-        const student = await Student.findOne({ user: user.id })
+        // IMPORTANT FIX HERE
+        const student = await Student.findOne({ user: user._id })
             .populate({
                 path: "course",
-                select: "name authority duration certificate verification externalPortalUrl externalLoginRequired",
-            });
+                select:
+                    "name authority duration certificate verification externalPortalUrl externalLoginRequired",
+            })
+            .lean();
 
         if (!student) {
             return NextResponse.json(
@@ -36,9 +39,12 @@ export async function GET() {
             );
         }
 
-        return NextResponse.json(student);
+        return NextResponse.json(
+            JSON.parse(JSON.stringify(student))
+        );
 
     } catch (error) {
+        console.error("STUDENT ME ERROR:", error);
         return NextResponse.json(
             { message: "Unauthorized" },
             { status: 401 }

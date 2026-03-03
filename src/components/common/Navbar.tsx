@@ -11,6 +11,7 @@ export default function Navbar() {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [mobileAccordion, setMobileAccordion] = useState<string | null>(null);
     const [scrolled, setScrolled] = useState(false);
+    const [noticeCount, setNoticeCount] = useState(0);
 
     const megaRef = useRef<HTMLDivElement>(null);
 
@@ -41,6 +42,18 @@ export default function Navbar() {
         setMobileOpen(false);
         setMobileAccordion(null);
     };
+
+    useEffect(() => {
+        const fetchNoticeCount = async () => {
+            try {
+                const res = await fetch("/api/public");
+                const data = await res.json();
+                setNoticeCount(data.data?.length || 0);
+            } catch { }
+        };
+
+        fetchNoticeCount();
+    }, []);
 
     return (
         <header
@@ -83,9 +96,15 @@ export default function Navbar() {
                                 activeDesktop === "resources" ? null : "resources"
                             )
                         }
-                        className="flex items-center gap-1"
+                        className="flex items-center gap-1 relative"
                     >
-                        Resources <ChevronDown size={16} />
+                        Resources
+                        {noticeCount > 0 && (
+                            <span className="ml-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                                {noticeCount}
+                            </span>
+                        )}
+                        <ChevronDown size={16} />
                     </button>
 
                     <Link href="/contact">Contact</Link>
