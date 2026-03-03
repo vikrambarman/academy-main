@@ -1,13 +1,18 @@
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
 export default function ResetPasswordPage() {
 
-    const searchParams = useSearchParams();
     const router = useRouter();
-    const token = searchParams.get("token");
+
+    const [token, setToken] = useState<string | null>(null);
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        setToken(params.get("token"));
+    }, []);
 
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -89,7 +94,6 @@ export default function ResetPasswordPage() {
 
                 <form onSubmit={handleSubmit} className="space-y-5">
 
-                    {/* New Password */}
                     <div>
                         <label className="text-sm text-slate-600">New Password</label>
                         <div className="relative">
@@ -100,7 +104,6 @@ export default function ResetPasswordPage() {
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
                             />
-
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
@@ -111,7 +114,6 @@ export default function ResetPasswordPage() {
                         </div>
                     </div>
 
-                    {/* Confirm Password */}
                     <div>
                         <label className="text-sm text-slate-600">Confirm Password</label>
                         <div className="relative">
@@ -122,7 +124,6 @@ export default function ResetPasswordPage() {
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 required
                             />
-
                             <button
                                 type="button"
                                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
@@ -157,7 +158,6 @@ export default function ResetPasswordPage() {
                 </p>
 
             </div>
-
         </div>
     );
 }

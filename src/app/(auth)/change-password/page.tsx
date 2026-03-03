@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
-export default function ChangePasswordPage() {
+/* ================= INNER COMPONENT ================= */
+
+function ChangePasswordInner() {
 
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -58,7 +60,6 @@ export default function ChangePasswordPage() {
 
             <div className="w-full max-w-md bg-white border border-slate-200 rounded-xl shadow-sm p-8">
 
-                {/* Header */}
                 <div className="text-center mb-8">
                     <img
                         src="/logo.png"
@@ -89,7 +90,6 @@ export default function ChangePasswordPage() {
 
                 <form onSubmit={handleSubmit} className="space-y-5">
 
-                    {/* Current Password */}
                     {!forced && (
                         <div>
                             <label className="text-sm text-slate-600">
@@ -114,7 +114,6 @@ export default function ChangePasswordPage() {
                         </div>
                     )}
 
-                    {/* New Password */}
                     <div>
                         <label className="text-sm text-slate-600">
                             New Password
@@ -166,7 +165,16 @@ export default function ChangePasswordPage() {
                 </p>
 
             </div>
-
         </div>
+    );
+}
+
+/* ================= WRAPPER WITH SUSPENSE ================= */
+
+export default function ChangePasswordPage() {
+    return (
+        <Suspense fallback={<div className="p-10 text-center">Loading...</div>}>
+            <ChangePasswordInner />
+        </Suspense>
     );
 }

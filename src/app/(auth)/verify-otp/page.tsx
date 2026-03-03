@@ -1,26 +1,33 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function VerifyOTPPage() {
-    const searchParams = useSearchParams();
+
     const router = useRouter();
-    const userId = searchParams.get("uid");
+
+    const [userId, setUserId] = useState<string | null>(null);
 
     const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
-    const [timeLeft, setTimeLeft] = useState(300); // 5 min
+    const [timeLeft, setTimeLeft] = useState(300);
 
     const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
-    // Redirect if no UID
+    /* ✅ Get UID safely on client only */
     useEffect(() => {
-        if (!userId) router.push("/login");
-    }, [userId]);
+        const params = new URLSearchParams(window.location.search);
+        const uid = params.get("uid");
+        setUserId(uid);
 
-    // Countdown Timer
+        if (!uid) {
+            router.push("/login");
+        }
+    }, []);
+
+    /* Countdown Timer */
     useEffect(() => {
         if (timeLeft <= 0) return;
         const timer = setInterval(() => {
@@ -63,6 +70,8 @@ export default function VerifyOTPPage() {
 
     const handleVerify = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!userId) return;
+
         setLoading(true);
         setError("");
 
@@ -78,7 +87,6 @@ export default function VerifyOTPPage() {
             });
 
             const data = await res.json();
-
             if (!res.ok) throw new Error(data.message);
 
             router.push("/dashboard/admin");
@@ -91,12 +99,15 @@ export default function VerifyOTPPage() {
     };
 
     const handleResend = async () => {
+        if (!userId) return;
+
         await fetch("/api/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
             body: JSON.stringify({ resend: true, userId }),
         });
+
         setTimeLeft(300);
     };
 
@@ -126,25 +137,16 @@ export default function VerifyOTPPage() {
 
                 <form onSubmit={handleVerify} className="space-y-6">
 
-                    <div
-                        className="flex justify-between gap-2"
-                        onPaste={handlePaste}
-                    >
+                    <div className="flex justify-between gap-2" onPaste={handlePaste}>
                         {otp.map((digit, index) => (
                             <input
                                 key={index}
-                                ref={(el) => {
-                                    inputsRef.current[index] = el;
-                                }}
+                                ref={(el) => { inputsRef.current[index] = el; }}
                                 type="text"
                                 maxLength={1}
                                 value={digit}
-                                onChange={(e) =>
-                                    handleChange(e.target.value, index)
-                                }
-                                onKeyDown={(e) =>
-                                    handleKeyDown(e, index)
-                                }
+                                onChange={(e) => handleChange(e.target.value, index)}
+                                onKeyDown={(e) => handleKeyDown(e, index)}
                                 className="w-12 h-12 text-center text-lg border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-900 transition"
                             />
                         ))}
