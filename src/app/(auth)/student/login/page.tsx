@@ -13,6 +13,10 @@ export default function StudentLoginPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
+    const [showForgotModal, setShowForgotModal] = useState(false);
+    const [forgotEmail, setForgotEmail] = useState("");
+    const [forgotLoading, setForgotLoading] = useState(false);
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -169,6 +173,20 @@ export default function StudentLoginPage() {
                             </div>
                         </div>
 
+                        {/* Forgot Password */}
+                        <div className="text-right mt-2">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setForgotEmail(email);
+                                    setShowForgotModal(true);
+                                }}
+                                className="text-sm text-indigo-600 hover:underline"
+                            >
+                                Forgot Password?
+                            </button>
+                        </div>
+
                         {/* LOGIN BUTTON */}
                         <button
                             type="submit"
@@ -190,6 +208,85 @@ export default function StudentLoginPage() {
 
                 </div>
             </div>
+
+            {/* Reset Password Modal */}
+            {showForgotModal && (
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+
+                    <div className="bg-white w-full max-w-md rounded-xl shadow-xl p-6 space-y-4">
+
+                        <h3 className="text-lg font-semibold text-slate-800">
+                            Reset Student Password
+                        </h3>
+
+                        <p className="text-sm text-slate-500">
+                            Enter your registered email. A temporary password will be sent to your email.
+                        </p>
+
+                        <input
+                            type="email"
+                            value={forgotEmail}
+                            onChange={(e) => setForgotEmail(e.target.value)}
+                            className="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-600"
+                            placeholder="Enter registered email"
+                        />
+
+                        <div className="flex justify-end gap-3 pt-3">
+
+                            <button
+                                onClick={() => setShowForgotModal(false)}
+                                className="px-4 py-2 text-sm text-slate-500"
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                disabled={forgotLoading}
+                                onClick={async () => {
+
+                                    if (!forgotEmail) {
+                                        alert("Please enter your email");
+                                        return;
+                                    }
+
+                                    setForgotLoading(true);
+
+                                    try {
+
+                                        const res = await fetch("/api/auth/student-forgot-password", {
+                                            method: "POST",
+                                            headers: {
+                                                "Content-Type": "application/json",
+                                            },
+                                            body: JSON.stringify({ email: forgotEmail }),
+                                        });
+
+                                        const data = await res.json();
+
+                                        alert(data.message);
+
+                                        if (res.ok) {
+                                            setShowForgotModal(false);
+                                        }
+
+                                    } catch (err) {
+                                        alert("Something went wrong");
+                                    }
+
+                                    setForgotLoading(false);
+
+                                }}
+                                className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
+                            >
+                                {forgotLoading ? "Sending..." : "Reset Password"}
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            )}
         </div>
     );
 }
