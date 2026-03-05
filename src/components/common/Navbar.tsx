@@ -280,13 +280,13 @@ export default function Navbar() {
                                                 FAQ
                                             </Link>
                                             <Link
-                                                href="/login"
+                                                href="/student/login"
                                                 onClick={closeMobile}
                                             >
                                                 Student Login
                                             </Link>
                                             <Link
-                                                href="/login"
+                                                href="/admin/login"
                                                 onClick={closeMobile}
                                             >
                                                 Admin Login

@@ -12,13 +12,14 @@ export default function TopBar() {
                 </div>
 
                 <div className="flex gap-4 ml-auto">
-                    <Link href="/login" className="hover:text-white transition">
-                        Student Login
-                    </Link>
-                    <Link href="/login" className="hover:text-white transition">
-                        Admin
+                    <Link
+                        href="/login"
+                        className="hover:text-white transition font-medium"
+                    >
+                        Login Portal
                     </Link>
                 </div>
+
             </div>
         </div>
     );

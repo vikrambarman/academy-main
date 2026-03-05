@@ -1,189 +1,98 @@
 "use client";
 
-/**
- * Login Page
- * -----------
- * Handles admin & student login.
- * On success:
- * - Stores access token in memory (local state)
- * - Redirects based on role
- */
-
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function LoginPage() {
+export default function PortalSelectorPage() {
     const router = useRouter();
 
-    // Form states
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [showPassword, setShowPassword] = useState(false);
-
-    // UI states
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
-
-    // Handle form submit
-    const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setError("");
-
-        try {
-            const res = await fetch("/api/auth/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                credentials: "include",
-                body: JSON.stringify({ email, password }),
-            });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                throw new Error(data.message || "Login failed");
-            }
-
-            // 1️⃣ If Admin requires OTP
-            if (data.requires2FA) {
-                router.push(`/verify-otp?uid=${data.userId}`);
-                return;
-            }
-
-            // 2️⃣ Force password change (FIRST LOGIN)
-            if (data.forceChangePassword) {
-                router.push("/change-password?forced=true");
-                return;
-            }
-
-            // 3️⃣ Normal role-based redirect
-            if (data.role === "admin") {
-                router.push("/dashboard/admin");
-            } else {
-                router.push("/dashboard/student");
-            }
-
-        } catch (err: any) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
     return (
-        <div className="min-h-screen grid md:grid-cols-2 bg-slate-50">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 px-6">
 
-            {/* LEFT BRANDING SIDE */}
-            <div className="hidden md:flex flex-col justify-between bg-slate-900 text-white p-12">
+            <div className="w-full max-w-4xl bg-white shadow-xl rounded-2xl border border-slate-200 p-10">
 
-                <div>
-                    <h1 className="text-3xl font-bold">Shivshakti Computer Academy</h1>
-                    <p className="mt-3 text-slate-300">
-                        Smart Computer Academy Management System
+                {/* Header */}
+                <div className="text-center mb-10">
+                    <h1 className="text-3xl font-bold text-slate-900">
+                        Shivshakti Computer Academy
+                    </h1>
+                    <p className="text-slate-500 mt-2">
+                        Academy Management System
+                    </p>
+
+                    <p className="mt-6 text-sm text-slate-600">
+                        Please select the portal you want to access
                     </p>
                 </div>
 
-                <div className="space-y-4">
-                    <p className="text-sm text-slate-400">
-                        ✔ Secure Admin Access
-                    </p>
-                    <p className="text-sm text-slate-400">
-                        ✔ Two-Factor Authentication
-                    </p>
-                    <p className="text-sm text-slate-400">
-                        ✔ Student Management System
-                    </p>
-                </div>
+                {/* Portal Cards */}
+                <div className="grid md:grid-cols-2 gap-6">
 
-                <p className="text-xs text-slate-500">
-                    © 2026 Shivshakti Computer Academy. All rights reserved.
-                </p>
-            </div>
+                    {/* Admin Portal */}
+                    <div
+                        onClick={() => router.push("/admin/login")}
+                        className="cursor-pointer border border-slate-200 rounded-xl p-6 hover:shadow-lg hover:border-slate-900 transition group"
+                    >
 
+                        <div className="mb-4">
+                            <span className="text-xs bg-slate-900 text-white px-3 py-1 rounded-full">
+                                ADMIN PORTAL
+                            </span>
+                        </div>
 
-            {/* RIGHT LOGIN SIDE */}
-            <div className="flex items-center justify-center px-6">
-
-                <div className="w-full max-w-md bg-white border border-slate-200 rounded-xl shadow-sm p-8">
-
-                    <div className="text-center mb-8">
-                        <h2 className="text-2xl font-semibold text-slate-900">
-                            Welcome Back
+                        <h2 className="text-xl font-semibold text-slate-900 group-hover:text-slate-700">
+                            Administrator Access
                         </h2>
-                        <p className="text-sm text-slate-500 mt-1">
-                            Sign in to your account
+
+                        <p className="text-sm text-slate-500 mt-2">
+                            Manage students, courses, payments, certificates and academy operations.
                         </p>
+
+                        <ul className="mt-4 text-sm text-slate-600 space-y-1">
+                            <li>✔ Student Management</li>
+                            <li>✔ Course & Fees Control</li>
+                            <li>✔ Certificate Tracking</li>
+                            <li>✔ Secure OTP Authentication</li>
+                        </ul>
+
                     </div>
 
-                    {error && (
-                        <div className="bg-red-50 text-red-600 text-sm p-3 rounded-md mb-4">
-                            {error}
-                        </div>
-                    )}
 
-                    <form onSubmit={handleLogin} className="space-y-5">
+                    {/* Student Portal */}
+                    <div
+                        onClick={() => router.push("/student/login")}
+                        className="cursor-pointer border border-slate-200 rounded-xl p-6 hover:shadow-lg hover:border-indigo-600 transition group"
+                    >
 
-                        <div>
-                            <label className="text-sm text-slate-600">Email</label>
-                            <input
-                                type="email"
-                                className="mt-1 w-full border border-slate-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-900 transition"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                            />
+                        <div className="mb-4">
+                            <span className="text-xs bg-indigo-600 text-white px-3 py-1 rounded-full">
+                                STUDENT PORTAL
+                            </span>
                         </div>
 
-                        <div>
-                            <label className="text-sm text-slate-600">Password</label>
-                            <div className="relative">
-                                <input
-                                    type={showPassword ? "text" : "password"}
-                                    className="mt-1 w-full border border-slate-300 rounded-md px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-slate-900 transition"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                />
+                        <h2 className="text-xl font-semibold text-slate-900 group-hover:text-indigo-600">
+                            Student Login
+                        </h2>
 
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 hover:text-slate-700"
-                                >
-                                    {showPassword ? "Hide" : "Show"}
-                                </button>
-                            </div>
+                        <p className="text-sm text-slate-500 mt-2">
+                            Access your course details, payment records and certificate status.
+                        </p>
 
-                            {/* 🔐 Forgot Password Link */}
-                            <div className="flex justify-end mt-2">
-                                <button
-                                    type="button"
-                                    onClick={() => router.push("/forgot-password")}
-                                    className="text-sm text-slate-600 hover:text-slate-900 transition"
-                                >
-                                    Forgot your password?
-                                </button>
-                            </div>
-                        </div>
+                        <ul className="mt-4 text-sm text-slate-600 space-y-1">
+                            <li>✔ View Course Information</li>
+                            <li>✔ Track Fee Payments</li>
+                            <li>✔ Check Certificate Status</li>
+                            <li>✔ Personal Student Dashboard</li>
+                        </ul>
 
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full bg-slate-900 text-white py-2.5 rounded-md hover:bg-slate-800 transition disabled:opacity-50"
-                        >
-                            {loading ? "Signing in..." : "Sign In"}
-                        </button>
-                    </form>
-
-                    <p className="text-xs text-slate-400 text-center mt-6">
-                        Admin accounts are protected with Two-Factor Authentication.
-                    </p>
-                    <p className="text-xs text-slate-400 mt-4 text-center">
-                        By signing in, you agree to our Terms & Privacy Policy.
-                    </p>
+                    </div>
 
                 </div>
+
+                {/* Footer */}
+                <div className="text-center mt-10 text-xs text-slate-400">
+                    © 2026 Shivshakti Computer Academy. All rights reserved.
+                </div>
+
             </div>
         </div>
     );

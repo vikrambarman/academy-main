@@ -138,7 +138,7 @@ export default function MegaMenu({ active, closeMenu }: Props) {
                             <ul className="space-y-4 text-sm">
                                 <li>
                                     <Link
-                                        href="/login"
+                                        href="/student/login"
                                         onClick={closeMenu}
                                         className="hover:text-black transition"
                                     >
@@ -148,7 +148,7 @@ export default function MegaMenu({ active, closeMenu }: Props) {
 
                                 <li>
                                     <Link
-                                        href="/login"
+                                        href="/admin/login"
                                         onClick={closeMenu}
                                         className="hover:text-black transition"
                                     >
