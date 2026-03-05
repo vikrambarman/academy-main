@@ -89,7 +89,7 @@ const menuSections = [
 
 /* ================= COMPONENT ================= */
 
-export default function DashboardLayout({
+export default function AdminLayout({
     children,
 }: {
     children: React.ReactNode;
@@ -144,7 +144,7 @@ export default function DashboardLayout({
 
     return (
         <AuthGuard>
-            <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
+            <div className="flex h-screen bg-slate-50">
 
                 {/* ================= MOBILE OVERLAY ================= */}
                 {mobileOpen && (
@@ -156,20 +156,21 @@ export default function DashboardLayout({
 
                 {/* ================= SIDEBAR ================= */}
                 <aside
-                    className={`fixed lg:static z-50 top-0 left-0 h-full 
-          bg-white dark:bg-gray-800 shadow-xl transition-all duration-300
+                    className={`fixed lg:static z-50 top-0 left-0 h-full
+          bg-slate-900 text-slate-200 border-r border-slate-800
+          transition-all duration-300
           ${sidebarOpen ? "w-64" : "w-20"}
           ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
           `}
                 >
-                    <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
-                        <h2 className="font-bold text-lg dark:text-white">
+                    <div className="flex items-center justify-between p-4 border-b border-slate-800">
+                        <h2 className="font-semibold text-lg text-white">
                             {sidebarOpen ? "SCA Admin" : "SCA"}
                         </h2>
 
                         <button
                             onClick={() => setSidebarOpen(!sidebarOpen)}
-                            className="hidden lg:block"
+                            className="hidden lg:block text-slate-400 hover:text-white"
                         >
                             <Menu size={18} />
                         </button>
@@ -179,7 +180,7 @@ export default function DashboardLayout({
                         {menuSections.map((section) => (
                             <div key={section.title}>
                                 {sidebarOpen && (
-                                    <p className="text-xs text-gray-400 mb-2">
+                                    <p className="text-xs text-slate-400 mb-2 tracking-wider">
                                         {section.title}
                                     </p>
                                 )}
@@ -196,7 +197,7 @@ export default function DashboardLayout({
                                                 className={`flex items-center gap-3 px-3 py-2 rounded-lg transition
                         ${active
                                                         ? "bg-indigo-600 text-white"
-                                                        : "hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300"
+                                                        : "text-slate-300 hover:bg-slate-800 hover:text-white"
                                                     }`}
                                             >
                                                 <Icon size={18} />
@@ -214,17 +215,17 @@ export default function DashboardLayout({
                 <div className="flex-1 flex flex-col overflow-hidden">
 
                     {/* ================= TOPBAR ================= */}
-                    <header className="bg-white dark:bg-gray-800 shadow-sm px-6 py-4 flex justify-between items-center">
+                    <header className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center">
 
                         <div className="flex items-center gap-4">
                             <button
                                 onClick={() => setMobileOpen(true)}
-                                className="lg:hidden"
+                                className="lg:hidden text-slate-600"
                             >
                                 <Menu />
                             </button>
 
-                            <h1 className="text-lg font-semibold dark:text-white">
+                            <h1 className="text-lg font-semibold text-slate-700">
                                 Admin Panel
                             </h1>
                         </div>
@@ -234,7 +235,7 @@ export default function DashboardLayout({
                             {/* Dark Mode */}
                             <button
                                 onClick={toggleDarkMode}
-                                className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                                className="p-2 rounded-lg hover:bg-slate-100 text-slate-600"
                             >
                                 {darkMode ? <Sun size={18} /> : <Moon size={18} />}
                             </button>
@@ -243,7 +244,7 @@ export default function DashboardLayout({
                             <div className="relative" ref={profileRef}>
                                 <button
                                     onClick={() => setProfileOpen(!profileOpen)}
-                                    className="flex items-center gap-2 bg-gray-200 dark:bg-gray-700 px-3 py-2 rounded-md text-sm dark:text-white hover:opacity-90 transition"
+                                    className="flex items-center gap-2 bg-slate-100 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-200 transition"
                                 >
                                     <div className="w-8 h-8 bg-indigo-600 text-white flex items-center justify-center rounded-full text-xs font-semibold">
                                         A
@@ -252,11 +253,11 @@ export default function DashboardLayout({
                                 </button>
 
                                 {profileOpen && (
-                                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 shadow-xl rounded-lg py-2 z-50">
+                                    <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 shadow-sm rounded-lg py-2 z-50">
 
                                         <Link
                                             href="/dashboard/admin/settings"
-                                            className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            className="block px-4 py-2 text-sm text-slate-600 hover:bg-slate-50"
                                             onClick={() => setProfileOpen(false)}
                                         >
                                             Account Settings
@@ -264,7 +265,7 @@ export default function DashboardLayout({
 
                                         <button
                                             onClick={handleLogout}
-                                            className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-50"
                                         >
                                             <LogOut size={16} />
                                             Logout
@@ -278,7 +279,7 @@ export default function DashboardLayout({
                     </header>
 
                     {/* ================= PAGE CONTENT ================= */}
-                    <main className="flex-1 overflow-y-auto p-6 bg-blue-200 dark:bg-white-900">
+                    <main className="flex-1 overflow-y-auto p-6 bg-slate-50">
                         {children}
                     </main>
 

@@ -162,20 +162,59 @@ export default function StudentDetail() {
 
             <div className="bg-white shadow-lg rounded-xl p-8 space-y-8">
 
-                {/* INFO */}
-                <div className="grid md:grid-cols-2 gap-6 text-sm">
-                    <div>
+                {/* STUDENT PROFILE */}
+                <div className="grid md:grid-cols-2 gap-8 text-sm">
+
+                    {/* LEFT SIDE */}
+                    <div className="space-y-2">
+
                         <p><strong>ID:</strong> {student.studentId}</p>
+
                         <p><strong>Name:</strong> {student.name}</p>
-                        <p><strong>Email:</strong> {student.email}</p>
+
+                        <p><strong>Father Name:</strong> {student.fatherName || "-"}</p>
+
+                        <p><strong>Email:</strong> {student.email || "-"}</p>
+
+                        <p><strong>Phone:</strong> {student.phone || "-"}</p>
+
                     </div>
 
-                    <div>
+                    {/* RIGHT SIDE */}
+                    <div className="space-y-2">
+
                         <p><strong>Course:</strong> {student.course?.name}</p>
-                        <p><strong>Total Fees:</strong> ₹{feesTotal}</p>
-                        <p><strong>Paid:</strong> ₹{feesPaid}</p>
+
+                        <p><strong>Qualification:</strong> {student.qualification || "-"}</p>
+
+                        <p>
+                            <strong>Date of Birth:</strong>{" "}
+                            {student.dob
+                                ? new Date(student.dob).toLocaleDateString()
+                                : "-"}
+                        </p>
+
+                        <p>
+                            <strong>Admission Date:</strong>{" "}
+                            {student.admissionDate
+                                ? new Date(student.admissionDate).toLocaleDateString()
+                                : "-"}
+                        </p>
+
+                        <p><strong>Gender:</strong> {student.gender || "-"}</p>
+
                     </div>
+
                 </div>
+
+                {/* ADDRESS */}
+                {student.address && (
+                    <div className="text-sm">
+                        <p>
+                            <strong>Address:</strong> {student.address}
+                        </p>
+                    </div>
+                )}
 
                 {/* PROGRESS */}
                 <div>

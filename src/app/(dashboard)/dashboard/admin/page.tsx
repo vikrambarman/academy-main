@@ -55,7 +55,7 @@ interface AnalyticsData {
 
 /* ================= MAIN COMPONENT ================= */
 
-export default function AdminHome() {
+export default function AdminDashboard() {
     const [data, setData] = useState<AnalyticsData | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -77,13 +77,11 @@ export default function AdminHome() {
 
     if (loading) {
         return (
-            <div className="text-gray-500 animate-pulse">
+            <div className="text-slate-500 animate-pulse">
                 Loading dashboard...
             </div>
         );
     }
-
-    /* ================= SAFE DATA ================= */
 
     const revenueTrend = data?.revenueTrend ?? [];
 
@@ -104,54 +102,50 @@ export default function AdminHome() {
     return (
         <div className="space-y-10">
 
-            {/* ================= HEADER ================= */}
-            <h1 className="text-3xl font-bold text-gray-800 ">
+            {/* HEADER */}
+            <h1 className="text-3xl font-bold text-slate-800">
                 Admin Dashboard
             </h1>
 
-            {/* ================= PREMIUM KPI GRID ================= */}
+            {/* KPI CARDS */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
 
                 <PremiumCard
                     title="Total Students"
                     value={data?.students?.total ?? 0}
-                    gradient="from-blue-500 to-indigo-600"
                 />
 
                 <PremiumCard
                     title="Total Expected"
                     value={data?.financial?.totalExpected ?? 0}
                     prefix="₹"
-                    gradient="from-purple-500 to-pink-600"
                 />
 
                 <PremiumCard
                     title="Total Collected"
                     value={data?.financial?.totalCollected ?? 0}
                     prefix="₹"
-                    gradient="from-green-500 to-emerald-600"
                 />
 
                 <PremiumCard
                     title="Pending Revenue"
                     value={data?.financial?.totalPending ?? 0}
                     prefix="₹"
-                    gradient="from-red-500 to-orange-500"
                 />
 
             </div>
 
-            {/* ================= REVENUE TREND ================= */}
-            <div className="bg-white/80 backdrop-blur-lg shadow-xl rounded-2xl p-8">
+            {/* REVENUE TREND */}
+            <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-6">
 
-                <h3 className="text-xl font-semibold mb-6">
+                <h3 className="text-lg font-semibold text-slate-800 mb-6">
                     Monthly Revenue Trend
                 </h3>
 
                 <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={revenueTrend}>
-                        <XAxis dataKey="month" />
-                        <YAxis />
+                        <XAxis dataKey="month" stroke="#64748B" />
+                        <YAxis stroke="#64748B" />
                         <Tooltip />
                         <Bar dataKey="amount" fill="#6366F1" radius={[6, 6, 0, 0]} />
                     </BarChart>
@@ -159,12 +153,13 @@ export default function AdminHome() {
 
             </div>
 
-            {/* ================= CHART GRID ================= */}
+            {/* CHART GRID */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
 
-                {/* Certificate Donut */}
-                <div className="bg-white/80 backdrop-blur-lg shadow-xl rounded-2xl p-8">
-                    <h3 className="text-xl font-semibold mb-6">
+                {/* Certificate Chart */}
+                <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-6">
+
+                    <h3 className="text-lg font-semibold text-slate-800 mb-6">
                         Certificate Status
                     </h3>
 
@@ -181,7 +176,7 @@ export default function AdminHome() {
                                     <Cell
                                         key={index}
                                         fill={[
-                                            "#3B82F6",
+                                            "#6366F1",
                                             "#8B5CF6",
                                             "#F59E0B",
                                             "#10B981",
@@ -193,11 +188,13 @@ export default function AdminHome() {
                             <Legend />
                         </PieChart>
                     </ResponsiveContainer>
+
                 </div>
 
-                {/* Course Revenue Pie */}
-                <div className="bg-white/80 backdrop-blur-lg shadow-xl rounded-2xl p-8">
-                    <h3 className="text-xl font-semibold mb-6">
+                {/* Course Revenue */}
+                <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-6">
+
+                    <h3 className="text-lg font-semibold text-slate-800 mb-6">
                         Course Revenue
                     </h3>
 
@@ -225,6 +222,7 @@ export default function AdminHome() {
                             <Legend />
                         </PieChart>
                     </ResponsiveContainer>
+
                 </div>
 
             </div>
@@ -233,29 +231,29 @@ export default function AdminHome() {
     );
 }
 
-/* ================= PREMIUM CARD ================= */
+/* ================= KPI CARD ================= */
 
 function PremiumCard({
     title,
     value,
     prefix = "",
-    gradient,
 }: {
     title: string;
     value: number;
     prefix?: string;
-    gradient: string;
 }) {
     return (
-        <div
-            className={`rounded-2xl p-6 text-white shadow-xl bg-gradient-to-br ${gradient} transition transform hover:scale-105`}
-        >
-            <p className="text-sm opacity-90">{title}</p>
+        <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-6 hover:shadow-md transition">
 
-            <h2 className="text-3xl font-bold mt-3">
+            <p className="text-sm text-slate-500">
+                {title}
+            </p>
+
+            <h2 className="text-3xl font-bold text-slate-800 mt-2">
                 {prefix}
                 <CountUp end={value} duration={1.5} separator="," />
             </h2>
+
         </div>
     );
 }

@@ -1,12 +1,12 @@
 /**
- * Student Model (Academic + Payment System)
+ * Student Model
+ * Academic + Payment System
  */
 
-import mongoose, { Schema, Document, Model, Types } from "mongoose";
+import mongoose, { Schema, Document, Model } from "mongoose";
 
-/**
- * Payment Subdocument Interface
- */
+/* ================= PAYMENT ================= */
+
 interface IPayment {
     amount: number;
     date: Date;
@@ -14,14 +14,23 @@ interface IPayment {
     receiptNo: string;
 }
 
-/**
- * Student Interface
- */
+/* ================= STUDENT INTERFACE ================= */
+
 export interface IStudent extends Document {
     studentId: string;
+
     name: string;
+    fatherName?: string;
+
     email?: string;
     phone?: string;
+
+    dob?: Date;
+    gender?: string;
+    address?: string;
+    qualification?: string;
+
+    admissionDate?: Date;
 
     user: mongoose.Types.ObjectId;
     course: mongoose.Types.ObjectId;
@@ -48,33 +57,32 @@ interface StudentModel extends Model<IStudent> {
     generateStudentId(): Promise<string>;
 }
 
-/**
- * Payment Schema
- */
-const paymentSchema = new Schema<IPayment>(
-    {
-        amount: {
-            type: Number,
-            required: true,
-            min: 1,
-        },
-        date: {
-            type: Date,
-            required: true,
-        },
-        remark: {
-            type: String,
-            trim: true,
-        },
-        receiptNo: {
-            type: String,
-        },
-    },
-);
+/* ================= PAYMENT SCHEMA ================= */
 
-/**
- * Student Schema
- */
+const paymentSchema = new Schema<IPayment>({
+    amount: {
+        type: Number,
+        required: true,
+        min: 1,
+    },
+
+    date: {
+        type: Date,
+        required: true,
+    },
+
+    remark: {
+        type: String,
+        trim: true,
+    },
+
+    receiptNo: {
+        type: String,
+    },
+});
+
+/* ================= STUDENT SCHEMA ================= */
+
 const studentSchema = new Schema<IStudent, StudentModel>(
     {
         studentId: {
@@ -90,6 +98,11 @@ const studentSchema = new Schema<IStudent, StudentModel>(
             trim: true,
         },
 
+        fatherName: {
+            type: String,
+            trim: true,
+        },
+
         email: {
             type: String,
             trim: true,
@@ -99,6 +112,28 @@ const studentSchema = new Schema<IStudent, StudentModel>(
         phone: {
             type: String,
             trim: true,
+        },
+
+        dob: Date,
+
+        gender: {
+            type: String,
+            enum: ["Male", "Female", "Other"],
+        },
+
+        address: {
+            type: String,
+            trim: true,
+        },
+
+        qualification: {
+            type: String,
+            trim: true,
+        },
+
+        admissionDate: {
+            type: Date,
+            default: Date.now,
         },
 
         user: {
@@ -130,14 +165,12 @@ const studentSchema = new Schema<IStudent, StudentModel>(
             min: 0,
         },
 
-        // 🔥 Auto calculated field
         feesPaid: {
             type: Number,
             default: 0,
             min: 0,
         },
 
-        // 🔥 New Installment System
         payments: [paymentSchema],
 
         certificateStatus: {
@@ -160,11 +193,10 @@ const studentSchema = new Schema<IStudent, StudentModel>(
     { timestamps: true }
 );
 
-/**
- * 🔥 Auto Recalculate feesPaid Before Save
- */
+/* ================= AUTO CALCULATE FEES ================= */
+
 studentSchema.pre("save", function () {
-    if (this.payments && this.payments.length > 0) {
+    if (this.payments?.length) {
         this.feesPaid = this.payments.reduce(
             (sum, payment) => sum + payment.amount,
             0
@@ -174,9 +206,8 @@ studentSchema.pre("save", function () {
     }
 });
 
-/**
- * Student ID Generator
- */
+/* ================= STUDENT ID GENERATOR ================= */
+
 studentSchema.statics.generateStudentId = async function () {
     const year = new Date().getFullYear();
 
@@ -187,9 +218,7 @@ studentSchema.statics.generateStudentId = async function () {
     let serial = 1;
 
     if (lastStudent) {
-        const lastSerial = parseInt(
-            lastStudent.studentId.split("-")[2]
-        );
+        const lastSerial = parseInt(lastStudent.studentId.split("-")[2]);
         serial = lastSerial + 1;
     }
 
