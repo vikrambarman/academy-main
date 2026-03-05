@@ -5,170 +5,192 @@ import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import Link from "next/link";
 
 interface Notice {
-    _id: string;
-    title: string;
-    excerpt: string;
-    slug: string;
-    createdAt: string;
-    category?: string;
-    isRead: boolean;
+  _id: string;
+  title: string;
+  excerpt: string;
+  slug: string;
+  createdAt: string;
+  category?: string;
+  isRead: boolean;
 }
 
 export default function StudentNotices() {
 
-    const [notices, setNotices] = useState<Notice[]>([]);
-    const [loading, setLoading] = useState(true);
+  const [notices, setNotices] = useState<Notice[]>([]);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
+  useEffect(() => {
 
-        const loadNotices = async () => {
+    const loadNotices = async () => {
 
-            const res = await fetchWithAuth("/api/student/notices");
-            const data = await res.json();
+      try {
 
-            setNotices(data.data || []);
-            setLoading(false);
+        const res = await fetchWithAuth("/api/student/notices");
+        const data = await res.json();
 
-        };
+        setNotices(data?.data || []);
 
-        loadNotices();
+      } catch (error) {
 
-    }, []);
+        console.error("Failed to load notices");
 
-    const markAsRead = async (id: string) => {
+      } finally {
 
-        await fetchWithAuth(`/api/student/notices/${id}/read`, {
-            method: "POST",
-        });
+        setLoading(false);
 
-        setNotices((prev) =>
-            prev.map((n) =>
-                n._id === id ? { ...n, isRead: true } : n
-            )
-        );
+      }
+
     };
 
-    if (loading) {
-        return (
-            <div className="text-indigo-500 animate-pulse">
-                Loading...
-            </div>
-        );
+    loadNotices();
+
+  }, []);
+
+  const markAsRead = async (id: string) => {
+
+    try {
+
+      await fetchWithAuth(`/api/student/notices/${id}/read`, {
+        method: "POST",
+      });
+
+      setNotices((prev) =>
+        prev.map((n) =>
+          n._id === id ? { ...n, isRead: true } : n
+        )
+      );
+
+    } catch {
+      console.error("Failed to mark notice as read");
     }
 
+  };
+
+  if (loading) {
     return (
-        <div className="max-w-4xl space-y-10">
+      <div className="text-indigo-500 animate-pulse">
+        Loading...
+      </div>
+    );
+  }
 
-            {/* PAGE HEADER */}
+  return (
+    <div className="max-w-4xl mx-auto space-y-8 sm:space-y-10">
 
-            <div>
+      {/* PAGE HEADER */}
 
-                <h1 className="text-3xl font-semibold text-indigo-900">
-                    Important Notices
-                </h1>
+      <div>
 
-                <p className="text-sm text-indigo-500 mt-1">
-                    Stay updated with important academic announcements.
-                </p>
+        <h1 className="text-2xl sm:text-3xl font-semibold text-indigo-900">
+          Important Notices
+        </h1>
+
+        <p className="text-sm text-indigo-500 mt-1">
+          Stay updated with important academic announcements.
+        </p>
+
+      </div>
+
+      {/* EMPTY STATE */}
+
+      {notices.length === 0 && (
+
+        <div className="bg-white border border-indigo-100 p-6 rounded-xl shadow-md">
+
+          <p className="text-indigo-500 text-sm">
+            No notices available at the moment.
+          </p>
+
+        </div>
+
+      )}
+
+      {/* NOTICE LIST */}
+
+      <div className="space-y-6">
+
+        {notices.map((notice) => (
+
+          <div
+            key={notice._id}
+            className={`rounded-xl p-5 sm:p-6 shadow-md border transition hover:shadow-lg
+            ${notice.isRead
+                ? "bg-white border-indigo-100"
+                : "bg-indigo-50 border-indigo-400"
+              }`}
+          >
+
+            {/* HEADER */}
+
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-xs text-indigo-500">
+
+              <span>
+                {new Date(notice.createdAt).toDateString()}
+              </span>
+
+              <div className="flex items-center gap-2 flex-wrap">
+
+                {notice.category && (
+                  <span className="bg-indigo-600 text-white px-3 py-1 rounded-full text-xs">
+                    {notice.category}
+                  </span>
+                )}
+
+                {!notice.isRead && (
+                  <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs">
+                    NEW
+                  </span>
+                )}
+
+              </div>
 
             </div>
 
-            {/* EMPTY STATE */}
+            {/* TITLE */}
 
-            {notices.length === 0 && (
+            <h2 className="mt-3 sm:mt-4 text-lg sm:text-xl font-semibold text-indigo-900">
+              {notice.title}
+            </h2>
 
-                <div className="bg-white border border-indigo-100 p-6 rounded-xl shadow-md">
+            {/* EXCERPT */}
 
-                    <p className="text-indigo-500 text-sm">
-                        No notices available at the moment.
-                    </p>
+            <p className="mt-2 sm:mt-3 text-sm text-indigo-700">
+              {notice.excerpt}
+            </p>
 
-                </div>
+            {/* ACTIONS */}
 
-            )}
+            <div className="mt-4 sm:mt-5 flex flex-wrap items-center gap-4">
 
-            {/* NOTICE LIST */}
+              <Link
+                href={`/notices/${notice.slug}`}
+                onClick={() => {
+                  if (!notice.isRead) {
+                    markAsRead(notice._id);
+                  }
+                }}
+                className="text-indigo-600 text-sm font-medium hover:underline"
+              >
+                Read Full Notice →
+              </Link>
 
-            {notices.map((notice) => (
-
-                <div
-                    key={notice._id}
-                    className={`rounded-xl p-6 shadow-md border transition hover:shadow-lg
-                    ${notice.isRead
-                            ? "bg-white border-indigo-100"
-                            : "bg-indigo-50 border-indigo-400"
-                        }`}
+              {!notice.isRead && (
+                <button
+                  onClick={() => markAsRead(notice._id)}
+                  className="text-xs text-indigo-500 hover:text-indigo-700 transition"
                 >
+                  Mark as Read
+                </button>
+              )}
 
-                    {/* HEADER */}
+            </div>
 
-                    <div className="flex justify-between items-center text-xs text-indigo-500">
+          </div>
 
-                        <span>
-                            {new Date(notice.createdAt).toDateString()}
-                        </span>
+        ))}
 
-                        <div className="flex items-center gap-2">
+      </div>
 
-                            {notice.category && (
-                                <span className="bg-indigo-600 text-white px-3 py-1 rounded-full text-xs">
-                                    {notice.category}
-                                </span>
-                            )}
-
-                            {!notice.isRead && (
-                                <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs">
-                                    NEW
-                                </span>
-                            )}
-
-                        </div>
-
-                    </div>
-
-                    {/* TITLE */}
-
-                    <h2 className="mt-4 text-xl font-semibold text-indigo-900">
-                        {notice.title}
-                    </h2>
-
-                    {/* EXCERPT */}
-
-                    <p className="mt-3 text-sm text-indigo-700">
-                        {notice.excerpt}
-                    </p>
-
-                    {/* ACTIONS */}
-
-                    <div className="mt-5 flex items-center gap-5">
-
-                        <Link
-                            href={`/notices/${notice.slug}`}
-                            onClick={() => {
-                                if (!notice.isRead) {
-                                    markAsRead(notice._id);
-                                }
-                            }}
-                            className="text-indigo-600 text-sm font-medium hover:underline"
-                        >
-                            Read Full Notice →
-                        </Link>
-
-                        {!notice.isRead && (
-                            <button
-                                onClick={() => markAsRead(notice._id)}
-                                className="text-xs text-indigo-500 hover:text-indigo-700 transition"
-                            >
-                                Mark as Read
-                            </button>
-                        )}
-
-                    </div>
-
-                </div>
-
-            ))}
-
-        </div>
-    );
+    </div>
+  );
 }

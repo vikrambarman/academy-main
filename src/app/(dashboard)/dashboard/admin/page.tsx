@@ -65,7 +65,7 @@ export default function AdminDashboard() {
                 const res = await fetchWithAuth("/api/admin/analytics");
                 const json = await res.json();
                 setData(json);
-            } catch (error) {
+            } catch {
                 console.error("Analytics load failed");
             } finally {
                 setLoading(false);
@@ -100,15 +100,17 @@ export default function AdminDashboard() {
         })) ?? [];
 
     return (
-        <div className="space-y-10">
+        <div className="space-y-8 sm:space-y-10 px-2 sm:px-0">
 
             {/* HEADER */}
-            <h1 className="text-3xl font-bold text-slate-800">
+
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">
                 Admin Dashboard
             </h1>
 
             {/* KPI CARDS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 sm:gap-6">
 
                 <PremiumCard
                     title="Total Students"
@@ -136,13 +138,14 @@ export default function AdminDashboard() {
             </div>
 
             {/* REVENUE TREND */}
-            <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-6">
 
-                <h3 className="text-lg font-semibold text-slate-800 mb-6">
+            <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-5 sm:p-6">
+
+                <h3 className="text-base sm:text-lg font-semibold text-slate-800 mb-5 sm:mb-6">
                     Monthly Revenue Trend
                 </h3>
 
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={280}>
                     <BarChart data={revenueTrend}>
                         <XAxis dataKey="month" stroke="#64748B" />
                         <YAxis stroke="#64748B" />
@@ -154,23 +157,25 @@ export default function AdminDashboard() {
             </div>
 
             {/* CHART GRID */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
 
                 {/* Certificate Chart */}
-                <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-6">
 
-                    <h3 className="text-lg font-semibold text-slate-800 mb-6">
+                <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-5 sm:p-6">
+
+                    <h3 className="text-base sm:text-lg font-semibold text-slate-800 mb-5 sm:mb-6">
                         Certificate Status
                     </h3>
 
-                    <ResponsiveContainer width="100%" height={300}>
+                    <ResponsiveContainer width="100%" height={280}>
                         <PieChart>
                             <Pie
                                 data={certificateData}
                                 dataKey="value"
                                 nameKey="name"
-                                innerRadius={70}
-                                outerRadius={110}
+                                innerRadius={60}
+                                outerRadius={100}
                             >
                                 {certificateData.map((_, index) => (
                                     <Cell
@@ -192,19 +197,20 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Course Revenue */}
-                <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-6">
 
-                    <h3 className="text-lg font-semibold text-slate-800 mb-6">
+                <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-5 sm:p-6">
+
+                    <h3 className="text-base sm:text-lg font-semibold text-slate-800 mb-5 sm:mb-6">
                         Course Revenue
                     </h3>
 
-                    <ResponsiveContainer width="100%" height={300}>
+                    <ResponsiveContainer width="100%" height={280}>
                         <PieChart>
                             <Pie
                                 data={courseData}
                                 dataKey="value"
                                 nameKey="name"
-                                outerRadius={110}
+                                outerRadius={100}
                             >
                                 {courseData.map((_, index) => (
                                     <Cell
@@ -243,13 +249,13 @@ function PremiumCard({
     prefix?: string;
 }) {
     return (
-        <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-6 hover:shadow-md transition">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-5 sm:p-6 hover:shadow-md transition">
 
-            <p className="text-sm text-slate-500">
+            <p className="text-xs sm:text-sm text-slate-500">
                 {title}
             </p>
 
-            <h2 className="text-3xl font-bold text-slate-800 mt-2">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 mt-2">
                 {prefix}
                 <CountUp end={value} duration={1.5} separator="," />
             </h2>

@@ -35,8 +35,6 @@ export default function AdminStudents() {
     feesTotal: "",
   });
 
-  /* ================= FETCH DATA ================= */
-
   const fetchCourses = async () => {
     const res = await fetchWithAuth("/api/admin/courses");
     const data = await res.json();
@@ -53,8 +51,6 @@ export default function AdminStudents() {
     fetchCourses();
     fetchStudents();
   }, []);
-
-  /* ================= FORM ================= */
 
   const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -117,15 +113,15 @@ export default function AdminStudents() {
 
       {/* HEADER */}
 
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
 
-        <h1 className="text-2xl font-semibold text-slate-800">
+        <h1 className="text-xl sm:text-2xl font-semibold text-slate-800">
           Students
         </h1>
 
         <button
           onClick={() => setModalOpen(true)}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg"
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg w-full sm:w-auto"
         >
           + Add Student
         </button>
@@ -136,7 +132,7 @@ export default function AdminStudents() {
 
       <input
         placeholder="Search student..."
-        className="border border-slate-300 rounded-lg px-3 py-2 w-72"
+        className="border border-slate-300 rounded-lg px-3 py-2 w-full sm:w-72"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
@@ -147,7 +143,7 @@ export default function AdminStudents() {
 
         <div className="overflow-x-auto">
 
-          <table className="w-full text-sm">
+          <table className="min-w-[750px] w-full text-sm">
 
             <thead className="bg-slate-50 border-b">
 
@@ -236,13 +232,13 @@ export default function AdminStudents() {
 
       {modalOpen && (
 
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
 
-          <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-3xl">
+          <div className="bg-white rounded-xl shadow-xl p-6 sm:p-8 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
 
             <div className="flex justify-between mb-6">
 
-              <h2 className="text-xl font-semibold">
+              <h2 className="text-lg sm:text-xl font-semibold">
                 Add New Student
               </h2>
 
@@ -255,7 +251,7 @@ export default function AdminStudents() {
 
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
               <input name="name" placeholder="Student Name" className="input" onChange={handleChange} />
               <input name="fatherName" placeholder="Father Name" className="input" onChange={handleChange} />

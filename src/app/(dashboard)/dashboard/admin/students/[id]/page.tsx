@@ -33,8 +33,6 @@ export default function StudentDetail() {
         if (id) loadStudent();
     }, [id]);
 
-    /* ================= ADD PAYMENT ================= */
-
     const addPayment = async () => {
         if (!paymentAmount) return alert("Enter payment amount");
 
@@ -56,8 +54,6 @@ export default function StudentDetail() {
         setPaymentDate("");
         loadStudent();
     };
-
-    /* ================= EDIT PAYMENT ================= */
 
     const openEdit = (payment: any) => {
         setEditingPayment(payment);
@@ -85,8 +81,6 @@ export default function StudentDetail() {
         setEditingPayment(null);
         loadStudent();
     };
-
-    /* ================= CERTIFICATE ================= */
 
     const updateCertificate = async () => {
         await fetchWithAuth(`/api/admin/students/${id}`, {
@@ -147,72 +141,60 @@ export default function StudentDetail() {
         <div className="space-y-8">
 
             {/* HEADER */}
-            <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold">Student Controller</h1>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+
+                <h1 className="text-xl sm:text-2xl font-bold">
+                    Student Controller
+                </h1>
 
                 <span
-                    className={`px-3 py-1 rounded-full text-sm font-medium ${student.isActive
+                    className={`px-3 py-1 rounded-full text-sm font-medium w-fit ${student.isActive
                         ? "bg-green-100 text-green-700"
                         : "bg-red-100 text-red-700"
                         }`}
                 >
                     {student.isActive ? "Active" : "Inactive"}
                 </span>
+
             </div>
 
-            <div className="bg-white shadow-lg rounded-xl p-8 space-y-8">
+            <div className="bg-white shadow-lg rounded-xl p-4 sm:p-8 space-y-8">
 
-                {/* STUDENT PROFILE */}
-                <div className="grid md:grid-cols-2 gap-8 text-sm">
+                {/* PROFILE */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
 
-                    {/* LEFT SIDE */}
                     <div className="space-y-2">
-
                         <p><strong>ID:</strong> {student.studentId}</p>
-
                         <p><strong>Name:</strong> {student.name}</p>
-
                         <p><strong>Father Name:</strong> {student.fatherName || "-"}</p>
-
                         <p><strong>Email:</strong> {student.email || "-"}</p>
-
                         <p><strong>Phone:</strong> {student.phone || "-"}</p>
-
                     </div>
 
-                    {/* RIGHT SIDE */}
                     <div className="space-y-2">
-
                         <p><strong>Course:</strong> {student.course?.name}</p>
-
                         <p><strong>Qualification:</strong> {student.qualification || "-"}</p>
-
                         <p>
                             <strong>Date of Birth:</strong>{" "}
                             {student.dob
                                 ? new Date(student.dob).toLocaleDateString()
                                 : "-"}
                         </p>
-
                         <p>
                             <strong>Admission Date:</strong>{" "}
                             {student.admissionDate
                                 ? new Date(student.admissionDate).toLocaleDateString()
                                 : "-"}
                         </p>
-
                         <p><strong>Gender:</strong> {student.gender || "-"}</p>
-
                     </div>
 
                 </div>
 
                 {/* ADDRESS */}
                 {student.address && (
-                    <div className="text-sm">
-                        <p>
-                            <strong>Address:</strong> {student.address}
-                        </p>
+                    <div className="text-sm break-words">
+                        <strong>Address:</strong> {student.address}
                     </div>
                 )}
 
@@ -233,18 +215,19 @@ export default function StudentDetail() {
                 <div className="border-t pt-6 space-y-4">
                     <h3 className="font-semibold">Add Installment</h3>
 
-                    <div className="grid md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
                         <input
                             type="number"
                             placeholder="Amount"
-                            className="border p-3 rounded-lg"
+                            className="border p-3 rounded-lg w-full"
                             value={paymentAmount}
                             onChange={(e) => setPaymentAmount(e.target.value)}
                         />
 
                         <input
                             type="date"
-                            className="border p-3 rounded-lg"
+                            className="border p-3 rounded-lg w-full"
                             value={paymentDate}
                             onChange={(e) => setPaymentDate(e.target.value)}
                         />
@@ -252,29 +235,34 @@ export default function StudentDetail() {
                         <input
                             type="text"
                             placeholder="Remark"
-                            className="border p-3 rounded-lg"
+                            className="border p-3 rounded-lg w-full"
                             value={remark}
                             onChange={(e) => setRemark(e.target.value)}
                         />
+
                     </div>
 
                     <button
                         onClick={addPayment}
-                        className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg"
+                        className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg w-full sm:w-auto"
                     >
                         Add Payment
                     </button>
+
                 </div>
 
                 {/* PAYMENT HISTORY */}
                 <div className="border-t pt-6 space-y-4">
+
                     <h3 className="font-semibold">Payment History</h3>
 
                     {student.payments?.map((payment: any) => (
+
                         <div
                             key={payment._id}
-                            className="flex justify-between items-center border rounded-lg p-4 text-sm"
+                            className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 border rounded-lg p-4 text-sm"
                         >
+
                             <div>
                                 <p className="font-medium text-lg">
                                     ₹{payment.amount}
@@ -294,21 +282,26 @@ export default function StudentDetail() {
 
                             <button
                                 onClick={() => openEdit(payment)}
-                                className="text-blue-600 text-sm underline"
+                                className="text-blue-600 text-sm underline w-fit"
                             >
                                 Edit
                             </button>
+
                         </div>
+
                     ))}
+
                 </div>
 
                 {/* CERTIFICATE */}
                 <div className="border-t pt-6 space-y-3">
+
                     <h3 className="font-semibold">Certificate Status</h3>
 
-                    <div className="flex gap-4">
+                    <div className="flex flex-col sm:flex-row gap-3">
+
                         <select
-                            className="border p-2 rounded-lg"
+                            className="border p-2 rounded-lg w-full sm:w-auto"
                             value={certificateStatus}
                             onChange={(e) =>
                                 setCertificateStatus(e.target.value)
@@ -323,32 +316,35 @@ export default function StudentDetail() {
 
                         <button
                             onClick={updateCertificate}
-                            className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+                            className="bg-blue-600 text-white px-4 py-2 rounded-lg w-full sm:w-auto"
                         >
                             Update
                         </button>
+
                     </div>
+
                 </div>
 
                 {/* ACTIONS */}
-                <div className="border-t pt-6 flex justify-between">
+                <div className="border-t pt-6 flex flex-col sm:flex-row gap-3 sm:justify-between">
+
                     <button
                         onClick={toggleActive}
-                        className="bg-yellow-500 text-white px-4 py-2 rounded-lg"
+                        className="bg-yellow-500 text-white px-4 py-2 rounded-lg w-full sm:w-auto"
                     >
                         {student.isActive ? "Deactivate" : "Activate"}
                     </button>
 
                     <button
                         onClick={() => handleReset(student.user)}
-                        className="text-sm bg-amber-500 text-white px-3 py-1 rounded-md hover:bg-amber-600"
+                        className="text-sm bg-amber-500 text-white px-3 py-2 rounded-md hover:bg-amber-600 w-full sm:w-auto"
                     >
                         Reset Password
                     </button>
 
                     <button
                         onClick={() => router.back()}
-                        className="text-gray-600 underline"
+                        className="text-gray-600 underline w-full sm:w-auto"
                     >
                         Back
                     </button>
@@ -359,8 +355,11 @@ export default function StudentDetail() {
 
             {/* EDIT MODAL */}
             {editingPayment && (
-                <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                    <div className="bg-white p-6 rounded-lg w-96 space-y-4">
+
+                <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-4">
+
+                    <div className="bg-white p-6 rounded-lg w-full max-w-sm space-y-4">
+
                         <h3 className="font-semibold">Edit Payment</h3>
 
                         <input
@@ -385,6 +384,7 @@ export default function StudentDetail() {
                         />
 
                         <div className="flex justify-end gap-3">
+
                             <button
                                 onClick={() => setEditingPayment(null)}
                                 className="text-gray-500"
@@ -398,9 +398,13 @@ export default function StudentDetail() {
                             >
                                 Save
                             </button>
+
                         </div>
+
                     </div>
+
                 </div>
+
             )}
 
         </div>

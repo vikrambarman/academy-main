@@ -57,9 +57,9 @@ export default function AdminContacts() {
 
             {/* HEADER */}
 
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
 
-                <h1 className="text-2xl font-semibold text-slate-800">
+                <h1 className="text-xl sm:text-2xl font-semibold text-slate-800">
                     Contact Messages
                 </h1>
 
@@ -74,114 +74,118 @@ export default function AdminContacts() {
             <input
                 type="text"
                 placeholder="Search contact..."
-                className="border border-slate-300 rounded-lg px-3 py-2 w-72"
+                className="border border-slate-300 rounded-lg px-3 py-2 w-full sm:w-72"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
             />
 
             {/* TABLE */}
 
-            <div className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-x-auto">
+            <div className="bg-white border border-slate-200 shadow-sm rounded-xl">
 
-                <table className="w-full text-sm">
+                <div className="overflow-x-auto">
 
-                    <thead className="bg-slate-50 border-b">
+                    <table className="min-w-[750px] w-full text-sm">
 
-                        <tr>
-                            <th className="p-3 text-left">Name</th>
-                            <th className="p-3 text-left">Mobile</th>
-                            <th className="p-3 text-left">Email</th>
-                            <th className="p-3 text-left">Message</th>
-                            <th className="p-3 text-left">Status</th>
-                            <th className="p-3 text-left">Active</th>
-                            <th className="p-3 text-left">Date</th>
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        {filtered.length === 0 && (
+                        <thead className="bg-slate-50 border-b">
 
                             <tr>
-
-                                <td
-                                    colSpan={7}
-                                    className="p-6 text-center text-gray-500"
-                                >
-                                    No messages found
-                                </td>
-
+                                <th className="p-3 text-left">Name</th>
+                                <th className="p-3 text-left">Mobile</th>
+                                <th className="p-3 text-left">Email</th>
+                                <th className="p-3 text-left">Message</th>
+                                <th className="p-3 text-left">Status</th>
+                                <th className="p-3 text-left">Active</th>
+                                <th className="p-3 text-left">Date</th>
                             </tr>
 
-                        )}
+                        </thead>
 
-                        {filtered.map((c) => (
+                        <tbody>
 
-                            <tr
-                                key={c._id}
-                                className="border-t hover:bg-slate-50"
-                            >
+                            {filtered.length === 0 && (
 
-                                <td className="p-3 font-medium">
-                                    {c.name}
-                                </td>
+                                <tr>
 
-                                <td className="p-3">
-                                    {c.mobile}
-                                </td>
-
-                                <td className="p-3">
-                                    {c.email || "-"}
-                                </td>
-
-                                <td className="p-3 max-w-xs truncate text-gray-600">
-                                    {c.message}
-                                </td>
-
-                                <td className="p-3">
-
-                                    <span
-                                        className={`px-2 py-1 rounded text-xs font-medium ${statusColor(
-                                            c.status
-                                        )}`}
+                                    <td
+                                        colSpan={7}
+                                        className="p-6 text-center text-gray-500"
                                     >
-                                        {c.status}
-                                    </span>
+                                        No messages found
+                                    </td>
 
-                                </td>
+                                </tr>
 
-                                <td className="p-3">
+                            )}
 
-                                    {c.isActive ? (
-                                        <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">
-                                            Active
+                            {filtered.map((c) => (
+
+                                <tr
+                                    key={c._id}
+                                    className="border-t hover:bg-slate-50"
+                                >
+
+                                    <td className="p-3 font-medium">
+                                        {c.name}
+                                    </td>
+
+                                    <td className="p-3">
+                                        {c.mobile}
+                                    </td>
+
+                                    <td className="p-3">
+                                        {c.email || "-"}
+                                    </td>
+
+                                    <td className="p-3 max-w-xs truncate text-gray-600">
+                                        {c.message}
+                                    </td>
+
+                                    <td className="p-3">
+
+                                        <span
+                                            className={`px-2 py-1 rounded text-xs font-medium ${statusColor(
+                                                c.status
+                                            )}`}
+                                        >
+                                            {c.status}
                                         </span>
-                                    ) : (
-                                        <span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">
-                                            Inactive
-                                        </span>
-                                    )}
 
-                                </td>
+                                    </td>
 
-                                <td className="p-3 text-xs text-gray-500">
+                                    <td className="p-3">
 
-                                    {c.createdAt
-                                        ? new Date(
-                                              c.createdAt
-                                          ).toLocaleDateString()
-                                        : "-"}
+                                        {c.isActive ? (
+                                            <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">
+                                                Active
+                                            </span>
+                                        ) : (
+                                            <span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">
+                                                Inactive
+                                            </span>
+                                        )}
 
-                                </td>
+                                    </td>
 
-                            </tr>
+                                    <td className="p-3 text-xs text-gray-500">
 
-                        ))}
+                                        {c.createdAt
+                                            ? new Date(
+                                                c.createdAt
+                                            ).toLocaleDateString()
+                                            : "-"}
 
-                    </tbody>
+                                    </td>
 
-                </table>
+                                </tr>
+
+                            ))}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
 
             </div>
 

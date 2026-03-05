@@ -2,20 +2,11 @@
 
 /**
  * FULL COURSE MANAGEMENT SYSTEM
- * --------------------------------
- * Features:
- * - Create Course
- * - Edit Course
- * - Delete Course
- * - Toggle Active/Inactive
- * - Dynamic Modules & Topics
  */
 
 import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import { COURSE_LEVELS } from "@/lib/constants/courseConfig";
-
-/* ---------------- TYPES ---------------- */
 
 interface TopicItem {
     value: string;
@@ -40,8 +31,6 @@ interface CourseItem {
     }[];
 }
 
-/* ---------------- COMPONENT ---------------- */
-
 export default function AdminCourses() {
 
     const [courses, setCourses] = useState<CourseItem[]>([]);
@@ -60,8 +49,6 @@ export default function AdminCourses() {
         { module: "", topics: [{ value: "" }] },
     ]);
 
-    /* ---------------- FETCH COURSES ---------------- */
-
     const fetchCourses = async () => {
         const res = await fetchWithAuth("/api/admin/courses");
         const data = await res.json();
@@ -72,15 +59,11 @@ export default function AdminCourses() {
         fetchCourses();
     }, []);
 
-    /* ---------------- FORM CHANGE ---------------- */
-
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
     ) => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
-
-    /* ---------------- MODULE MANAGEMENT ---------------- */
 
     const addModule = () => {
         setSyllabus([
@@ -93,10 +76,7 @@ export default function AdminCourses() {
         setSyllabus(syllabus.filter((_, i) => i !== index));
     };
 
-    const handleModuleNameChange = (
-        index: number,
-        value: string
-    ) => {
+    const handleModuleNameChange = (index: number, value: string) => {
         const updated = [...syllabus];
         updated[index].module = value;
         setSyllabus(updated);
@@ -108,10 +88,7 @@ export default function AdminCourses() {
         setSyllabus(updated);
     };
 
-    const removeTopic = (
-        moduleIndex: number,
-        topicIndex: number
-    ) => {
+    const removeTopic = (moduleIndex: number, topicIndex: number) => {
         const updated = [...syllabus];
         updated[moduleIndex].topics =
             updated[moduleIndex].topics.filter(
@@ -129,8 +106,6 @@ export default function AdminCourses() {
         updated[moduleIndex].topics[topicIndex].value = value;
         setSyllabus(updated);
     };
-
-    /* ---------------- CREATE / UPDATE ---------------- */
 
     const handleSubmit = async () => {
         try {
@@ -161,7 +136,7 @@ export default function AdminCourses() {
             resetForm();
             fetchCourses();
 
-        } catch (error) {
+        } catch {
             console.error("Course save failed");
         } finally {
             setLoading(false);
@@ -184,8 +159,6 @@ export default function AdminCourses() {
 
         setEditId(null);
     };
-
-    /* ---------------- EDIT COURSE ---------------- */
 
     const handleEdit = (course: CourseItem) => {
 
@@ -221,8 +194,6 @@ export default function AdminCourses() {
         }
     };
 
-    /* ---------------- DELETE ---------------- */
-
     const handleDelete = async (id: string) => {
 
         if (!confirm("Are you sure?")) return;
@@ -233,8 +204,6 @@ export default function AdminCourses() {
 
         fetchCourses();
     };
-
-    /* ---------------- TOGGLE ACTIVE ---------------- */
 
     const toggleActive = async (course: CourseItem) => {
 
@@ -250,22 +219,18 @@ export default function AdminCourses() {
         fetchCourses();
     };
 
-    /* ---------------- UI ---------------- */
-
     return (
-        <div className="p-8 bg-slate-50 min-h-screen">
+        <div className="p-4 sm:p-6 lg:p-8 bg-slate-50 min-h-screen">
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
 
                 {/* LEFT FORM */}
 
-                <div className="bg-white shadow-sm border border-slate-200 rounded-xl p-6 space-y-6">
+                <div className="bg-white shadow-sm border border-slate-200 rounded-xl p-5 sm:p-6 space-y-6">
 
-                    <h2 className="text-2xl font-bold text-slate-800">
+                    <h2 className="text-xl sm:text-2xl font-bold text-slate-800">
                         {editId ? "Edit Course" : "Create Course"}
                     </h2>
-
-                    {/* FORM */}
 
                     <div className="space-y-4">
 
@@ -286,10 +251,7 @@ export default function AdminCourses() {
                             <option value="">Select Level</option>
 
                             {COURSE_LEVELS.map((item) => (
-                                <option
-                                    key={item.level}
-                                    value={item.level}
-                                >
+                                <option key={item.level} value={item.level}>
                                     {item.level}
                                 </option>
                             ))}
@@ -364,7 +326,7 @@ export default function AdminCourses() {
 
                                     <div
                                         key={topicIndex}
-                                        className="flex gap-2 mb-2"
+                                        className="flex flex-col sm:flex-row gap-2 mb-2"
                                     >
 
                                         <input
@@ -388,7 +350,7 @@ export default function AdminCourses() {
                                                         topicIndex
                                                     )
                                                 }
-                                                className="text-red-500"
+                                                className="text-red-500 self-start sm:self-center"
                                             >
                                                 ✕
                                             </button>
@@ -411,7 +373,7 @@ export default function AdminCourses() {
 
                         <button
                             onClick={addModule}
-                            className="bg-slate-800 text-white px-4 py-2 rounded"
+                            className="bg-slate-800 text-white px-4 py-2 rounded w-full sm:w-auto"
                         >
                             Add Module
                         </button>
@@ -420,7 +382,7 @@ export default function AdminCourses() {
 
                     {/* BUTTONS */}
 
-                    <div className="flex gap-4">
+                    <div className="flex flex-col sm:flex-row gap-3">
 
                         <button
                             onClick={handleSubmit}
@@ -437,7 +399,7 @@ export default function AdminCourses() {
                         {editId && (
                             <button
                                 onClick={resetForm}
-                                className="bg-gray-400 text-white px-4 py-3 rounded-lg"
+                                className="bg-gray-400 text-white px-4 py-3 rounded-lg w-full sm:w-auto"
                             >
                                 Cancel
                             </button>
@@ -449,9 +411,9 @@ export default function AdminCourses() {
 
                 {/* RIGHT COURSE LIST */}
 
-                <div className="bg-white shadow-sm border border-slate-200 rounded-xl p-6">
+                <div className="bg-white shadow-sm border border-slate-200 rounded-xl p-5 sm:p-6">
 
-                    <h2 className="text-2xl font-bold mb-4 text-slate-800">
+                    <h2 className="text-xl sm:text-2xl font-bold mb-4 text-slate-800">
                         Existing Courses
                     </h2>
 
@@ -464,7 +426,7 @@ export default function AdminCourses() {
                                 className="border border-slate-200 rounded-lg p-4"
                             >
 
-                                <div className="flex justify-between">
+                                <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
 
                                     <div>
 
@@ -478,8 +440,8 @@ export default function AdminCourses() {
 
                                         <p
                                             className={`text-xs ${course.isActive
-                                                    ? "text-green-600"
-                                                    : "text-red-500"
+                                                ? "text-green-600"
+                                                : "text-red-500"
                                                 }`}
                                         >
                                             {course.isActive
@@ -489,13 +451,13 @@ export default function AdminCourses() {
 
                                     </div>
 
-                                    <div className="flex gap-3">
+                                    <div className="flex flex-wrap gap-3 text-sm">
 
                                         <button
                                             onClick={() =>
                                                 handleEdit(course)
                                             }
-                                            className="text-indigo-600 text-sm"
+                                            className="text-indigo-600"
                                         >
                                             Edit
                                         </button>
@@ -504,7 +466,7 @@ export default function AdminCourses() {
                                             onClick={() =>
                                                 handleDelete(course._id)
                                             }
-                                            className="text-red-600 text-sm"
+                                            className="text-red-600"
                                         >
                                             Delete
                                         </button>
@@ -513,7 +475,7 @@ export default function AdminCourses() {
                                             onClick={() =>
                                                 toggleActive(course)
                                             }
-                                            className="text-amber-600 text-sm"
+                                            className="text-amber-600"
                                         >
                                             Toggle
                                         </button>

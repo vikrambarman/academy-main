@@ -37,17 +37,18 @@ export default function EditNotice() {
     };
 
     return (
-        <div className="max-w-3xl">
-            <h1 className="text-xl font-semibold mb-6">
+        <div className="max-w-3xl mx-auto px-4 sm:px-0">
+
+            <h1 className="text-lg sm:text-xl font-semibold mb-6">
                 Edit Notice
             </h1>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
 
                 <input
                     type="text"
                     value={form.title}
-                    className="w-full border p-3 rounded-lg"
+                    className="w-full border p-3 rounded-lg text-sm sm:text-base"
                     onChange={(e) =>
                         setForm({ ...form, title: e.target.value })
                     }
@@ -56,13 +57,14 @@ export default function EditNotice() {
                 <textarea
                     rows={6}
                     value={form.content}
-                    className="w-full border p-3 rounded-lg"
+                    className="w-full border p-3 rounded-lg text-sm sm:text-base"
                     onChange={(e) =>
                         setForm({ ...form, content: e.target.value })
                     }
                 />
 
-                <label className="flex items-center gap-2">
+                <label className="flex items-center gap-2 text-sm sm:text-base">
+
                     <input
                         type="checkbox"
                         checked={form.isPublished}
@@ -73,14 +75,17 @@ export default function EditNotice() {
                             })
                         }
                     />
+
                     Published
+
                 </label>
 
-                <button className="bg-indigo-600 text-white px-6 py-2 rounded-lg">
+                <button className="bg-indigo-600 text-white px-6 py-2.5 rounded-lg w-full sm:w-auto">
                     Update Notice
                 </button>
 
             </form>
+
         </div>
     );
 }

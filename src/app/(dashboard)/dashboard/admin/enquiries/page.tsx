@@ -52,9 +52,9 @@ export default function AdminEnquiries() {
 
             {/* HEADER */}
 
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
 
-                <h1 className="text-2xl font-semibold text-slate-800">
+                <h1 className="text-xl sm:text-2xl font-semibold text-slate-800">
                     Enquiry Management
                 </h1>
 
@@ -69,125 +69,129 @@ export default function AdminEnquiries() {
             <input
                 type="text"
                 placeholder="Search enquiry by name or mobile..."
-                className="border border-slate-300 rounded-lg px-3 py-2 w-72"
+                className="border border-slate-300 rounded-lg px-3 py-2 w-full sm:w-72"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
             />
 
             {/* TABLE */}
 
-            <div className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-x-auto">
+            <div className="bg-white border border-slate-200 shadow-sm rounded-xl">
 
-                <table className="w-full text-sm">
+                <div className="overflow-x-auto">
 
-                    <thead className="bg-slate-50 border-b">
+                    <table className="min-w-[800px] w-full text-sm">
 
-                        <tr>
-                            <th className="p-3 text-left">Name</th>
-                            <th className="p-3 text-left">Mobile</th>
-                            <th className="p-3 text-left">Course</th>
-                            <th className="p-3 text-left">Contact</th>
-                            <th className="p-3 text-left">Message</th>
-                            <th className="p-3 text-left">Status</th>
-                            <th className="p-3 text-left">Active</th>
-                            <th className="p-3 text-left">Date</th>
-                        </tr>
+                        <thead className="bg-slate-50 border-b">
 
-                    </thead>
-
-                    <tbody>
-
-                        {filtered.length === 0 && (
                             <tr>
-                                <td
-                                    colSpan={8}
-                                    className="p-6 text-center text-gray-500"
-                                >
-                                    No enquiries found
-                                </td>
+                                <th className="p-3 text-left">Name</th>
+                                <th className="p-3 text-left">Mobile</th>
+                                <th className="p-3 text-left">Course</th>
+                                <th className="p-3 text-left">Contact</th>
+                                <th className="p-3 text-left">Message</th>
+                                <th className="p-3 text-left">Status</th>
+                                <th className="p-3 text-left">Active</th>
+                                <th className="p-3 text-left">Date</th>
                             </tr>
-                        )}
 
-                        {filtered.map((e) => (
+                        </thead>
 
-                            <tr
-                                key={e._id}
-                                className="border-t hover:bg-slate-50"
-                            >
+                        <tbody>
 
-                                <td className="p-3 font-medium">
-                                    {e.name}
-                                </td>
-
-                                <td className="p-3">
-                                    {e.mobile}
-                                </td>
-
-                                <td className="p-3">
-                                    {e.course}
-                                </td>
-
-                                <td className="p-3">
-
-                                    {e.contactMethod === "WhatsApp" ? (
-                                        <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">
-                                            WhatsApp
-                                        </span>
-                                    ) : (
-                                        <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">
-                                            Phone
-                                        </span>
-                                    )}
-
-                                </td>
-
-                                <td className="p-3 text-gray-600 max-w-xs truncate">
-                                    {e.message || "-"}
-                                </td>
-
-                                <td className="p-3">
-
-                                    <span
-                                        className={`px-2 py-1 rounded text-xs font-medium ${statusColor(
-                                            e.status
-                                        )}`}
+                            {filtered.length === 0 && (
+                                <tr>
+                                    <td
+                                        colSpan={8}
+                                        className="p-6 text-center text-gray-500"
                                     >
-                                        {e.status}
-                                    </span>
+                                        No enquiries found
+                                    </td>
+                                </tr>
+                            )}
 
-                                </td>
+                            {filtered.map((e) => (
 
-                                <td className="p-3">
+                                <tr
+                                    key={e._id}
+                                    className="border-t hover:bg-slate-50"
+                                >
 
-                                    {e.isActive ? (
-                                        <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">
-                                            Active
+                                    <td className="p-3 font-medium">
+                                        {e.name}
+                                    </td>
+
+                                    <td className="p-3">
+                                        {e.mobile}
+                                    </td>
+
+                                    <td className="p-3">
+                                        {e.course}
+                                    </td>
+
+                                    <td className="p-3">
+
+                                        {e.contactMethod === "WhatsApp" ? (
+                                            <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">
+                                                WhatsApp
+                                            </span>
+                                        ) : (
+                                            <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">
+                                                Phone
+                                            </span>
+                                        )}
+
+                                    </td>
+
+                                    <td className="p-3 text-gray-600 max-w-xs truncate">
+                                        {e.message || "-"}
+                                    </td>
+
+                                    <td className="p-3">
+
+                                        <span
+                                            className={`px-2 py-1 rounded text-xs font-medium ${statusColor(
+                                                e.status
+                                            )}`}
+                                        >
+                                            {e.status}
                                         </span>
-                                    ) : (
-                                        <span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">
-                                            Inactive
-                                        </span>
-                                    )}
 
-                                </td>
+                                    </td>
 
-                                <td className="p-3 text-gray-500 text-xs">
+                                    <td className="p-3">
 
-                                    {e.createdAt
-                                        ? new Date(
-                                            e.createdAt
-                                        ).toLocaleDateString()
-                                        : "-"}
+                                        {e.isActive ? (
+                                            <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">
+                                                Active
+                                            </span>
+                                        ) : (
+                                            <span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">
+                                                Inactive
+                                            </span>
+                                        )}
 
-                                </td>
+                                    </td>
 
-                            </tr>
+                                    <td className="p-3 text-gray-500 text-xs">
 
-                        ))}
+                                        {e.createdAt
+                                            ? new Date(
+                                                e.createdAt
+                                            ).toLocaleDateString()
+                                            : "-"}
 
-                    </tbody>
+                                    </td>
 
-                </table>
+                                </tr>
+
+                            ))}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
 
             </div>
 

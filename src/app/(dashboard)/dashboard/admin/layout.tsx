@@ -33,67 +33,34 @@ const menuSections = [
     {
         title: "MANAGEMENT",
         items: [
-            {
-                name: "Students",
-                href: "/dashboard/admin/students",
-                icon: Users,
-            },
-            {
-                name: "Courses",
-                href: "/dashboard/admin/courses",
-                icon: BookOpen,
-            },
-            {
-                name: "Notices",
-                href: "/dashboard/admin/notices",
-                icon: FileText,
-            },
-            {
-                name: "Enquiries",
-                href: "/dashboard/admin/enquiries",
-                icon: BarChart3,
-            },
-            {
-                name: "Contacts",
-                href: "/dashboard/admin/contacts",
-                icon: Users,
-            },
+            { name: "Students", href: "/dashboard/admin/students", icon: Users },
+            { name: "Courses", href: "/dashboard/admin/courses", icon: BookOpen },
+            { name: "Notices", href: "/dashboard/admin/notices", icon: FileText },
+            { name: "Enquiries", href: "/dashboard/admin/enquiries", icon: BarChart3 },
+            { name: "Contacts", href: "/dashboard/admin/contacts", icon: Users },
         ],
     },
     {
         title: "ANALYTICS",
         items: [
-            {
-                name: "Reports",
-                href: "/dashboard/admin/reports",
-                icon: BarChart3,
-            },
-            {
-                name: "Transactions",
-                href: "/dashboard/admin/transactions",
-                icon: FileText,
-            },
+            { name: "Reports", href: "/dashboard/admin/reports", icon: BarChart3 },
+            { name: "Transactions", href: "/dashboard/admin/transactions", icon: FileText },
         ],
     },
     {
         title: "SYSTEM",
         items: [
-            {
-                name: "Settings",
-                href: "/dashboard/admin/settings",
-                icon: Settings,
-            },
+            { name: "Settings", href: "/dashboard/admin/settings", icon: Settings },
         ],
     },
 ];
-
-/* ================= COMPONENT ================= */
 
 export default function AdminLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+
     const router = useRouter();
     const pathname = usePathname();
 
@@ -104,9 +71,10 @@ export default function AdminLayout({
 
     const profileRef = useRef<HTMLDivElement>(null);
 
-    /* ================= CLOSE DROPDOWN OUTSIDE ================= */
+    /* ================= CLOSE DROPDOWN ================= */
 
     useEffect(() => {
+
         const handleClickOutside = (event: MouseEvent) => {
             if (
                 profileRef.current &&
@@ -117,9 +85,11 @@ export default function AdminLayout({
         };
 
         document.addEventListener("mousedown", handleClickOutside);
+
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
+
     }, []);
 
     /* ================= HANDLERS ================= */
@@ -132,7 +102,8 @@ export default function AdminLayout({
             });
 
             router.replace("/login");
-        } catch (error) {
+
+        } catch {
             console.error("Logout failed");
         }
     };
@@ -143,10 +114,13 @@ export default function AdminLayout({
     };
 
     return (
-        <AuthGuard>
-            <div className="flex h-screen bg-slate-50">
 
-                {/* ================= MOBILE OVERLAY ================= */}
+        <AuthGuard>
+
+            <div className="flex h-screen bg-slate-50 overflow-hidden">
+
+                {/* MOBILE OVERLAY */}
+
                 {mobileOpen && (
                     <div
                         onClick={() => setMobileOpen(false)}
@@ -154,16 +128,22 @@ export default function AdminLayout({
                     />
                 )}
 
-                {/* ================= SIDEBAR ================= */}
+                {/* SIDEBAR */}
+
                 <aside
-                    className={`fixed lg:static z-50 top-0 left-0 h-full
+                    className={`
+          fixed lg:static z-50 top-0 left-0 h-full
           bg-slate-900 text-slate-200 border-r border-slate-800
           transition-all duration-300
           ${sidebarOpen ? "w-64" : "w-20"}
           ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-          `}
+        `}
                 >
+
+                    {/* LOGO */}
+
                     <div className="flex items-center justify-between p-4 border-b border-slate-800">
+
                         <h2 className="font-semibold text-lg text-white">
                             {sidebarOpen ? "SCA Admin" : "SCA"}
                         </h2>
@@ -174,11 +154,17 @@ export default function AdminLayout({
                         >
                             <Menu size={18} />
                         </button>
+
                     </div>
 
+                    {/* NAV */}
+
                     <nav className="p-4 space-y-6 overflow-y-auto h-[calc(100%-70px)]">
+
                         {menuSections.map((section) => (
+
                             <div key={section.title}>
+
                                 {sidebarOpen && (
                                     <p className="text-xs text-slate-400 mb-2 tracking-wider">
                                         {section.title}
@@ -186,38 +172,56 @@ export default function AdminLayout({
                                 )}
 
                                 <div className="space-y-2">
+
                                     {section.items.map((item) => {
+
                                         const Icon = item.icon;
                                         const active = pathname === item.href;
 
                                         return (
+
                                             <Link
                                                 key={item.name}
                                                 href={item.href}
+                                                onClick={() => setMobileOpen(false)}
                                                 className={`flex items-center gap-3 px-3 py-2 rounded-lg transition
                         ${active
                                                         ? "bg-indigo-600 text-white"
                                                         : "text-slate-300 hover:bg-slate-800 hover:text-white"
                                                     }`}
                                             >
+
                                                 <Icon size={18} />
-                                                {sidebarOpen && <span>{item.name}</span>}
+
+                                                {sidebarOpen && (
+                                                    <span>{item.name}</span>
+                                                )}
+
                                             </Link>
+
                                         );
                                     })}
+
                                 </div>
+
                             </div>
+
                         ))}
+
                     </nav>
+
                 </aside>
 
-                {/* ================= MAIN ================= */}
-                <div className="flex-1 flex flex-col overflow-hidden">
+                {/* MAIN */}
 
-                    {/* ================= TOPBAR ================= */}
-                    <header className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center">
+                <div className="flex-1 flex flex-col">
 
-                        <div className="flex items-center gap-4">
+                    {/* TOPBAR */}
+
+                    <header className="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center">
+
+                        <div className="flex items-center gap-3 sm:gap-4">
+
                             <button
                                 onClick={() => setMobileOpen(true)}
                                 className="lg:hidden text-slate-600"
@@ -225,14 +229,16 @@ export default function AdminLayout({
                                 <Menu />
                             </button>
 
-                            <h1 className="text-lg font-semibold text-slate-700">
+                            <h1 className="text-base sm:text-lg font-semibold text-slate-700">
                                 Admin Panel
                             </h1>
+
                         </div>
 
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3 sm:gap-4">
 
-                            {/* Dark Mode */}
+                            {/* DARK MODE */}
+
                             <button
                                 onClick={toggleDarkMode}
                                 className="p-2 rounded-lg hover:bg-slate-100 text-slate-600"
@@ -240,19 +246,27 @@ export default function AdminLayout({
                                 {darkMode ? <Sun size={18} /> : <Moon size={18} />}
                             </button>
 
-                            {/* Profile Dropdown */}
+                            {/* PROFILE */}
+
                             <div className="relative" ref={profileRef}>
+
                                 <button
                                     onClick={() => setProfileOpen(!profileOpen)}
-                                    className="flex items-center gap-2 bg-slate-100 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-200 transition"
+                                    className="flex items-center gap-2 bg-slate-100 px-2 sm:px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-200 transition"
                                 >
+
                                     <div className="w-8 h-8 bg-indigo-600 text-white flex items-center justify-center rounded-full text-xs font-semibold">
                                         A
                                     </div>
-                                    <span>Admin</span>
+
+                                    <span className="hidden sm:block">
+                                        Admin
+                                    </span>
+
                                 </button>
 
                                 {profileOpen && (
+
                                     <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 shadow-sm rounded-lg py-2 z-50">
 
                                         <Link
@@ -272,19 +286,25 @@ export default function AdminLayout({
                                         </button>
 
                                     </div>
+
                                 )}
+
                             </div>
 
                         </div>
+
                     </header>
 
-                    {/* ================= PAGE CONTENT ================= */}
-                    <main className="flex-1 overflow-y-auto p-6 bg-slate-50">
+                    {/* CONTENT */}
+
+                    <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-50">
                         {children}
                     </main>
 
                 </div>
+
             </div>
+
         </AuthGuard>
     );
 }

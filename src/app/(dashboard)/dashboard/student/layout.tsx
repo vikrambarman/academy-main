@@ -68,7 +68,7 @@ const menuSections: {
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
 
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -76,7 +76,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   const [student, setStudent] = useState<StudentData | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
 
-  const profileRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement | null>(null);
 
   /* ================= LOAD STUDENT ================= */
 
@@ -84,7 +84,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
     const loadStudent = async () => {
       try {
         const res = await fetchWithAuth("/api/student/me");
-        const data = await res.json();
+        const data: StudentData = await res.json();
         setStudent(data);
       } catch {
         console.error("Failed to load student");
@@ -134,20 +134,23 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   /* ================= PAGE TITLE ================= */
 
   const currentPageTitle = useMemo(() => {
+
     const allItems = menuSections
       .flatMap((section) => section.items)
-      .filter((item): item is MenuItem & { href: string } => Boolean(item.href));
+      .filter((item): item is MenuItem & { href: string } => !!item.href);
 
     const matched = allItems.find((item) =>
-      pathname?.startsWith(item.href)
+      pathname.startsWith(item.href)
     );
 
     return matched?.name || "Student Portal";
+
   }, [pathname]);
 
   /* ================= LOGOUT ================= */
 
   const handleLogout = async () => {
+
     await fetch("/api/auth/logout", {
       method: "POST",
       credentials: "include",
@@ -163,7 +166,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   return (
     <AuthGuard>
 
-      <div className="flex h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:bg-gray-900">
+      <div className="flex h-screen overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 dark:bg-gray-900">
 
         {/* Overlay mobile */}
 
@@ -187,7 +190,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
 
           <div className="flex items-center justify-between p-4 border-b border-indigo-500/40">
 
-            <h2 className="font-bold text-lg">
+            <h2 className="font-bold text-lg whitespace-nowrap">
               {sidebarOpen ? "Student Portal" : "SP"}
             </h2>
 
@@ -200,7 +203,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
 
           </div>
 
-          <nav className="p-4 space-y-6">
+          <nav className="p-4 space-y-6 overflow-y-auto h-[calc(100vh-70px)]">
 
             {menuSections.map((section) => (
 
@@ -217,14 +220,14 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                   {section.items.map((item) => {
 
                     const Icon = item.icon;
-                    const active = item.href ? pathname?.startsWith(item.href) : false;
+                    const active = item.href ? pathname.startsWith(item.href) : false;
 
                     if (item.disabled) {
 
                       return (
                         <div
                           key={item.name}
-                          className="flex items-center gap-3 px-3 py-2 rounded-lg opacity-40 cursor-not-allowed text-indigo-200"
+                          className="flex items-center gap-3 px-3 py-2 rounded-lg opacity-40 cursor-not-allowed text-indigo-200 text-sm"
                         >
                           <Icon size={18} />
                           {sidebarOpen && <span>{item.name}</span>}
@@ -259,13 +262,13 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
 
         {/* ================= MAIN ================= */}
 
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col min-w-0">
 
           {/* TOPBAR */}
 
-          <header className="bg-white/90 backdrop-blur border-b border-indigo-100 px-6 py-4 flex justify-between items-center">
+          <header className="bg-white/90 backdrop-blur border-b border-indigo-100 px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center">
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
 
               <button
                 onClick={() => setMobileOpen(true)}
@@ -274,13 +277,13 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                 <Menu />
               </button>
 
-              <h1 className="text-lg font-semibold text-indigo-900">
+              <h1 className="text-base sm:text-lg font-semibold text-indigo-900 truncate">
                 {currentPageTitle}
               </h1>
 
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
 
               <button className="p-2 rounded hover:bg-gray-100">
                 <Bell size={18} />
@@ -299,14 +302,16 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
 
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
-                  className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-md text-sm"
+                  className="flex items-center gap-2 bg-gray-100 px-2 sm:px-3 py-2 rounded-md text-sm max-w-[160px]"
                 >
 
                   <div className="w-8 h-8 bg-indigo-600 text-white flex items-center justify-center rounded-full text-xs font-semibold">
                     {student?.name?.charAt(0) ?? "S"}
                   </div>
 
-                  <span>{student?.name ?? "Student"}</span>
+                  <span className="truncate hidden sm:block">
+                    {student?.name ?? "Student"}
+                  </span>
 
                 </button>
 
@@ -341,7 +346,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
           {/* INFO STRIP */}
 
           {student && (
-            <div className="bg-indigo-100 px-6 py-3 flex flex-wrap justify-between text-sm text-indigo-900">
+            <div className="bg-indigo-100 px-4 sm:px-6 py-3 flex flex-col sm:flex-row gap-2 sm:gap-4 sm:justify-between text-sm text-indigo-900">
 
               <div>
                 Course:{" "}
@@ -369,11 +374,11 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
 
           {/* CONTENT */}
 
-          <main className="flex-1 overflow-y-auto p-8 bg-gradient-to-br from-blue-50 to-indigo-100">
+          <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-blue-50 to-indigo-100">
 
             <div className="max-w-7xl mx-auto">
 
-              <div className="bg-white rounded-xl p-8 shadow-md border border-indigo-100">
+              <div className="bg-white rounded-xl p-4 sm:p-6 lg:p-8 shadow-md border border-indigo-100">
 
                 {children}
 
