@@ -1,30 +1,31 @@
 import { GraduationCap, Award, CheckCircle, Building2 } from "lucide-react";
 
 export default function TrustSection() {
+
   const stats = [
     {
       icon: Building2,
-      value: "5+",
-      label: "Years of Excellence",
-      desc: "Experience in computer education and skill development.",
+      value: "10+",
+      label: "Years Teaching Experience",
+      desc: "Extensive experience in computer education and digital skill training.",
     },
     {
       icon: GraduationCap,
       value: "1000+",
-      label: "Students Trained",
-      desc: "Successfully trained across certified programs.",
+      label: "Students Successfully Trained",
+      desc: "Students trained through structured practical programs.",
     },
     {
       icon: Award,
       value: "100%",
-      label: "Verifiable Certificates",
-      desc: "Certificates available with online verification.",
+      label: "Verified Certificates",
+      desc: "Certificates issued with online verification support.",
     },
     {
       icon: CheckCircle,
       value: "Govt.",
-      label: "Recognized Institute",
-      desc: "ISO Certified • MSME Registered • Skill India aligned.",
+      label: "Recognized Training Institute",
+      desc: "ISO Certified • MSME Registered • Skill India aligned programs.",
     },
   ];
 
@@ -37,18 +38,21 @@ export default function TrustSection() {
 
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto">
+
           <h2
             id="trust-heading"
             className="text-3xl md:text-4xl font-semibold tracking-tight text-gray-900"
           >
-            A Trusted Name in Computer Education
+            A Trusted Institute for Computer Education
           </h2>
 
           <p className="mt-4 text-gray-600 text-base md:text-lg">
-            Shivshakti Computer Academy is a government-recognized institute
-            delivering transparent programs, certified courses, and measurable
-            student outcomes.
+            Shivshakti Computer Academy is a recognized computer training
+            institute committed to practical education, transparent training
+            systems, and verified certifications that help students build
+            real digital skills for the modern world.
           </p>
+
         </div>
 
         {/* Stats Grid */}
@@ -56,11 +60,13 @@ export default function TrustSection() {
 
           {stats.map((item, index) => {
             const Icon = item.icon;
+
             return (
               <div
                 key={index}
                 className="group bg-white rounded-3xl p-8 border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-300"
               >
+
                 <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-gray-100 group-hover:bg-black transition">
                   <Icon className="w-6 h-6 text-gray-700 group-hover:text-white transition" />
                 </div>
@@ -76,6 +82,7 @@ export default function TrustSection() {
                 <p className="mt-3 text-sm text-gray-500 leading-relaxed">
                   {item.desc}
                 </p>
+
               </div>
             );
           })}
@@ -89,15 +96,18 @@ export default function TrustSection() {
           <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,white,transparent_70%)]" />
 
           <div className="relative">
+
             <p className="text-lg font-semibold">
               Authorized & Government Recognized Computer Training Centre
             </p>
 
             <p className="mt-4 text-sm md:text-base text-gray-300 leading-relaxed max-w-3xl mx-auto">
-              Authorized under Gramin Skill Development Mission (GSDM) •
-              Certificates available on Skill India Portal & DigiLocker •
-              ISO 9001:2015 Certified • MSME Registered Institute
+              Authorized Training Centre under Gramin Skill Development Mission (GSDM) •
+              Certificates supported through Skill India aligned programs •
+              DigiLocker compatible certification •
+              ISO 9001:2015 Certified • MSME (Udyam) Registered Institute
             </p>
+
           </div>
 
         </div>

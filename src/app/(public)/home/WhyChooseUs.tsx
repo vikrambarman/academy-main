@@ -1,112 +1,160 @@
+import {
+    MonitorCheck,
+    Award,
+    Briefcase,
+    Users,
+    ShieldCheck,
+    Rocket
+} from "lucide-react";
+
 export default function WhyChooseUs() {
+
     const points = [
         {
-            title: "100% Practical Computer Training",
-            desc: "Hands-on computer learning with individual system access for every student."
+            icon: MonitorCheck,
+            title: "Practical Computer Training",
+            desc: "Hands-on learning with dedicated systems and real-time practical sessions."
         },
         {
-            title: "Government Recognized Certifications",
-            desc: "Verified certificates aligned with Skill India, GSDM and DigiLocker platforms."
+            icon: Award,
+            title: "Recognized Certifications",
+            desc: "Certificates aligned with Skill India initiatives and DigiLocker verification."
         },
         {
+            icon: Briefcase,
             title: "Career-Oriented Programs",
-            desc: "From basic computer education to web development and advanced IT skills."
+            desc: "Industry-focused courses designed for employment and digital careers."
         },
         {
-            title: "Supportive Learning Environment",
-            desc: "Friendly and structured learning support for students from all backgrounds."
+            icon: Users,
+            title: "Supportive Learning",
+            desc: "Guided training environment that helps students learn confidently."
         },
         {
-            title: "Trusted Institute in Ambikapur",
-            desc: "Recognized and established computer training institute in Chhattisgarh."
+            icon: ShieldCheck,
+            title: "Trusted Local Institute",
+            desc: "Established computer training institute serving Ambikapur and nearby regions."
         },
         {
-            title: "Job & Self-Employment Focus",
-            desc: "Skill-based programs designed for jobs, freelancing and entrepreneurship."
+            icon: Rocket,
+            title: "Skill-Based Growth",
+            desc: "Programs designed for job readiness, freelancing and self-employment."
         }
     ];
 
     return (
-        <section
-            className="bg-white"
-            aria-labelledby="why-choose-heading"
-        >
-            <div className="max-w-7xl mx-auto px-6 md:px-12 py-20">
+        <section className="bg-white" aria-labelledby="why-choose-heading">
 
-                {/* Split Layout */}
+            <div className="max-w-7xl mx-auto px-6 md:px-12 py-24">
+
+                {/* SPLIT LAYOUT */}
                 <div className="grid md:grid-cols-2 gap-16 items-start">
 
-                    {/* LEFT CONTENT */}
+                    {/* LEFT SIDE */}
                     <div>
+
+                        <span className="inline-block text-xs font-medium bg-yellow-50 text-yellow-700 px-4 py-2 rounded-full">
+                            Why Students Trust Us
+                        </span>
+
                         <h2
                             id="why-choose-heading"
-                            className="text-3xl md:text-4xl font-semibold tracking-tight text-gray-900"
+                            className="mt-6 text-3xl md:text-4xl font-semibold tracking-tight text-gray-900"
                         >
-                            Why Choose Shivshakti Computer Academy?
+                            Why Choose Shivshakti Computer Academy
                         </h2>
 
                         <p className="mt-6 text-gray-600 text-base md:text-lg leading-relaxed">
-                            We focus on practical training, recognized certifications, and
-                            career-ready computer education designed to create measurable
-                            student outcomes.
+                            Our training approach combines practical computer education,
+                            recognized certifications and career-focused learning to help
+                            students develop strong digital skills for the modern workplace.
                         </p>
 
-                        {/* Highlight Block */}
-                        <div className="mt-10 space-y-6">
+                        {/* Highlight Points */}
+                        <div className="mt-10 space-y-8">
 
-                            <div className="border-l-4 border-black pl-5">
-                                <h3 className="text-lg font-semibold text-gray-900">
-                                    Practical First Approach
-                                </h3>
-                                <p className="mt-2 text-sm text-gray-500">
-                                    Real-time computer practice integrated into every course module.
-                                </p>
+                            <div className="flex gap-4">
+                                <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                                    <MonitorCheck className="w-5 h-5 text-gray-700" />
+                                </div>
+
+                                <div>
+                                    <h3 className="text-base font-semibold text-gray-900">
+                                        Practical-First Learning
+                                    </h3>
+                                    <p className="text-sm text-gray-500 mt-1">
+                                        Every course emphasizes hands-on computer practice.
+                                    </p>
+                                </div>
                             </div>
 
-                            <div className="border-l-4 border-black pl-5">
-                                <h3 className="text-lg font-semibold text-gray-900">
-                                    Verified & Recognized Certification
-                                </h3>
-                                <p className="mt-2 text-sm text-gray-500">
-                                    Government-recognized credentials with digital verification.
-                                </p>
+                            <div className="flex gap-4">
+                                <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                                    <Award className="w-5 h-5 text-gray-700" />
+                                </div>
+
+                                <div>
+                                    <h3 className="text-base font-semibold text-gray-900">
+                                        Verified Certifications
+                                    </h3>
+                                    <p className="text-sm text-gray-500 mt-1">
+                                        Certificates supported by recognized national platforms.
+                                    </p>
+                                </div>
                             </div>
 
-                            <div className="border-l-4 border-black pl-5">
-                                <h3 className="text-lg font-semibold text-gray-900">
-                                    Career-Driven Curriculum
-                                </h3>
-                                <p className="mt-2 text-sm text-gray-500">
-                                    Programs aligned with job market and self-employment needs.
-                                </p>
+                            <div className="flex gap-4">
+                                <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                                    <Briefcase className="w-5 h-5 text-gray-700" />
+                                </div>
+
+                                <div>
+                                    <h3 className="text-base font-semibold text-gray-900">
+                                        Career-Oriented Curriculum
+                                    </h3>
+                                    <p className="text-sm text-gray-500 mt-1">
+                                        Programs designed for real-world digital career opportunities.
+                                    </p>
+                                </div>
                             </div>
 
                         </div>
+
                     </div>
 
-                    {/* RIGHT GRID */}
-                    <div className="grid sm:grid-cols-2 gap-8">
 
-                        {points.map((item, index) => (
-                            <div
-                                key={index}
-                                className="border border-gray-100 rounded-2xl p-6 hover:shadow-md transition"
-                            >
-                                <h3 className="text-base font-semibold text-gray-900">
-                                    {item.title}
-                                </h3>
+                    {/* RIGHT SIDE FEATURES */}
+                    <div className="grid sm:grid-cols-2 gap-6">
 
-                                <p className="mt-3 text-sm text-gray-500 leading-relaxed">
-                                    {item.desc}
-                                </p>
-                            </div>
-                        ))}
+                        {points.map((item, index) => {
+                            const Icon = item.icon;
+
+                            return (
+                                <div
+                                    key={index}
+                                    className="group bg-gray-50 border border-gray-100 rounded-2xl p-6 hover:bg-white hover:shadow-lg transition-all duration-300"
+                                >
+
+                                    <Icon className="w-6 h-6 text-gray-800" />
+
+                                    <h3 className="mt-4 text-sm font-semibold text-gray-900">
+                                        {item.title}
+                                    </h3>
+
+                                    <p className="mt-2 text-sm text-gray-500 leading-relaxed">
+                                        {item.desc}
+                                    </p>
+
+                                </div>
+                            );
+                        })}
 
                     </div>
 
                 </div>
 
             </div>
+
         </section>
     );
 }

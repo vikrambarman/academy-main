@@ -4,7 +4,7 @@ export const metadata = {
     title:
         "About Shivshakti Computer Academy | Trusted Computer Training in Ambikapur",
     description:
-        "Learn about Shivshakti Computer Academy, Ambikapur — government-recognized computer training institute providing practical education and verified certifications.",
+        "Learn about Shivshakti Computer Academy in Ambikapur — a trusted computer training institute with 10+ years of teaching experience providing practical education and verified certifications.",
 };
 
 export default function AboutPage() {
@@ -18,56 +18,67 @@ export default function AboutPage() {
             <div className="max-w-7xl mx-auto px-6 md:px-12">
 
                 {/* ================= HERO ================= */}
-                <div className="grid md:grid-cols-2 gap-20 items-center">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20 items-center">
 
-                    <div>
-                        <span className="inline-block text-sm font-medium bg-yellow-50 text-yellow-700 px-5 py-2 rounded-full shadow-sm">
+                    {/* LEFT CONTENT */}
+                    <div className="text-center md:text-left">
+
+                        <span className="inline-block text-xs sm:text-sm font-medium bg-yellow-50 text-yellow-700 px-4 py-2 rounded-full shadow-sm">
                             Established & Government Recognized
                         </span>
 
-                        <h1 className="mt-8 text-4xl md:text-5xl font-bold tracking-tight text-gray-900 leading-tight">
-                            Empowering Digital Skills <br /> in Ambikapur
+                        <h1 className="mt-6 text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-gray-900 leading-tight">
+                            Empowering Digital Skills <br className="hidden sm:block" /> in Ambikapur
                         </h1>
 
-                        <div className="mt-6 w-24 h-1 bg-yellow-500 rounded-full"></div>
+                        <div className="mt-5 w-20 h-1 bg-yellow-500 rounded-full mx-auto md:mx-0"></div>
 
-                        <p className="mt-8 text-lg text-gray-600 leading-relaxed">
+                        <p className="mt-6 text-base sm:text-lg text-gray-600 leading-relaxed max-w-xl mx-auto md:mx-0">
                             Shivshakti Computer Academy is a trusted computer training institute
-                            focused on practical education, verified certification, and
-                            career-oriented digital skill development.
+                            in Ambikapur dedicated to practical learning, verified certification,
+                            and career-oriented digital skill development. With more than
+                            10 years of teaching experience across academic and professional
+                            computer training environments, our institute focuses on building
+                            strong digital foundations and practical confidence for every student.
                         </p>
 
                         {/* Premium Stats */}
-                        <div className="mt-12 grid grid-cols-3 gap-6">
+                        <div className="mt-10 grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6">
+
                             {[
-                                { number: "5+", label: "Years Experience" },
+                                { number: "10+", label: "Years Teaching Experience" },
                                 { number: "1000+", label: "Students Trained" },
                                 { number: "100%", label: "Verified Certificates" },
                             ].map((item, index) => (
                                 <div
                                     key={index}
-                                    className="bg-white rounded-2xl p-6 shadow-md text-center border border-gray-100"
+                                    className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-md text-center border border-gray-100"
                                 >
-                                    <p className="text-3xl font-semibold text-gray-900">
+                                    <p className="text-2xl sm:text-3xl font-semibold text-gray-900">
                                         {item.number}
                                     </p>
-                                    <p className="text-sm text-gray-500 mt-2">
+
+                                    <p className="text-xs sm:text-sm text-gray-500 mt-1 sm:mt-2">
                                         {item.label}
                                     </p>
                                 </div>
                             ))}
+
                         </div>
+
                     </div>
 
-                    <div className="relative">
+                    {/* RIGHT IMAGE */}
+                    <div className="relative flex justify-center md:justify-end">
                         <Image
                             src="/about.png"
                             alt="Students learning practical computer training"
                             width={650}
                             height={500}
-                            className="rounded-3xl shadow-2xl object-cover"
+                            className="rounded-3xl shadow-2xl object-cover w-full max-w-md md:max-w-lg"
                         />
                     </div>
+
                 </div>
 
                 {/* ================= WHO WE ARE ================= */}
@@ -79,15 +90,18 @@ export default function AboutPage() {
                     <div className="mt-4 w-20 h-1 bg-yellow-500 mx-auto rounded-full"></div>
 
                     <p className="mt-8 text-gray-600 leading-relaxed">
-                        We are an Authorized Training Centre under Gramin Skill Development Mission.
-                        Selected programs align with national skill development frameworks,
-                        and eligible certificates are digitally verifiable.
+                        Shivshakti Computer Academy is an Authorized Training Centre
+                        under Gramin Skill Development Mission. Our programs are
+                        designed to align with national skill development initiatives,
+                        ensuring students receive structured training and recognized
+                        certifications.
                     </p>
 
                     <p className="mt-4 text-gray-600 leading-relaxed">
-                        Our transparent training model ensures students first gain practical
-                        expertise, then undergo structured assessment, and finally receive
-                        recognized certification from respective authorities.
+                        We follow a transparent training approach where students first
+                        learn through practical hands-on sessions, then undergo
+                        proper assessment, and finally receive verified certification
+                        from authorized organizations.
                     </p>
                 </div>
 
@@ -166,20 +180,6 @@ export default function AboutPage() {
                     </div>
                 </div>
 
-                {/* ================= MESSAGE ================= */}
-                <div className="mt-32 bg-gray-50 rounded-3xl p-14 text-center shadow-inner">
-                    <h3 className="text-xl font-semibold text-gray-900">
-                        Message from the Institute
-                    </h3>
-
-                    <p className="mt-8 text-gray-600 text-sm leading-relaxed max-w-3xl mx-auto">
-                        We believe skills matter more than certificates. Our goal is to ensure
-                        that every student not only earns a recognized certificate but also
-                        develops the practical confidence required for real-world success.
-                    </p>
-                </div>
-
-
                 {/* ================= FOUNDER MESSAGE ================= */}
                 <div className="mt-32 bg-gray-50 rounded-3xl p-14">
 
@@ -189,7 +189,7 @@ export default function AboutPage() {
                         <div className="flex justify-center md:justify-start">
                             <div className="relative w-44 h-44">
                                 <Image
-                                    src="/founder.jpg"   // <-- Add founder image here
+                                    src="/founder.jpg"
                                     alt="Founder of Shivshakti Computer Academy"
                                     fill
                                     className="object-cover rounded-full shadow-md"
@@ -205,19 +205,20 @@ export default function AboutPage() {
                             </h3>
 
                             <p className="mt-6 text-gray-600 text-sm leading-relaxed">
-                                At Shivshakti Computer Academy, our vision has always been simple —
-                                provide practical, honest and skill-based education that truly
-                                transforms careers. Certificates are important, but confidence and
-                                real-world ability matter even more.
+                                With over a decade of teaching experience, my journey in education
+                                has been focused on helping students develop strong academic
+                                and digital foundations. Before establishing this institute,
+                                I worked as a Senior Computer Faculty where I trained students
+                                in practical computer applications and career-oriented skills.
                             </p>
 
                             <p className="mt-4 text-gray-600 text-sm leading-relaxed">
-                                We remain committed to maintaining transparency, recognized
-                                certifications, and structured training systems that empower
-                                every student who joins us.
+                                Shivshakti Computer Academy was founded with a clear vision —
+                                to provide transparent, practical and skill-based computer
+                                education that prepares students for real-world opportunities
+                                in today’s digital era.
                             </p>
 
-                            {/* Founder Name */}
                             <div className="mt-8">
                                 <p className="text-lg font-semibold text-gray-900">
                                     Mr. Vikram Barman
@@ -237,7 +238,6 @@ export default function AboutPage() {
                     </div>
 
                 </div>
-
 
             </div>
         </section>

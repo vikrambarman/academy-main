@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function VerifyOTPPage() {
 
@@ -16,23 +17,21 @@ export default function VerifyOTPPage() {
 
     const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
-    /* ✅ Get UID safely on client only */
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const uid = params.get("uid");
         setUserId(uid);
 
-        if (!uid) {
-            router.push("/login");
-        }
+        if (!uid) router.push("/login");
     }, []);
 
-    /* Countdown Timer */
     useEffect(() => {
         if (timeLeft <= 0) return;
+
         const timer = setInterval(() => {
             setTimeLeft((prev) => prev - 1);
         }, 1000);
+
         return () => clearInterval(timer);
     }, [timeLeft]);
 
@@ -62,6 +61,7 @@ export default function VerifyOTPPage() {
 
     const handlePaste = (e: React.ClipboardEvent) => {
         const pasteData = e.clipboardData.getData("text").slice(0, 6);
+
         if (!/^\d+$/.test(pasteData)) return;
 
         const newOtp = pasteData.split("");
@@ -82,7 +82,7 @@ export default function VerifyOTPPage() {
                 credentials: "include",
                 body: JSON.stringify({
                     userId,
-                    otp: otp.join(""),
+                    otp: otp.join("")
                 }),
             });
 
@@ -112,32 +112,47 @@ export default function VerifyOTPPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-            <div className="w-full max-w-md bg-white border border-slate-200 rounded-xl shadow-sm p-8">
+        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center px-4">
 
-                <div className="text-center mb-6">
-                    <img
+            <div className="w-full max-w-md bg-white border border-gray-200 rounded-2xl shadow-lg p-8 sm:p-10">
+
+                {/* Header */}
+                <div className="text-center mb-8">
+
+                    <Image
                         src="/logo.png"
                         alt="Shivshakti Computer Academy"
-                        className="mx-auto h-14 mb-4"
+                        width={60}
+                        height={60}
+                        className="mx-auto mb-4"
                     />
-                    <h2 className="text-xl font-semibold text-slate-900">
-                        Two-Factor Authentication
+
+                    <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">
+                        Verify Your Login
                     </h2>
-                    <p className="text-sm text-slate-500 mt-1">
-                        Enter the 6-digit code sent to your email
+
+                    <p className="text-sm text-gray-500 mt-2">
+                        Enter the 6-digit verification code sent to your email
                     </p>
+
                 </div>
 
+
                 {error && (
-                    <div className="bg-red-50 text-red-600 text-sm p-3 rounded-md mb-4 text-center">
+                    <div className="bg-red-50 border border-red-200 text-red-600 text-sm p-3 rounded-lg mb-6 text-center">
                         {error}
                     </div>
                 )}
 
+
+                {/* OTP FORM */}
                 <form onSubmit={handleVerify} className="space-y-6">
 
-                    <div className="flex justify-between gap-2" onPaste={handlePaste}>
+                    <div
+                        className="flex justify-between gap-2 sm:gap-3"
+                        onPaste={handlePaste}
+                    >
+
                         {otp.map((digit, index) => (
                             <input
                                 key={index}
@@ -147,39 +162,70 @@ export default function VerifyOTPPage() {
                                 value={digit}
                                 onChange={(e) => handleChange(e.target.value, index)}
                                 onKeyDown={(e) => handleKeyDown(e, index)}
-                                className="w-12 h-12 text-center text-lg border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-900 transition"
+                                className="
+                                w-11 h-11 sm:w-12 sm:h-12
+                                text-center text-lg font-semibold
+                                border border-gray-300
+                                rounded-lg
+                                focus:outline-none
+                                focus:ring-2
+                                focus:ring-black
+                                transition
+                                "
                             />
                         ))}
+
                     </div>
 
+
+                    {/* Submit Button */}
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-slate-900 text-white py-2.5 rounded-md hover:bg-slate-800 transition disabled:opacity-50"
+                        className="
+                        w-full
+                        bg-black
+                        text-white
+                        py-3
+                        rounded-lg
+                        font-medium
+                        hover:bg-gray-900
+                        transition
+                        disabled:opacity-50
+                        "
                     >
                         {loading ? "Verifying..." : "Verify & Continue"}
                     </button>
+
                 </form>
 
+
+                {/* Timer */}
                 <div className="text-center mt-6">
-                    <p className="text-sm text-slate-500">
-                        Code expires in {formatTime()}
+
+                    <p className="text-sm text-gray-500">
+                        Code expires in <span className="font-medium">{formatTime()}</span>
                     </p>
 
                     {timeLeft <= 0 && (
                         <button
                             onClick={handleResend}
-                            className="mt-3 text-sm text-slate-900 font-medium hover:underline"
+                            className="mt-3 text-sm font-medium text-black hover:underline"
                         >
                             Resend Code
                         </button>
                     )}
+
                 </div>
 
-                <p className="text-xs text-slate-400 text-center mt-6">
+
+                {/* Footer */}
+                <p className="text-xs text-gray-400 text-center mt-8">
                     Shivshakti Computer Academy © 2026
                 </p>
+
             </div>
+
         </div>
     );
 }
