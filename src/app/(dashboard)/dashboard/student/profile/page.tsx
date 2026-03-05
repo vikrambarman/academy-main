@@ -3,32 +3,61 @@
 import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 
+interface Student {
+    studentId: string;
+    name: string;
+    email?: string;
+    phone?: string;
+    feesTotal: number;
+    feesPaid: number;
+    certificateStatus: string;
+    course?: {
+        name?: string;
+        duration?: string;
+        authority?: string;
+    };
+}
+
 export default function StudentProfile() {
-    const [student, setStudent] = useState<any>(null);
+
+    const [student, setStudent] = useState<Student | null>(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+
         const loadProfile = async () => {
+
             try {
+
                 const res = await fetchWithAuth("/api/student/me");
 
+                const data = await res.json();
+
                 if (!res.ok) {
-                    throw new Error("Unauthorized");
+                    throw new Error(data.message || "Failed to load profile");
                 }
 
-                const data = await res.json();
                 setStudent(data);
-            } catch (err) {
-                console.error("Profile load error");
-                setError(true);
+
+            } catch (err: any) {
+
+                console.error("Profile load error:", err.message);
+                setError(err.message);
+
             } finally {
+
                 setLoading(false);
+
             }
+
         };
 
         loadProfile();
+
     }, []);
+
+    /* ================= LOADING ================= */
 
     if (loading) {
         return (
@@ -38,93 +67,165 @@ export default function StudentProfile() {
         );
     }
 
-    if (error || !student) {
+    /* ================= ERROR ================= */
+
+    if (error) {
         return (
             <div className="text-red-500">
-                Failed to load profile.
+                {error}
             </div>
         );
     }
 
+    if (!student) {
+        return (
+            <div className="text-red-500">
+                Profile data not available.
+            </div>
+        );
+    }
+
+    const pendingFees = (student.feesTotal || 0) - (student.feesPaid || 0);
+
     return (
-        <div className="max-w-4xl space-y-8">
+        <div className="max-w-6xl mx-auto space-y-8">
+
+            {/* PAGE TITLE */}
 
             <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
-                My Profile
+                Student Profile
             </h1>
 
-            <div className="bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-8 space-y-6">
+            {/* PROFILE CARD */}
 
-                <div className="grid md:grid-cols-2 gap-6 text-sm">
+            <div className="bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-8 flex flex-col md:flex-row gap-8 items-center">
 
-                    <div>
-                        <p className="text-gray-500">Full Name</p>
-                        <p className="font-semibold text-gray-800 dark:text-white">
-                            {student.name}
-                        </p>
+                {/* Avatar */}
+
+                <div className="flex-shrink-0">
+                    <div className="w-24 h-24 rounded-full bg-indigo-600 text-white flex items-center justify-center text-3xl font-bold">
+                        {student.name?.charAt(0) || "S"}
                     </div>
+                </div>
 
-                    <div>
-                        <p className="text-gray-500">Email</p>
-                        <p className="font-semibold text-gray-800 dark:text-white">
-                            {student.email}
-                        </p>
-                    </div>
+                {/* Basic Info */}
 
-                    <div>
-                        <p className="text-gray-500">Phone</p>
-                        <p className="font-semibold text-gray-800 dark:text-white">
-                            {student.phone}
-                        </p>
-                    </div>
+                <div className="flex-1 space-y-2 text-center md:text-left">
 
-                    <div>
-                        <p className="text-gray-500">Student ID</p>
-                        <p className="font-semibold text-gray-800 dark:text-white">
-                            {student.studentId}
-                        </p>
+                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+                        {student.name}
+                    </h2>
+
+                    <p className="text-gray-500">
+                        {student.email || "No email"}
+                    </p>
+
+                    <div className="text-sm text-gray-600 dark:text-gray-300 flex flex-wrap gap-4 justify-center md:justify-start">
+
+                        <span>
+                            <strong>ID:</strong> {student.studentId}
+                        </span>
+
+                        <span>
+                            <strong>Phone:</strong> {student.phone || "N/A"}
+                        </span>
+
                     </div>
 
                 </div>
 
-                {/* COURSE SECTION */}
-                {student.course && (
-                    <div className="border-t pt-6">
+            </div>
 
-                        <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
-                            Course Information
-                        </h2>
+            {/* INFO GRID */}
 
-                        <div className="grid md:grid-cols-2 gap-6 text-sm">
+            <div className="grid md:grid-cols-2 gap-8">
 
-                            <div>
-                                <p className="text-gray-500">Course Name</p>
-                                <p className="font-semibold text-gray-800 dark:text-white">
-                                    {student.course.name}
-                                </p>
-                            </div>
+                {/* COURSE */}
 
-                            <div>
-                                <p className="text-gray-500">Duration</p>
-                                <p className="font-semibold text-gray-800 dark:text-white">
-                                    {student.course.duration || "N/A"}
-                                </p>
-                            </div>
+                <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 space-y-4">
 
-                            {student.course.authority && (
-                                <div>
-                                    <p className="text-gray-500">Authority</p>
-                                    <p className="font-semibold text-gray-800 dark:text-white">
-                                        {student.course.authority}
-                                    </p>
-                                </div>
-                            )}
+                    <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+                        Course Information
+                    </h2>
 
-                        </div>
+                    <div className="space-y-2 text-sm">
+
+                        <p>
+                            <span className="text-gray-500">Course Name:</span>{" "}
+                            <span className="font-medium">
+                                {student.course?.name || "N/A"}
+                            </span>
+                        </p>
+
+                        <p>
+                            <span className="text-gray-500">Duration:</span>{" "}
+                            <span className="font-medium">
+                                {student.course?.duration || "N/A"}
+                            </span>
+                        </p>
+
+                        <p>
+                            <span className="text-gray-500">Authority:</span>{" "}
+                            <span className="font-medium">
+                                {student.course?.authority || "N/A"}
+                            </span>
+                        </p>
+
                     </div>
-                )}
+
+                </div>
+
+                {/* FEES */}
+
+                <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 space-y-4">
+
+                    <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+                        Fee Summary
+                    </h2>
+
+                    <div className="space-y-2 text-sm">
+
+                        <p>
+                            <span className="text-gray-500">Total Fees:</span>{" "}
+                            <span className="font-medium">
+                                ₹{student.feesTotal}
+                            </span>
+                        </p>
+
+                        <p>
+                            <span className="text-gray-500">Paid Fees:</span>{" "}
+                            <span className="font-medium text-green-600">
+                                ₹{student.feesPaid}
+                            </span>
+                        </p>
+
+                        <p>
+                            <span className="text-gray-500">Pending Fees:</span>{" "}
+                            <span className="font-medium text-red-500">
+                                ₹{pendingFees}
+                            </span>
+                        </p>
+
+                    </div>
+
+                </div>
 
             </div>
+
+            {/* CERTIFICATE */}
+
+            <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6">
+
+                <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
+                    Certificate Status
+                </h2>
+
+                <span className="px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 font-medium text-sm">
+                    {student.certificateStatus}
+                </span>
+
+            </div>
+
         </div>
     );
 }

@@ -2,13 +2,17 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { verifyUser } from "@/lib/verifyUser";
 import Student from "@/models/Student";
+import "@/models/Course"; // register schema
 
 export async function GET() {
+
     try {
+
         await connectDB();
 
         const user: any = await verifyUser();
 
+        // 🔐 Check authentication
         if (!user || user.role !== "student") {
             return NextResponse.json(
                 { message: "Unauthorized" },
@@ -16,13 +20,17 @@ export async function GET() {
             );
         }
 
-        // IMPORTANT FIX HERE
-        const student = await Student.findOne({ user: user._id })
+        // 🔎 Find student linked with logged in user
+        const student = await Student.findOne({
+            user: user._id,
+        })
             .populate({
                 path: "course",
-                select:
-                    "name authority duration certificate verification externalPortalUrl externalLoginRequired",
+                select: "name duration authority certificate verification",
             })
+            .select(
+                "studentId name email phone feesTotal feesPaid certificateStatus course payments isActive"
+            )
             .lean();
 
         if (!student) {
@@ -32,6 +40,7 @@ export async function GET() {
             );
         }
 
+        // 🚫 Account disabled
         if (!student.isActive) {
             return NextResponse.json(
                 { message: "Account deactivated" },
@@ -39,15 +48,19 @@ export async function GET() {
             );
         }
 
-        return NextResponse.json(
-            JSON.parse(JSON.stringify(student))
-        );
+        // 🔒 Remove sensitive fields
+        delete (student as any).isActive;
+
+        return NextResponse.json(student);
 
     } catch (error) {
-        console.error("STUDENT ME ERROR:", error);
+
+        console.error("STUDENT PROFILE ERROR:", error);
+
         return NextResponse.json(
-            { message: "Unauthorized" },
-            { status: 401 }
+            { message: "Server error" },
+            { status: 500 }
         );
+
     }
 }

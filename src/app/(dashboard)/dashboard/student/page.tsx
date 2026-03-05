@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import CountUp from "react-countup";
 
-/* ================= TYPES ================= */
+/* TYPES */
 
 interface Payment {
     amount: number;
@@ -17,12 +17,11 @@ interface Course {
     name: string;
     authority?: string;
     verification?: string;
-    externalLoginRequired?: boolean;
-    externalPortalUrl?: string;
 }
 
 interface StudentData {
     name: string;
+    studentId: string;
     feesTotal: number;
     feesPaid: number;
     certificateStatus: string;
@@ -30,199 +29,198 @@ interface StudentData {
     payments: Payment[];
 }
 
-/* ================= MAIN COMPONENT ================= */
-
 export default function StudentDashboard() {
+
     const [student, setStudent] = useState<StudentData | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const loadStudent = async () => {
-            try {
-                const res = await fetchWithAuth("/api/student/me");
-                const data = await res.json();
-                setStudent(data);
-            } catch (err) {
-                console.error("Failed to load student data");
-            } finally {
-                setLoading(false);
-            }
+            const res = await fetchWithAuth("/api/student/me");
+            const data = await res.json();
+            setStudent(data);
+            setLoading(false);
         };
 
         loadStudent();
     }, []);
 
     if (loading) {
-        return (
-            <div className="text-gray-500 animate-pulse">
-                Loading dashboard...
-            </div>
-        );
+        return <div className="text-gray-500 animate-pulse">Loading...</div>;
     }
 
     if (!student) {
-        return <div className="text-red-500">Failed to load data.</div>;
+        return <div className="text-red-500">Failed to load dashboard.</div>;
     }
 
-    const feesTotal = student.feesTotal ?? 0;
-    const feesPaid = student.feesPaid ?? 0;
-    const feesDue = feesTotal - feesPaid;
+    const total = student.feesTotal ?? 0;
+    const paid = student.feesPaid ?? 0;
+    const due = total - paid;
 
-    const progress =
-        feesTotal > 0
-            ? Math.min((feesPaid / feesTotal) * 100, 100)
-            : 0;
+    const progress = total > 0 ? (paid / total) * 100 : 0;
 
     return (
-        <div className="space-y-10">
+        <div className="max-w-6xl mx-auto space-y-14">
 
-            {/* ================= HEADER ================= */}
-            <h1 className="text-3xl font-bold text-gray-800">
-                Welcome, {student.name}
-            </h1>
+            {/* HEADER */}
 
-            {/* ================= KPI CARDS ================= */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex items-end justify-between border-b pb-6">
 
-                {/* Course Card */}
-                <div className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white p-6 rounded-2xl shadow-xl">
-                    <p className="text-sm opacity-80">Enrolled Course</p>
-                    <h2 className="text-xl font-semibold mt-2">
+                <div>
+                    <h1 className="text-3xl font-semibold text-gray-900">
+                        Hello, {student.name}
+                    </h1>
+
+                    <p className="text-sm text-gray-500 mt-1">
+                        Student ID • {student.studentId}
+                    </p>
+                </div>
+
+                <div className="text-right text-sm text-gray-500">
+                    <p>Course</p>
+                    <p className="font-medium text-gray-900">
                         {student.course?.name}
-                    </h2>
-                    <p className="text-sm opacity-80 mt-1">
-                        {student.course?.authority}
                     </p>
-                </div>
-
-                {/* Fees Card */}
-                <div className="bg-gradient-to-br from-green-500 to-emerald-600 text-white p-6 rounded-2xl shadow-xl">
-                    <p className="text-sm opacity-80">Total Paid</p>
-                    <h2 className="text-2xl font-bold mt-2">
-                        ₹<CountUp end={feesPaid} duration={1.5} separator="," />
-                    </h2>
-                    <p className="text-sm opacity-80 mt-1">
-                        Out of ₹{feesTotal}
-                    </p>
-                </div>
-
-                {/* Due Card */}
-                <div className="bg-gradient-to-br from-red-500 to-orange-500 text-white p-6 rounded-2xl shadow-xl">
-                    <p className="text-sm opacity-80">Pending Fees</p>
-                    <h2 className="text-2xl font-bold mt-2">
-                        ₹<CountUp end={feesDue} duration={1.5} separator="," />
-                    </h2>
                 </div>
 
             </div>
 
-            {/* ================= PROGRESS SECTION ================= */}
-            <div className="bg-white shadow-xl rounded-2xl p-8">
+            {/* KPI STRIP */}
 
-                <h2 className="text-lg font-semibold mb-4">
-                    Fee Progress
-                </h2>
+            <div className="grid grid-cols-3 gap-8">
 
-                <div className="w-full bg-gray-200 rounded-full h-4">
+                <div>
+                    <p className="text-xs text-gray-500 uppercase">
+                        Total Fees
+                    </p>
+
+                    <p className="text-2xl font-semibold text-gray-900 mt-1">
+                        ₹<CountUp end={total} separator="," />
+                    </p>
+                </div>
+
+                <div>
+                    <p className="text-xs text-gray-500 uppercase">
+                        Paid
+                    </p>
+
+                    <p className="text-2xl font-semibold text-green-600 mt-1">
+                        ₹<CountUp end={paid} separator="," />
+                    </p>
+                </div>
+
+                <div>
+                    <p className="text-xs text-gray-500 uppercase">
+                        Pending
+                    </p>
+
+                    <p className="text-2xl font-semibold text-red-500 mt-1">
+                        ₹<CountUp end={due} separator="," />
+                    </p>
+                </div>
+
+            </div>
+
+            {/* FEE PROGRESS */}
+
+            <div>
+
+                <div className="flex justify-between mb-2 text-sm text-gray-600">
+                    <span>Fee Progress</span>
+                    <span>{progress.toFixed(0)}%</span>
+                </div>
+
+                <div className="w-full bg-gray-200 h-2 rounded-full">
+
                     <div
-                        className="bg-indigo-600 h-4 rounded-full transition-all duration-700"
+                        className="bg-indigo-600 h-2 rounded-full transition-all"
                         style={{ width: `${progress}%` }}
                     />
-                </div>
 
-                <p className="mt-3 text-sm text-gray-600">
-                    {progress.toFixed(0)}% completed
-                </p>
+                </div>
 
             </div>
 
-            {/* ================= CERTIFICATE SECTION ================= */}
-            <div className="bg-white shadow-xl rounded-2xl p-8">
+            {/* CERTIFICATE */}
 
-                <h2 className="text-lg font-semibold mb-4">
-                    Certificate Status
-                </h2>
+            <div className="flex items-center justify-between">
 
-                <span className="inline-block px-4 py-2 rounded-full text-sm bg-indigo-100 text-indigo-700">
-                    {student.certificateStatus}
-                </span>
+                <div>
+                    <p className="text-sm text-gray-500">
+                        Certificate Status
+                    </p>
+
+                    <p className="text-lg font-semibold text-gray-900">
+                        {student.certificateStatus}
+                    </p>
+                </div>
 
                 {student.course?.verification && (
-                    <div className="mt-4">
-                        <a
-                            href={student.course.verification}
-                            target="_blank"
-                            className="text-blue-600 underline text-sm"
-                        >
-                            Verify Certificate
-                        </a>
-                    </div>
+
+                    <a
+                        href={student.course.verification}
+                        target="_blank"
+                        className="text-sm text-indigo-600 hover:underline"
+                    >
+                        Verify Certificate →
+                    </a>
+
                 )}
 
             </div>
 
-            {/* ================= PAYMENT HISTORY ================= */}
-            <div className="bg-white shadow-xl rounded-2xl p-8">
+            {/* PAYMENT HISTORY */}
 
-                <h2 className="text-lg font-semibold mb-6">
+            <div>
+
+                <h2 className="text-lg font-semibold text-gray-900 mb-6">
                     Payment History
                 </h2>
 
                 {student.payments?.length === 0 && (
-                    <p className="text-gray-500 text-sm">
-                        No payments made yet.
+                    <p className="text-sm text-gray-500">
+                        No payments yet.
                     </p>
                 )}
 
-                <div className="space-y-4">
+                <div className="space-y-5">
 
-                    {student.payments?.map((payment, index) => (
+                    {student.payments?.map((p, i) => (
+
                         <div
-                            key={index}
-                            className="flex justify-between items-center border-b pb-4 text-sm"
+                            key={i}
+                            className="flex justify-between border-b pb-4"
                         >
+
                             <div>
-                                <p className="font-semibold text-gray-800">
-                                    ₹{payment.amount}
+
+                                <p className="font-medium text-gray-900">
+                                    ₹{p.amount}
                                 </p>
+
                                 <p className="text-xs text-gray-500">
-                                    Receipt: {payment.receiptNo}
+                                    Receipt • {p.receiptNo}
                                 </p>
-                                {payment.remark && (
+
+                                {p.remark && (
                                     <p className="text-xs text-gray-400">
-                                        {payment.remark}
+                                        {p.remark}
                                     </p>
                                 )}
+
                             </div>
 
-                            <div className="text-gray-500 text-xs">
-                                {new Date(payment.date).toLocaleDateString()}
-                            </div>
+                            <p className="text-sm text-gray-500">
+                                {new Date(p.date).toLocaleDateString()}
+                            </p>
+
                         </div>
+
                     ))}
 
                 </div>
 
             </div>
-
-            {/* ================= EXTERNAL PORTAL ================= */}
-            {student.course?.externalLoginRequired && (
-                <div className="bg-white shadow-xl rounded-2xl p-8">
-
-                    <h2 className="text-lg font-semibold mb-3">
-                        External Certification Portal
-                    </h2>
-
-                    <a
-                        href={student.course.externalPortalUrl}
-                        target="_blank"
-                        className="text-blue-600 underline text-sm"
-                    >
-                        Visit Portal
-                    </a>
-
-                </div>
-            )}
 
         </div>
     );
