@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import CountUp from "react-countup";
 
-/* TYPES */
-
 interface Payment {
     amount: number;
     date: string;
@@ -60,47 +58,47 @@ export default function StudentDashboard() {
     const progress = total > 0 ? (paid / total) * 100 : 0;
 
     return (
-        <div className="max-w-6xl mx-auto space-y-14">
+        <div className="max-w-6xl mx-auto space-y-12">
 
             {/* HEADER */}
 
-            <div className="flex items-end justify-between border-b pb-6">
+            <div className="flex items-end justify-between border-b border-indigo-100 pb-6">
 
                 <div>
-                    <h1 className="text-3xl font-semibold text-gray-900">
+                    <h1 className="text-3xl font-semibold text-indigo-900">
                         Hello, {student.name}
                     </h1>
 
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-sm text-indigo-500 mt-1">
                         Student ID • {student.studentId}
                     </p>
                 </div>
 
-                <div className="text-right text-sm text-gray-500">
+                <div className="text-right text-sm text-indigo-500">
                     <p>Course</p>
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium text-indigo-800">
                         {student.course?.name}
                     </p>
                 </div>
 
             </div>
 
-            {/* KPI STRIP */}
+            {/* KPI CARDS */}
 
-            <div className="grid grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-3 gap-6">
 
-                <div>
-                    <p className="text-xs text-gray-500 uppercase">
+                <div className="bg-white rounded-xl p-6 shadow-md border border-indigo-100">
+                    <p className="text-xs text-indigo-500 uppercase">
                         Total Fees
                     </p>
 
-                    <p className="text-2xl font-semibold text-gray-900 mt-1">
+                    <p className="text-2xl font-semibold text-indigo-900 mt-1">
                         ₹<CountUp end={total} separator="," />
                     </p>
                 </div>
 
-                <div>
-                    <p className="text-xs text-gray-500 uppercase">
+                <div className="bg-white rounded-xl p-6 shadow-md border border-indigo-100">
+                    <p className="text-xs text-indigo-500 uppercase">
                         Paid
                     </p>
 
@@ -109,8 +107,8 @@ export default function StudentDashboard() {
                     </p>
                 </div>
 
-                <div>
-                    <p className="text-xs text-gray-500 uppercase">
+                <div className="bg-white rounded-xl p-6 shadow-md border border-indigo-100">
+                    <p className="text-xs text-indigo-500 uppercase">
                         Pending
                     </p>
 
@@ -125,12 +123,12 @@ export default function StudentDashboard() {
 
             <div>
 
-                <div className="flex justify-between mb-2 text-sm text-gray-600">
+                <div className="flex justify-between mb-2 text-sm text-indigo-600">
                     <span>Fee Progress</span>
                     <span>{progress.toFixed(0)}%</span>
                 </div>
 
-                <div className="w-full bg-gray-200 h-2 rounded-full">
+                <div className="w-full bg-indigo-100 h-2 rounded-full">
 
                     <div
                         className="bg-indigo-600 h-2 rounded-full transition-all"
@@ -146,11 +144,11 @@ export default function StudentDashboard() {
             <div className="flex items-center justify-between">
 
                 <div>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-indigo-500">
                         Certificate Status
                     </p>
 
-                    <p className="text-lg font-semibold text-gray-900">
+                    <p className="text-lg font-semibold text-indigo-900">
                         {student.certificateStatus}
                     </p>
                 </div>
@@ -173,12 +171,12 @@ export default function StudentDashboard() {
 
             <div>
 
-                <h2 className="text-lg font-semibold text-gray-900 mb-6">
+                <h2 className="text-lg font-semibold text-indigo-900 mb-6">
                     Payment History
                 </h2>
 
                 {student.payments?.length === 0 && (
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-indigo-500">
                         No payments yet.
                     </p>
                 )}
@@ -189,28 +187,28 @@ export default function StudentDashboard() {
 
                         <div
                             key={i}
-                            className="flex justify-between border-b pb-4"
+                            className="flex justify-between border-b border-indigo-100 pb-4"
                         >
 
                             <div>
 
-                                <p className="font-medium text-gray-900">
+                                <p className="font-medium text-indigo-900">
                                     ₹{p.amount}
                                 </p>
 
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-indigo-500">
                                     Receipt • {p.receiptNo}
                                 </p>
 
                                 {p.remark && (
-                                    <p className="text-xs text-gray-400">
+                                    <p className="text-xs text-indigo-400">
                                         {p.remark}
                                     </p>
                                 )}
 
                             </div>
 
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-indigo-500">
                                 {new Date(p.date).toLocaleDateString()}
                             </p>
 

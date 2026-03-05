@@ -45,43 +45,27 @@ const menuSections: {
   title: string;
   items: MenuItem[];
 }[] = [
-  {
-    title: "ACADEMIC",
-    items: [
-      {
-        name: "Dashboard",
-        href: "/dashboard/student",
-        icon: LayoutDashboard,
-      },
-      {
-        name: "Profile",
-        href: "/dashboard/student/profile",
-        icon: User,
-      },
-      {
-        name: "Notices",
-        href: "/dashboard/student/notices",
-        icon: FileText,
-      },
-    ],
-  },
-  {
-    title: "LEARNING",
-    items: [
-      { name: "Notes", icon: BookOpen, disabled: true },
-      { name: "Exams", icon: FileText, disabled: true },
-      { name: "Certificates", icon: GraduationCap, disabled: true },
-    ],
-  },
-];
+    {
+      title: "ACADEMIC",
+      items: [
+        { name: "Dashboard", href: "/dashboard/student", icon: LayoutDashboard },
+        { name: "Profile", href: "/dashboard/student/profile", icon: User },
+        { name: "Notices", href: "/dashboard/student/notices", icon: FileText },
+      ],
+    },
+    {
+      title: "LEARNING",
+      items: [
+        { name: "Notes", icon: BookOpen, disabled: true },
+        { name: "Exams", icon: FileText, disabled: true },
+        { name: "Certificates", icon: GraduationCap, disabled: true },
+      ],
+    },
+  ];
 
 /* ================= COMPONENT ================= */
 
-export default function StudentLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function StudentLayout({ children }: { children: React.ReactNode }) {
 
   const router = useRouter();
   const pathname = usePathname();
@@ -114,7 +98,6 @@ export default function StudentLayout({
 
   useEffect(() => {
     const storedTheme = localStorage.getItem("theme");
-
     if (storedTheme === "dark") {
       document.documentElement.classList.add("dark");
       setDarkMode(true);
@@ -139,29 +122,24 @@ export default function StudentLayout({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        profileRef.current &&
-        !profileRef.current.contains(event.target as Node)
-      ) {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
         setProfileOpen(false);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-
-    return () =>
-      document.removeEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   /* ================= PAGE TITLE ================= */
 
   const currentPageTitle = useMemo(() => {
-    const allItems = menuSections.flatMap((section) =>
-      section.items.filter((item) => item.href)
-    );
+    const allItems = menuSections
+      .flatMap((section) => section.items)
+      .filter((item): item is MenuItem & { href: string } => Boolean(item.href));
 
     const matched = allItems.find((item) =>
-      pathname?.startsWith(item.href as string)
+      pathname?.startsWith(item.href)
     );
 
     return matched?.name || "Student Portal";
@@ -178,15 +156,14 @@ export default function StudentLayout({
     router.replace("/login");
   };
 
-  const feesDue =
-    (student?.feesTotal ?? 0) - (student?.feesPaid ?? 0);
+  const feesDue = (student?.feesTotal ?? 0) - (student?.feesPaid ?? 0);
 
   /* ================= RETURN ================= */
 
   return (
     <AuthGuard>
 
-      <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="flex h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:bg-gray-900">
 
         {/* Overlay mobile */}
 
@@ -201,23 +178,22 @@ export default function StudentLayout({
 
         <aside
           className={`fixed lg:static z-50 top-0 left-0 h-full
-          bg-white dark:bg-gray-900
-          border-r border-gray-200 dark:border-gray-700
+          bg-indigo-600 text-white
           transition-all duration-300
           ${sidebarOpen ? "w-64" : "w-20"}
           ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
           `}
         >
 
-          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between p-4 border-b border-indigo-500/40">
 
-            <h2 className="font-bold text-lg text-gray-800 dark:text-white">
+            <h2 className="font-bold text-lg">
               {sidebarOpen ? "Student Portal" : "SP"}
             </h2>
 
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="hidden lg:block text-gray-600 dark:text-gray-300"
+              className="hidden lg:block text-white"
             >
               <Menu size={18} />
             </button>
@@ -231,7 +207,7 @@ export default function StudentLayout({
               <div key={section.title}>
 
                 {sidebarOpen && (
-                  <p className="text-xs text-gray-400 mb-2">
+                  <p className="text-xs text-indigo-200 mb-2">
                     {section.title}
                   </p>
                 )}
@@ -241,17 +217,14 @@ export default function StudentLayout({
                   {section.items.map((item) => {
 
                     const Icon = item.icon;
-
-                    const active =
-                      item.href &&
-                      pathname?.startsWith(item.href);
+                    const active = item.href ? pathname?.startsWith(item.href) : false;
 
                     if (item.disabled) {
 
                       return (
                         <div
                           key={item.name}
-                          className="flex items-center gap-3 px-3 py-2 rounded-lg opacity-40 cursor-not-allowed text-gray-500"
+                          className="flex items-center gap-3 px-3 py-2 rounded-lg opacity-40 cursor-not-allowed text-indigo-200"
                         >
                           <Icon size={18} />
                           {sidebarOpen && <span>{item.name}</span>}
@@ -262,13 +235,12 @@ export default function StudentLayout({
                     return (
                       <Link
                         key={item.name}
-                        href={item.href!}
+                        href={item.href as string}
                         className={`flex items-center gap-3 px-3 py-2 rounded-lg transition text-sm
-                        ${
-                          active
-                            ? "bg-indigo-600 text-white"
-                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                        }`}
+                        ${active
+                            ? "bg-white text-indigo-600 font-semibold"
+                            : "text-indigo-100 hover:bg-white/10"
+                          }`}
                       >
                         <Icon size={18} />
                         {sidebarOpen && <span>{item.name}</span>}
@@ -291,18 +263,18 @@ export default function StudentLayout({
 
           {/* TOPBAR */}
 
-          <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex justify-between items-center">
+          <header className="bg-white/90 backdrop-blur border-b border-indigo-100 px-6 py-4 flex justify-between items-center">
 
             <div className="flex items-center gap-4">
 
               <button
                 onClick={() => setMobileOpen(true)}
-                className="lg:hidden text-gray-600 dark:text-gray-300"
+                className="lg:hidden text-gray-700"
               >
                 <Menu />
               </button>
 
-              <h1 className="text-lg font-semibold text-gray-800 dark:text-white">
+              <h1 className="text-lg font-semibold text-indigo-900">
                 {currentPageTitle}
               </h1>
 
@@ -310,13 +282,13 @@ export default function StudentLayout({
 
             <div className="flex items-center gap-4">
 
-              <button className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800">
+              <button className="p-2 rounded hover:bg-gray-100">
                 <Bell size={18} />
               </button>
 
               <button
                 onClick={toggleDarkMode}
-                className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="p-2 rounded hover:bg-gray-100"
               >
                 {darkMode ? <Sun size={18} /> : <Moon size={18} />}
               </button>
@@ -327,7 +299,7 @@ export default function StudentLayout({
 
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
-                  className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded-md text-sm dark:text-white"
+                  className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-md text-sm"
                 >
 
                   <div className="w-8 h-8 bg-indigo-600 text-white flex items-center justify-center rounded-full text-xs font-semibold">
@@ -340,18 +312,18 @@ export default function StudentLayout({
 
                 {profileOpen && (
 
-                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-900 shadow-xl rounded-lg py-2 border border-gray-200 dark:border-gray-700">
+                  <div className="absolute right-0 mt-2 w-48 bg-white shadow-xl rounded-lg py-2 border border-gray-200">
 
                     <Link
                       href="/dashboard/student/profile"
-                      className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100"
                     >
                       View Profile
                     </Link>
 
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+                      className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100"
                     >
                       <LogOut size={16} />
                       Logout
@@ -369,7 +341,7 @@ export default function StudentLayout({
           {/* INFO STRIP */}
 
           {student && (
-            <div className="bg-indigo-50 dark:bg-indigo-900/30 px-6 py-3 flex flex-wrap justify-between text-sm text-gray-700 dark:text-indigo-100">
+            <div className="bg-indigo-100 px-6 py-3 flex flex-wrap justify-between text-sm text-indigo-900">
 
               <div>
                 Course:{" "}
@@ -397,11 +369,11 @@ export default function StudentLayout({
 
           {/* CONTENT */}
 
-          <main className="flex-1 overflow-y-auto p-8 bg-gray-100 dark:bg-slate-900">
+          <main className="flex-1 overflow-y-auto p-8 bg-gradient-to-br from-blue-50 to-indigo-100">
 
             <div className="max-w-7xl mx-auto">
 
-              <div className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-gray-200 dark:border-gray-700">
+              <div className="bg-white rounded-xl p-8 shadow-md border border-indigo-100">
 
                 {children}
 

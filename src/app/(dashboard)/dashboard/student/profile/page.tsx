@@ -31,7 +31,6 @@ export default function StudentProfile() {
             try {
 
                 const res = await fetchWithAuth("/api/student/me");
-
                 const data = await res.json();
 
                 if (!res.ok) {
@@ -61,7 +60,7 @@ export default function StudentProfile() {
 
     if (loading) {
         return (
-            <div className="text-gray-500 animate-pulse">
+            <div className="text-indigo-500 animate-pulse">
                 Loading profile...
             </div>
         );
@@ -88,39 +87,41 @@ export default function StudentProfile() {
     const pendingFees = (student.feesTotal || 0) - (student.feesPaid || 0);
 
     return (
-        <div className="max-w-6xl mx-auto space-y-8">
+        <div className="max-w-6xl mx-auto space-y-10">
 
             {/* PAGE TITLE */}
 
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
+            <h1 className="text-3xl font-semibold text-indigo-900">
                 Student Profile
             </h1>
 
             {/* PROFILE CARD */}
 
-            <div className="bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-8 flex flex-col md:flex-row gap-8 items-center">
+            <div className="bg-white shadow-md border border-indigo-100 rounded-xl p-8 flex flex-col md:flex-row gap-8 items-center">
 
                 {/* Avatar */}
 
                 <div className="flex-shrink-0">
+
                     <div className="w-24 h-24 rounded-full bg-indigo-600 text-white flex items-center justify-center text-3xl font-bold">
                         {student.name?.charAt(0) || "S"}
                     </div>
+
                 </div>
 
                 {/* Basic Info */}
 
                 <div className="flex-1 space-y-2 text-center md:text-left">
 
-                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+                    <h2 className="text-xl font-semibold text-indigo-900">
                         {student.name}
                     </h2>
 
-                    <p className="text-gray-500">
+                    <p className="text-indigo-500">
                         {student.email || "No email"}
                     </p>
 
-                    <div className="text-sm text-gray-600 dark:text-gray-300 flex flex-wrap gap-4 justify-center md:justify-start">
+                    <div className="text-sm text-indigo-700 flex flex-wrap gap-4 justify-center md:justify-start">
 
                         <span>
                             <strong>ID:</strong> {student.studentId}
@@ -142,31 +143,31 @@ export default function StudentProfile() {
 
                 {/* COURSE */}
 
-                <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 space-y-4">
+                <div className="bg-white shadow-md border border-indigo-100 rounded-xl p-6 space-y-4">
 
-                    <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+                    <h2 className="text-lg font-semibold text-indigo-900">
                         Course Information
                     </h2>
 
                     <div className="space-y-2 text-sm">
 
                         <p>
-                            <span className="text-gray-500">Course Name:</span>{" "}
-                            <span className="font-medium">
+                            <span className="text-indigo-500">Course Name:</span>{" "}
+                            <span className="font-medium text-indigo-900">
                                 {student.course?.name || "N/A"}
                             </span>
                         </p>
 
                         <p>
-                            <span className="text-gray-500">Duration:</span>{" "}
-                            <span className="font-medium">
+                            <span className="text-indigo-500">Duration:</span>{" "}
+                            <span className="font-medium text-indigo-900">
                                 {student.course?.duration || "N/A"}
                             </span>
                         </p>
 
                         <p>
-                            <span className="text-gray-500">Authority:</span>{" "}
-                            <span className="font-medium">
+                            <span className="text-indigo-500">Authority:</span>{" "}
+                            <span className="font-medium text-indigo-900">
                                 {student.course?.authority || "N/A"}
                             </span>
                         </p>
@@ -177,30 +178,30 @@ export default function StudentProfile() {
 
                 {/* FEES */}
 
-                <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 space-y-4">
+                <div className="bg-white shadow-md border border-indigo-100 rounded-xl p-6 space-y-4">
 
-                    <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+                    <h2 className="text-lg font-semibold text-indigo-900">
                         Fee Summary
                     </h2>
 
                     <div className="space-y-2 text-sm">
 
                         <p>
-                            <span className="text-gray-500">Total Fees:</span>{" "}
-                            <span className="font-medium">
+                            <span className="text-indigo-500">Total Fees:</span>{" "}
+                            <span className="font-medium text-indigo-900">
                                 ₹{student.feesTotal}
                             </span>
                         </p>
 
                         <p>
-                            <span className="text-gray-500">Paid Fees:</span>{" "}
+                            <span className="text-indigo-500">Paid Fees:</span>{" "}
                             <span className="font-medium text-green-600">
                                 ₹{student.feesPaid}
                             </span>
                         </p>
 
                         <p>
-                            <span className="text-gray-500">Pending Fees:</span>{" "}
+                            <span className="text-indigo-500">Pending Fees:</span>{" "}
                             <span className="font-medium text-red-500">
                                 ₹{pendingFees}
                             </span>
@@ -214,9 +215,9 @@ export default function StudentProfile() {
 
             {/* CERTIFICATE */}
 
-            <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6">
+            <div className="bg-white shadow-md border border-indigo-100 rounded-xl p-6">
 
-                <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
+                <h2 className="text-lg font-semibold mb-4 text-indigo-900">
                     Certificate Status
                 </h2>
 

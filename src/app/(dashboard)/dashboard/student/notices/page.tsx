@@ -15,21 +15,28 @@ interface Notice {
 }
 
 export default function StudentNotices() {
+
     const [notices, setNotices] = useState<Notice[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+
         const loadNotices = async () => {
+
             const res = await fetchWithAuth("/api/student/notices");
             const data = await res.json();
+
             setNotices(data.data || []);
             setLoading(false);
+
         };
 
         loadNotices();
+
     }, []);
 
     const markAsRead = async (id: string) => {
+
         await fetchWithAuth(`/api/student/notices/${id}/read`, {
             method: "POST",
         });
@@ -42,46 +49,67 @@ export default function StudentNotices() {
     };
 
     if (loading) {
-        return <div className="text-gray-500 animate-pulse">Loading...</div>;
+        return (
+            <div className="text-indigo-500 animate-pulse">
+                Loading...
+            </div>
+        );
     }
 
     return (
-        <div className="max-w-4xl space-y-8">
+        <div className="max-w-4xl space-y-10">
+
+            {/* PAGE HEADER */}
 
             <div>
-                <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
+
+                <h1 className="text-3xl font-semibold text-indigo-900">
                     Important Notices
                 </h1>
-                <p className="text-sm text-gray-500 mt-1">
+
+                <p className="text-sm text-indigo-500 mt-1">
                     Stay updated with important academic announcements.
                 </p>
+
             </div>
 
+            {/* EMPTY STATE */}
+
             {notices.length === 0 && (
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow">
-                    <p className="text-gray-500 text-sm">
+
+                <div className="bg-white border border-indigo-100 p-6 rounded-xl shadow-md">
+
+                    <p className="text-indigo-500 text-sm">
                         No notices available at the moment.
                     </p>
+
                 </div>
+
             )}
 
+            {/* NOTICE LIST */}
+
             {notices.map((notice) => (
+
                 <div
                     key={notice._id}
-                    className={`rounded-2xl p-6 shadow-md transition hover:shadow-lg border
-                    ${
-                        notice.isRead
-                            ? "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
-                            : "bg-indigo-50 dark:bg-indigo-900/30 border-indigo-500"
-                    }`}
+                    className={`rounded-xl p-6 shadow-md border transition hover:shadow-lg
+                    ${notice.isRead
+                            ? "bg-white border-indigo-100"
+                            : "bg-indigo-50 border-indigo-400"
+                        }`}
                 >
-                    {/* Header */}
-                    <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
+
+                    {/* HEADER */}
+
+                    <div className="flex justify-between items-center text-xs text-indigo-500">
+
                         <span>
                             {new Date(notice.createdAt).toDateString()}
                         </span>
 
                         <div className="flex items-center gap-2">
+
                             {notice.category && (
                                 <span className="bg-indigo-600 text-white px-3 py-1 rounded-full text-xs">
                                     {notice.category}
@@ -93,21 +121,27 @@ export default function StudentNotices() {
                                     NEW
                                 </span>
                             )}
+
                         </div>
+
                     </div>
 
-                    {/* Title */}
-                    <h2 className="mt-4 text-xl font-semibold text-gray-800 dark:text-white">
+                    {/* TITLE */}
+
+                    <h2 className="mt-4 text-xl font-semibold text-indigo-900">
                         {notice.title}
                     </h2>
 
-                    {/* Excerpt */}
-                    <p className="mt-3 text-sm text-gray-600 dark:text-gray-300">
+                    {/* EXCERPT */}
+
+                    <p className="mt-3 text-sm text-indigo-700">
                         {notice.excerpt}
                     </p>
 
-                    {/* Actions */}
+                    {/* ACTIONS */}
+
                     <div className="mt-5 flex items-center gap-5">
+
                         <Link
                             href={`/notices/${notice.slug}`}
                             onClick={() => {
@@ -123,13 +157,16 @@ export default function StudentNotices() {
                         {!notice.isRead && (
                             <button
                                 onClick={() => markAsRead(notice._id)}
-                                className="text-xs text-gray-500 hover:text-indigo-600 transition"
+                                className="text-xs text-indigo-500 hover:text-indigo-700 transition"
                             >
                                 Mark as Read
                             </button>
                         )}
+
                     </div>
+
                 </div>
+
             ))}
 
         </div>
