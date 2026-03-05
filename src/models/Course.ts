@@ -39,7 +39,6 @@ const syllabusSchema = new Schema<ISyllabus>(
     {
         module: {
             type: String,
-            required: true,
             trim: true,
         },
         topics: [

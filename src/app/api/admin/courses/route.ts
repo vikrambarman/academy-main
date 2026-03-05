@@ -47,6 +47,7 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json();
+
         const {
             name,
             level,
@@ -70,6 +71,7 @@ export async function POST(req: Request) {
         });
 
         const existing = await Course.findOne({ slug });
+
         if (existing) {
             return NextResponse.json(
                 { message: "Course already exists" },
@@ -88,8 +90,23 @@ export async function POST(req: Request) {
             );
         }
 
-        // Auto DesignedFor
+        // 🔹 Clean syllabus (prevent empty module/topic crash)
+
+        const cleanSyllabus =
+            syllabus
+                ?.filter((mod: any) => mod.module?.trim() !== "")
+                .map((mod: any) => ({
+                    module: mod.module.trim(),
+                    topics:
+                        mod.topics
+                            ?.map((t: string) => t.trim())
+                            .filter((t: string) => t !== "") || [],
+                })) || [];
+
+        // 🔹 Auto DesignedFor
+
         let autoDesignedFor: string[] = [];
+
         const lowerName = name.toLowerCase();
 
         for (const item of COURSE_DESIGNED_FOR_MAP) {
@@ -112,19 +129,25 @@ export async function POST(req: Request) {
             duration,
             eligibility,
             certificate,
-            syllabus,
+            syllabus: cleanSyllabus,
             designedFor: autoDesignedFor,
             careerOpportunities: [],
         });
 
         return NextResponse.json(course);
     } catch (error: any) {
-        if (error.message === "NO_TOKEN" || error.message === "TOKEN_EXPIRED") {
+
+        if (
+            error.message === "NO_TOKEN" ||
+            error.message === "TOKEN_EXPIRED"
+        ) {
             return NextResponse.json(
                 { message: "Unauthorized" },
                 { status: 401 }
             );
         }
+
+        console.error("COURSE CREATE ERROR:", error);
 
         return NextResponse.json(
             { message: "Server error" },

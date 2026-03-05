@@ -15,6 +15,8 @@ import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import { COURSE_LEVELS } from "@/lib/constants/courseConfig";
 
+/* ---------------- TYPES ---------------- */
+
 interface TopicItem {
     value: string;
 }
@@ -24,9 +26,26 @@ interface ModuleItem {
     topics: TopicItem[];
 }
 
+interface CourseItem {
+    _id: string;
+    name: string;
+    level: string;
+    duration?: string;
+    eligibility?: string;
+    certificate?: string;
+    isActive: boolean;
+    syllabus?: {
+        module: string;
+        topics: string[];
+    }[];
+}
+
+/* ---------------- COMPONENT ---------------- */
+
 export default function AdminCourses() {
-    const [courses, setCourses] = useState<any[]>([]);
-    const [loading, setLoading] = useState(false);
+
+    const [courses, setCourses] = useState<CourseItem[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
     const [editId, setEditId] = useState<string | null>(null);
 
     const [form, setForm] = useState({
@@ -41,16 +60,19 @@ export default function AdminCourses() {
         { module: "", topics: [{ value: "" }] },
     ]);
 
-    // Fetch courses
+    /* ---------------- FETCH COURSES ---------------- */
+
     const fetchCourses = async () => {
         const res = await fetchWithAuth("/api/admin/courses");
         const data = await res.json();
-        setCourses(data);
+        setCourses(data || []);
     };
 
     useEffect(() => {
         fetchCourses();
     }, []);
+
+    /* ---------------- FORM CHANGE ---------------- */
 
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -58,7 +80,7 @@ export default function AdminCourses() {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
-    // ---------- MODULE MANAGEMENT ----------
+    /* ---------------- MODULE MANAGEMENT ---------------- */
 
     const addModule = () => {
         setSyllabus([
@@ -91,9 +113,10 @@ export default function AdminCourses() {
         topicIndex: number
     ) => {
         const updated = [...syllabus];
-        updated[moduleIndex].topics = updated[
-            moduleIndex
-        ].topics.filter((_, i) => i !== topicIndex);
+        updated[moduleIndex].topics =
+            updated[moduleIndex].topics.filter(
+                (_, i) => i !== topicIndex
+            );
         setSyllabus(updated);
     };
 
@@ -107,18 +130,21 @@ export default function AdminCourses() {
         setSyllabus(updated);
     };
 
-    // ---------- CREATE / UPDATE ----------
+    /* ---------------- CREATE / UPDATE ---------------- */
 
     const handleSubmit = async () => {
         try {
+
             setLoading(true);
 
-            const formattedSyllabus = syllabus.map((mod) => ({
-                module: mod.module,
-                topics: mod.topics
-                    .map((t) => t.value.trim())
-                    .filter((t) => t !== ""),
-            }));
+            const formattedSyllabus = syllabus
+                .filter((mod) => mod.module.trim() !== "")
+                .map((mod) => ({
+                    module: mod.module.trim(),
+                    topics: mod.topics
+                        .map((t) => t.value.trim())
+                        .filter((t) => t !== ""),
+                }));
 
             const method = editId ? "PUT" : "POST";
 
@@ -134,6 +160,7 @@ export default function AdminCourses() {
 
             resetForm();
             fetchCourses();
+
         } catch (error) {
             console.error("Course save failed");
         } finally {
@@ -142,6 +169,7 @@ export default function AdminCourses() {
     };
 
     const resetForm = () => {
+
         setForm({
             name: "",
             level: "",
@@ -149,13 +177,18 @@ export default function AdminCourses() {
             eligibility: "",
             certificate: "",
         });
-        setSyllabus([{ module: "", topics: [{ value: "" }] }]);
+
+        setSyllabus([
+            { module: "", topics: [{ value: "" }] },
+        ]);
+
         setEditId(null);
     };
 
-    // ---------- EDIT COURSE ----------
+    /* ---------------- EDIT COURSE ---------------- */
 
-    const handleEdit = (course: any) => {
+    const handleEdit = (course: CourseItem) => {
+
         setEditId(course._id);
 
         setForm({
@@ -166,17 +199,32 @@ export default function AdminCourses() {
             certificate: course.certificate || "",
         });
 
-        const formatted = course.syllabus.map((mod: any) => ({
-            module: mod.module,
-            topics: mod.topics.map((t: string) => ({ value: t })),
-        }));
+        if (course.syllabus && course.syllabus.length > 0) {
 
-        setSyllabus(formatted);
+            const formatted: ModuleItem[] = course.syllabus.map(
+                (mod) => ({
+                    module: mod.module,
+                    topics: mod.topics.map((t) => ({
+                        value: t,
+                    })),
+                })
+            );
+
+            setSyllabus(formatted);
+
+        } else {
+
+            setSyllabus([
+                { module: "", topics: [{ value: "" }] },
+            ]);
+
+        }
     };
 
-    // ---------- DELETE ----------
+    /* ---------------- DELETE ---------------- */
 
     const handleDelete = async (id: string) => {
+
         if (!confirm("Are you sure?")) return;
 
         await fetchWithAuth(`/api/admin/courses?id=${id}`, {
@@ -186,9 +234,10 @@ export default function AdminCourses() {
         fetchCourses();
     };
 
-    // ---------- TOGGLE ACTIVE ----------
+    /* ---------------- TOGGLE ACTIVE ---------------- */
 
-    const toggleActive = async (course: any) => {
+    const toggleActive = async (course: CourseItem) => {
+
         await fetchWithAuth("/api/admin/courses", {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -201,43 +250,56 @@ export default function AdminCourses() {
         fetchCourses();
     };
 
+    /* ---------------- UI ---------------- */
+
     return (
-        <div className="p-8 bg-gray-50 min-h-screen">
+        <div className="p-8 bg-slate-50 min-h-screen">
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
                 {/* LEFT FORM */}
-                <div className="bg-white shadow-lg rounded-xl p-6 space-y-6">
-                    <h2 className="text-2xl font-bold">
+
+                <div className="bg-white shadow-sm border border-slate-200 rounded-xl p-6 space-y-6">
+
+                    <h2 className="text-2xl font-bold text-slate-800">
                         {editId ? "Edit Course" : "Create Course"}
                     </h2>
 
+                    {/* FORM */}
+
                     <div className="space-y-4">
+
                         <input
                             name="name"
                             placeholder="Course Name"
-                            className="w-full border rounded-lg p-3"
+                            className="w-full border border-slate-300 rounded-lg p-3"
                             value={form.name}
                             onChange={handleChange}
                         />
 
                         <select
                             name="level"
-                            className="w-full border rounded-lg p-3"
+                            className="w-full border border-slate-300 rounded-lg p-3"
                             value={form.level}
                             onChange={handleChange}
                         >
                             <option value="">Select Level</option>
+
                             {COURSE_LEVELS.map((item) => (
-                                <option key={item.level} value={item.level}>
+                                <option
+                                    key={item.level}
+                                    value={item.level}
+                                >
                                     {item.level}
                                 </option>
                             ))}
+
                         </select>
 
                         <input
                             name="duration"
                             placeholder="Duration"
-                            className="w-full border rounded-lg p-3"
+                            className="w-full border border-slate-300 rounded-lg p-3"
                             value={form.duration}
                             onChange={handleChange}
                         />
@@ -245,7 +307,7 @@ export default function AdminCourses() {
                         <input
                             name="eligibility"
                             placeholder="Eligibility"
-                            className="w-full border rounded-lg p-3"
+                            className="w-full border border-slate-300 rounded-lg p-3"
                             value={form.eligibility}
                             onChange={handleChange}
                         />
@@ -253,26 +315,33 @@ export default function AdminCourses() {
                         <input
                             name="certificate"
                             placeholder="Certificate Info"
-                            className="w-full border rounded-lg p-3"
+                            className="w-full border border-slate-300 rounded-lg p-3"
                             value={form.certificate}
                             onChange={handleChange}
                         />
+
                     </div>
 
                     {/* SYLLABUS */}
+
                     <div>
+
                         <h3 className="font-semibold mb-3">
                             Syllabus Modules
                         </h3>
 
                         {syllabus.map((mod, moduleIndex) => (
+
                             <div
                                 key={moduleIndex}
-                                className="border rounded-lg p-4 mb-4 relative"
+                                className="border border-slate-200 rounded-lg p-4 mb-4 relative"
                             >
+
                                 {syllabus.length > 1 && (
                                     <button
-                                        onClick={() => removeModule(moduleIndex)}
+                                        onClick={() =>
+                                            removeModule(moduleIndex)
+                                        }
                                         className="absolute top-2 right-2 text-red-500"
                                     >
                                         ✕
@@ -281,7 +350,7 @@ export default function AdminCourses() {
 
                                 <input
                                     placeholder="Module Name"
-                                    className="w-full border p-2 mb-2"
+                                    className="w-full border p-2 mb-2 rounded"
                                     value={mod.module}
                                     onChange={(e) =>
                                         handleModuleNameChange(
@@ -292,13 +361,15 @@ export default function AdminCourses() {
                                 />
 
                                 {mod.topics.map((topic, topicIndex) => (
+
                                     <div
                                         key={topicIndex}
                                         className="flex gap-2 mb-2"
                                     >
+
                                         <input
                                             placeholder="Topic Name"
-                                            className="flex-1 border p-2"
+                                            className="flex-1 border p-2 rounded"
                                             value={topic.value}
                                             onChange={(e) =>
                                                 handleTopicChange(
@@ -322,31 +393,39 @@ export default function AdminCourses() {
                                                 ✕
                                             </button>
                                         )}
+
                                     </div>
+
                                 ))}
 
                                 <button
                                     onClick={() => addTopic(moduleIndex)}
-                                    className="text-blue-600 text-sm"
+                                    className="text-indigo-600 text-sm"
                                 >
                                     + Add Topic
                                 </button>
+
                             </div>
+
                         ))}
 
                         <button
                             onClick={addModule}
-                            className="bg-gray-700 text-white px-4 py-2 rounded"
+                            className="bg-slate-800 text-white px-4 py-2 rounded"
                         >
                             Add Module
                         </button>
+
                     </div>
 
+                    {/* BUTTONS */}
+
                     <div className="flex gap-4">
+
                         <button
                             onClick={handleSubmit}
                             disabled={loading}
-                            className="flex-1 bg-blue-600 text-white py-3 rounded"
+                            className="flex-1 bg-indigo-600 text-white py-3 rounded-lg"
                         >
                             {loading
                                 ? "Saving..."
@@ -358,34 +437,45 @@ export default function AdminCourses() {
                         {editId && (
                             <button
                                 onClick={resetForm}
-                                className="bg-gray-400 text-white px-4 py-3 rounded"
+                                className="bg-gray-400 text-white px-4 py-3 rounded-lg"
                             >
                                 Cancel
                             </button>
                         )}
+
                     </div>
+
                 </div>
 
                 {/* RIGHT COURSE LIST */}
-                <div className="bg-white shadow-lg rounded-xl p-6">
-                    <h2 className="text-2xl font-bold mb-4">
+
+                <div className="bg-white shadow-sm border border-slate-200 rounded-xl p-6">
+
+                    <h2 className="text-2xl font-bold mb-4 text-slate-800">
                         Existing Courses
                     </h2>
 
                     <div className="space-y-4">
+
                         {courses.map((course) => (
+
                             <div
                                 key={course._id}
-                                className="border rounded-lg p-4"
+                                className="border border-slate-200 rounded-lg p-4"
                             >
+
                                 <div className="flex justify-between">
+
                                     <div>
+
                                         <p className="font-semibold">
                                             {course.name}
                                         </p>
-                                        <p className="text-sm">
+
+                                        <p className="text-sm text-gray-500">
                                             Level: {course.level}
                                         </p>
+
                                         <p
                                             className={`text-xs ${course.isActive
                                                     ? "text-green-600"
@@ -396,18 +486,24 @@ export default function AdminCourses() {
                                                 ? "Active"
                                                 : "Inactive"}
                                         </p>
+
                                     </div>
 
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-3">
+
                                         <button
-                                            onClick={() => handleEdit(course)}
-                                            className="text-blue-600 text-sm"
+                                            onClick={() =>
+                                                handleEdit(course)
+                                            }
+                                            className="text-indigo-600 text-sm"
                                         >
                                             Edit
                                         </button>
 
                                         <button
-                                            onClick={() => handleDelete(course._id)}
+                                            onClick={() =>
+                                                handleDelete(course._id)
+                                            }
                                             className="text-red-600 text-sm"
                                         >
                                             Delete
@@ -417,17 +513,25 @@ export default function AdminCourses() {
                                             onClick={() =>
                                                 toggleActive(course)
                                             }
-                                            className="text-yellow-600 text-sm"
+                                            className="text-amber-600 text-sm"
                                         >
                                             Toggle
                                         </button>
+
                                     </div>
+
                                 </div>
+
                             </div>
+
                         ))}
+
                     </div>
+
                 </div>
+
             </div>
+
         </div>
     );
 }
