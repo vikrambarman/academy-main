@@ -17,7 +17,7 @@ export default function AdminStudents() {
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
+  const [newStudent, setNewStudent] = useState<{ studentId: string; tempPassword: string; } | null>(null);
 
   const [page, setPage] = useState(1);
   const limit = 10;
@@ -36,6 +36,8 @@ export default function AdminStudents() {
     feesTotal: "",
   });
 
+  /* ================= FETCH DATA ================= */
+
   const fetchCourses = async () => {
     const res = await fetchWithAuth("/api/admin/courses");
     const data = await res.json();
@@ -52,6 +54,8 @@ export default function AdminStudents() {
     fetchCourses();
     fetchStudents();
   }, []);
+
+  /* ================= FORM ================= */
 
   const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -75,11 +79,11 @@ export default function AdminStudents() {
       const data = await res.json();
 
       if (!res.ok) {
-        setMessage(data.message);
+        alert(data.message);
         return;
       }
 
-      setMessage("Student created successfully");
+      setNewStudent(data.data);
 
       setForm({
         name: "",
@@ -96,17 +100,34 @@ export default function AdminStudents() {
       });
 
       setModalOpen(false);
+
       fetchStudents();
 
     } catch {
-      setMessage("Server error");
+      alert("Server error");
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+
+    if (newStudent) {
+
+      const timer = setTimeout(() => {
+        setNewStudent(null);
+      }, 60000);
+
+      return () => clearTimeout(timer);
+
+    }
+
+  }, [newStudent]);
+
+  /* ================= SEARCH ================= */
+
   const filtered = students.filter((s) =>
-    s.name.toLowerCase().includes(search.toLowerCase())
+    s.name?.toLowerCase().includes(search.toLowerCase())
   );
 
   /* ================= PAGINATION ================= */
@@ -115,9 +136,10 @@ export default function AdminStudents() {
   const start = (page - 1) * limit;
   const paginatedStudents = filtered.slice(start, start + limit);
 
-  /* ============================================= */
+  /* ================= UI ================= */
 
   return (
+
     <div className="space-y-6">
 
       {/* HEADER */}
@@ -130,12 +152,35 @@ export default function AdminStudents() {
 
         <button
           onClick={() => setModalOpen(true)}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg w-full sm:w-auto"
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg"
         >
           + Add Student
         </button>
 
       </div>
+
+      {/* New Student Credentials */}
+      {newStudent && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-sm">
+
+          <p className="font-semibold text-green-700">
+            Student created successfully
+          </p>
+
+          <p>
+            <strong>ID:</strong> {newStudent.studentId}
+          </p>
+
+          <p>
+            <strong>Temp Password:</strong> {newStudent.tempPassword}
+          </p>
+
+          <p className="text-xs text-gray-500 mt-1">
+            Save this password. It will not be shown again.
+          </p>
+
+        </div>
+      )}
 
       {/* SEARCH */}
 
@@ -149,7 +194,7 @@ export default function AdminStudents() {
         }}
       />
 
-      {/* DESKTOP TABLE */}
+      {/* TABLE */}
 
       <div className="hidden md:block bg-white border border-slate-200 shadow-sm rounded-xl">
 
@@ -165,7 +210,6 @@ export default function AdminStudents() {
                 <th className="p-3 text-left">Course</th>
                 <th className="p-3 text-left">Fees</th>
                 <th className="p-3 text-left">Due</th>
-                <th className="p-3 text-left">Certificate</th>
                 <th className="p-3 text-left">Status</th>
                 <th className="p-3 text-left">Action</th>
               </tr>
@@ -176,19 +220,41 @@ export default function AdminStudents() {
 
               {paginatedStudents.map((student) => {
 
-                const due = student.feesTotal - student.feesPaid;
+                const totalFees =
+                  student.enrollments?.reduce(
+                    (sum: number, e: any) => sum + (e.feesTotal || 0),
+                    0
+                  ) || 0;
+
+                const totalPaid =
+                  student.enrollments?.reduce(
+                    (sum: number, e: any) => sum + (e.feesPaid || 0),
+                    0
+                  ) || 0;
+
+                const due = totalFees - totalPaid;
 
                 return (
+
                   <tr key={student._id} className="border-t hover:bg-slate-50">
 
                     <td className="p-3 font-medium">{student.studentId}</td>
 
                     <td className="p-3">{student.name}</td>
 
-                    <td className="p-3">{student.course?.name}</td>
+                    <td className="p-3 flex flex-wrap gap-1">
+                      {student.enrollments?.map((e: any) => (
+                        <span
+                          key={e._id}
+                          className="bg-indigo-50 text-indigo-700 px-2 py-1 rounded text-xs"
+                        >
+                          {e.course?.name}
+                        </span>
+                      ))}
+                    </td>
 
                     <td className="p-3">
-                      ₹{student.feesPaid} / ₹{student.feesTotal}
+                      ₹{totalPaid} / ₹{totalFees}
                     </td>
 
                     <td className="p-3 text-red-600 font-medium">
@@ -196,10 +262,7 @@ export default function AdminStudents() {
                     </td>
 
                     <td className="p-3">
-                      {student.certificateStatus}
-                    </td>
 
-                    <td className="p-3">
                       {student.isActive ? (
                         <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">
                           Active
@@ -209,6 +272,7 @@ export default function AdminStudents() {
                           Inactive
                         </span>
                       )}
+
                     </td>
 
                     <td className="p-3">
@@ -223,7 +287,9 @@ export default function AdminStudents() {
                     </td>
 
                   </tr>
+
                 );
+
               })}
 
             </tbody>
@@ -234,13 +300,25 @@ export default function AdminStudents() {
 
       </div>
 
-      {/* MOBILE CARDS */}
+      {/* MOBILE */}
 
       <div className="grid md:hidden gap-4">
 
         {paginatedStudents.map((student) => {
 
-          const due = student.feesTotal - student.feesPaid;
+          const totalFees =
+            student.enrollments?.reduce(
+              (sum: number, e: any) => sum + (e.feesTotal || 0),
+              0
+            ) || 0;
+
+          const totalPaid =
+            student.enrollments?.reduce(
+              (sum: number, e: any) => sum + (e.feesPaid || 0),
+              0
+            ) || 0;
+
+          const due = totalFees - totalPaid;
 
           return (
 
@@ -266,8 +344,12 @@ export default function AdminStudents() {
               </div>
 
               <p className="text-sm">ID: {student.studentId}</p>
-              <p className="text-sm">Course: {student.course?.name}</p>
-              <p className="text-sm">Fees: ₹{student.feesPaid} / ₹{student.feesTotal}</p>
+              <p className="text-sm">
+                Course: {student.enrollments?.map((e: any) => e.course?.name).join(", ")}
+              </p>
+              <p className="text-sm">
+                Fees: ₹{totalPaid} / ₹{totalFees}
+              </p>
               <p className="text-sm text-red-600">Due: ₹{due}</p>
 
               <Link
@@ -280,6 +362,7 @@ export default function AdminStudents() {
             </div>
 
           );
+
         })}
 
       </div>
@@ -310,17 +393,17 @@ export default function AdminStudents() {
 
       </div>
 
-      {/* MODAL */}
+      {/* ================= MODAL ================= */}
 
       {modalOpen && (
 
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
 
-          <div className="bg-white rounded-xl shadow-xl p-6 sm:p-8 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
 
             <div className="flex justify-between mb-6">
 
-              <h2 className="text-lg sm:text-xl font-semibold">
+              <h2 className="text-lg font-semibold">
                 Add New Student
               </h2>
 
@@ -340,8 +423,29 @@ export default function AdminStudents() {
               <input name="email" placeholder="Email" className="input" onChange={handleChange} />
               <input name="phone" placeholder="Phone" className="input" onChange={handleChange} />
 
-              <input type="date" name="dob" className="input" onChange={handleChange} />
-              <input type="date" name="admissionDate" className="input" onChange={handleChange} />
+              <div>
+                <label className="text-xs text-slate-500 mb-1 block">
+                  Date of Birth
+                </label>
+                <input
+                  type="date"
+                  name="dob"
+                  className="input"
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-slate-500 mb-1 block">
+                  Admission Date
+                </label>
+                <input
+                  type="date"
+                  name="admissionDate"
+                  className="input"
+                  onChange={handleChange}
+                />
+              </div>
 
               <select name="gender" className="input" onChange={handleChange}>
                 <option>Select Gender</option>
@@ -382,6 +486,7 @@ export default function AdminStudents() {
           </div>
 
         </div>
+
       )}
 
       <style jsx>{`
@@ -394,5 +499,7 @@ export default function AdminStudents() {
       `}</style>
 
     </div>
+
   );
+
 }

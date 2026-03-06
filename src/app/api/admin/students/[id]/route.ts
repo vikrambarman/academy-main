@@ -1,19 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Student from "@/models/Student";
+import Enrollment from "@/models/Enrollment";
 
 export async function GET(
     req: NextRequest,
     context: { params: Promise<{ id: string }> }
 ) {
+
     await connectDB();
 
     const { id } = await context.params;
 
-    console.log("Requested ID:", id);
-
     const student = await Student.findById(id)
-        .populate("course", "name");
+        .populate("user");
 
     if (!student) {
         return NextResponse.json(
@@ -22,8 +22,22 @@ export async function GET(
         );
     }
 
-    return NextResponse.json(student);
+    /* ================= GET ENROLLMENTS ================= */
+
+    const enrollments = await Enrollment.find({
+        student: student._id,
+        isActive: true
+    })
+        .populate("course")
+        .sort({ createdAt: -1 });
+
+    return NextResponse.json({
+        ...student.toObject(),
+        enrollments
+    });
+
 }
+
 
 export async function PATCH(
     req: NextRequest,

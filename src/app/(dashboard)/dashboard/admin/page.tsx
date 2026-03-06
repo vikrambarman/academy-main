@@ -110,7 +110,7 @@ export default function AdminDashboard() {
 
             {/* KPI CARDS */}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-5 sm:gap-6">
 
                 <PremiumCard
                     title="Total Students"
@@ -133,6 +133,21 @@ export default function AdminDashboard() {
                     title="Pending Revenue"
                     value={data?.financial?.totalPending ?? 0}
                     prefix="₹"
+                />
+
+                <PremiumCard
+                    title="Fully Paid"
+                    value={data?.financial?.fullyPaidCount ?? 0}
+                />
+
+                <PremiumCard
+                    title="Partial Payments"
+                    value={data?.financial?.partiallyPaidCount ?? 0}
+                />
+
+                <PremiumCard
+                    title="Unpaid Enrollments"
+                    value={data?.financial?.unpaidCount ?? 0}
                 />
 
             </div>

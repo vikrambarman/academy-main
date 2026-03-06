@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { verifyUser } from "@/lib/verifyUser";
+
 import Student from "@/models/Student";
-import "@/models/Course"; // register schema
+import Enrollment from "@/models/Enrollment";
+import "@/models/Course";
 
 export async function GET() {
 
@@ -12,46 +14,71 @@ export async function GET() {
 
         const user: any = await verifyUser();
 
-        // 🔐 Check authentication
+        /* ================= AUTH CHECK ================= */
+
         if (!user || user.role !== "student") {
+
             return NextResponse.json(
                 { message: "Unauthorized" },
                 { status: 403 }
             );
+
         }
 
-        // 🔎 Find student linked with logged in user
+        /* ================= FIND STUDENT ================= */
+
         const student = await Student.findOne({
             user: user._id,
+        }).lean();
+
+        if (!student) {
+
+            return NextResponse.json(
+                { message: "Student not found" },
+                { status: 404 }
+            );
+
+        }
+
+        if (!student.isActive) {
+
+            return NextResponse.json(
+                { message: "Account deactivated" },
+                { status: 403 }
+            );
+
+        }
+
+        /* ================= FETCH ENROLLMENTS ================= */
+
+        const enrollments = await Enrollment.find({
+            student: student._id,
         })
             .populate({
                 path: "course",
                 select: "name duration authority certificate verification",
             })
             .select(
-                "studentId name email phone feesTotal feesPaid certificateStatus course payments isActive"
+                "feesTotal feesPaid certificateStatus payments admissionDate course"
             )
             .lean();
 
-        if (!student) {
-            return NextResponse.json(
-                { message: "Student not found" },
-                { status: 404 }
-            );
-        }
+        /* ================= RESPONSE ================= */
 
-        // 🚫 Account disabled
-        if (!student.isActive) {
-            return NextResponse.json(
-                { message: "Account deactivated" },
-                { status: 403 }
-            );
-        }
+        return NextResponse.json({
 
-        // 🔒 Remove sensitive fields
-        delete (student as any).isActive;
+            student: {
 
-        return NextResponse.json(student);
+                studentId: student.studentId,
+                name: student.name,
+                email: student.email,
+                phone: student.phone,
+
+            },
+
+            enrollments,
+
+        });
 
     } catch (error) {
 
@@ -63,4 +90,5 @@ export async function GET() {
         );
 
     }
+
 }

@@ -1,187 +1,165 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
+
 import Student from "@/models/Student";
-import mongoose from "mongoose";
+import Enrollment from "@/models/Enrollment";
+import Course from "@/models/Course";
 
 export async function GET() {
-    try {
-        await connectDB();
 
-        /* ===============================
-           1️⃣ FINANCIAL + STUDENT SUMMARY
-        ================================ */
+    await connectDB();
 
-        const summary = await Student.aggregate([
-            {
-                $addFields: {
-                    pendingFees: { $subtract: ["$feesTotal", "$feesPaid"] },
-                },
-            },
-            {
-                $group: {
-                    _id: null,
-                    totalStudents: { $sum: 1 },
-                    activeStudents: {
-                        $sum: { $cond: ["$isActive", 1, 0] },
-                    },
-                    inactiveStudents: {
-                        $sum: { $cond: ["$isActive", 0, 1] },
-                    },
-                    totalExpected: { $sum: "$feesTotal" },
-                    totalCollected: { $sum: "$feesPaid" },
-                    totalPending: { $sum: "$pendingFees" },
+    /* ================= STUDENTS ================= */
 
-                    fullyPaidCount: {
-                        $sum: {
-                            $cond: [{ $eq: ["$pendingFees", 0] }, 1, 0],
-                        },
-                    },
+    const totalStudents = await Student.countDocuments();
+    const activeStudents = await Student.countDocuments({ isActive: true });
+    const inactiveStudents = await Student.countDocuments({ isActive: false });
 
-                    partiallyPaidCount: {
-                        $sum: {
-                            $cond: [
-                                {
-                                    $and: [
-                                        { $gt: ["$feesPaid", 0] },
-                                        { $gt: ["$pendingFees", 0] },
-                                    ],
-                                },
-                                1,
-                                0,
-                            ],
-                        },
-                    },
+    const recentEnrollments = await Enrollment.countDocuments({
+        createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
+    });
 
-                    unpaidCount: {
-                        $sum: {
-                            $cond: [{ $eq: ["$feesPaid", 0] }, 1, 0],
-                        },
-                    },
-                },
-            },
-        ]);
+    /* ================= FINANCIAL ================= */
 
-        /* ===============================
-           2️⃣ CERTIFICATE BREAKDOWN
-        ================================ */
+    const enrollments = await Enrollment.find({ isActive: true });
 
-        const certificateStats = await Student.aggregate([
-            {
-                $group: {
-                    _id: "$certificateStatus",
-                    count: { $sum: 1 },
-                },
-            },
-        ]);
+    let totalExpected = 0;
+    let totalCollected = 0;
 
-        const certificateMap: any = {
-            notApplied: 0,
-            applied: 0,
-            examGiven: 0,
-            passed: 0,
-            generated: 0,
-        };
+    let fullyPaidCount = 0;
+    let partiallyPaidCount = 0;
+    let unpaidCount = 0;
 
-        certificateStats.forEach((item) => {
-            switch (item._id) {
-                case "Not Applied":
-                    certificateMap.notApplied = item.count;
-                    break;
-                case "Applied":
-                    certificateMap.applied = item.count;
-                    break;
-                case "Exam Given":
-                    certificateMap.examGiven = item.count;
-                    break;
-                case "Passed":
-                    certificateMap.passed = item.count;
-                    break;
-                case "Certificate Generated":
-                    certificateMap.generated = item.count;
-                    break;
+    enrollments.forEach((e) => {
+
+        totalExpected += e.feesTotal;
+        totalCollected += e.feesPaid;
+
+        if (e.feesPaid === 0) {
+            unpaidCount++;
+        } else if (e.feesPaid < e.feesTotal) {
+            partiallyPaidCount++;
+        } else {
+            fullyPaidCount++;
+        }
+
+    });
+
+    const totalPending = totalExpected - totalCollected;
+
+    /* ================= CERTIFICATES ================= */
+
+    const certificateStats = {
+        notApplied: 0,
+        applied: 0,
+        examGiven: 0,
+        passed: 0,
+        generated: 0
+    };
+
+    enrollments.forEach((e) => {
+
+        if (e.certificateStatus === "Not Applied")
+            certificateStats.notApplied++;
+
+        if (e.certificateStatus === "Applied")
+            certificateStats.applied++;
+
+        if (e.certificateStatus === "Exam Given")
+            certificateStats.examGiven++;
+
+        if (e.certificateStatus === "Passed")
+            certificateStats.passed++;
+
+        if (e.certificateStatus === "Certificate Generated")
+            certificateStats.generated++;
+
+    });
+
+    /* ================= COURSE ANALYTICS ================= */
+
+    const courseAnalytics = await Enrollment.aggregate([
+        {
+            $lookup: {
+                from: "courses",
+                localField: "course",
+                foreignField: "_id",
+                as: "course"
             }
-        });
+        },
+        { $unwind: "$course" },
+        {
+            $group: {
+                _id: "$course.name",
+                totalStudents: { $sum: 1 },
+                totalRevenue: { $sum: "$feesPaid" },
+                totalExpected: { $sum: "$feesTotal" }
+            }
+        },
+        {
+            $addFields: {
+                totalPending: { $subtract: ["$totalExpected", "$totalRevenue"] }
+            }
+        }
+    ]);
 
-        /* ===============================
-           3️⃣ MONTHLY REVENUE TREND
-        ================================ */
+    /* ================= REVENUE TREND ================= */
 
-        const revenueTrend = await Student.aggregate([
-            { $unwind: "$payments" },
-            {
-                $group: {
-                    _id: {
-                        year: { $year: "$payments.date" },
-                        month: { $month: "$payments.date" },
-                    },
-                    total: { $sum: "$payments.amount" },
+    const revenueTrend = await Enrollment.aggregate([
+        { $unwind: "$payments" },
+        {
+            $group: {
+                _id: {
+                    month: { $month: "$payments.date" }
                 },
-            },
-            { $sort: { "_id.year": 1, "_id.month": 1 } },
-        ]);
+                amount: { $sum: "$payments.amount" }
+            }
+        },
+        {
+            $project: {
+                month: "$_id.month",
+                amount: 1,
+                _id: 0
+            }
+        },
+        { $sort: { month: 1 } }
+    ]);
 
-        const formattedRevenueTrend = revenueTrend.map((item) => {
-            const date = new Date(item._id.year, item._id.month - 1);
-            const month = date.toLocaleString("default", {
-                month: "short",
-                year: "numeric",
-            });
+    const monthNames = [
+        "",
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
 
-            return {
-                month,
-                amount: item.total,
-            };
-        });
+    const trendFormatted = revenueTrend.map((m) => ({
+        month: monthNames[m.month],
+        amount: m.amount
+    }));
 
-        /* ===============================
-           4️⃣ COURSE LEVEL ANALYTICS
-        ================================ */
+    return NextResponse.json({
 
-        const courseAnalytics = await Student.aggregate([
-            {
-                $addFields: {
-                    pendingFees: { $subtract: ["$feesTotal", "$feesPaid"] },
-                },
-            },
-            {
-                $group: {
-                    _id: "$course",
-                    totalStudents: { $sum: 1 },
-                    totalRevenue: { $sum: "$feesPaid" },
-                    totalExpected: { $sum: "$feesTotal" },
-                    totalPending: { $sum: "$pendingFees" },
-                },
-            },
-        ]);
+        financial: {
+            totalExpected,
+            totalCollected,
+            totalPending,
+            fullyPaidCount,
+            partiallyPaidCount,
+            unpaidCount
+        },
 
-        /* ===============================
-           5️⃣ RECENT ENROLLMENTS (30 Days)
-        ================================ */
+        students: {
+            total: totalStudents,
+            active: activeStudents,
+            inactive: inactiveStudents,
+            recentEnrollments
+        },
 
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        certificates: certificateStats,
 
-        const recentEnrollments = await Student.countDocuments({
-            createdAt: { $gte: thirtyDaysAgo },
-        });
+        revenueTrend: trendFormatted,
 
-        return NextResponse.json({
-            financial: summary[0] || {},
-            certificates: certificateMap,
-            students: {
-                total: summary[0]?.totalStudents || 0,
-                active: summary[0]?.activeStudents || 0,
-                inactive: summary[0]?.inactiveStudents || 0,
-                recentEnrollments,
-            },
-            revenueTrend: formattedRevenueTrend,
-            courseAnalytics,
-        });
-    } catch (error) {
-        console.error("Analytics Error:", error);
-        return NextResponse.json(
-            { error: "Failed to load analytics" },
-            { status: 500 }
-        );
-    }
+        courseAnalytics
+
+    });
+
 }

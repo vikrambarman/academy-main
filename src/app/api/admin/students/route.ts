@@ -8,6 +8,8 @@ import Student from "@/models/Student";
 import User from "@/models/User";
 
 import { sendStudentWelcomeEmail } from "@/lib/mail";
+import Enrollment from "@/models/Enrollment";
+import { generateStudentId } from "@/lib/generateStudentId";
 
 /* =========================================================
    TEMP PASSWORD GENERATOR
@@ -96,7 +98,7 @@ export async function POST(req: NextRequest) {
 
         /* ================= GENERATE STUDENT ID ================= */
 
-        const studentId = await Student.generateStudentId();
+        const studentId = await generateStudentId();
 
         /* ================= CREATE TEMP PASSWORD ================= */
 
@@ -119,7 +121,7 @@ export async function POST(req: NextRequest) {
         /* ================= CREATE STUDENT ================= */
 
         try {
-            await Student.create({
+            const student = await Student.create({
                 studentId,
                 name,
                 fatherName,
@@ -131,10 +133,17 @@ export async function POST(req: NextRequest) {
                 qualification,
                 admissionDate,
                 user: newUser._id,
-                course: courseId,
                 externalStudentId,
-                externalPassword,
-                feesTotal,
+                externalPassword
+            });
+
+            /* ================= CREATE ENROLLMENT ================= */
+
+            await Enrollment.create({
+                student: student._id,
+                course: courseId,
+                admissionDate: admissionDate || new Date(),
+                feesTotal: Number(feesTotal) || 0
             });
         } catch (studentError) {
             /**
@@ -147,11 +156,19 @@ export async function POST(req: NextRequest) {
 
         /* ================= SEND WELCOME EMAIL ================= */
 
-        await sendStudentWelcomeEmail(email, {
-            name,
-            studentId,
-            tempPassword,
-        });
+        try {
+
+            await sendStudentWelcomeEmail(email, {
+                name,
+                studentId,
+                tempPassword,
+            });
+
+        } catch (err) {
+
+            console.error("Email failed:", err);
+
+        }
 
         /* ================= RESPONSE ================= */
 
@@ -181,27 +198,58 @@ export async function POST(req: NextRequest) {
    GET STUDENTS
 ========================================================= */
 
-export async function GET(req: NextRequest) {
+export async function GET() {
+
     try {
 
         await connectDB();
 
         const students = await Student.find()
-            .populate({
-                path: "course",
-                select: "name",
-            })
+            .populate("user")
             .sort({ createdAt: -1 });
 
-        return NextResponse.json(students);
+        const studentIds = students.map(s => s._id);
+
+        const enrollments = await Enrollment
+            .find({
+                student: { $in: studentIds },
+                isActive: true
+            })
+            .populate("course");
+
+        const enrollmentsMap: any = {};
+
+        enrollments.forEach((e: any) => {
+
+            const key = e.student.toString();
+
+            if (!enrollmentsMap[key]) {
+                enrollmentsMap[key] = [];
+            }
+
+            enrollmentsMap[key].push(e);
+
+        });
+
+        const result = students.map((student) => ({
+
+            ...student.toObject(),
+
+            enrollments: enrollmentsMap[student._id.toString()] || []
+
+        }));
+
+        return NextResponse.json(result);
 
     } catch (error) {
 
-        console.error("GET STUDENTS ERROR:", error);
+        console.error(error);
 
         return NextResponse.json(
             { message: "Server Error" },
             { status: 500 }
         );
+
     }
+
 }

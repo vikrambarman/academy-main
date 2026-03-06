@@ -35,6 +35,7 @@ const menuSections = [
         items: [
             { name: "Students", href: "/dashboard/admin/students", icon: Users },
             { name: "Courses", href: "/dashboard/admin/courses", icon: BookOpen },
+            { name: "Enrollments", href: "/dashboard/admin/enroll", icon: Users },
             { name: "Notices", href: "/dashboard/admin/notices", icon: FileText },
             { name: "Enquiries", href: "/dashboard/admin/enquiries", icon: BarChart3 },
             { name: "Contacts", href: "/dashboard/admin/contacts", icon: Users },

@@ -22,14 +22,22 @@ import AuthGuard from "@/components/AuthGaurd";
 
 /* ================= TYPES ================= */
 
-interface StudentData {
-  name: string;
+interface Enrollment {
+  _id: string;
   feesTotal: number;
   feesPaid: number;
   certificateStatus: string;
   course?: {
     name?: string;
   };
+}
+
+interface StudentData {
+  student: {
+    name: string;
+    studentId: string;
+  };
+  enrollments: Enrollment[];
 }
 
 interface MenuItem {
@@ -73,7 +81,8 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
-  const [student, setStudent] = useState<StudentData | null>(null);
+
+  const [studentData, setStudentData] = useState<StudentData | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
 
   const profileRef = useRef<HTMLDivElement | null>(null);
@@ -83,9 +92,9 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   useEffect(() => {
     const loadStudent = async () => {
       try {
-        const res = await fetchWithAuth("/api/student/me");
-        const data: StudentData = await res.json();
-        setStudent(data);
+        const res = await fetchWithAuth("/api/student/profile");
+        const data = await res.json();
+        setStudentData(data);
       } catch {
         console.error("Failed to load student");
       }
@@ -93,6 +102,32 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
 
     loadStudent();
   }, []);
+
+  const student = studentData?.student;
+  const enrollments = studentData?.enrollments || [];
+
+  /* ================= CALCULATIONS ================= */
+
+  const totalFees = enrollments.reduce(
+    (sum, e) => sum + (e.feesTotal || 0),
+    0
+  );
+
+  const totalPaid = enrollments.reduce(
+    (sum, e) => sum + (e.feesPaid || 0),
+    0
+  );
+
+  const feesDue = totalFees - totalPaid;
+
+  const courses = enrollments
+    .map((e) => e.course?.name)
+    .filter(Boolean);
+
+  const certificateSummary =
+    enrollments.length === 1
+      ? enrollments[0].certificateStatus
+      : `${enrollments.length} Courses`;
 
   /* ================= DARK MODE ================= */
 
@@ -105,6 +140,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   }, []);
 
   const toggleDarkMode = () => {
+
     const isDark = document.documentElement.classList.contains("dark");
 
     if (isDark) {
@@ -159,16 +195,15 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
     router.replace("/login");
   };
 
-  const feesDue = (student?.feesTotal ?? 0) - (student?.feesPaid ?? 0);
-
   /* ================= RETURN ================= */
 
   return (
+
     <AuthGuard>
 
       <div className="flex h-screen overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 dark:bg-gray-900">
 
-        {/* Overlay mobile */}
+        {/* MOBILE OVERLAY */}
 
         {mobileOpen && (
           <div
@@ -252,6 +287,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                   })}
 
                 </div>
+
               </div>
 
             ))}
@@ -264,7 +300,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
 
         <div className="flex-1 flex flex-col min-w-0">
 
-          {/* TOPBAR */}
+          {/* ================= TOPBAR ================= */}
 
           <header className="bg-white/90 backdrop-blur border-b border-indigo-100 px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center">
 
@@ -346,12 +382,13 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
           {/* INFO STRIP */}
 
           {student && (
+
             <div className="bg-indigo-100 px-4 sm:px-6 py-3 flex flex-col sm:flex-row gap-2 sm:gap-4 sm:justify-between text-sm text-indigo-900">
 
               <div>
-                Course:{" "}
+                Courses:{" "}
                 <span className="font-medium">
-                  {student.course?.name ?? "N/A"}
+                  {courses.length > 0 ? courses.join(", ") : "N/A"}
                 </span>
               </div>
 
@@ -363,13 +400,14 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
               </div>
 
               <div>
-                Certificate:{" "}
+                Certificates:{" "}
                 <span className="font-medium">
-                  {student.certificateStatus}
+                  {certificateSummary}
                 </span>
               </div>
 
             </div>
+
           )}
 
           {/* CONTENT */}
@@ -393,5 +431,6 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
       </div>
 
     </AuthGuard>
+
   );
 }

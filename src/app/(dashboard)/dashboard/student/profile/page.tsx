@@ -3,24 +3,35 @@
 import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 
-interface Student {
-  studentId: string;
-  name: string;
-  email?: string;
-  phone?: string;
+/* ================= TYPES ================= */
+
+interface Course {
+  name?: string;
+  duration?: string;
+  authority?: string;
+}
+
+interface Enrollment {
+  _id: string;
+  course?: Course;
   feesTotal: number;
   feesPaid: number;
   certificateStatus: string;
-  course?: {
-    name?: string;
-    duration?: string;
-    authority?: string;
+}
+
+interface StudentProfileData {
+  student: {
+    studentId: string;
+    name: string;
+    email?: string;
+    phone?: string;
   };
+  enrollments: Enrollment[];
 }
 
 export default function StudentProfile() {
 
-  const [student, setStudent] = useState<Student | null>(null);
+  const [data, setData] = useState<StudentProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,14 +41,14 @@ export default function StudentProfile() {
 
       try {
 
-        const res = await fetchWithAuth("/api/student/me");
-        const data: Student = await res.json();
+        const res = await fetchWithAuth("/api/student/profile");
+        const json = await res.json();
 
         if (!res.ok) {
-          throw new Error("Failed to load profile");
+          throw new Error(json.message || "Failed to load profile");
         }
 
-        setStudent(data);
+        setData(json);
 
       } catch (err: any) {
 
@@ -76,7 +87,7 @@ export default function StudentProfile() {
     );
   }
 
-  if (!student) {
+  if (!data) {
     return (
       <div className="text-red-500">
         Profile data not available.
@@ -84,10 +95,11 @@ export default function StudentProfile() {
     );
   }
 
-  const pendingFees = (student.feesTotal || 0) - (student.feesPaid || 0);
+  const student = data.student;
+  const enrollments = data.enrollments || [];
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 sm:space-y-10">
+    <div className="max-w-6xl mx-auto space-y-10">
 
       {/* PAGE TITLE */}
 
@@ -97,7 +109,7 @@ export default function StudentProfile() {
 
       {/* PROFILE CARD */}
 
-      <div className="bg-white shadow-md border border-indigo-100 rounded-xl p-6 sm:p-8 flex flex-col sm:flex-row gap-6 sm:gap-8 items-center">
+      <div className="bg-white shadow-md border border-indigo-100 rounded-xl p-6 sm:p-8 flex flex-col sm:flex-row gap-6 items-center">
 
         {/* Avatar */}
 
@@ -121,7 +133,7 @@ export default function StudentProfile() {
             {student.email || "No email"}
           </p>
 
-          <div className="text-sm text-indigo-700 flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-4 justify-center sm:justify-start">
+          <div className="text-sm text-indigo-700 flex flex-wrap gap-4 justify-center sm:justify-start">
 
             <span>
               <strong>ID:</strong> {student.studentId}
@@ -137,93 +149,89 @@ export default function StudentProfile() {
 
       </div>
 
-      {/* INFO GRID */}
+      {/* COURSES */}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+      <div className="space-y-6">
 
-        {/* COURSE */}
-
-        <div className="bg-white shadow-md border border-indigo-100 rounded-xl p-6 space-y-4">
-
-          <h2 className="text-lg font-semibold text-indigo-900">
-            Course Information
-          </h2>
-
-          <div className="space-y-2 text-sm">
-
-            <p>
-              <span className="text-indigo-500">Course Name:</span>{" "}
-              <span className="font-medium text-indigo-900">
-                {student.course?.name || "N/A"}
-              </span>
-            </p>
-
-            <p>
-              <span className="text-indigo-500">Duration:</span>{" "}
-              <span className="font-medium text-indigo-900">
-                {student.course?.duration || "N/A"}
-              </span>
-            </p>
-
-            <p>
-              <span className="text-indigo-500">Authority:</span>{" "}
-              <span className="font-medium text-indigo-900">
-                {student.course?.authority || "N/A"}
-              </span>
-            </p>
-
-          </div>
-
-        </div>
-
-        {/* FEES */}
-
-        <div className="bg-white shadow-md border border-indigo-100 rounded-xl p-6 space-y-4">
-
-          <h2 className="text-lg font-semibold text-indigo-900">
-            Fee Summary
-          </h2>
-
-          <div className="space-y-2 text-sm">
-
-            <p>
-              <span className="text-indigo-500">Total Fees:</span>{" "}
-              <span className="font-medium text-indigo-900">
-                ₹{student.feesTotal}
-              </span>
-            </p>
-
-            <p>
-              <span className="text-indigo-500">Paid Fees:</span>{" "}
-              <span className="font-medium text-green-600">
-                ₹{student.feesPaid}
-              </span>
-            </p>
-
-            <p>
-              <span className="text-indigo-500">Pending Fees:</span>{" "}
-              <span className="font-medium text-red-500">
-                ₹{pendingFees}
-              </span>
-            </p>
-
-          </div>
-
-        </div>
-
-      </div>
-
-      {/* CERTIFICATE */}
-
-      <div className="bg-white shadow-md border border-indigo-100 rounded-xl p-6">
-
-        <h2 className="text-lg font-semibold mb-4 text-indigo-900">
-          Certificate Status
+        <h2 className="text-xl font-semibold text-indigo-900">
+          My Courses
         </h2>
 
-        <span className="px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 font-medium text-sm">
-          {student.certificateStatus}
-        </span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          {enrollments.map((e) => {
+
+            const pending = (e.feesTotal || 0) - (e.feesPaid || 0);
+
+            return (
+
+              <div
+                key={e._id}
+                className="bg-white shadow-md border border-indigo-100 rounded-xl p-6 space-y-4"
+              >
+
+                {/* COURSE */}
+
+                <div>
+
+                  <h3 className="text-lg font-semibold text-indigo-900">
+                    {e.course?.name || "N/A"}
+                  </h3>
+
+                  <p className="text-sm text-indigo-600">
+                    Duration: {e.course?.duration || "N/A"}
+                  </p>
+
+                  <p className="text-sm text-indigo-600">
+                    Authority: {e.course?.authority || "N/A"}
+                  </p>
+
+                </div>
+
+                {/* FEES */}
+
+                <div className="text-sm space-y-1">
+
+                  <p>
+                    <span className="text-indigo-500">Total Fees:</span>{" "}
+                    <span className="font-medium">
+                      ₹{e.feesTotal}
+                    </span>
+                  </p>
+
+                  <p>
+                    <span className="text-indigo-500">Paid:</span>{" "}
+                    <span className="font-medium text-green-600">
+                      ₹{e.feesPaid}
+                    </span>
+                  </p>
+
+                  <p>
+                    <span className="text-indigo-500">Pending:</span>{" "}
+                    <span className="font-medium text-red-500">
+                      ₹{pending}
+                    </span>
+                  </p>
+
+                </div>
+
+                {/* CERTIFICATE */}
+
+                <div>
+
+                  <span className="px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 font-medium text-sm">
+                    {e.certificateStatus}
+                  </span>
+
+                </div>
+
+              </div>
+
+            );
+
+          })}
+
+        </div>
 
       </div>
 
