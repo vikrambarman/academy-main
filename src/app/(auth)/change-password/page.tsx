@@ -27,6 +27,7 @@ function ChangePasswordInner() {
         setMessage("");
 
         try {
+
             const res = await fetch("/api/auth/change-password", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -56,24 +57,31 @@ function ChangePasswordInner() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
 
-            <div className="w-full max-w-md bg-white border border-slate-200 rounded-xl shadow-sm p-8">
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 sm:px-6 py-10">
 
-                <div className="text-center mb-8">
+            <div className="w-full max-w-md bg-white border border-slate-200 rounded-xl shadow-sm p-6 sm:p-8">
+
+                {/* Header */}
+
+                <div className="text-center mb-6 sm:mb-8">
+
                     <img
                         src="/logo.png"
                         alt="Shivshakti Computer Academy"
-                        className="mx-auto h-14 mb-4"
+                        className="mx-auto h-12 sm:h-14 mb-3 sm:mb-4"
                     />
-                    <h2 className="text-2xl font-semibold text-slate-900">
+
+                    <h2 className="text-xl sm:text-2xl font-semibold text-slate-900">
                         {forced ? "Set New Password" : "Change Password"}
                     </h2>
-                    <p className="text-sm text-slate-500 mt-1">
+
+                    <p className="text-sm text-slate-500 mt-1 px-2">
                         {forced
                             ? "For security reasons, you must set a new password before continuing."
                             : "Update your account password securely."}
                     </p>
+
                 </div>
 
                 {error && (
@@ -88,58 +96,72 @@ function ChangePasswordInner() {
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-5">
+                {/* FORM */}
+
+                <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
 
                     {!forced && (
                         <div>
+
                             <label className="text-sm text-slate-600">
                                 Current Password
                             </label>
+
                             <div className="relative">
+
                                 <input
                                     type={showOld ? "text" : "password"}
-                                    className="mt-1 w-full border border-slate-300 rounded-md px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-slate-900 transition"
+                                    className="mt-1 w-full border border-slate-300 rounded-md px-3 py-2.5 pr-12 focus:outline-none focus:ring-2 focus:ring-slate-900 transition"
                                     value={oldPassword}
                                     onChange={(e) => setOldPassword(e.target.value)}
                                     required
                                 />
+
                                 <button
                                     type="button"
                                     onClick={() => setShowOld(!showOld)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 hover:text-slate-700"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs sm:text-sm text-slate-500 hover:text-slate-700"
                                 >
                                     {showOld ? "Hide" : "Show"}
                                 </button>
+
                             </div>
+
                         </div>
                     )}
 
                     <div>
+
                         <label className="text-sm text-slate-600">
                             New Password
                         </label>
+
                         <div className="relative">
+
                             <input
                                 type={showNew ? "text" : "password"}
-                                className="mt-1 w-full border border-slate-300 rounded-md px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-slate-900 transition"
+                                className="mt-1 w-full border border-slate-300 rounded-md px-3 py-2.5 pr-12 focus:outline-none focus:ring-2 focus:ring-slate-900 transition"
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
                                 required
                             />
+
                             <button
                                 type="button"
                                 onClick={() => setShowNew(!showNew)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 hover:text-slate-700"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs sm:text-sm text-slate-500 hover:text-slate-700"
                             >
                                 {showNew ? "Hide" : "Show"}
                             </button>
+
                         </div>
+
                     </div>
 
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-slate-900 text-white py-2.5 rounded-md hover:bg-slate-800 transition disabled:opacity-50"
+                        className="w-full bg-slate-900 text-white py-2.5 sm:py-3 rounded-md hover:bg-slate-800 transition disabled:opacity-50 text-sm sm:text-base"
                     >
                         {loading
                             ? "Updating..."
@@ -147,34 +169,47 @@ function ChangePasswordInner() {
                                 ? "Set Password"
                                 : "Update Password"}
                     </button>
+
                 </form>
 
+                {/* BACK BUTTON */}
+
                 {!forced && (
-                    <div className="text-center mt-6">
+
+                    <div className="text-center mt-5 sm:mt-6">
+
                         <button
                             onClick={() => router.push("/dashboard")}
                             className="text-sm text-slate-600 hover:text-slate-900 transition"
                         >
                             Back to Dashboard
                         </button>
+
                     </div>
+
                 )}
+
+                {/* FOOTER */}
 
                 <p className="text-xs text-slate-400 text-center mt-6">
                     Shivshakti Computer Academy © 2026
                 </p>
 
             </div>
+
         </div>
+
     );
 }
 
 /* ================= WRAPPER WITH SUSPENSE ================= */
 
 export default function ChangePasswordPage() {
+
     return (
         <Suspense fallback={<div className="p-10 text-center">Loading...</div>}>
             <ChangePasswordInner />
         </Suspense>
     );
+
 }
