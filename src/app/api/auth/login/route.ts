@@ -16,6 +16,7 @@ import {
     generateRefreshToken,
 } from "@/lib/auth";
 import { sendOTPEmail } from "@/lib/mail";
+import Student from "@/models/Student";
 
 export async function POST(req: Request) {
     try {
@@ -28,16 +29,8 @@ export async function POST(req: Request) {
                 { academyId: identifier }
             ]
         });
-        
-        if (!user) {
-            return NextResponse.json(
-                { message: "Invalid credentials" },
-                { status: 401 }
-            );
-        }
 
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
+        if (!user) {
             return NextResponse.json(
                 { message: "Invalid credentials" },
                 { status: 401 }
@@ -62,6 +55,35 @@ export async function POST(req: Request) {
         }
 
         // 🎓 STUDENT → NORMAL LOGIN FLOW
+
+        if (user.role === "student") {
+
+            const student = await Student.findOne({ user: user._id });
+
+            if (!student) {
+                return NextResponse.json(
+                    { message: "Student record not found" },
+                    { status: 404 }
+                );
+            }
+
+            // ❌ ACCOUNT DISABLED
+            if (!student.isActive) {
+                return NextResponse.json(
+                    { message: "Your account has been deactivated by admin" },
+                    { status: 403 }
+                );
+            }
+
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return NextResponse.json(
+                { message: "Invalid credentials" },
+                { status: 401 }
+            );
+        }
 
         const payload = {
             id: user._id,

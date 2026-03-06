@@ -132,6 +132,7 @@ export async function POST(req: NextRequest) {
                 address,
                 qualification,
                 admissionDate,
+                courseStatus: "active",
                 user: newUser._id,
                 externalStudentId,
                 externalPassword
@@ -231,13 +232,14 @@ export async function GET() {
 
         });
 
-        const result = students.map((student) => ({
-
-            ...student.toObject(),
-
-            enrollments: enrollmentsMap[student._id.toString()] || []
-
-        }));
+        const result = students.map((student) => {
+            const obj = student.toObject();
+            return {
+                ...obj,
+                courseStatus: obj.courseStatus || "active",
+                enrollments: enrollmentsMap[student._id.toString()] || []
+            };
+        });
 
         return NextResponse.json(result);
 

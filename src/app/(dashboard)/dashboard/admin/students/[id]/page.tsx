@@ -28,6 +28,7 @@ export default function StudentDetail() {
     const [editFeesTotal, setEditFeesTotal] = useState("");
 
     const [certificateStatus, setCertificateStatus] = useState("");
+    const [courseStatus, setCourseStatus] = useState("");
 
     /* ================= LOAD DATA ================= */
 
@@ -38,6 +39,7 @@ export default function StudentDetail() {
 
         if (res.ok) {
             setStudent(data);
+            setCourseStatus(data.courseStatus ?? "active");
         }
 
         setLoading(false);
@@ -54,10 +56,10 @@ export default function StudentDetail() {
 
     useEffect(() => {
 
-        if (id) {
-            loadStudent();
-            loadCourses();
-        }
+        if (!id) return;
+
+        loadStudent();
+        loadCourses();
 
     }, [id]);
 
@@ -157,6 +159,37 @@ export default function StudentDetail() {
         });
 
         loadStudent();
+    };
+
+
+    /* ================= UPDATE COURSE STATUS ================= */
+
+    const updateCourseStatus = async () => {
+
+        const res = await fetchWithAuth(`/api/admin/students/${id}`, {
+
+            method: "PATCH",
+
+            headers: { "Content-Type": "application/json" },
+
+            body: JSON.stringify({
+                courseStatus
+            })
+
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            alert(data.message || "Failed to update course status");
+            return;
+        }
+
+        setStudent((prev: any) => ({
+            ...prev,
+            courseStatus
+        }));
+
     };
 
     /* ================= ENROLL COURSE ================= */
@@ -336,6 +369,30 @@ export default function StudentDetail() {
 
                 </div>
 
+            </div>
+
+            {/* COURSE STATUS */}
+            <div className="bg-white shadow rounded-xl p-6 space-y-4">
+                <h3 className="font-semibold">
+                    Course Status
+                </h3>
+                <div className="flex flex-wrap gap-3 items-center">
+                    <select
+                        className="border p-2 rounded"
+                        value={courseStatus}
+                        onChange={(e) => setCourseStatus(e.target.value)}
+                    >
+                        <option value="active">Active</option>
+                        <option value="completed">Completed</option>
+                        <option value="dropped">Dropped</option>
+                    </select>
+                    <button
+                        onClick={updateCourseStatus}
+                        className="bg-indigo-600 text-white px-4 py-2 rounded"
+                    >
+                        Update Status
+                    </button>
+                </div>
             </div>
 
             {/* ENROLL NEW COURSE */}
@@ -622,7 +679,7 @@ export default function StudentDetail() {
 
             )}
 
-            
+
             {/* Edit & Delete Enrollment */}
             {editingEnrollment && (
                 <div className="fixed inset-0 bg-black/40 flex items-center justify-center">

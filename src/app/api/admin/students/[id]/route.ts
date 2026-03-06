@@ -31,8 +31,9 @@ export async function GET(
         .populate("course")
         .sort({ createdAt: -1 });
 
+    const obj = student.toObject();
     return NextResponse.json({
-        ...student.toObject(),
+        ...obj,
         enrollments
     });
 
@@ -47,6 +48,7 @@ export async function PATCH(
 
     const { id } = await context.params;
     const body = await req.json();
+    console.log("PATCH STUDENT HIT:", id, body); // 🔴 DEBUG LINE
 
     const student = await Student.findById(id);
 
@@ -56,6 +58,40 @@ export async function PATCH(
             { status: 404 }
         );
     }
+
+    /* ======================================================
+       🔥 ACTIVATE / DEACTIVATE
+    ====================================================== */
+    if (typeof body.isActive === "boolean") {
+        student.isActive = body.isActive;
+        await student.save();
+        return NextResponse.json(student);
+    }
+
+    /* ======================================================
+   🔥 UPDATE COURSE STATUS
+====================================================== */
+    if (body.courseStatus !== undefined) {
+
+        const allowed = ["active", "completed", "dropped"];
+
+        if (!allowed.includes(body.courseStatus)) {
+            return NextResponse.json(
+                { message: "Invalid course status" },
+                { status: 400 }
+            );
+        }
+
+        student.courseStatus = body.courseStatus;
+
+        await student.save();
+
+        return NextResponse.json({
+            message: "Course status updated",
+            student
+        });
+    }
+
 
     /* ======================================================
        🔥 ADD PAYMENT
@@ -160,15 +196,6 @@ export async function PATCH(
     ====================================================== */
     if (body.certificateStatus) {
         student.certificateStatus = body.certificateStatus;
-        await student.save();
-        return NextResponse.json(student);
-    }
-
-    /* ======================================================
-       🔥 ACTIVATE / DEACTIVATE
-    ====================================================== */
-    if (typeof body.isActive === "boolean") {
-        student.isActive = body.isActive;
         await student.save();
         return NextResponse.json(student);
     }

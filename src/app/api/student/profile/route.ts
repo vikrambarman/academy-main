@@ -73,6 +73,7 @@ export async function GET() {
                 name: student.name,
                 email: student.email,
                 phone: student.phone,
+                courseStatus: student.courseStatus,
 
             },
 

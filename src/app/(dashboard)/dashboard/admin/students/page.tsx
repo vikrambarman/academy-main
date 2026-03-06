@@ -207,10 +207,11 @@ export default function AdminStudents() {
               <tr>
                 <th className="p-3 text-left">ID</th>
                 <th className="p-3 text-left">Name</th>
-                <th className="p-3 text-left">Course</th>
+                <th className="p-3 text-left">Courses</th>
                 <th className="p-3 text-left">Fees</th>
                 <th className="p-3 text-left">Due</th>
-                <th className="p-3 text-left">Status</th>
+                <th className="p-3 text-left">Account</th>
+                <th className="p-3 text-left">Course Status</th>
                 <th className="p-3 text-left">Action</th>
               </tr>
 
@@ -273,6 +274,24 @@ export default function AdminStudents() {
                         </span>
                       )}
 
+                    </td>
+
+                    <td className="p-3">
+                      {student.courseStatus === "completed" && (
+                        <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">
+                          Completed
+                        </span>
+                      )}
+                      {student.courseStatus === "active" && (
+                        <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">
+                          Active
+                        </span>
+                      )}
+                      {student.courseStatus === "dropped" && (
+                        <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs">
+                          Dropped
+                        </span>
+                      )}
                     </td>
 
                     <td className="p-3">

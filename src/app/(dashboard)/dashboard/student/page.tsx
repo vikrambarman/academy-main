@@ -33,6 +33,9 @@ interface DashboardData {
   student: {
     name: string;
     studentId: string;
+    email?: string;
+    phone?: string;
+    courseStatus: "active" | "completed" | "dropped";
   };
   enrollments: Enrollment[];
 }
@@ -43,8 +46,7 @@ export default function StudentDashboard() {
 
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
-
-  /* ================= LOAD DATA ================= */
+  const [accountDisabled, setAccountDisabled] = useState(false);
 
   useEffect(() => {
 
@@ -54,7 +56,12 @@ export default function StudentDashboard() {
 
         const res = await fetchWithAuth("/api/student/profile");
         const json = await res.json();
-
+        if (!res.ok) {
+          if (res.status === 403) {
+            setAccountDisabled(true);
+            return;
+          }
+        }
         setData(json);
 
       } catch (error) {
@@ -73,12 +80,31 @@ export default function StudentDashboard() {
 
   }, []);
 
-  /* ================= LOADING ================= */
-
   if (loading) {
     return (
       <div className="text-gray-500 animate-pulse">
         Loading dashboard...
+      </div>
+    );
+  }
+
+  if (accountDisabled) {
+    return (
+      <div className="max-w-xl mx-auto mt-20 text-center">
+
+        <div className="bg-red-50 border border-red-200 p-8 rounded-xl">
+
+          <h2 className="text-xl font-semibold text-red-700">
+            Account Deactivated
+          </h2>
+
+          <p className="text-sm text-red-500 mt-2">
+            Your account has been deactivated by the academy.
+            Please contact administration for assistance.
+          </p>
+
+        </div>
+
       </div>
     );
   }
@@ -91,10 +117,11 @@ export default function StudentDashboard() {
     );
   }
 
-  const student = data.student;
-  const enrollments = data.enrollments || [];
+  const student = data?.student || null;
+  const enrollments = data?.enrollments || [];
+  const courseStatus = student?.courseStatus ?? "active";
 
-  /* ================= SUMMARY CALCULATIONS ================= */
+  /* ================= SUMMARY ================= */
 
   const totalFees = enrollments.reduce(
     (sum, e) => sum + (e.feesTotal || 0),
@@ -120,11 +147,50 @@ export default function StudentDashboard() {
           Hello, {student.name}
         </h1>
 
-        <p className="text-sm text-indigo-500 mt-1">
-          Student ID • {student.studentId}
-        </p>
+        <div className="flex items-center gap-3 mt-1 flex-wrap">
+
+          <p className="text-sm text-indigo-500">
+            Student ID • {student.studentId}
+          </p>
+
+          <span
+            className={`text-xs px-3 py-1 rounded-full font-medium
+            ${courseStatus === "active"
+                ? "bg-blue-100 text-blue-700"
+                : courseStatus === "completed"
+                  ? "bg-green-100 text-green-700"
+                  : "bg-yellow-100 text-yellow-700"
+              }`}
+          >
+            {courseStatus.toUpperCase()}
+          </span>
+
+        </div>
 
       </div>
+
+      {/* COURSE STATUS BANNER */}
+
+      {courseStatus === "completed" && (
+
+        <div className="bg-green-100 border border-green-200 text-green-700 p-4 rounded-lg mt-2">
+
+          🎓 Congratulations! You have successfully completed your course.
+
+        </div>
+
+      )}
+
+      {courseStatus === "dropped" && (
+
+        <div className="bg-yellow-100 border border-yellow-200 text-yellow-700 p-4 rounded-lg mt-2">
+
+          ⚠ Your course has been marked as discontinued.
+          Please contact the academy for further assistance.
+
+        </div>
+
+      )}
 
       {/* SUMMARY CARDS */}
 
@@ -173,8 +239,22 @@ export default function StudentDashboard() {
       {enrollments.length === 0 && (
 
         <div className="bg-white border border-indigo-100 rounded-xl shadow-md p-8 text-center text-indigo-500">
+
           No courses enrolled yet.
+
         </div>
+
+      )}
+
+      {/* COURSES TITLE */}
+
+      {enrollments.length > 0 && (
+
+        <h2 className="text-lg font-semibold text-indigo-900">
+
+          Enrolled Courses
+
+        </h2>
 
       )}
 
@@ -188,9 +268,8 @@ export default function StudentDashboard() {
           const paid = e.feesPaid ?? 0;
           const due = total - paid;
 
-          const progress = total > 0
-            ? (paid / total) * 100
-            : 0;
+          const progress =
+            total > 0 ? (paid / total) * 100 : 0;
 
           const sortedPayments = [...(e.payments || [])].sort(
             (a, b) =>
@@ -212,13 +291,19 @@ export default function StudentDashboard() {
                 <div>
 
                   <h2 className="text-xl font-semibold text-indigo-900">
+
                     {e.course?.name}
+
                   </h2>
 
                   {e.course?.authority && (
+
                     <p className="text-sm text-indigo-500">
+
                       {e.course.authority}
+
                     </p>
+
                   )}
 
                 </div>
@@ -244,11 +329,15 @@ export default function StudentDashboard() {
                 <div className="bg-indigo-50 rounded-lg p-4">
 
                   <p className="text-xs text-indigo-500 uppercase">
+
                     Total Fees
+
                   </p>
 
                   <p className="text-xl font-semibold text-indigo-900">
+
                     ₹<CountUp end={total} separator="," />
+
                   </p>
 
                 </div>
@@ -256,11 +345,15 @@ export default function StudentDashboard() {
                 <div className="bg-green-50 rounded-lg p-4">
 
                   <p className="text-xs text-green-600 uppercase">
+
                     Paid
+
                   </p>
 
                   <p className="text-xl font-semibold text-green-700">
+
                     ₹<CountUp end={paid} separator="," />
+
                   </p>
 
                 </div>
@@ -268,11 +361,15 @@ export default function StudentDashboard() {
                 <div className="bg-red-50 rounded-lg p-4">
 
                   <p className="text-xs text-red-600 uppercase">
+
                     Pending
+
                   </p>
 
                   <p className="text-xl font-semibold text-red-600">
+
                     ₹<CountUp end={due} separator="," />
+
                   </p>
 
                 </div>
@@ -286,6 +383,7 @@ export default function StudentDashboard() {
                 <div className="flex justify-between mb-2 text-sm text-indigo-600">
 
                   <span>Fee Progress</span>
+
                   <span>{progress.toFixed(0)}%</span>
 
                 </div>
@@ -306,11 +404,15 @@ export default function StudentDashboard() {
               <div>
 
                 <p className="text-sm text-indigo-500">
+
                   Certificate Status
+
                 </p>
 
                 <span className="inline-block mt-1 px-3 py-1 text-sm rounded-full bg-indigo-100 text-indigo-700 font-medium">
+
                   {e.certificateStatus}
+
                 </span>
 
               </div>
@@ -320,13 +422,19 @@ export default function StudentDashboard() {
               <div>
 
                 <h3 className="text-md font-semibold text-indigo-900 mb-4">
+
                   Payment History
+
                 </h3>
 
                 {sortedPayments.length === 0 && (
+
                   <p className="text-sm text-indigo-500">
+
                     No payments yet.
+
                   </p>
+
                 )}
 
                 <div className="space-y-3">
@@ -341,23 +449,33 @@ export default function StudentDashboard() {
                       <div>
 
                         <p className="font-medium text-indigo-900">
+
                           ₹{p.amount}
+
                         </p>
 
                         <p className="text-xs text-indigo-500">
+
                           Receipt • {p.receiptNo}
+
                         </p>
 
                         {p.remark && (
+
                           <p className="text-xs text-indigo-400">
+
                             {p.remark}
+
                           </p>
+
                         )}
 
                       </div>
 
                       <p className="text-sm text-indigo-500">
+
                         {new Date(p.date).toLocaleDateString()}
+
                       </p>
 
                     </div>

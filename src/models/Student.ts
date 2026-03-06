@@ -14,6 +14,7 @@ export interface IStudent extends Document {
     gender?: string;
     address?: string;
     qualification?: string;
+    courseStatus: "active" | "completed" | "dropped";
 
     admissionDate?: Date;
 
@@ -76,6 +77,12 @@ const studentSchema = new Schema<IStudent, StudentModel>(
         qualification: {
             type: String,
             trim: true,
+        },
+
+        courseStatus: {
+            type: String,
+            enum: ["active", "completed", "dropped"],
+            default: "active",
         },
 
         admissionDate: {

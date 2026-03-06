@@ -25,6 +25,7 @@ interface StudentProfileData {
     name: string;
     email?: string;
     phone?: string;
+    courseStatus?: "active" | "completed" | "dropped";
   };
   enrollments: Enrollment[];
 }
@@ -97,6 +98,7 @@ export default function StudentProfile() {
 
   const student = data.student;
   const enrollments = data.enrollments || [];
+  const courseStatus = student.courseStatus || "active";
 
   return (
     <div className="max-w-6xl mx-auto space-y-10">
@@ -106,6 +108,29 @@ export default function StudentProfile() {
       <h1 className="text-2xl sm:text-3xl font-semibold text-indigo-900">
         Student Profile
       </h1>
+
+      {/* COURSE STATUS MESSAGE */}
+
+      {courseStatus === "completed" && (
+
+        <div className="bg-green-100 border border-green-200 text-green-700 p-4 rounded-lg">
+
+          🎓 You have successfully completed your course.
+
+        </div>
+
+      )}
+
+      {courseStatus === "dropped" && (
+
+        <div className="bg-yellow-100 border border-yellow-200 text-yellow-700 p-4 rounded-lg">
+
+          ⚠ Your course has been marked as discontinued.
+          Please contact the academy for further assistance.
+
+        </div>
+
+      )}
 
       {/* PROFILE CARD */}
 
@@ -125,9 +150,25 @@ export default function StudentProfile() {
 
         <div className="flex-1 space-y-2 text-center sm:text-left">
 
-          <h2 className="text-lg sm:text-xl font-semibold text-indigo-900">
-            {student.name}
-          </h2>
+          <div className="flex items-center gap-3 justify-center sm:justify-start flex-wrap">
+
+            <h2 className="text-lg sm:text-xl font-semibold text-indigo-900">
+              {student.name}
+            </h2>
+
+            <span
+              className={`text-xs px-3 py-1 rounded-full font-medium
+              ${courseStatus === "active"
+                  ? "bg-blue-100 text-blue-700"
+                  : courseStatus === "completed"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-yellow-100 text-yellow-700"
+                }`}
+            >
+              {courseStatus.toUpperCase()}
+            </span>
+
+          </div>
 
           <p className="text-indigo-500 text-sm">
             {student.email || "No email"}
@@ -157,11 +198,20 @@ export default function StudentProfile() {
           My Courses
         </h2>
 
+        {enrollments.length === 0 && (
+
+          <div className="text-indigo-500">
+            No course enrollment found.
+          </div>
+
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
           {enrollments.map((e) => {
 
-            const pending = (e.feesTotal || 0) - (e.feesPaid || 0);
+            const pending =
+              (e.feesTotal || 0) - (e.feesPaid || 0);
 
             return (
 

@@ -31,6 +31,8 @@ interface AnalyticsData {
         total: number;
         active: number;
         inactive: number;
+        completed: number;
+        dropped: number;
         recentEnrollments: number;
     };
     certificates: {
@@ -110,11 +112,26 @@ export default function AdminDashboard() {
 
             {/* KPI CARDS */}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-5 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 sm:gap-6">
 
                 <PremiumCard
                     title="Total Students"
                     value={data?.students?.total ?? 0}
+                />
+
+                <PremiumCard
+                    title="Active Students"
+                    value={data?.students?.active ?? 0}
+                />
+
+                <PremiumCard
+                    title="Completed Students"
+                    value={data?.students?.completed ?? 0}
+                />
+
+                <PremiumCard
+                    title="Dropped Students"
+                    value={data?.students?.dropped ?? 0}
                 />
 
                 <PremiumCard
