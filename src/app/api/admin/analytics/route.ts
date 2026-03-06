@@ -12,11 +12,37 @@ export async function GET() {
     /* ================= STUDENTS ================= */
 
     const totalStudents = await Student.countDocuments();
-    const activeStudents = await Student.countDocuments({ isActive: true });
-    const inactiveStudents = await Student.countDocuments({ isActive: false });
+
+    const activeStudents = await Student.countDocuments({
+        courseStatus: "active"
+    });
+
+    const completedStudents = await Student.countDocuments({
+        courseStatus: "completed"
+    });
+
+    const droppedStudents = await Student.countDocuments({
+        courseStatus: "dropped"
+    });
+
+    const inactiveStudents = await Student.countDocuments({
+        isActive: false
+    });
+
+    const completionRate =
+        totalStudents > 0
+            ? Math.round((completedStudents / totalStudents) * 100)
+            : 0;
+
+    const dropoutRate =
+        totalStudents > 0
+            ? Math.round((droppedStudents / totalStudents) * 100)
+            : 0;
 
     const recentEnrollments = await Enrollment.countDocuments({
-        createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
+        createdAt: {
+            $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+        }
     });
 
     /* ================= FINANCIAL ================= */
@@ -35,13 +61,9 @@ export async function GET() {
         totalExpected += e.feesTotal;
         totalCollected += e.feesPaid;
 
-        if (e.feesPaid === 0) {
-            unpaidCount++;
-        } else if (e.feesPaid < e.feesTotal) {
-            partiallyPaidCount++;
-        } else {
-            fullyPaidCount++;
-        }
+        if (e.feesPaid === 0) unpaidCount++;
+        else if (e.feesPaid < e.feesTotal) partiallyPaidCount++;
+        else fullyPaidCount++;
 
     });
 
@@ -98,10 +120,15 @@ export async function GET() {
         },
         {
             $addFields: {
-                totalPending: { $subtract: ["$totalExpected", "$totalRevenue"] }
+                totalPending: {
+                    $subtract: ["$totalExpected", "$totalRevenue"]
+                }
             }
-        }
+        },
+        { $sort: { totalRevenue: -1 } }
     ]);
+
+    const topCourses = courseAnalytics.slice(0, 5);
 
     /* ================= REVENUE TREND ================= */
 
@@ -109,9 +136,7 @@ export async function GET() {
         { $unwind: "$payments" },
         {
             $group: {
-                _id: {
-                    month: { $month: "$payments.date" }
-                },
+                _id: { month: { $month: "$payments.date" } },
                 amount: { $sum: "$payments.amount" }
             }
         },
@@ -136,6 +161,30 @@ export async function GET() {
         amount: m.amount
     }));
 
+    /* ================= ENROLLMENT TREND ================= */
+
+    const enrollmentTrend = await Enrollment.aggregate([
+        {
+            $group: {
+                _id: { month: { $month: "$createdAt" } },
+                count: { $sum: 1 }
+            }
+        },
+        {
+            $project: {
+                month: "$_id.month",
+                count: 1,
+                _id: 0
+            }
+        },
+        { $sort: { month: 1 } }
+    ]);
+
+    const enrollmentFormatted = enrollmentTrend.map((e) => ({
+        month: monthNames[e.month],
+        count: e.count
+    }));
+
     return NextResponse.json({
 
         financial: {
@@ -150,13 +199,21 @@ export async function GET() {
         students: {
             total: totalStudents,
             active: activeStudents,
+            completed: completedStudents,
+            dropped: droppedStudents,
             inactive: inactiveStudents,
+            completionRate,
+            dropoutRate,
             recentEnrollments
         },
 
         certificates: certificateStats,
 
         revenueTrend: trendFormatted,
+
+        enrollmentTrend: enrollmentFormatted,
+
+        topCourses,
 
         courseAnalytics
 
