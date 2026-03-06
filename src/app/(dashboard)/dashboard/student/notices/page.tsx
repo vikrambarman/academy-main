@@ -19,6 +19,9 @@ export default function StudentNotices() {
   const [notices, setNotices] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [page, setPage] = useState(1);
+  const limit = 10;
+
   useEffect(() => {
 
     const loadNotices = async () => {
@@ -30,7 +33,7 @@ export default function StudentNotices() {
 
         setNotices(data?.data || []);
 
-      } catch (error) {
+      } catch {
 
         console.error("Failed to load notices");
 
@@ -66,10 +69,18 @@ export default function StudentNotices() {
 
   };
 
+  /* ================= PAGINATION ================= */
+
+  const totalPages = Math.ceil(notices.length / limit);
+  const start = (page - 1) * limit;
+  const paginatedNotices = notices.slice(start, start + limit);
+
+  /* ============================================= */
+
   if (loading) {
     return (
       <div className="text-indigo-500 animate-pulse">
-        Loading...
+        Loading notices...
       </div>
     );
   }
@@ -109,7 +120,7 @@ export default function StudentNotices() {
 
       <div className="space-y-6">
 
-        {notices.map((notice) => (
+        {paginatedNotices.map((notice) => (
 
           <div
             key={notice._id}
@@ -190,6 +201,36 @@ export default function StudentNotices() {
         ))}
 
       </div>
+
+      {/* PAGINATION */}
+
+      {totalPages > 1 && (
+
+        <div className="flex justify-center items-center gap-3 pt-4">
+
+          <button
+            disabled={page === 1}
+            onClick={() => setPage(page - 1)}
+            className="px-3 py-1 border rounded disabled:opacity-50"
+          >
+            Previous
+          </button>
+
+          <span className="text-sm">
+            Page {page} of {totalPages}
+          </span>
+
+          <button
+            disabled={page === totalPages}
+            onClick={() => setPage(page + 1)}
+            className="px-3 py-1 border rounded disabled:opacity-50"
+          >
+            Next
+          </button>
+
+        </div>
+
+      )}
 
     </div>
   );

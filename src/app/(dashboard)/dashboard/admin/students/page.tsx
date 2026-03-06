@@ -15,11 +15,12 @@ export default function AdminStudents() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [students, setStudents] = useState<any[]>([]);
   const [search, setSearch] = useState("");
-
   const [modalOpen, setModalOpen] = useState(false);
-
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
   const [form, setForm] = useState({
     name: "",
@@ -108,12 +109,20 @@ export default function AdminStudents() {
     s.name.toLowerCase().includes(search.toLowerCase())
   );
 
+  /* ================= PAGINATION ================= */
+
+  const totalPages = Math.ceil(filtered.length / limit);
+  const start = (page - 1) * limit;
+  const paginatedStudents = filtered.slice(start, start + limit);
+
+  /* ============================================= */
+
   return (
     <div className="space-y-6">
 
       {/* HEADER */}
 
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
 
         <h1 className="text-xl sm:text-2xl font-semibold text-slate-800">
           Students
@@ -132,18 +141,21 @@ export default function AdminStudents() {
 
       <input
         placeholder="Search student..."
-        className="border border-slate-300 rounded-lg px-3 py-2 w-full sm:w-72"
+        className="border border-slate-300 rounded-lg px-3 py-2 w-full sm:max-w-xs"
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(e) => {
+          setSearch(e.target.value);
+          setPage(1);
+        }}
       />
 
-      {/* TABLE */}
+      {/* DESKTOP TABLE */}
 
-      <div className="bg-white border border-slate-200 shadow-sm rounded-xl">
+      <div className="hidden md:block bg-white border border-slate-200 shadow-sm rounded-xl">
 
         <div className="overflow-x-auto">
 
-          <table className="min-w-[750px] w-full text-sm">
+          <table className="w-full text-sm">
 
             <thead className="bg-slate-50 border-b">
 
@@ -162,24 +174,18 @@ export default function AdminStudents() {
 
             <tbody>
 
-              {filtered.map((student) => {
+              {paginatedStudents.map((student) => {
 
                 const due = student.feesTotal - student.feesPaid;
 
                 return (
                   <tr key={student._id} className="border-t hover:bg-slate-50">
 
-                    <td className="p-3 font-medium">
-                      {student.studentId}
-                    </td>
+                    <td className="p-3 font-medium">{student.studentId}</td>
 
-                    <td className="p-3">
-                      {student.name}
-                    </td>
+                    <td className="p-3">{student.name}</td>
 
-                    <td className="p-3">
-                      {student.course?.name}
-                    </td>
+                    <td className="p-3">{student.course?.name}</td>
 
                     <td className="p-3">
                       ₹{student.feesPaid} / ₹{student.feesTotal}
@@ -228,6 +234,82 @@ export default function AdminStudents() {
 
       </div>
 
+      {/* MOBILE CARDS */}
+
+      <div className="grid md:hidden gap-4">
+
+        {paginatedStudents.map((student) => {
+
+          const due = student.feesTotal - student.feesPaid;
+
+          return (
+
+            <div
+              key={student._id}
+              className="bg-white border rounded-xl p-4 shadow-sm"
+            >
+
+              <div className="flex justify-between mb-2">
+
+                <h3 className="font-semibold">{student.name}</h3>
+
+                {student.isActive ? (
+                  <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">
+                    Active
+                  </span>
+                ) : (
+                  <span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">
+                    Inactive
+                  </span>
+                )}
+
+              </div>
+
+              <p className="text-sm">ID: {student.studentId}</p>
+              <p className="text-sm">Course: {student.course?.name}</p>
+              <p className="text-sm">Fees: ₹{student.feesPaid} / ₹{student.feesTotal}</p>
+              <p className="text-sm text-red-600">Due: ₹{due}</p>
+
+              <Link
+                href={`/dashboard/admin/students/${student._id}`}
+                className="text-indigo-600 font-medium mt-2 inline-block"
+              >
+                View Details
+              </Link>
+
+            </div>
+
+          );
+        })}
+
+      </div>
+
+      {/* PAGINATION */}
+
+      <div className="flex justify-center items-center gap-3">
+
+        <button
+          disabled={page === 1}
+          onClick={() => setPage(page - 1)}
+          className="px-3 py-1 border rounded disabled:opacity-50"
+        >
+          Previous
+        </button>
+
+        <span className="text-sm">
+          Page {page} of {totalPages || 1}
+        </span>
+
+        <button
+          disabled={page === totalPages}
+          onClick={() => setPage(page + 1)}
+          className="px-3 py-1 border rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+
+      </div>
+
       {/* MODAL */}
 
       {modalOpen && (
@@ -258,15 +340,8 @@ export default function AdminStudents() {
               <input name="email" placeholder="Email" className="input" onChange={handleChange} />
               <input name="phone" placeholder="Phone" className="input" onChange={handleChange} />
 
-              <div>
-                <label className="text-xs text-slate-500">Date of Birth</label>
-                <input type="date" name="dob" className="input" onChange={handleChange} />
-              </div>
-
-              <div>
-                <label className="text-xs text-slate-500">Admission Date</label>
-                <input type="date" name="admissionDate" className="input" onChange={handleChange} />
-              </div>
+              <input type="date" name="dob" className="input" onChange={handleChange} />
+              <input type="date" name="admissionDate" className="input" onChange={handleChange} />
 
               <select name="gender" className="input" onChange={handleChange}>
                 <option>Select Gender</option>

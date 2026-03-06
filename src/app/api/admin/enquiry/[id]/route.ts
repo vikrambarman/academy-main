@@ -30,7 +30,7 @@ export async function PATCH(
         const updated = await Enquiry.findByIdAndUpdate(
             id,
             body,
-            { new: true }
+            { returnDocument: "after" }
         );
 
         return NextResponse.json({ data: updated });
