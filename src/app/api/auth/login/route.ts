@@ -21,9 +21,14 @@ export async function POST(req: Request) {
     try {
         await connectDB();
 
-        const { email, password } = await req.json();
-
-        const user = await User.findOne({ email });
+        const { identifier, password } = await req.json();
+        const user = await User.findOne({
+            $or: [
+                { email: identifier },
+                { academyId: identifier }
+            ]
+        });
+        
         if (!user) {
             return NextResponse.json(
                 { message: "Invalid credentials" },

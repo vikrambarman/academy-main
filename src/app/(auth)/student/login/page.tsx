@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 export default function StudentLoginPage() {
     const router = useRouter();
 
-    const [email, setEmail] = useState("");
+    const [identifier, setIdentifier] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
 
@@ -29,7 +29,10 @@ export default function StudentLoginPage() {
                     "Content-Type": "application/json",
                 },
                 credentials: "include",
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({
+                    identifier,
+                    password
+                })
             });
 
             const data = await res.json();
@@ -134,14 +137,14 @@ export default function StudentLoginPage() {
                         {/* EMAIL */}
                         <div>
                             <label className="text-sm text-slate-600">
-                                Student Email
+                                Email or Student ID
                             </label>
 
                             <input
-                                type="email"
+                                type="text"
                                 className="mt-1 w-full border border-slate-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-600"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                value={identifier}
+                                onChange={(e) => setIdentifier(e.target.value)}
                                 required
                             />
                         </div>
@@ -178,7 +181,7 @@ export default function StudentLoginPage() {
                             <button
                                 type="button"
                                 onClick={() => {
-                                    setForgotEmail(email);
+                                    setForgotEmail("");
                                     setShowForgotModal(true);
                                 }}
                                 className="text-sm text-indigo-600 hover:underline"
