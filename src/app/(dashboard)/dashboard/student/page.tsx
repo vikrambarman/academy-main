@@ -35,6 +35,7 @@ interface DashboardData {
     studentId: string;
     email?: string;
     phone?: string;
+    profileImage?: string;
     courseStatus: "active" | "completed" | "dropped";
   };
   enrollments: Enrollment[];
@@ -141,29 +142,56 @@ export default function StudentDashboard() {
 
       {/* HEADER */}
 
-      <div className="border-b border-indigo-100 pb-6">
+      <div className="border-b border-indigo-100 pb-6 flex items-center gap-4 flex-wrap">
 
-        <h1 className="text-2xl sm:text-3xl font-semibold text-indigo-900">
-          Hello, {student.name}
-        </h1>
+        {/* AVATAR */}
 
-        <div className="flex items-center gap-3 mt-1 flex-wrap">
+        <div className="w-16 h-16 rounded-full overflow-hidden">
 
-          <p className="text-sm text-indigo-500">
-            Student ID • {student.studentId}
-          </p>
+          {student.profileImage ? (
 
-          <span
-            className={`text-xs px-3 py-1 rounded-full font-medium
-            ${courseStatus === "active"
-                ? "bg-blue-100 text-blue-700"
-                : courseStatus === "completed"
-                  ? "bg-green-100 text-green-700"
-                  : "bg-yellow-100 text-yellow-700"
-              }`}
-          >
-            {courseStatus.toUpperCase()}
-          </span>
+            <img
+              src={`${student.profileImage}?t=${Date.now()}`}
+              className="w-full h-full object-cover"
+            />
+
+          ) : (
+
+            <div className="w-full h-full bg-indigo-600 text-white flex items-center justify-center text-xl font-bold">
+              {student.name?.charAt(0)}
+            </div>
+
+          )}
+
+        </div>
+
+        {/* INFO */}
+
+        <div>
+
+          <h1 className="text-2xl sm:text-3xl font-semibold text-indigo-900">
+            Hello, {student.name}
+          </h1>
+
+          <div className="flex items-center gap-3 mt-1 flex-wrap">
+
+            <p className="text-sm text-indigo-500">
+              Student ID • {student.studentId}
+            </p>
+
+            <span
+              className={`text-xs px-3 py-1 rounded-full font-medium
+        ${courseStatus === "active"
+                  ? "bg-blue-100 text-blue-700"
+                  : courseStatus === "completed"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-yellow-100 text-yellow-700"
+                }`}
+            >
+              {courseStatus.toUpperCase()}
+            </span>
+
+          </div>
 
         </div>
 

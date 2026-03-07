@@ -68,13 +68,14 @@ export async function GET() {
         return NextResponse.json({
 
             student: {
-
                 studentId: student.studentId,
                 name: student.name,
                 email: student.email,
                 phone: student.phone,
+                address: student.address,
+                qualification: student.qualification,
                 courseStatus: student.courseStatus,
-
+                profileImage: student.profileImage,
             },
 
             enrollments,

@@ -36,10 +36,10 @@ interface StudentData {
   student: {
     name: string;
     studentId: string;
+    profileImage?: string;
   };
   enrollments: Enrollment[];
 }
-
 interface MenuItem {
   name: string;
   href?: string;
@@ -341,8 +341,19 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                   className="flex items-center gap-2 bg-gray-100 px-2 sm:px-3 py-2 rounded-md text-sm max-w-[160px]"
                 >
 
-                  <div className="w-8 h-8 bg-indigo-600 text-white flex items-center justify-center rounded-full text-xs font-semibold">
-                    {student?.name?.charAt(0) ?? "S"}
+                  <div className="w-8 h-8 rounded-full overflow-hidden">
+
+                    {student?.profileImage ? (
+                      <img
+                        src={`${student.profileImage}?t=${Date.now()}`}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+
+                      <div className="w-full h-full bg-indigo-600 text-white flex items-center justify-center text-xs font-semibold">
+                        {student?.name?.charAt(0) ?? "S"}
+                      </div>
+                    )}
                   </div>
 
                   <span className="truncate hidden sm:block">

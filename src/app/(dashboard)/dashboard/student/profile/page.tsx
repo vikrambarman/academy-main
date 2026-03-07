@@ -28,6 +28,7 @@ interface StudentProfileData {
     address?: string;
     qualification?: string;
     courseStatus?: "active" | "completed" | "dropped";
+    profileImage?: string;
   };
   enrollments: Enrollment[];
 }
@@ -47,6 +48,12 @@ export default function StudentProfile() {
     qualification: "",
     address: ""
   });
+
+  /* IMAGE STATES */
+
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   /* ================= LOAD PROFILE ================= */
 
@@ -73,7 +80,7 @@ export default function StudentProfile() {
 
       } catch (err: any) {
 
-        console.error("Profile load error:", err.message);
+        console.error(err);
         setError(err.message);
 
       } finally {
@@ -112,11 +119,7 @@ export default function StudentProfile() {
       const res = await fetchWithAuth("/api/student/profile", {
 
         method: "PATCH",
-
-        headers: {
-          "Content-Type": "application/json"
-        },
-
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form)
 
       });
@@ -152,32 +155,91 @@ export default function StudentProfile() {
 
   };
 
+  /* ================= IMAGE SELECT ================= */
+
+  const handleImageSelect = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setSelectedImage(file);
+
+    const previewUrl = URL.createObjectURL(file);
+    setPreview(previewUrl);
+
+  };
+
+  /* ================= IMAGE UPLOAD ================= */
+
+  const uploadProfileImage = async () => {
+
+    if (!selectedImage) return;
+
+    try {
+
+      setUploading(true);
+
+      const formData = new FormData();
+      formData.append("file", selectedImage);
+
+      const res = await fetchWithAuth(
+        "/api/student/upload-profile",
+        {
+          method: "POST",
+          body: formData
+        }
+      );
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        alert(json.message || "Upload failed");
+        return;
+      }
+
+      setData(prev => {
+
+        if (!prev) return prev;
+
+        return {
+          ...prev,
+          student: {
+            ...prev.student,
+            profileImage: json.image
+          }
+        };
+
+      });
+
+      setSelectedImage(null);
+      setPreview(null);
+
+    } catch {
+
+      alert("Upload failed");
+
+    } finally {
+
+      setUploading(false);
+
+    }
+
+  };
+
   /* ================= LOADING ================= */
 
   if (loading) {
-    return (
-      <div className="text-indigo-500 animate-pulse">
-        Loading profile...
-      </div>
-    );
+    return <div className="text-indigo-500 animate-pulse">Loading profile...</div>;
   }
 
-  /* ================= ERROR ================= */
-
   if (error) {
-    return (
-      <div className="text-red-500">
-        {error}
-      </div>
-    );
+    return <div className="text-red-500">{error}</div>;
   }
 
   if (!data) {
-    return (
-      <div className="text-red-500">
-        Profile data not available.
-      </div>
-    );
+    return <div className="text-red-500">Profile data not available.</div>;
   }
 
   const student = data.student;
@@ -197,32 +259,62 @@ export default function StudentProfile() {
       {/* COURSE STATUS MESSAGE */}
 
       {courseStatus === "completed" && (
-
         <div className="bg-green-100 border border-green-200 text-green-700 p-4 rounded-lg">
           🎓 You have successfully completed your course.
         </div>
-
       )}
 
       {courseStatus === "dropped" && (
-
         <div className="bg-yellow-100 border border-yellow-200 text-yellow-700 p-4 rounded-lg">
           ⚠ Your course has been marked as discontinued.
         </div>
-
       )}
 
       {/* PROFILE CARD */}
 
       <div className="bg-white shadow-md border border-indigo-100 rounded-xl p-6 flex flex-col sm:flex-row gap-6 items-center">
 
-        {/* Avatar */}
+        <div className="flex flex-col items-center gap-3">
 
-        <div className="flex-shrink-0">
+          <div className="w-20 h-20 rounded-full overflow-hidden">
 
-          <div className="w-20 h-20 rounded-full bg-indigo-600 text-white flex items-center justify-center text-2xl font-bold">
-            {student.name?.charAt(0) || "S"}
+            {preview ? (
+
+              <img src={preview} className="w-full h-full object-cover" />
+
+            ) : student.profileImage ? (
+
+              <img
+                src={`${student.profileImage}?t=${Date.now()}`}
+                className="w-full h-full object-cover"
+              />
+
+            ) : (
+
+              <div className="w-full h-full bg-indigo-600 text-white flex items-center justify-center text-2xl font-bold">
+                {student.name?.charAt(0)}
+              </div>
+
+            )}
+
           </div>
+
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageSelect}
+          />
+
+          {selectedImage && (
+
+            <button
+              onClick={uploadProfileImage}
+              className="bg-indigo-600 text-white px-4 py-1 rounded text-sm"
+            >
+              {uploading ? "Uploading..." : "Upload Photo"}
+            </button>
+
+          )}
 
         </div>
 
@@ -283,21 +375,10 @@ export default function StudentProfile() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
 
-            <p>
-              <strong>Student ID:</strong> {student.studentId}
-            </p>
-
-            <p>
-              <strong>Phone:</strong> {student.phone || "N/A"}
-            </p>
-
-            <p>
-              <strong>Qualification:</strong> {student.qualification || "N/A"}
-            </p>
-
-            <p>
-              <strong>Address:</strong> {student.address || "N/A"}
-            </p>
+            <p><strong>Student ID:</strong> {student.studentId}</p>
+            <p><strong>Phone:</strong> {student.phone || "N/A"}</p>
+            <p><strong>Qualification:</strong> {student.qualification || "N/A"}</p>
+            <p><strong>Address:</strong> {student.address || "N/A"}</p>
 
           </div>
 
@@ -365,13 +446,8 @@ export default function StudentProfile() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
 
-          <p>
-            <strong>Total Courses:</strong> {enrollments.length}
-          </p>
-
-          <p>
-            <strong>Course Status:</strong> {courseStatus}
-          </p>
+          <p><strong>Total Courses:</strong> {enrollments.length}</p>
+          <p><strong>Course Status:</strong> {courseStatus}</p>
 
         </div>
 

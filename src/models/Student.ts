@@ -9,6 +9,7 @@ export interface IStudent extends Document {
 
     email?: string;
     phone?: string;
+    profileImage?: string;
 
     dob?: Date;
     gender?: string;
@@ -60,6 +61,11 @@ const studentSchema = new Schema<IStudent, StudentModel>(
         phone: {
             type: String,
             trim: true,
+        },
+        
+        profileImage: {
+            type: String,
+            default: ""
         },
 
         dob: Date,
