@@ -64,11 +64,11 @@ const menuSections: {
     {
       title: "LEARNING",
       items: [
-        { name: "Notes", icon: BookOpen, disabled: true },
+        { name: "Notes", href: "/dashboard/student/notes", icon: BookOpen },
         { name: "Exams", icon: FileText, disabled: true },
         { name: "Certificates", icon: GraduationCap, disabled: true },
       ],
-    },
+    }
   ];
 
 /* ================= COMPONENT ================= */

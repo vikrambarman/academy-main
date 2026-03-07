@@ -56,7 +56,7 @@ export async function GET() {
         })
             .populate({
                 path: "course",
-                select: "name duration authority certificate verification",
+                select: "name slug duration authority certificate verification",
             })
             .select(
                 "feesTotal feesPaid certificateStatus payments admissionDate course"
