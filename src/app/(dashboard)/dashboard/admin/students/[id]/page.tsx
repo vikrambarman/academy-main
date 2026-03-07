@@ -30,6 +30,18 @@ export default function StudentDetail() {
     const [certificateStatus, setCertificateStatus] = useState("");
     const [courseStatus, setCourseStatus] = useState("");
 
+    const [editProfileOpen, setEditProfileOpen] = useState(false);
+    const [profileForm, setProfileForm] = useState({
+        name: "",
+        fatherName: "",
+        email: "",
+        phone: "",
+        gender: "",
+        qualification: "",
+        address: "",
+        dob: ""
+    });
+
     /* ================= LOAD DATA ================= */
 
     const loadStudent = async () => {
@@ -41,6 +53,17 @@ export default function StudentDetail() {
             setStudent(data);
             setCourseStatus(data.courseStatus ?? "active");
         }
+
+        setProfileForm({
+            name: data.name || "",
+            fatherName: data.fatherName || "",
+            email: data.email || "",
+            phone: data.phone || "",
+            gender: data.gender || "",
+            qualification: data.qualification || "",
+            address: data.address || "",
+            dob: data.dob ? data.dob.split("T")[0] : ""
+        });
 
         setLoading(false);
     };
@@ -63,6 +86,19 @@ export default function StudentDetail() {
 
     }, [id]);
 
+    const handleProfileChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    ) => {
+
+        const { name, value } = e.target;
+
+        setProfileForm(prev => ({
+            ...prev,
+            [name]: value
+        }));
+
+    };
+
     const handlePaymentChange = (
         enrollmentId: string,
         field: string,
@@ -76,6 +112,31 @@ export default function StudentDetail() {
                 [field]: value
             }
         }));
+
+    };
+
+    const updateProfile = async () => {
+        const res = await fetchWithAuth(`/api/admin/students/${id}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                profileUpdate: true,
+                ...profileForm
+            })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            alert(data.message || "Update failed");
+            return;
+        }
+
+        setEditProfileOpen(false);
+
+        loadStudent();
 
     };
 
@@ -351,21 +412,35 @@ export default function StudentDetail() {
 
             {/* PROFILE */}
 
-            <div className="bg-white shadow rounded-xl p-6 grid md:grid-cols-2 gap-6">
+            <div className="bg-white shadow rounded-xl p-6">
 
-                <div className="space-y-2">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-lg font-semibold">Student Profile</h2>
 
-                    <p><strong>ID:</strong> {student.studentId}</p>
-                    <p><strong>Name:</strong> {student.name}</p>
-                    <p><strong>Email:</strong> {student.email}</p>
-                    <p><strong>Phone:</strong> {student.phone}</p>
-
+                    <button
+                        onClick={() => setEditProfileOpen(true)}
+                        className="text-indigo-600 underline text-sm"
+                    >
+                        Edit Profile
+                    </button>
                 </div>
 
-                <div className="space-y-2">
+                {/* Profile Info */}
+                <div className="grid md:grid-cols-2 gap-6">
 
-                    <p><strong>Qualification:</strong> {student.qualification}</p>
-                    <p><strong>Gender:</strong> {student.gender}</p>
+                    <div className="space-y-2">
+                        <p><strong>ID:</strong> {student.studentId}</p>
+                        <p><strong>Name:</strong> {student.name}</p>
+                        <p><strong>Email:</strong> {student.email}</p>
+                        <p><strong>Phone:</strong> {student.phone}</p>
+                    </div>
+
+                    <div className="space-y-2">
+                        <p><strong>Qualification:</strong> {student.qualification}</p>
+                        <p><strong>Gender:</strong> {student.gender}</p>
+                        <p><strong>DOB:</strong> {student.dob.split("T")[0]}</p>
+                    </div>
 
                 </div>
 
@@ -708,6 +783,117 @@ export default function StudentDetail() {
 
                             <button
                                 onClick={updateEnrollment}
+                                className="bg-indigo-600 text-white px-4 py-2 rounded"
+                            >
+                                Save
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            )}
+
+
+            {/* Edit Profile Modal */}
+
+            {editProfileOpen && (
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+
+                    <div className="bg-white p-6 rounded-xl w-[420px] space-y-4">
+
+                        <h3 className="font-semibold text-lg">
+                            Edit Student Profile
+                        </h3>
+
+                        <input
+                            name="name"
+                            value={profileForm.name as string}
+                            onChange={handleProfileChange}
+                            className="border p-2 rounded w-full"
+                            placeholder="Name"
+                        />
+
+                        <input
+                            name="fatherName"
+                            value={profileForm.fatherName as string}
+                            onChange={handleProfileChange}
+                            className="border p-2 rounded w-full"
+                            placeholder="Father Name"
+                        />
+
+                        <input
+                            name="email"
+                            value={profileForm.email as string}
+                            onChange={handleProfileChange}
+                            className="border p-2 rounded w-full"
+                            placeholder="Email"
+                        />
+
+                        <input
+                            name="phone"
+                            value={profileForm.phone as string}
+                            onChange={handleProfileChange}
+                            className="border p-2 rounded w-full"
+                            placeholder="Phone"
+                        />
+
+                        <div>
+                            <label className="text-xs text-gray-500 block mb-1">
+                                Date of Birth
+                            </label>
+
+                            <input
+                                type="date"
+                                name="dob"
+                                value={profileForm.dob}
+                                onChange={handleProfileChange}
+                                className="border p-2 rounded w-full"
+                            />
+
+                        </div>
+
+                        <select
+                            name="gender"
+                            value={profileForm.gender as string}
+                            onChange={handleProfileChange}
+                            className="border p-2 rounded w-full"
+                        >
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+
+                        <input
+                            name="qualification"
+                            value={profileForm.qualification as string}
+                            onChange={handleProfileChange}
+                            className="border p-2 rounded w-full"
+                            placeholder="Qualification"
+                        />
+
+                        <textarea
+                            name="address"
+                            value={profileForm.address as string}
+                            onChange={handleProfileChange}
+                            className="border p-2 rounded w-full"
+                            placeholder="Address"
+                        />
+
+                        <div className="flex justify-end gap-3">
+
+                            <button
+                                onClick={() => setEditProfileOpen(false)}
+                                className="text-gray-500"
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                onClick={updateProfile}
                                 className="bg-indigo-600 text-white px-4 py-2 rounded"
                             >
                                 Save

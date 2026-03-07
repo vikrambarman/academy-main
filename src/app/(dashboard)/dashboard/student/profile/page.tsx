@@ -25,16 +25,30 @@ interface StudentProfileData {
     name: string;
     email?: string;
     phone?: string;
+    address?: string;
+    qualification?: string;
     courseStatus?: "active" | "completed" | "dropped";
   };
   enrollments: Enrollment[];
 }
+
+/* ================= COMPONENT ================= */
 
 export default function StudentProfile() {
 
   const [data, setData] = useState<StudentProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [editMode, setEditMode] = useState(false);
+
+  const [form, setForm] = useState({
+    phone: "",
+    qualification: "",
+    address: ""
+  });
+
+  /* ================= LOAD PROFILE ================= */
 
   useEffect(() => {
 
@@ -50,6 +64,12 @@ export default function StudentProfile() {
         }
 
         setData(json);
+
+        setForm({
+          phone: json.student.phone || "",
+          qualification: json.student.qualification || "",
+          address: json.student.address || ""
+        });
 
       } catch (err: any) {
 
@@ -67,6 +87,70 @@ export default function StudentProfile() {
     loadProfile();
 
   }, []);
+
+  /* ================= INPUT CHANGE ================= */
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+
+    const { name, value } = e.target;
+
+    setForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+
+  };
+
+  /* ================= UPDATE PROFILE ================= */
+
+  const updateProfile = async () => {
+
+    try {
+
+      const res = await fetchWithAuth("/api/student/profile", {
+
+        method: "PATCH",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify(form)
+
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        alert(json.message || "Update failed");
+        return;
+      }
+
+      setData(prev => {
+
+        if (!prev) return prev;
+
+        return {
+          ...prev,
+          student: {
+            ...prev.student,
+            ...form
+          }
+        };
+
+      });
+
+      setEditMode(false);
+
+    } catch {
+
+      alert("Update failed");
+
+    }
+
+  };
 
   /* ================= LOADING ================= */
 
@@ -101,6 +185,7 @@ export default function StudentProfile() {
   const courseStatus = student.courseStatus || "active";
 
   return (
+
     <div className="max-w-6xl mx-auto space-y-10">
 
       {/* PAGE TITLE */}
@@ -114,9 +199,7 @@ export default function StudentProfile() {
       {courseStatus === "completed" && (
 
         <div className="bg-green-100 border border-green-200 text-green-700 p-4 rounded-lg">
-
           🎓 You have successfully completed your course.
-
         </div>
 
       )}
@@ -124,23 +207,20 @@ export default function StudentProfile() {
       {courseStatus === "dropped" && (
 
         <div className="bg-yellow-100 border border-yellow-200 text-yellow-700 p-4 rounded-lg">
-
           ⚠ Your course has been marked as discontinued.
-          Please contact the academy for further assistance.
-
         </div>
 
       )}
 
       {/* PROFILE CARD */}
 
-      <div className="bg-white shadow-md border border-indigo-100 rounded-xl p-6 sm:p-8 flex flex-col sm:flex-row gap-6 items-center">
+      <div className="bg-white shadow-md border border-indigo-100 rounded-xl p-6 flex flex-col sm:flex-row gap-6 items-center">
 
         {/* Avatar */}
 
         <div className="flex-shrink-0">
 
-          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-indigo-600 text-white flex items-center justify-center text-2xl sm:text-3xl font-bold">
+          <div className="w-20 h-20 rounded-full bg-indigo-600 text-white flex items-center justify-center text-2xl font-bold">
             {student.name?.charAt(0) || "S"}
           </div>
 
@@ -148,11 +228,11 @@ export default function StudentProfile() {
 
         {/* Basic Info */}
 
-        <div className="flex-1 space-y-2 text-center sm:text-left">
+        <div className="flex-1 text-center sm:text-left">
 
-          <div className="flex items-center gap-3 justify-center sm:justify-start flex-wrap">
+          <div className="flex items-center gap-3 flex-wrap justify-center sm:justify-start">
 
-            <h2 className="text-lg sm:text-xl font-semibold text-indigo-900">
+            <h2 className="text-xl font-semibold text-indigo-900">
               {student.name}
             </h2>
 
@@ -174,17 +254,124 @@ export default function StudentProfile() {
             {student.email || "No email"}
           </p>
 
-          <div className="text-sm text-indigo-700 flex flex-wrap gap-4 justify-center sm:justify-start">
+        </div>
 
-            <span>
-              <strong>ID:</strong> {student.studentId}
-            </span>
+      </div>
 
-            <span>
+      {/* PERSONAL INFORMATION */}
+
+      <div className="bg-white shadow-md border border-indigo-100 rounded-xl p-6 space-y-4">
+
+        <div className="flex justify-between items-center">
+
+          <h3 className="font-semibold text-indigo-900">
+            Personal Information
+          </h3>
+
+          {!editMode && (
+            <button
+              onClick={() => setEditMode(true)}
+              className="text-indigo-600 text-sm font-medium"
+            >
+              Edit
+            </button>
+          )}
+
+        </div>
+
+        {!editMode && (
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+
+            <p>
+              <strong>Student ID:</strong> {student.studentId}
+            </p>
+
+            <p>
               <strong>Phone:</strong> {student.phone || "N/A"}
-            </span>
+            </p>
+
+            <p>
+              <strong>Qualification:</strong> {student.qualification || "N/A"}
+            </p>
+
+            <p>
+              <strong>Address:</strong> {student.address || "N/A"}
+            </p>
 
           </div>
+
+        )}
+
+        {editMode && (
+
+          <div className="space-y-4">
+
+            <input
+              name="phone"
+              value={form.phone}
+              onChange={handleChange}
+              placeholder="Phone"
+              className="border p-2 rounded w-full"
+            />
+
+            <input
+              name="qualification"
+              value={form.qualification}
+              onChange={handleChange}
+              placeholder="Qualification"
+              className="border p-2 rounded w-full"
+            />
+
+            <textarea
+              name="address"
+              value={form.address}
+              onChange={handleChange}
+              placeholder="Address"
+              className="border p-2 rounded w-full"
+            />
+
+            <div className="flex gap-3">
+
+              <button
+                onClick={updateProfile}
+                className="bg-green-600 text-white px-4 py-2 rounded"
+              >
+                Save
+              </button>
+
+              <button
+                onClick={() => setEditMode(false)}
+                className="text-gray-500"
+              >
+                Cancel
+              </button>
+
+            </div>
+
+          </div>
+
+        )}
+
+      </div>
+
+      {/* ACADEMIC INFORMATION */}
+
+      <div className="bg-white shadow-md border border-indigo-100 rounded-xl p-6 space-y-4">
+
+        <h3 className="font-semibold text-indigo-900">
+          Academic Information
+        </h3>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+
+          <p>
+            <strong>Total Courses:</strong> {enrollments.length}
+          </p>
+
+          <p>
+            <strong>Course Status:</strong> {courseStatus}
+          </p>
 
         </div>
 
@@ -199,11 +386,9 @@ export default function StudentProfile() {
         </h2>
 
         {enrollments.length === 0 && (
-
           <div className="text-indigo-500">
             No course enrollment found.
           </div>
-
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -219,8 +404,6 @@ export default function StudentProfile() {
                 key={e._id}
                 className="bg-white shadow-md border border-indigo-100 rounded-xl p-6 space-y-4"
               >
-
-                {/* COURSE */}
 
                 <div>
 
@@ -238,42 +421,28 @@ export default function StudentProfile() {
 
                 </div>
 
-                {/* FEES */}
-
                 <div className="text-sm space-y-1">
 
                   <p>
                     <span className="text-indigo-500">Total Fees:</span>{" "}
-                    <span className="font-medium">
-                      ₹{e.feesTotal}
-                    </span>
+                    ₹{e.feesTotal}
                   </p>
 
                   <p>
                     <span className="text-indigo-500">Paid:</span>{" "}
-                    <span className="font-medium text-green-600">
-                      ₹{e.feesPaid}
-                    </span>
+                    <span className="text-green-600">₹{e.feesPaid}</span>
                   </p>
 
                   <p>
                     <span className="text-indigo-500">Pending:</span>{" "}
-                    <span className="font-medium text-red-500">
-                      ₹{pending}
-                    </span>
+                    <span className="text-red-500">₹{pending}</span>
                   </p>
 
                 </div>
 
-                {/* CERTIFICATE */}
-
-                <div>
-
-                  <span className="px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 font-medium text-sm">
-                    {e.certificateStatus}
-                  </span>
-
-                </div>
+                <span className="px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-sm">
+                  {e.certificateStatus}
+                </span>
 
               </div>
 
@@ -286,5 +455,7 @@ export default function StudentProfile() {
       </div>
 
     </div>
+
   );
+
 }

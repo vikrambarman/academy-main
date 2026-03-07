@@ -48,7 +48,6 @@ export async function PATCH(
 
     const { id } = await context.params;
     const body = await req.json();
-    console.log("PATCH STUDENT HIT:", id, body); // 🔴 DEBUG LINE
 
     const student = await Student.findById(id);
 
@@ -57,6 +56,81 @@ export async function PATCH(
             { message: "Student not found" },
             { status: 404 }
         );
+    }
+
+    /* ======================================================
+       UPDATE STUDENT PERSONAL PROFILE
+    ====================================================== */
+
+    if (body.profileUpdate) {
+
+        const {
+            name,
+            fatherName,
+            email,
+            phone,
+            gender,
+            qualification,
+            address,
+            dob
+        } = body;
+
+        const User = (await import("@/models/User")).default;
+
+        /* ================= EMAIL UPDATE ================= */
+
+        if (email && email !== student.email) {
+
+            const existing = await User.findOne({ email });
+
+            if (existing && existing._id.toString() !== student.user.toString()) {
+
+                return NextResponse.json(
+                    { message: "Email already in use" },
+                    { status: 400 }
+                );
+
+            }
+
+            await User.findByIdAndUpdate(student.user, {
+                email
+            });
+
+            student.email = email;
+
+        }
+
+        /* ================= NAME UPDATE ================= */
+
+        if (name && name !== student.name) {
+
+            await User.findByIdAndUpdate(student.user, {
+                name
+            });
+
+            student.name = name;
+
+        }
+
+        /* ================= OTHER FIELDS ================= */
+
+        if (fatherName !== undefined) student.fatherName = fatherName;
+        if (phone !== undefined) student.phone = phone;
+        if (gender !== undefined) student.gender = gender;
+        if (qualification !== undefined) student.qualification = qualification;
+        if (address !== undefined) student.address = address;
+
+        if (dob !== undefined) {
+            student.dob = dob ? new Date(dob) : undefined;
+        }
+
+        await student.save();
+
+        return NextResponse.json({
+            message: "Student profile updated successfully",
+            student
+        });
+
     }
 
     /* ======================================================

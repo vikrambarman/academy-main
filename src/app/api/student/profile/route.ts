@@ -93,3 +93,67 @@ export async function GET() {
     }
 
 }
+
+
+export async function PATCH(req: Request) {
+
+    try {
+
+        await connectDB();
+
+        const user: any = await verifyUser();
+
+        if (!user || user.role !== "student") {
+
+            return NextResponse.json(
+                { message: "Unauthorized" },
+                { status: 403 }
+            );
+
+        }
+
+        const body = await req.json();
+
+        const student = await Student.findOne({
+            user: user._id
+        });
+
+        if (!student) {
+
+            return NextResponse.json(
+                { message: "Student not found" },
+                { status: 404 }
+            );
+
+        }
+
+        /* ===== ALLOWED FIELDS ===== */
+
+        if (body.phone !== undefined)
+            student.phone = body.phone;
+
+        if (body.address !== undefined)
+            student.address = body.address;
+
+        if (body.qualification !== undefined)
+            student.qualification = body.qualification;
+
+        await student.save();
+
+        return NextResponse.json({
+            message: "Profile updated",
+            student
+        });
+
+    } catch (error) {
+
+        console.error("PROFILE UPDATE ERROR:", error);
+
+        return NextResponse.json(
+            { message: "Server error" },
+            { status: 500 }
+        );
+
+    }
+
+}
