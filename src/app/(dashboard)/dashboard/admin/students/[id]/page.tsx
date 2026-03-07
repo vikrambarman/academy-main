@@ -362,6 +362,11 @@ export default function StudentDetail() {
 
     const handleReset = async (userId: string) => {
 
+        if (!userId) {
+            alert("User ID not found");
+            return;
+        }
+
         if (!confirm("Reset student password?")) return;
 
         const res = await fetch(`/api/admin/students/${userId}/reset-password`, {
@@ -684,7 +689,7 @@ export default function StudentDetail() {
                 </button>
 
                 <button
-                    onClick={() => handleReset(student.user)}
+                    onClick={() => handleReset(student.user?._id)}
                     className="bg-amber-500 text-white px-4 py-2 rounded"
                 >
                     Reset Password
