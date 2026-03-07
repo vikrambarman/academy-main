@@ -24,18 +24,19 @@ interface CourseItem {
     duration?: string;
     eligibility?: string;
     certificate?: string;
+    banner?: string;   // ⭐ add this
     isActive: boolean;
     syllabus?: {
         module: string;
         topics: string[];
     }[];
 }
-
 export default function AdminCourses() {
 
     const [courses, setCourses] = useState<CourseItem[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [editId, setEditId] = useState<string | null>(null);
+    const [bannerFile, setBannerFile] = useState<File | null>(null);
 
     const [form, setForm] = useState({
         name: "",
@@ -132,6 +133,22 @@ export default function AdminCourses() {
                     syllabus: formattedSyllabus,
                 }),
             });
+
+            if (bannerFile && editId) {
+
+                const formData = new FormData();
+
+                formData.append("file", bannerFile);
+                formData.append("courseId", editId);
+
+                await fetchWithAuth(
+                    "/api/admin/courses/upload-banner",
+                    {
+                        method: "POST",
+                        body: formData,
+                    }
+                );
+            }
 
             resetForm();
             fetchCourses();
@@ -283,6 +300,21 @@ export default function AdminCourses() {
                         />
 
                     </div>
+                    <div>
+
+                        <label className="block text-sm font-medium mb-2">
+                            Course Banner
+                        </label>
+
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) =>
+                                setBannerFile(e.target.files?.[0] || null)
+                            }
+                        />
+
+                    </div>
 
                     {/* SYLLABUS */}
 
@@ -426,28 +458,53 @@ export default function AdminCourses() {
                                 className="border border-slate-200 rounded-lg p-4"
                             >
 
-                                <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
+                                <div className="flex items-center justify-between gap-4">
 
-                                    <div>
+                                    <div className="flex items-center gap-3">
 
-                                        <p className="font-semibold">
-                                            {course.name}
-                                        </p>
+                                        {/* SMALL BANNER */}
 
-                                        <p className="text-sm text-gray-500">
-                                            Level: {course.level}
-                                        </p>
+                                        <div className="w-16 h-12 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
 
-                                        <p
-                                            className={`text-xs ${course.isActive
-                                                ? "text-green-600"
-                                                : "text-red-500"
-                                                }`}
-                                        >
-                                            {course.isActive
-                                                ? "Active"
-                                                : "Inactive"}
-                                        </p>
+                                            {course.banner ? (
+
+                                                <img
+                                                    src={course.banner}
+                                                    className="w-full h-full object-cover"
+                                                />
+
+                                            ) : (
+
+                                                <div className="flex items-center justify-center text-xs text-gray-400 h-full">
+                                                    Img
+                                                </div>
+
+                                            )}
+
+                                        </div>
+
+                                        {/* COURSE TEXT */}
+
+                                        <div>
+
+                                            <p className="font-semibold">
+                                                {course.name}
+                                            </p>
+
+                                            <p className="text-sm text-gray-500">
+                                                Level: {course.level}
+                                            </p>
+
+                                            <p
+                                                className={`text-xs ${course.isActive
+                                                        ? "text-green-600"
+                                                        : "text-red-500"
+                                                    }`}
+                                            >
+                                                {course.isActive ? "Active" : "Inactive"}
+                                            </p>
+
+                                        </div>
 
                                     </div>
 

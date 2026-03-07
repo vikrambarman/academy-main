@@ -20,6 +20,7 @@ export interface ICourse extends Document {
     slug: string;
     level: string;
     authority: string;
+    banner?: string;
     externalPortalUrl?: string;
     externalLoginRequired: boolean;
     verification?: string;
@@ -82,6 +83,11 @@ const courseSchema = new Schema<ICourse>(
             type: String,
             required: true,
             trim: true,
+        },
+        
+        banner: {
+            type: String,
+            trim: true
         },
 
         externalPortalUrl: {

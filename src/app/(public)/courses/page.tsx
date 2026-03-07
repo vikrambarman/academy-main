@@ -100,11 +100,11 @@ export default async function CoursesPage() {
                                 className="group bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden"
                             >
 
-                                {/* Thumbnail */}
+                                {/* Banner */}
                                 <div className="relative h-52 w-full bg-gray-100 overflow-hidden">
-                                    {course.thumbnail ? (
+                                    {course.banner ? (
                                         <Image
-                                            src={course.thumbnail}
+                                            src={course.banner}
                                             alt={`${course.name} course in Ambikapur`}
                                             fill
                                             className="object-cover group-hover:scale-105 transition duration-500"
