@@ -338,50 +338,86 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
 
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
-                  className="flex items-center gap-2 bg-gray-100 px-2 sm:px-3 py-2 rounded-md text-sm max-w-[160px]"
+                  className="flex items-center gap-3 bg-gray-100 hover:bg-gray-200 px-2 sm:px-3 py-2 rounded-lg text-sm transition max-w-[180px]"
                 >
+
+                  {/* AVATAR */}
 
                   <div className="w-8 h-8 rounded-full overflow-hidden">
 
                     {student?.profileImage ? (
+
                       <img
                         src={`${student.profileImage}?t=${Date.now()}`}
                         className="w-full h-full object-cover"
                       />
+
                     ) : (
 
                       <div className="w-full h-full bg-indigo-600 text-white flex items-center justify-center text-xs font-semibold">
                         {student?.name?.charAt(0) ?? "S"}
                       </div>
+
                     )}
+
                   </div>
 
-                  <span className="truncate hidden sm:block">
-                    {student?.name ?? "Student"}
-                  </span>
+                  {/* NAME */}
+
+                  <div className="hidden sm:flex flex-col leading-tight">
+
+                    <span className="text-xs font-medium text-gray-900 truncate max-w-[110px]">
+                      {student?.name ?? "Student"}
+                    </span>
+
+                    <span className="text-[10px] text-gray-500">
+                      ID • {student?.studentId ?? "-"}
+                    </span>
+
+                  </div>
 
                 </button>
 
+                {/* DROPDOWN */}
+
                 {profileOpen && (
 
-                  <div className="absolute right-0 mt-2 w-48 bg-white shadow-xl rounded-lg py-2 border border-gray-200">
+                  <div className="absolute right-0 mt-3 w-56 bg-white shadow-xl rounded-xl py-2 border border-gray-200">
+
+                    {/* PROFILE HEADER */}
+
+                    <div className="px-4 py-3 border-b">
+
+                      <p className="text-sm font-semibold text-gray-800 truncate">
+                        {student?.name ?? "Student"}
+                      </p>
+
+                      <p className="text-xs text-gray-500">
+                        Student ID • {student?.studentId}
+                      </p>
+
+                    </div>
+
+                    {/* MENU */}
 
                     <Link
                       href="/dashboard/student/profile"
-                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                      className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100"
                     >
+                      <User size={16} />
                       View Profile
                     </Link>
 
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100"
+                      className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 text-left"
                     >
                       <LogOut size={16} />
                       Logout
                     </button>
 
                   </div>
+
                 )}
 
               </div>
