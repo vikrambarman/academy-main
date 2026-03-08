@@ -662,7 +662,7 @@ export default async function CourseDetail({
                                 </div>
                             )}
 
-                            <a href="tel:+91XXXXXXXXXX" className="sidebar-cta">
+                            <a href="tel:+917477036832" className="sidebar-cta">
                                 Enroll Now
                                 <span className="sidebar-cta-sub">Call us to get started today</span>
                             </a>
