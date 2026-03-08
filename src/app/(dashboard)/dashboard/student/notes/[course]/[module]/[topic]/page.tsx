@@ -12,6 +12,7 @@ import ReactMarkdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import remarkGfm from "remark-gfm";
 import Student from "@/models/Student";
+import Link from "next/link";
 
 interface Props {
     params: Promise<{
