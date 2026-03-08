@@ -14,6 +14,7 @@ import {
     Sun,
     Moon,
     Menu,
+    Notebook
 } from "lucide-react";
 import AuthGuard from "@/components/AuthGaurd";
 
@@ -39,6 +40,7 @@ const menuSections = [
             { name: "Notices", href: "/dashboard/admin/notices", icon: FileText },
             { name: "Enquiries", href: "/dashboard/admin/enquiries", icon: BarChart3 },
             { name: "Contacts", href: "/dashboard/admin/contacts", icon: Users },
+            { name: "Notes", href: "/dashboard/admin/notes", icon: Notebook },
         ],
     },
     {
