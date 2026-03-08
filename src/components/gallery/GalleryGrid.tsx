@@ -9,11 +9,29 @@ import { X, ChevronLeft, ChevronRight, ZoomIn } from "lucide-react";
 import GalleryFilter from "./GalleryFilter";
 
 const IMAGES = [
-    { src: "/gallery/classrooms/classroom1.jpg", category: "classrooms", alt: "Computer lab classroom at Shivshakti Academy" },
-    { src: "/gallery/classrooms/classroom2.jpg", category: "classrooms", alt: "Students in practical training session" },
-    { src: "/gallery/events/event1.jpg", category: "events", alt: "Certification ceremony event" },
-    { src: "/gallery/events/event2.jpg", category: "events", alt: "Annual student gathering" },
-    { src: "/gallery/certificates/certificate1.jpg", category: "certificates", alt: "Student receiving verified certificate" },
+    { src: "/images/gallery/classrooms/classroom1.jpeg", category: "classrooms", alt: "Computer lab classroom at Shivshakti Academy" },
+    { src: "/images/gallery/classrooms/classroom2.jpeg", category: "classrooms", alt: "Students in practical training session" },
+    { src: "/images/gallery/classrooms/classroom3.jpeg", category: "classrooms", alt: "Students in practical training session" },
+    { src: "/images/gallery/classrooms/classroom4.jpeg", category: "classrooms", alt: "Students in practical training session" },
+    { src: "/images/gallery/classrooms/classroom5.jpeg", category: "classrooms", alt: "Students in practical training session" },
+    { src: "/images/gallery/classrooms/classroom6.jpeg", category: "classrooms", alt: "Academy's Corridor at Shivshakti Academy" },
+    { src: "/images/gallery/events/event1.jpeg", category: "events", alt: "December 2025 Picnic" },
+    { src: "/images/gallery/events/event2.jpeg", category: "events", alt: "December 2025 Picnic" },
+    { src: "/images/gallery/events/event3.jpeg", category: "events", alt: "December 2025 Picnic" },
+    { src: "/images/gallery/events/event4.jpeg", category: "events", alt: "December 2025 Picnic" },
+    { src: "/images/gallery/events/event5.jpeg", category: "events", alt: "December 2025 Picnic" },
+    { src: "/images/gallery/events/event6.jpeg", category: "events", alt: "December 2025 Picnic" },
+    { src: "/images/gallery/events/event7.jpeg", category: "events", alt: "December 2025 Picnic" },
+    { src: "/images/gallery/events/event8.jpeg", category: "events", alt: "December 2025 Picnic" },
+    { src: "/images/gallery/events/event9.jpeg", category: "events", alt: "December 2025 Picnic" },
+    { src: "/images/gallery/events/event10.jpeg", category: "events", alt: "December 2025 Picnic" },
+    { src: "/images/gallery/events/event11.jpeg", category: "events", alt: "December 2025 Picnic" },
+    { src: "/images/gallery/events/event12.jpeg", category: "events", alt: "Students photo shoot" },
+    { src: "/images/gallery/events/event13.jpeg", category: "events", alt: "Students photo shoot" },
+    { src: "/images/gallery/events/event14.jpeg", category: "events", alt: "Reception Area" },
+    { src: "/images/gallery/events/event15.jpeg", category: "events", alt: "Saraswati Pooja 2026" },
+    { src: "/images/gallery/events/event16.jpeg", category: "events", alt: "Students photo shoot" },
+    { src: "/images/gallery/certificates/certificate1.jpeg", category: "certificates", alt: "Student receiving verified certificate" },
 ];
 
 const CATEGORIES = ["all", "classrooms", "events", "certificates"];
