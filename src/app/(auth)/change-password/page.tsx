@@ -1,33 +1,30 @@
+// ============================================================
+// change-password/page.tsx
+// ============================================================
 "use client";
 
 import { Suspense, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-
-/* ================= INNER COMPONENT ================= */
+import Image from "next/image";
+import { AuthCard } from "@/components/auth/authCard";
 
 function ChangePasswordInner() {
-
     const searchParams = useSearchParams();
     const router = useRouter();
-    const forced = searchParams.get("forced");
+    const forced = searchParams.get("forced") === "true";
 
     const [oldPassword, setOldPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [showOld, setShowOld] = useState(false);
     const [showNew, setShowNew] = useState(false);
-    const [message, setMessage] = useState("");
-    const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         setLoading(true);
-        setError("");
-        setMessage("");
-
+        setStatus(null);
         try {
-
             const res = await fetch("/api/auth/change-password", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -37,179 +34,109 @@ function ChangePasswordInner() {
                     newPassword,
                 }),
             });
-
             const data = await res.json();
             if (!res.ok) throw new Error(data.message);
-
             if (forced) {
                 router.push("/dashboard/student");
             } else {
-                setMessage("Password changed successfully.");
+                setStatus({ type: "success", text: "Password changed successfully." });
                 setOldPassword("");
                 setNewPassword("");
             }
-
         } catch (err: any) {
-            setError(err.message);
+            setStatus({ type: "error", text: err.message });
         } finally {
             setLoading(false);
         }
     };
 
     return (
+        <AuthCard
+            eyebrow={forced ? "Security Required" : "Account Settings"}
+            title={forced ? "Set New Password" : "Change Password"}
+            sub={forced
+                ? "For security reasons, you must set a new password before continuing."
+                : "Update your account password securely."}
+        >
+            {status && (
+                <div className={`auth-alert ${status.type === "success" ? "auth-alert-success" : "auth-alert-error"}`} role="alert">
+                    <span aria-hidden="true">{status.type === "success" ? "✓" : "✕"}</span>
+                    <span>{status.text}</span>
+                </div>
+            )}
 
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 sm:px-6 py-10">
+            <form onSubmit={handleSubmit}>
+                {!forced && (
+                    <div className="auth-field">
+                        <label className="auth-label" htmlFor="cp-old">Current Password</label>
+                        <div className="auth-pw-wrap">
+                            <input
+                                id="cp-old"
+                                type={showOld ? "text" : "password"}
+                                required
+                                autoComplete="current-password"
+                                placeholder="Your current password"
+                                value={oldPassword}
+                                onChange={(e) => setOldPassword(e.target.value)}
+                                className="auth-input"
+                                style={{ paddingRight: "54px" }}
+                            />
+                            <button type="button" onClick={() => setShowOld(!showOld)} className="auth-pw-toggle" aria-label={showOld ? "Hide" : "Show"}>
+                                {showOld ? "Hide" : "Show"}
+                            </button>
+                        </div>
+                    </div>
+                )}
 
-            <div className="w-full max-w-md bg-white border border-slate-200 rounded-xl shadow-sm p-6 sm:p-8">
-
-                {/* Header */}
-
-                <div className="text-center mb-6 sm:mb-8">
-
-                    <img
-                        src="/logo.png"
-                        alt="Shivshakti Computer Academy"
-                        className="mx-auto h-12 sm:h-14 mb-3 sm:mb-4"
-                    />
-
-                    <h2 className="text-xl sm:text-2xl font-semibold text-slate-900">
-                        {forced ? "Set New Password" : "Change Password"}
-                    </h2>
-
-                    <p className="text-sm text-slate-500 mt-1 px-2">
-                        {forced
-                            ? "For security reasons, you must set a new password before continuing."
-                            : "Update your account password securely."}
-                    </p>
-
+                <div className="auth-field">
+                    <label className="auth-label" htmlFor="cp-new">New Password</label>
+                    <div className="auth-pw-wrap">
+                        <input
+                            id="cp-new"
+                            type={showNew ? "text" : "password"}
+                            required
+                            autoComplete="new-password"
+                            placeholder="Choose a strong password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            className="auth-input"
+                            style={{ paddingRight: "54px" }}
+                        />
+                        <button type="button" onClick={() => setShowNew(!showNew)} className="auth-pw-toggle" aria-label={showNew ? "Hide" : "Show"}>
+                            {showNew ? "Hide" : "Show"}
+                        </button>
+                    </div>
                 </div>
 
-                {error && (
-                    <div className="bg-red-50 text-red-600 text-sm p-3 rounded-md mb-4">
-                        {error}
-                    </div>
-                )}
+                <button type="submit" disabled={loading} className="auth-submit">
+                    {loading ? "Updating..." : <>{forced ? "Set Password" : "Update Password"} <span aria-hidden="true">→</span></>}
+                </button>
+            </form>
 
-                {message && (
-                    <div className="bg-green-50 text-green-600 text-sm p-3 rounded-md mb-4">
-                        {message}
-                    </div>
-                )}
-
-                {/* FORM */}
-
-                <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
-
-                    {!forced && (
-                        <div>
-
-                            <label className="text-sm text-slate-600">
-                                Current Password
-                            </label>
-
-                            <div className="relative">
-
-                                <input
-                                    type={showOld ? "text" : "password"}
-                                    className="mt-1 w-full border border-slate-300 rounded-md px-3 py-2.5 pr-12 focus:outline-none focus:ring-2 focus:ring-slate-900 transition"
-                                    value={oldPassword}
-                                    onChange={(e) => setOldPassword(e.target.value)}
-                                    required
-                                />
-
-                                <button
-                                    type="button"
-                                    onClick={() => setShowOld(!showOld)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs sm:text-sm text-slate-500 hover:text-slate-700"
-                                >
-                                    {showOld ? "Hide" : "Show"}
-                                </button>
-
-                            </div>
-
-                        </div>
-                    )}
-
-                    <div>
-
-                        <label className="text-sm text-slate-600">
-                            New Password
-                        </label>
-
-                        <div className="relative">
-
-                            <input
-                                type={showNew ? "text" : "password"}
-                                className="mt-1 w-full border border-slate-300 rounded-md px-3 py-2.5 pr-12 focus:outline-none focus:ring-2 focus:ring-slate-900 transition"
-                                value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
-                                required
-                            />
-
-                            <button
-                                type="button"
-                                onClick={() => setShowNew(!showNew)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs sm:text-sm text-slate-500 hover:text-slate-700"
-                            >
-                                {showNew ? "Hide" : "Show"}
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full bg-slate-900 text-white py-2.5 sm:py-3 rounded-md hover:bg-slate-800 transition disabled:opacity-50 text-sm sm:text-base"
-                    >
-                        {loading
-                            ? "Updating..."
-                            : forced
-                                ? "Set Password"
-                                : "Update Password"}
+            {!forced && (
+                <>
+                    <div className="auth-divider" aria-hidden="true" />
+                    <button type="button" onClick={() => router.push("/dashboard")} className="auth-back">
+                        <span aria-hidden="true">←</span> Back to Dashboard
                     </button>
-
-                </form>
-
-                {/* BACK BUTTON */}
-
-                {!forced && (
-
-                    <div className="text-center mt-5 sm:mt-6">
-
-                        <button
-                            onClick={() => router.push("/dashboard")}
-                            className="text-sm text-slate-600 hover:text-slate-900 transition"
-                        >
-                            Back to Dashboard
-                        </button>
-
-                    </div>
-
-                )}
-
-                {/* FOOTER */}
-
-                <p className="text-xs text-slate-400 text-center mt-6">
-                    Shivshakti Computer Academy © 2026
-                </p>
-
-            </div>
-
-        </div>
-
+                </>
+            )}
+        </AuthCard>
     );
 }
 
-/* ================= WRAPPER WITH SUSPENSE ================= */
-
 export default function ChangePasswordPage() {
-
     return (
-        <Suspense fallback={<div className="p-10 text-center">Loading...</div>}>
+        <Suspense fallback={<AuthPageShell />}>
             <ChangePasswordInner />
         </Suspense>
     );
+}
 
+function AuthPageShell() {
+    return (
+        <div className="auth-root">
+            <div className="auth-card" style={{ minHeight: 320 }} />
+        </div>
+    );
 }
