@@ -13,10 +13,7 @@ import { connectDB } from "@/lib/db";
 import Course from "@/models/Course";
 import { verifyUser } from "@/lib/verifyUser";
 import slugify from "slugify";
-import {
-    COURSE_LEVELS,
-    COURSE_DESIGNED_FOR_MAP,
-} from "@/lib/constants/courseConfig";
+import { COURSE_LEVELS } from "@/lib/constants/courseConfig";
 
 /* -------------------- GET -------------------- */
 export async function GET() {
@@ -24,7 +21,7 @@ export async function GET() {
         await connectDB();
         const courses = await Course.find().sort({ createdAt: -1 });
         return NextResponse.json(courses);
-    } catch (error) {
+    } catch {
         return NextResponse.json(
             { message: "Failed to fetch courses" },
             { status: 500 }
@@ -38,7 +35,6 @@ export async function POST(req: Request) {
         await connectDB();
 
         const user: any = await verifyUser();
-
         if (user.role !== "admin") {
             return NextResponse.json(
                 { message: "Unauthorized" },
@@ -55,6 +51,8 @@ export async function POST(req: Request) {
             eligibility,
             certificate,
             syllabus,
+            designedFor,
+            careerOpportunities,
         } = body;
 
         if (!name || !level) {
@@ -71,7 +69,6 @@ export async function POST(req: Request) {
         });
 
         const existing = await Course.findOne({ slug });
-
         if (existing) {
             return NextResponse.json(
                 { message: "Course already exists" },
@@ -79,10 +76,7 @@ export async function POST(req: Request) {
             );
         }
 
-        const levelConfig = COURSE_LEVELS.find(
-            (l) => l.level === level
-        );
-
+        const levelConfig = COURSE_LEVELS.find((l) => l.level === level);
         if (!levelConfig) {
             return NextResponse.json(
                 { message: "Invalid level selected" },
@@ -90,8 +84,7 @@ export async function POST(req: Request) {
             );
         }
 
-        // 🔹 Clean syllabus (prevent empty module/topic crash)
-
+        // Clean syllabus
         const cleanSyllabus =
             syllabus
                 ?.filter((mod: any) => mod.module?.trim() !== "")
@@ -103,22 +96,16 @@ export async function POST(req: Request) {
                             .filter((t: string) => t !== "") || [],
                 })) || [];
 
-        // 🔹 Auto DesignedFor
+        // Clean designedFor & careerOpportunities — directly from body, no auto-mapping
+        const cleanDesignedFor: string[] =
+            Array.isArray(designedFor)
+                ? designedFor.map((s: string) => s.trim()).filter(Boolean)
+                : [];
 
-        let autoDesignedFor: string[] = [];
-
-        const lowerName = name.toLowerCase();
-
-        for (const item of COURSE_DESIGNED_FOR_MAP) {
-            if (
-                item.match.some((keyword) =>
-                    lowerName.includes(keyword)
-                )
-            ) {
-                autoDesignedFor = item.designedFor;
-                break;
-            }
-        }
+        const cleanCareers: string[] =
+            Array.isArray(careerOpportunities)
+                ? careerOpportunities.map((s: string) => s.trim()).filter(Boolean)
+                : [];
 
         const course = await Course.create({
             name,
@@ -130,13 +117,12 @@ export async function POST(req: Request) {
             eligibility,
             certificate,
             syllabus: cleanSyllabus,
-            designedFor: autoDesignedFor,
-            careerOpportunities: [],
+            designedFor: cleanDesignedFor,
+            careerOpportunities: cleanCareers,
         });
 
         return NextResponse.json(course);
     } catch (error: any) {
-
         if (
             error.message === "NO_TOKEN" ||
             error.message === "TOKEN_EXPIRED"
@@ -146,9 +132,7 @@ export async function POST(req: Request) {
                 { status: 401 }
             );
         }
-
         console.error("COURSE CREATE ERROR:", error);
-
         return NextResponse.json(
             { message: "Server error" },
             { status: 500 }
@@ -178,6 +162,8 @@ export async function PUT(req: Request) {
             eligibility,
             certificate,
             syllabus,
+            designedFor,
+            careerOpportunities,
         } = body;
 
         const course = await Course.findById(id);
@@ -188,17 +174,13 @@ export async function PUT(req: Request) {
             );
         }
 
-        // Regenerate slug if name changed
         const slug = slugify(name, {
             lower: true,
             strict: true,
             trim: true,
         });
 
-        const levelConfig = COURSE_LEVELS.find(
-            (l) => l.level === level
-        );
-
+        const levelConfig = COURSE_LEVELS.find((l) => l.level === level);
         if (!levelConfig) {
             return NextResponse.json(
                 { message: "Invalid level selected" },
@@ -206,20 +188,16 @@ export async function PUT(req: Request) {
             );
         }
 
-        // Auto DesignedFor update
-        let autoDesignedFor: string[] = [];
-        const lowerName = name.toLowerCase();
+        // Clean designedFor & careerOpportunities
+        const cleanDesignedFor: string[] =
+            Array.isArray(designedFor)
+                ? designedFor.map((s: string) => s.trim()).filter(Boolean)
+                : course.designedFor;
 
-        for (const item of COURSE_DESIGNED_FOR_MAP) {
-            if (
-                item.match.some((keyword) =>
-                    lowerName.includes(keyword)
-                )
-            ) {
-                autoDesignedFor = item.designedFor;
-                break;
-            }
-        }
+        const cleanCareers: string[] =
+            Array.isArray(careerOpportunities)
+                ? careerOpportunities.map((s: string) => s.trim()).filter(Boolean)
+                : course.careerOpportunities;
 
         course.name = name;
         course.slug = slug;
@@ -230,19 +208,22 @@ export async function PUT(req: Request) {
         course.eligibility = eligibility;
         course.certificate = certificate;
         course.syllabus = syllabus;
-        course.designedFor = autoDesignedFor;
+        course.designedFor = cleanDesignedFor;
+        course.careerOpportunities = cleanCareers;
 
         await course.save();
 
         return NextResponse.json(course);
     } catch (error: any) {
-        if (error.message === "NO_TOKEN" || error.message === "TOKEN_EXPIRED") {
+        if (
+            error.message === "NO_TOKEN" ||
+            error.message === "TOKEN_EXPIRED"
+        ) {
             return NextResponse.json(
                 { message: "Unauthorized" },
                 { status: 401 }
             );
         }
-
         return NextResponse.json(
             { message: "Server error" },
             { status: 500 }
@@ -274,16 +255,17 @@ export async function DELETE(req: Request) {
         }
 
         await Course.findByIdAndDelete(id);
-
         return NextResponse.json({ message: "Deleted" });
     } catch (error: any) {
-        if (error.message === "NO_TOKEN" || error.message === "TOKEN_EXPIRED") {
+        if (
+            error.message === "NO_TOKEN" ||
+            error.message === "TOKEN_EXPIRED"
+        ) {
             return NextResponse.json(
                 { message: "Unauthorized" },
                 { status: 401 }
             );
         }
-
         return NextResponse.json(
             { message: "Server error" },
             { status: 500 }
@@ -319,13 +301,15 @@ export async function PATCH(req: Request) {
 
         return NextResponse.json(course);
     } catch (error: any) {
-        if (error.message === "NO_TOKEN" || error.message === "TOKEN_EXPIRED") {
+        if (
+            error.message === "NO_TOKEN" ||
+            error.message === "TOKEN_EXPIRED"
+        ) {
             return NextResponse.json(
                 { message: "Unauthorized" },
                 { status: 401 }
             );
         }
-
         return NextResponse.json(
             { message: "Server error" },
             { status: 500 }
