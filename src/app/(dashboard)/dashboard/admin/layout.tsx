@@ -17,36 +17,36 @@ const menuSections = [
     {
         title: "CORE",
         items: [
-            { name: "Dashboard",    href: "/dashboard/admin",                icon: LayoutDashboard },
+            { name: "Dashboard", href: "/dashboard/admin", icon: LayoutDashboard },
         ],
     },
     {
         title: "MANAGEMENT",
         items: [
-            { name: "Students",     href: "/dashboard/admin/students",       icon: Users      },
-            { name: "Courses",      href: "/dashboard/admin/courses",        icon: BookOpen   },
-            { name: "Enrollments",  href: "/dashboard/admin/enroll",         icon: Users      },
-            { name: "Fees",         href: "/dashboard/admin/fees",           icon: IndianRupee},
-            { name: "Certificates", href: "/dashboard/admin/certificates",   icon: Award      },
-            { name: "Notices",      href: "/dashboard/admin/notices",        icon: Bell       },
-            { name: "Enquiries",    href: "/dashboard/admin/enquiries",      icon: BarChart3  },
-            { name: "Contacts",     href: "/dashboard/admin/contacts",       icon: Users      },
-            { name: "Notes",        href: "/dashboard/admin/notes",          icon: Notebook   },
-            { name: "Attendance",   href: "/dashboard/admin/attendance",     icon: CalendarDays},
-            { name: "Timetable",    href: "/dashboard/admin/timetable",      icon: Clock      },
+            { name: "Students", href: "/dashboard/admin/students", icon: Users },
+            { name: "Courses", href: "/dashboard/admin/courses", icon: BookOpen },
+            { name: "Enrollments", href: "/dashboard/admin/enroll", icon: Users },
+            { name: "Fees", href: "/dashboard/admin/fees", icon: IndianRupee },
+            { name: "Certificates", href: "/dashboard/admin/certificates", icon: Award },
+            { name: "Notices", href: "/dashboard/admin/notices", icon: Bell },
+            { name: "Enquiries", href: "/dashboard/admin/enquiries", icon: BarChart3 },
+            { name: "Contacts", href: "/dashboard/admin/contacts", icon: Users },
+            { name: "Notes", href: "/dashboard/admin/notes", icon: Notebook },
+            { name: "Attendance", href: "/dashboard/admin/attendance", icon: CalendarDays },
+            { name: "Timetable", href: "/dashboard/admin/timetable", icon: Clock },
         ],
     },
     {
         title: "ANALYTICS",
         items: [
-            { name: "Reports",      href: "/dashboard/admin/reports",        icon: BarChart3  },
-            { name: "Transactions", href: "/dashboard/admin/transactions",   icon: FileText   },
+            { name: "Reports", href: "/dashboard/admin/reports", icon: BarChart3 },
+            { name: "Transactions", href: "/dashboard/admin/transactions", icon: FileText },
         ],
     },
     {
         title: "SYSTEM",
         items: [
-            { name: "Settings",     href: "/dashboard/admin/settings",       icon: Settings   },
+            { name: "Settings", href: "/dashboard/admin/settings", icon: Settings },
         ],
     },
 ];
@@ -70,11 +70,11 @@ function AdminAvatar({ name = "Admin", size = 30 }: { name?: string; size?: numb
    MAIN LAYOUT
 ══════════════════════════════════════════════════ */
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-    const router   = useRouter();
+    const router = useRouter();
     const pathname = usePathname() ?? "";
 
-    const [collapsed,   setCollapsed]   = useState(false);
-    const [mobileOpen,  setMobileOpen]  = useState(false);
+    const [collapsed, setCollapsed] = useState(false);
+    const [mobileOpen, setMobileOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
     const profileRef = useRef<HTMLDivElement>(null);
 
@@ -131,7 +131,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         font-family: 'Plus Jakarta Sans', sans-serif;
                         background: var(--cp-bg);
                         color: var(--cp-text);
-                        display: flex; height: 100vh; overflow: hidden;
+                        display: flex; 
+                        height: 100vh; 
+                        overflow: hidden;
+                        width: 100%;
                     }
 
                     /* ── Mobile overlay ── */
@@ -287,9 +290,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         min-height: 100vh; display: flex; flex-direction: column;
                         transition: margin-left 0.25s cubic-bezier(.4,0,.2,1);
                         background: var(--cp-bg);
+
+                        flex: 1;
+                        width: calc(100% - var(--cp-sb-w));
                     }
 
-                    .cp-body.collapsed { margin-left: var(--cp-sb-w-col); }
+                    .cp-body.collapsed { 
+                       margin-left: var(--cp-sb-w-col);
+                        width: calc(100% - var(--cp-sb-w-col));
+                    }
 
                     @media (max-width: 1023px) {
                         .cp-body, .cp-body.collapsed { margin-left: 0; }
@@ -455,7 +464,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 <div key={section.title} className="cp-nav-section">
                                     <div className="cp-nav-section-title">{section.title}</div>
                                     {section.items.map(item => {
-                                        const Icon   = item.icon;
+                                        const Icon = item.icon;
                                         const active = pathname === item.href || pathname.startsWith(item.href + "/");
                                         return (
                                             <Link
