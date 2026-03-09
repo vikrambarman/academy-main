@@ -3,526 +3,518 @@
 import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import CountUp from "react-countup";
+import {
+    BookOpen, IndianRupee, Award, TrendingUp,
+    AlertCircle, CheckCircle2, Clock, ExternalLink,
+    Receipt, GraduationCap, ChevronDown, ChevronUp
+} from "lucide-react";
 
-/* ================= TYPES ================= */
-
-interface Payment {
-  amount: number;
-  date: string;
-  receiptNo: string;
-  remark?: string;
-}
-
-interface Course {
-  _id: string;
-  name: string;
-  authority?: string;
-  verification?: string;
-}
-
+/* ─── Types ─────────────────────────────────────── */
+interface Payment { amount: number; date: string; receiptNo: string; remark?: string; }
+interface Course  { _id: string; name: string; authority?: string; verification?: string; }
 interface Enrollment {
-  _id: string;
-  feesTotal: number;
-  feesPaid: number;
-  certificateStatus: string;
-  payments: Payment[];
-  course: Course;
+    _id: string; feesTotal: number; feesPaid: number;
+    certificateStatus: string; payments: Payment[]; course: Course;
 }
-
 interface DashboardData {
-  student: {
-    name: string;
-    studentId: string;
-    email?: string;
-    phone?: string;
-    profileImage?: string;
-    courseStatus: "active" | "completed" | "dropped";
-  };
-  enrollments: Enrollment[];
+    student: {
+        name: string; studentId: string; email?: string;
+        phone?: string; profileImage?: string;
+        courseStatus: "active" | "completed" | "dropped";
+    };
+    enrollments: Enrollment[];
 }
 
-/* ================= COMPONENT ================= */
+/* ─── Helpers ────────────────────────────────────── */
+function Avatar({ name, src, size = 56 }: { name?: string; src?: string; size?: number }) {
+    return (
+        <div style={{ width: size, height: size, borderRadius: "50%", overflow: "hidden", flexShrink: 0 }}>
+            {src
+                ? <img src={`${src}?t=${Date.now()}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt={name} />
+                : <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg,#2563eb,#60a5fa)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.36, fontWeight: 700, color: "#fff", fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
+                    {name?.charAt(0)?.toUpperCase() ?? "S"}
+                  </div>
+            }
+        </div>
+    );
+}
 
-export default function StudentDashboard() {
-
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [accountDisabled, setAccountDisabled] = useState(false);
-
-  useEffect(() => {
-
-    const loadStudent = async () => {
-
-      try {
-
-        const res = await fetchWithAuth("/api/student/profile");
-        const json = await res.json();
-        if (!res.ok) {
-          if (res.status === 403) {
-            setAccountDisabled(true);
-            return;
-          }
-        }
-        setData(json);
-
-      } catch (error) {
-
-        console.error("Failed to load student dashboard");
-
-      } finally {
-
-        setLoading(false);
-
-      }
-
+function StatusBadge({ status }: { status: string }) {
+    const map: Record<string, { bg: string; color: string; dot: string; label: string }> = {
+        active:    { bg: "#eff6ff", color: "#1d4ed8", dot: "#2563eb", label: "Active"      },
+        completed: { bg: "#f0fdf4", color: "#15803d", dot: "#16a34a", label: "Completed"   },
+        dropped:   { bg: "#fefce8", color: "#92400e", dot: "#d97706", label: "Discontinued" },
     };
-
-    loadStudent();
-
-  }, []);
-
-  if (loading) {
+    const s = map[status] ?? map.active;
     return (
-      <div className="text-gray-500 animate-pulse">
-        Loading dashboard...
-      </div>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, background: s.bg, color: s.color, fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", padding: "4px 10px", borderRadius: 100 }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: s.dot, flexShrink: 0 }} />
+            {s.label}
+        </span>
     );
-  }
+}
 
-  if (accountDisabled) {
-    return (
-      <div className="max-w-xl mx-auto mt-20 text-center">
+function CertBadge({ status }: { status: string }) {
+    const s = status?.toLowerCase();
+    if (s === "issued")  return <span style={{ display:"inline-flex", alignItems:"center", gap:5, background:"#f0fdf4", color:"#15803d", fontSize:12, fontWeight:600, padding:"5px 12px", borderRadius:100 }}><CheckCircle2 size={12} /> Issued</span>;
+    if (s === "pending") return <span style={{ display:"inline-flex", alignItems:"center", gap:5, background:"#fefce8", color:"#92400e", fontSize:12, fontWeight:600, padding:"5px 12px", borderRadius:100 }}><Clock size={12} /> Pending</span>;
+    return <span style={{ display:"inline-flex", alignItems:"center", gap:5, background:"#f1f5f9", color:"#475569", fontSize:12, fontWeight:600, padding:"5px 12px", borderRadius:100 }}><Award size={12} /> {status}</span>;
+}
 
-        <div className="bg-red-50 border border-red-200 p-8 rounded-xl">
+/* ══════════════════════════════════════════════════
+   MAIN
+══════════════════════════════════════════════════ */
+export default function StudentDashboard() {
+    const [data,            setData]            = useState<DashboardData | null>(null);
+    const [loading,         setLoading]         = useState(true);
+    const [accountDisabled, setAccountDisabled] = useState(false);
+    const [expandedCards,   setExpandedCards]   = useState<Record<string, boolean>>({});
 
-          <h2 className="text-xl font-semibold text-red-700">
-            Account Deactivated
-          </h2>
+    useEffect(() => {
+        fetchWithAuth("/api/student/profile")
+            .then(async res => {
+                if (res.status === 403) { setAccountDisabled(true); return; }
+                setData(await res.json());
+            })
+            .catch(() => {})
+            .finally(() => setLoading(false));
+    }, []);
 
-          <p className="text-sm text-red-500 mt-2">
-            Your account has been deactivated by the academy.
-            Please contact administration for assistance.
-          </p>
+    const toggleCard = (id: string) => setExpandedCards(p => ({ ...p, [id]: !p[id] }));
 
+    /* ── states ── */
+    if (loading) return (
+        <div style={{ padding: "48px 0", display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
+            <div style={{ width: 36, height: 36, border: "3px solid #dbeafe", borderTopColor: "#2563eb", borderRadius: "50%", animation: "spSpin 0.7s linear infinite" }} />
+            <style>{`@keyframes spSpin { to { transform: rotate(360deg); } }`}</style>
+            <span style={{ fontSize: 13, color: "#64748b", fontFamily: "'Plus Jakarta Sans',sans-serif" }}>Loading your dashboard…</span>
         </div>
-
-      </div>
     );
-  }
 
-  if (!data) {
-    return (
-      <div className="text-red-500">
-        Failed to load dashboard
-      </div>
-    );
-  }
-
-  const student = data?.student || null;
-  const enrollments = data?.enrollments || [];
-  const courseStatus = student?.courseStatus ?? "active";
-
-  /* ================= SUMMARY ================= */
-
-  const totalFees = enrollments.reduce(
-    (sum, e) => sum + (e.feesTotal || 0),
-    0
-  );
-
-  const totalPaid = enrollments.reduce(
-    (sum, e) => sum + (e.feesPaid || 0),
-    0
-  );
-
-  const totalDue = totalFees - totalPaid;
-
-  return (
-
-    <div className="max-w-6xl mx-auto space-y-10">
-
-      {/* HEADER */}
-
-      <div className="border-b border-indigo-100 pb-6 flex items-center gap-4 flex-wrap">
-
-        {/* AVATAR */}
-
-        <div className="w-16 h-16 rounded-full overflow-hidden">
-
-          {student.profileImage ? (
-
-            <img
-              src={`${student.profileImage}?t=${Date.now()}`}
-              className="w-full h-full object-cover"
-            />
-
-          ) : (
-
-            <div className="w-full h-full bg-indigo-600 text-white flex items-center justify-center text-xl font-bold">
-              {student.name?.charAt(0)}
+    if (accountDisabled) return (
+        <div style={{ maxWidth: 480, margin: "48px auto", fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
+            <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 16, padding: "32px 28px", textAlign: "center" }}>
+                <AlertCircle size={32} style={{ color: "#dc2626", margin: "0 auto 12px" }} />
+                <div style={{ fontSize: 16, fontWeight: 700, color: "#991b1b", marginBottom: 8 }}>Account Deactivated</div>
+                <div style={{ fontSize: 13, fontWeight: 300, color: "#b91c1c", lineHeight: 1.7 }}>Your account has been deactivated by the academy. Please contact administration for assistance.</div>
             </div>
-
-          )}
-
         </div>
-
-        {/* INFO */}
-
-        <div>
-
-          <h1 className="text-2xl sm:text-3xl font-semibold text-indigo-900">
-            Hello, {student.name}
-          </h1>
-
-          <div className="flex items-center gap-3 mt-1 flex-wrap">
-
-            <p className="text-sm text-indigo-500">
-              Student ID • {student.studentId}
-            </p>
-
-            <span
-              className={`text-xs px-3 py-1 rounded-full font-medium
-        ${courseStatus === "active"
-                  ? "bg-blue-100 text-blue-700"
-                  : courseStatus === "completed"
-                    ? "bg-green-100 text-green-700"
-                    : "bg-yellow-100 text-yellow-700"
-                }`}
-            >
-              {courseStatus.toUpperCase()}
-            </span>
-
-          </div>
-
-        </div>
-
-      </div>
-
-      {/* COURSE STATUS BANNER */}
-
-      {courseStatus === "completed" && (
-
-        <div className="bg-green-100 border border-green-200 text-green-700 p-4 rounded-lg mt-2">
-
-          🎓 Congratulations! You have successfully completed your course.
-
-        </div>
-
-      )}
-
-      {courseStatus === "dropped" && (
-
-        <div className="bg-yellow-100 border border-yellow-200 text-yellow-700 p-4 rounded-lg mt-2">
-
-          ⚠ Your course has been marked as discontinued.
-          Please contact the academy for further assistance.
-
-        </div>
-
-      )}
-
-      {/* SUMMARY CARDS */}
-
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-
-        <div className="bg-indigo-50 rounded-lg p-5">
-
-          <p className="text-xs text-indigo-500 uppercase">
-            Total Courses
-          </p>
-
-          <p className="text-xl font-semibold text-indigo-900">
-            {enrollments.length}
-          </p>
-
-        </div>
-
-        <div className="bg-green-50 rounded-lg p-5">
-
-          <p className="text-xs text-green-600 uppercase">
-            Total Paid
-          </p>
-
-          <p className="text-xl font-semibold text-green-700">
-            ₹<CountUp end={totalPaid} separator="," />
-          </p>
-
-        </div>
-
-        <div className="bg-red-50 rounded-lg p-5">
-
-          <p className="text-xs text-red-600 uppercase">
-            Total Due
-          </p>
-
-          <p className="text-xl font-semibold text-red-700">
-            ₹<CountUp end={totalDue} separator="," />
-          </p>
-
-        </div>
-
-      </div>
-
-      {/* NO COURSES */}
-
-      {enrollments.length === 0 && (
-
-        <div className="bg-white border border-indigo-100 rounded-xl shadow-md p-8 text-center text-indigo-500">
-
-          No courses enrolled yet.
-
-        </div>
-
-      )}
-
-      {/* COURSES TITLE */}
-
-      {enrollments.length > 0 && (
-
-        <h2 className="text-lg font-semibold text-indigo-900">
-
-          Enrolled Courses
-
-        </h2>
-
-      )}
-
-      {/* COURSES */}
-
-      <div className="space-y-10">
-
-        {enrollments.map((e) => {
-
-          const total = e.feesTotal ?? 0;
-          const paid = e.feesPaid ?? 0;
-          const due = total - paid;
-
-          const progress =
-            total > 0 ? (paid / total) * 100 : 0;
-
-          const sortedPayments = [...(e.payments || [])].sort(
-            (a, b) =>
-              new Date(b.date).getTime() -
-              new Date(a.date).getTime()
-          );
-
-          return (
-
-            <div
-              key={e._id}
-              className="bg-white border border-indigo-100 rounded-xl shadow-md p-6 space-y-6"
-            >
-
-              {/* COURSE HEADER */}
-
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-
-                <div>
-
-                  <h2 className="text-xl font-semibold text-indigo-900">
-
-                    {e.course?.name}
-
-                  </h2>
-
-                  {e.course?.authority && (
-
-                    <p className="text-sm text-indigo-500">
-
-                      {e.course.authority}
-
-                    </p>
-
-                  )}
-
-                </div>
-
-                {e.course?.verification && (
-
-                  <a
-                    href={e.course.verification}
-                    target="_blank"
-                    className="text-sm text-indigo-600 hover:underline"
-                  >
-                    Verify Certificate →
-                  </a>
-
-                )}
-
-              </div>
-
-              {/* KPI CARDS */}
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-
-                <div className="bg-indigo-50 rounded-lg p-4">
-
-                  <p className="text-xs text-indigo-500 uppercase">
-
-                    Total Fees
-
-                  </p>
-
-                  <p className="text-xl font-semibold text-indigo-900">
-
-                    ₹<CountUp end={total} separator="," />
-
-                  </p>
-
-                </div>
-
-                <div className="bg-green-50 rounded-lg p-4">
-
-                  <p className="text-xs text-green-600 uppercase">
-
-                    Paid
-
-                  </p>
-
-                  <p className="text-xl font-semibold text-green-700">
-
-                    ₹<CountUp end={paid} separator="," />
-
-                  </p>
-
-                </div>
-
-                <div className="bg-red-50 rounded-lg p-4">
-
-                  <p className="text-xs text-red-600 uppercase">
-
-                    Pending
-
-                  </p>
-
-                  <p className="text-xl font-semibold text-red-600">
-
-                    ₹<CountUp end={due} separator="," />
-
-                  </p>
-
-                </div>
-
-              </div>
-
-              {/* PROGRESS BAR */}
-
-              <div>
-
-                <div className="flex justify-between mb-2 text-sm text-indigo-600">
-
-                  <span>Fee Progress</span>
-
-                  <span>{progress.toFixed(0)}%</span>
-
-                </div>
-
-                <div className="w-full bg-indigo-100 h-2 rounded-full">
-
-                  <div
-                    className="bg-indigo-600 h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${progress}%` }}
-                  />
-
-                </div>
-
-              </div>
-
-              {/* CERTIFICATE STATUS */}
-
-              <div>
-
-                <p className="text-sm text-indigo-500">
-
-                  Certificate Status
-
-                </p>
-
-                <span className="inline-block mt-1 px-3 py-1 text-sm rounded-full bg-indigo-100 text-indigo-700 font-medium">
-
-                  {e.certificateStatus}
-
-                </span>
-
-              </div>
-
-              {/* PAYMENT HISTORY */}
-
-              <div>
-
-                <h3 className="text-md font-semibold text-indigo-900 mb-4">
-
-                  Payment History
-
-                </h3>
-
-                {sortedPayments.length === 0 && (
-
-                  <p className="text-sm text-indigo-500">
-
-                    No payments yet.
-
-                  </p>
-
-                )}
-
-                <div className="space-y-3">
-
-                  {sortedPayments.map((p, i) => (
-
-                    <div
-                      key={i}
-                      className="flex justify-between items-center border-b border-indigo-100 pb-2"
-                    >
-
-                      <div>
-
-                        <p className="font-medium text-indigo-900">
-
-                          ₹{p.amount}
-
-                        </p>
-
-                        <p className="text-xs text-indigo-500">
-
-                          Receipt • {p.receiptNo}
-
-                        </p>
-
-                        {p.remark && (
-
-                          <p className="text-xs text-indigo-400">
-
-                            {p.remark}
-
-                          </p>
-
-                        )}
-
-                      </div>
-
-                      <p className="text-sm text-indigo-500">
-
-                        {new Date(p.date).toLocaleDateString()}
-
-                      </p>
-
+    );
+
+    if (!data) return (
+        <div style={{ textAlign: "center", padding: "48px 0", fontSize: 13, color: "#dc2626", fontFamily: "'Plus Jakarta Sans',sans-serif" }}>Failed to load dashboard. Please refresh.</div>
+    );
+
+    const { student, enrollments } = data;
+    const totalFees = enrollments.reduce((s, e) => s + (e.feesTotal ?? 0), 0);
+    const totalPaid = enrollments.reduce((s, e) => s + (e.feesPaid  ?? 0), 0);
+    const totalDue  = totalFees - totalPaid;
+    const overallProgress = totalFees > 0 ? (totalPaid / totalFees) * 100 : 0;
+
+    return (
+        <>
+            <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap');
+
+                .sd-root { font-family: 'Plus Jakarta Sans', sans-serif; color: #0f172a; }
+
+                /* ── Welcome card ── */
+                .sd-welcome {
+                    background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #3b82f6 100%);
+                    border-radius: 18px;
+                    padding: 28px 28px;
+                    display: flex; align-items: center; justify-content: space-between;
+                    gap: 20px; flex-wrap: wrap;
+                    margin-bottom: 22px;
+                    position: relative; overflow: hidden;
+                }
+
+                .sd-welcome::before {
+                    content: '';
+                    position: absolute; right: -40px; top: -40px;
+                    width: 200px; height: 200px;
+                    background: rgba(255,255,255,0.06);
+                    border-radius: 50%;
+                }
+
+                .sd-welcome::after {
+                    content: '';
+                    position: absolute; right: 60px; bottom: -60px;
+                    width: 160px; height: 160px;
+                    background: rgba(255,255,255,0.04);
+                    border-radius: 50%;
+                }
+
+                .sd-welcome-left { display: flex; align-items: center; gap: 16px; z-index: 1; }
+
+                .sd-welcome-text {}
+                .sd-welcome-greeting { font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.55); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
+                .sd-welcome-name { font-family: 'DM Serif Display', serif; font-size: clamp(1.2rem, 2.5vw, 1.55rem); color: #fff; line-height: 1.2; margin-bottom: 8px; }
+                .sd-welcome-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+                .sd-welcome-id { font-size: 11px; color: rgba(255,255,255,0.5); }
+
+                .sd-welcome-right { z-index: 1; text-align: right; }
+                .sd-welcome-stat-label { font-size: 10px; color: rgba(255,255,255,0.45); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
+                .sd-welcome-stat-val { font-family: 'DM Serif Display', serif; font-size: 1.6rem; color: #fff; }
+
+                /* ── Status banner ── */
+                .sd-banner {
+                    display: flex; align-items: flex-start; gap: 12px;
+                    border-radius: 12px; padding: 14px 18px;
+                    font-size: 13px; font-weight: 500; line-height: 1.6;
+                    margin-bottom: 22px;
+                }
+
+                .sd-banner-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; }
+                .sd-banner-warn    { background: #fefce8; border: 1px solid #fde68a; color: #92400e; }
+
+                /* ── Stats row ── */
+                .sd-stats {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 12px;
+                    margin-bottom: 28px;
+                }
+
+                .sd-stat-card {
+                    background: #fff;
+                    border: 1px solid #e0effe;
+                    border-radius: 14px;
+                    padding: 16px 18px;
+                    position: relative; overflow: hidden;
+                }
+
+                .sd-stat-card::before {
+                    content: '';
+                    position: absolute; top: 0; left: 0; right: 0;
+                    height: 3px;
+                    border-radius: 14px 14px 0 0;
+                }
+
+                .sd-stat-card.blue::before  { background: linear-gradient(90deg, #2563eb, #60a5fa); }
+                .sd-stat-card.green::before { background: linear-gradient(90deg, #059669, #34d399); }
+                .sd-stat-card.red::before   { background: linear-gradient(90deg, #dc2626, #f87171); }
+
+                .sd-stat-icon {
+                    width: 34px; height: 34px; border-radius: 9px;
+                    display: flex; align-items: center; justify-content: center;
+                    margin-bottom: 12px;
+                }
+
+                .sd-stat-icon.blue  { background: #eff6ff; color: #2563eb; }
+                .sd-stat-icon.green { background: #f0fdf4; color: #059669; }
+                .sd-stat-icon.red   { background: #fef2f2; color: #dc2626; }
+
+                .sd-stat-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #94a3b8; margin-bottom: 5px; }
+                .sd-stat-val { font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: #0f172a; line-height: 1; }
+                .sd-stat-val.green { color: #15803d; }
+                .sd-stat-val.red   { color: #dc2626; }
+
+                /* ── Section title ── */
+                .sd-section-title {
+                    font-size: 13px; font-weight: 700; color: #475569;
+                    letter-spacing: 0.08em; text-transform: uppercase;
+                    display: flex; align-items: center; gap: 8px;
+                    margin-bottom: 14px;
+                }
+
+                .sd-section-title::after {
+                    content: ''; flex: 1; height: 1px; background: #e0effe;
+                }
+
+                /* ── Enrollment card ── */
+                .sd-enroll-card {
+                    background: #fff;
+                    border: 1px solid #e0effe;
+                    border-radius: 16px;
+                    overflow: hidden;
+                    margin-bottom: 14px;
+                    transition: box-shadow 0.2s;
+                }
+
+                .sd-enroll-card:hover { box-shadow: 0 4px 24px rgba(37,99,235,0.08); }
+
+                /* card header */
+                .sd-enroll-header {
+                    padding: 18px 22px;
+                    display: flex; align-items: center; justify-content: space-between;
+                    gap: 12px; cursor: pointer;
+                    border-bottom: 1px solid transparent;
+                    transition: border-color 0.18s, background 0.18s;
+                }
+
+                .sd-enroll-card.expanded .sd-enroll-header {
+                    border-bottom-color: #e0effe;
+                    background: #f8fbff;
+                }
+
+                .sd-enroll-header-left {}
+                .sd-course-name { font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 3px; }
+                .sd-course-auth { font-size: 11px; font-weight: 400; color: #64748b; }
+
+                .sd-enroll-header-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+                .sd-chevron-btn {
+                    width: 28px; height: 28px; border-radius: 8px;
+                    border: 1px solid #e0effe; background: transparent;
+                    cursor: pointer; display: flex; align-items: center; justify-content: center;
+                    color: #64748b; transition: background 0.15s;
+                }
+                .sd-chevron-btn:hover { background: #eff6ff; color: #2563eb; }
+
+                /* card body */
+                .sd-enroll-body { padding: 20px 22px; }
+
+                /* mini kpi */
+                .sd-mini-kpi {
+                    display: grid; grid-template-columns: repeat(3,1fr);
+                    gap: 10px; margin-bottom: 20px;
+                }
+
+                .sd-mini-kpi-item {
+                    background: #f8fbff; border: 1px solid #e0effe;
+                    border-radius: 10px; padding: 12px 14px;
+                }
+
+                .sd-mini-kpi-label { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #94a3b8; margin-bottom: 5px; }
+                .sd-mini-kpi-val   { font-size: 15px; font-weight: 700; color: #0f172a; }
+                .sd-mini-kpi-val.green { color: #15803d; }
+                .sd-mini-kpi-val.red   { color: #dc2626; }
+
+                /* progress */
+                .sd-progress-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+                .sd-progress-label { font-size: 12px; font-weight: 600; color: #475569; }
+                .sd-progress-pct { font-size: 12px; font-weight: 700; color: #2563eb; }
+                .sd-progress-track { height: 7px; background: #e0effe; border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
+                .sd-progress-fill  { height: 100%; background: linear-gradient(90deg, #2563eb, #60a5fa); border-radius: 10px; transition: width 0.8s cubic-bezier(.4,0,.2,1); }
+
+                /* cert + verify row */
+                .sd-cert-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+                .sd-cert-label { font-size: 11px; font-weight: 600; color: #94a3b8; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 5px; }
+
+                .sd-verify-link {
+                    display: inline-flex; align-items: center; gap: 6px;
+                    font-size: 12px; font-weight: 600; color: #2563eb;
+                    text-decoration: none; padding: 7px 14px;
+                    border: 1px solid #bfdbfe; border-radius: 8px;
+                    transition: background 0.15s;
+                }
+                .sd-verify-link:hover { background: #eff6ff; }
+
+                /* payment history */
+                .sd-payments-title { font-size: 12px; font-weight: 700; color: #475569; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+
+                .sd-payment-list { display: flex; flex-direction: column; gap: 0; border: 1px solid #e0effe; border-radius: 12px; overflow: hidden; }
+
+                .sd-payment-row {
+                    display: flex; align-items: center; justify-content: space-between;
+                    padding: 11px 14px; gap: 12px;
+                    border-bottom: 1px solid #f0f7ff;
+                    transition: background 0.14s;
+                }
+
+                .sd-payment-row:last-child { border-bottom: none; }
+                .sd-payment-row:hover { background: #f8fbff; }
+
+                .sd-payment-left { display: flex; align-items: center; gap: 10px; }
+
+                .sd-payment-icon {
+                    width: 30px; height: 30px; border-radius: 8px;
+                    background: #eff6ff; display: flex; align-items: center; justify-content: center;
+                    color: #2563eb; flex-shrink: 0;
+                }
+
+                .sd-payment-amount { font-size: 13px; font-weight: 700; color: #0f172a; }
+                .sd-payment-receipt { font-size: 10px; color: #94a3b8; margin-top: 1px; }
+                .sd-payment-remark  { font-size: 10px; color: #64748b; margin-top: 1px; }
+                .sd-payment-date { font-size: 11px; font-weight: 500; color: #64748b; }
+
+                .sd-no-payments { padding: 20px; text-align: center; font-size: 13px; color: #94a3b8; }
+
+                /* empty state */
+                .sd-empty {
+                    background: #fff; border: 1px solid #e0effe; border-radius: 16px;
+                    padding: 48px 24px; text-align: center;
+                }
+
+                .sd-empty-icon { width: 52px; height: 52px; background: #eff6ff; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: #2563eb; }
+                .sd-empty-title { font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 6px; }
+                .sd-empty-sub   { font-size: 13px; font-weight: 300; color: #64748b; }
+
+                @media (max-width: 640px) {
+                    .sd-stats { grid-template-columns: 1fr; }
+                    .sd-mini-kpi { grid-template-columns: 1fr; }
+                    .sd-welcome { flex-direction: column; align-items: flex-start; }
+                    .sd-welcome-right { text-align: left; }
+                }
+            `}</style>
+
+            <div className="sd-root">
+
+                {/* ── Welcome card ── */}
+                <div className="sd-welcome">
+                    <div className="sd-welcome-left">
+                        <Avatar name={student.name} src={student.profileImage} size={52} />
+                        <div className="sd-welcome-text">
+                            <div className="sd-welcome-greeting">Welcome back</div>
+                            <div className="sd-welcome-name">{student.name}</div>
+                            <div className="sd-welcome-meta">
+                                <span className="sd-welcome-id">ID · {student.studentId}</span>
+                                <StatusBadge status={student.courseStatus} />
+                            </div>
+                        </div>
                     </div>
-
-                  ))}
-
+                    <div className="sd-welcome-right">
+                        <div className="sd-welcome-stat-label">Fee Progress</div>
+                        <div className="sd-welcome-stat-val">{overallProgress.toFixed(0)}%</div>
+                    </div>
                 </div>
 
-              </div>
+                {/* ── Status banners ── */}
+                {student.courseStatus === "completed" && (
+                    <div className="sd-banner sd-banner-success">
+                        <GraduationCap size={18} style={{ flexShrink: 0, marginTop: 1 }} />
+                        <span>Congratulations! You have successfully completed your course. Your achievement reflects hard work and dedication.</span>
+                    </div>
+                )}
+                {student.courseStatus === "dropped" && (
+                    <div className="sd-banner sd-banner-warn">
+                        <AlertCircle size={18} style={{ flexShrink: 0, marginTop: 1 }} />
+                        <span>Your course has been marked as discontinued. Please contact the academy for further assistance.</span>
+                    </div>
+                )}
 
+                {/* ── Summary stats ── */}
+                <div className="sd-stats">
+                    <div className="sd-stat-card blue">
+                        <div className="sd-stat-icon blue"><BookOpen size={16} /></div>
+                        <div className="sd-stat-label">Enrolled Courses</div>
+                        <div className="sd-stat-val"><CountUp end={enrollments.length} duration={1.2} /></div>
+                    </div>
+                    <div className="sd-stat-card green">
+                        <div className="sd-stat-icon green"><TrendingUp size={16} /></div>
+                        <div className="sd-stat-label">Total Paid</div>
+                        <div className="sd-stat-val green">₹<CountUp end={totalPaid} separator="," duration={1.4} /></div>
+                    </div>
+                    <div className="sd-stat-card red">
+                        <div className="sd-stat-icon red"><IndianRupee size={16} /></div>
+                        <div className="sd-stat-label">Amount Due</div>
+                        <div className="sd-stat-val red">₹<CountUp end={totalDue} separator="," duration={1.4} /></div>
+                    </div>
+                </div>
+
+                {/* ── Enrollments ── */}
+                {enrollments.length === 0 ? (
+                    <div className="sd-empty">
+                        <div className="sd-empty-icon"><BookOpen size={22} /></div>
+                        <div className="sd-empty-title">No courses enrolled yet</div>
+                        <div className="sd-empty-sub">Your enrolled courses will appear here once the academy adds them.</div>
+                    </div>
+                ) : (
+                    <>
+                        <div className="sd-section-title">
+                            <BookOpen size={13} /> Enrolled Courses
+                        </div>
+
+                        {enrollments.map(e => {
+                            const total    = e.feesTotal ?? 0;
+                            const paid     = e.feesPaid  ?? 0;
+                            const due      = total - paid;
+                            const progress = total > 0 ? (paid / total) * 100 : 0;
+                            const expanded = !!expandedCards[e._id];
+                            const sorted   = [...(e.payments ?? [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+                            return (
+                                <div key={e._id} className={`sd-enroll-card ${expanded ? "expanded" : ""}`}>
+
+                                    {/* Header — always visible, click to expand */}
+                                    <div className="sd-enroll-header" onClick={() => toggleCard(e._id)}>
+                                        <div className="sd-enroll-header-left">
+                                            <div className="sd-course-name">{e.course?.name}</div>
+                                            {e.course?.authority && <div className="sd-course-auth">{e.course.authority}</div>}
+                                        </div>
+                                        <div className="sd-enroll-header-right">
+                                            <CertBadge status={e.certificateStatus} />
+                                            <button className="sd-chevron-btn" aria-label={expanded ? "Collapse" : "Expand"}>
+                                                {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Body — expandable */}
+                                    {expanded && (
+                                        <div className="sd-enroll-body">
+
+                                            {/* Mini KPIs */}
+                                            <div className="sd-mini-kpi">
+                                                <div className="sd-mini-kpi-item">
+                                                    <div className="sd-mini-kpi-label">Total Fees</div>
+                                                    <div className="sd-mini-kpi-val">₹<CountUp end={total} separator="," duration={0.8} /></div>
+                                                </div>
+                                                <div className="sd-mini-kpi-item">
+                                                    <div className="sd-mini-kpi-label">Paid</div>
+                                                    <div className="sd-mini-kpi-val green">₹<CountUp end={paid} separator="," duration={0.8} /></div>
+                                                </div>
+                                                <div className="sd-mini-kpi-item">
+                                                    <div className="sd-mini-kpi-label">Pending</div>
+                                                    <div className="sd-mini-kpi-val red">₹<CountUp end={due} separator="," duration={0.8} /></div>
+                                                </div>
+                                            </div>
+
+                                            {/* Progress bar */}
+                                            <div className="sd-progress-row">
+                                                <span className="sd-progress-label">Fee Progress</span>
+                                                <span className="sd-progress-pct">{progress.toFixed(0)}%</span>
+                                            </div>
+                                            <div className="sd-progress-track">
+                                                <div className="sd-progress-fill" style={{ width: `${progress}%` }} />
+                                            </div>
+
+                                            {/* Certificate + Verify */}
+                                            <div className="sd-cert-row">
+                                                <div>
+                                                    <div className="sd-cert-label">Certificate Status</div>
+                                                    <CertBadge status={e.certificateStatus} />
+                                                </div>
+                                                {e.course?.verification && (
+                                                    <a href={e.course.verification} target="_blank" rel="noopener noreferrer" className="sd-verify-link">
+                                                        Verify Certificate <ExternalLink size={11} />
+                                                    </a>
+                                                )}
+                                            </div>
+
+                                            {/* Payment history */}
+                                            <div className="sd-payments-title">
+                                                <Receipt size={12} /> Payment History
+                                            </div>
+
+                                            {sorted.length === 0 ? (
+                                                <div className="sd-no-payments">No payments recorded yet.</div>
+                                            ) : (
+                                                <div className="sd-payment-list">
+                                                    {sorted.map((p, i) => (
+                                                        <div key={i} className="sd-payment-row">
+                                                            <div className="sd-payment-left">
+                                                                <div className="sd-payment-icon"><Receipt size={13} /></div>
+                                                                <div>
+                                                                    <div className="sd-payment-amount">₹{p.amount.toLocaleString("en-IN")}</div>
+                                                                    <div className="sd-payment-receipt">Receipt · {p.receiptNo}</div>
+                                                                    {p.remark && <div className="sd-payment-remark">{p.remark}</div>}
+                                                                </div>
+                                                            </div>
+                                                            <div className="sd-payment-date">{new Date(p.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </>
+                )}
             </div>
-
-          );
-
-        })}
-
-      </div>
-
-    </div>
-
-  );
+        </>
+    );
 }
