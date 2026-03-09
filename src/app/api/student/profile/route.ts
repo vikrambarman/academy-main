@@ -51,16 +51,12 @@ export async function GET() {
 
         /* ================= FETCH ENROLLMENTS ================= */
 
-        const enrollments = await Enrollment.find({
-            student: student._id,
-        })
+        const enrollments = await Enrollment.find({ student: student._id })
             .populate({
                 path: "course",
-                select: "name slug duration authority certificate verification",
+                select: "name slug duration authority certificate verification externalPortalUrl externalLoginRequired",
             })
-            .select(
-                "feesTotal feesPaid certificateStatus payments admissionDate course"
-            )
+            .select("feesTotal feesPaid certificateStatus payments admissionDate course")
             .lean();
 
         /* ================= RESPONSE ================= */

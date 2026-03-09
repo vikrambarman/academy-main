@@ -6,7 +6,7 @@ import { useEffect, useState, useRef, useMemo } from "react";
 import {
   LayoutDashboard, User, FileText, BookOpen,
   GraduationCap, LogOut, Menu, Bell, ChevronRight,
-  X, IndianRupee, BookMarked, Award
+  X, IndianRupee, BookMarked, Award, Wallet, Lock
 } from "lucide-react";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import AuthGuard from "@/components/AuthGaurd";
@@ -46,7 +46,15 @@ const menuSections: { title: string; items: MenuItem[] }[] = [
     items: [
       { name: "Notes", href: "/dashboard/student/notes", icon: BookOpen },
       { name: "Exams", icon: FileText, disabled: true, badge: "Soon" },
-      { name: "Certificates", icon: GraduationCap, disabled: true, badge: "Soon" },
+      { name: "Certificates", href: "/dashboard/student/certificates", icon: GraduationCap },
+    ],
+  },
+  // StudentLayout menuSections mein add karo:
+  {
+    title: "Account",
+    items: [
+      { name: "Fee Ledger", href: "/dashboard/student/fees", icon: Wallet },
+      { name: "Change Password", href: "/dashboard/student/change-password", icon: Lock },
     ],
   },
 ];
