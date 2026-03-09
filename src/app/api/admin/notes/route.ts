@@ -1,19 +1,18 @@
 /**
  * FILE: src/app/api/admin/notes/route.ts
  * GET  → course ke saare notes list
- * POST → naya note create (.md file + DB entry)
+ * POST → naya note create (MongoDB only — Vercel safe)
+ *
+ * NOTE: fs (file system) remove kar diya — Vercel pe kaam nahi karta.
+ *       Content ab MongoDB ke `content` field mein store hoga.
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
 import { connectDB } from "@/lib/db";
 import { verifyUser } from "@/lib/verifyUser";
 import Note from "@/models/Note";
 import Course from "@/models/Course";
 import { slugify } from "@/lib/slugify";
-
-const NOTES_BASE = path.join(process.cwd(), "src", "content", "notes");
 
 /**
  * GET /api/admin/notes?courseSlug=dca
@@ -31,7 +30,10 @@ export async function GET(request: NextRequest) {
         const courseSlug = searchParams.get("courseSlug");
 
         const query = courseSlug ? { courseSlug } : {};
+
+        // List view mein content nahi chahiye (heavy) — sirf metadata
         const notes = await Note.find(query)
+            .select("-content")
             .sort({ courseSlug: 1, moduleSlug: 1, order: 1 })
             .lean();
 
@@ -61,16 +63,16 @@ export async function POST(request: NextRequest) {
             courseSlug,
             moduleName,
             topicName,
-            content = "",
+            content    = "",
             isPublished = false,
-            order = 0,
+            order       = 0,
         }: {
-            courseSlug: string;
-            moduleName: string;
-            topicName: string;
-            content?: string;
+            courseSlug:   string;
+            moduleName:   string;
+            topicName:    string;
+            content?:     string;
             isPublished?: boolean;
-            order?: number;
+            order?:       number;
         } = body;
 
         if (!courseSlug || !moduleName || !topicName) {
@@ -86,29 +88,19 @@ export async function POST(request: NextRequest) {
         }
 
         const moduleSlug = slugify(moduleName);
-        const topicSlug = slugify(topicName);
-        const filePath = `notes/${courseSlug}/${moduleSlug}/${topicSlug}.md`;
-        const absolutePath = path.join(
-            NOTES_BASE,
-            courseSlug,
-            moduleSlug,
-            `${topicSlug}.md`
-        );
-
-        fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
-        fs.writeFileSync(absolutePath, content, "utf8");
+        const topicSlug  = slugify(topicName);
 
         const note = await Note.create({
-            title: topicName,
+            title:      topicName,
             courseSlug,
             moduleSlug,
             moduleName,
             topicSlug,
             topicName,
-            filePath,
+            content,                              // ← MongoDB mein save
             order,
             isPublished,
-            createdBy: (user as any)._id,
+            createdBy: (user as any)._id ?? undefined,
         });
 
         return NextResponse.json({ success: true, note }, { status: 201 });

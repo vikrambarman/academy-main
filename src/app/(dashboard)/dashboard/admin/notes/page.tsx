@@ -74,6 +74,7 @@ export default function AdminNotesPage() {
         if (!selectedCourse) return;
         if (!form.moduleName.trim()||!form.topicName.trim()) { showToast("Module aur Topic name required","error"); return; }
         setSaving(true);
+        console.log("Sending:", { courseSlug: selectedCourse.slug, ...form });
         try {
             if (mode==="create") {
                 const res = await fetchWithAuth("/api/admin/notes", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ courseSlug:selectedCourse.slug, ...form }) });

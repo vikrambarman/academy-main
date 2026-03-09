@@ -2,363 +2,364 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-/* -------------------------------
-Reusable Email Layout
--------------------------------- */
+const ACADEMY_NAME = "Shivshakti Computer Academy";
+const LOGO_URL     = "https://www.shivshakticomputer.in/logo.png";
+const PORTAL_URL   = "https://shivshakticomputer.in/student/login";
+const FROM_EMAIL   = `${ACADEMY_NAME} <no-reply@mail.shivshakticomputer.in>`;
 
-const emailWrapper = (content: string) => `
+/* ════════════════════════════════════════════════
+   BASE LAYOUT
+════════════════════════════════════════════════ */
+const layout = (body: string) => `
 <!DOCTYPE html>
-<html>
+<html lang="hi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>${ACADEMY_NAME}</title>
 </head>
-
-<body style="margin:0;padding:0;background:#f8fafc;font-family:Arial,Helvetica,sans-serif;">
-
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;padding:20px;">
-<tr>
-<td align="center">
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:'Segoe UI',Arial,sans-serif;">
 
 <table width="100%" cellpadding="0" cellspacing="0"
-style="max-width:600px;background:#ffffff;border-radius:8px;padding:30px;">
+  style="background:#f1f5f9;padding:36px 16px;">
+<tr><td align="center">
 
-${content}
+  <table width="100%" cellpadding="0" cellspacing="0"
+    style="max-width:600px;background:#ffffff;border-radius:16px;
+           overflow:hidden;box-shadow:0 4px 32px rgba(0,0,0,0.10);">
 
+    <!-- ── TOP HEADER ── -->
+    <tr>
+      <td style="background:#1a1208;padding:30px 40px;text-align:center;">
+        <img src="${LOGO_URL}" alt="${ACADEMY_NAME}"
+          style="height:52px;max-width:200px;object-fit:contain;display:block;margin:0 auto 12px;"/>
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.18em;
+                    text-transform:uppercase;color:#fcd34d;">
+          ${ACADEMY_NAME}
+        </div>
+      </td>
+    </tr>
+
+    <!-- ── EMAIL BODY ── -->
+    <tr>
+      <td style="padding:36px 40px 28px;">
+        ${body}
+      </td>
+    </tr>
+
+    <!-- ── FOOTER ── -->
+    <tr>
+      <td style="background:#f8fafc;border-top:1px solid #e2e8f0;
+                 padding:20px 40px;text-align:center;">
+        <p style="margin:0 0 4px;font-size:11px;color:#94a3b8;line-height:1.8;">
+          © 2026 ${ACADEMY_NAME} · Sabhi adhikar surakshit hain
+        </p>
+        <p style="margin:0;font-size:11px;color:#cbd5e1;">
+          Agar aapne yeh email request nahi ki toh ise ignore karein.
+        </p>
+      </td>
+    </tr>
+
+  </table>
+
+</td></tr>
 </table>
-
-</td>
-</tr>
-</table>
-
 </body>
-</html>
-`;
+</html>`;
 
-/* --------------------------------
-OTP EMAIL
--------------------------------- */
+/* ════════════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════════════ */
 
+// Golden credential box
+const credBox = (rows: { label: string; value: string }[]) => `
+<table width="100%" cellpadding="0" cellspacing="0"
+  style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:12px;
+         margin:24px 0;overflow:hidden;">
+  ${rows.map((r, i) => `
+  <tr>
+    <td style="padding:14px 20px;${i > 0 ? "border-top:1px solid #fde68a;" : ""}">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;
+                  letter-spacing:0.12em;color:#92400e;margin-bottom:4px;">
+        ${r.label}
+      </div>
+      <div style="font-size:16px;font-weight:700;color:#1a1208;
+                  font-family:'Courier New',monospace;letter-spacing:0.06em;">
+        ${r.value}
+      </div>
+    </td>
+  </tr>`).join("")}
+</table>`;
+
+// CTA Button
+const btn = (href: string, text: string) => `
+<table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0 4px;">
+<tr><td align="center">
+  <a href="${href}"
+    style="display:inline-block;background:#1a1208;color:#fef3c7;
+           padding:15px 36px;border-radius:10px;font-size:14px;font-weight:700;
+           text-decoration:none;letter-spacing:0.04em;">
+    ${text} &rarr;
+  </a>
+</td></tr>
+</table>`;
+
+// Info alert (yellow)
+const infoAlert = (html: string) => `
+<table width="100%" cellpadding="0" cellspacing="0"
+  style="background:#fffbeb;border-left:3px solid #fcd34d;border-radius:0 8px 8px 0;margin:16px 0;">
+<tr>
+  <td style="padding:12px 16px;font-size:13px;color:#92400e;line-height:1.7;">
+    ${html}
+  </td>
+</tr>
+</table>`;
+
+// Warning alert (red)
+const warnAlert = (html: string) => `
+<table width="100%" cellpadding="0" cellspacing="0"
+  style="background:#fef2f2;border-left:3px solid #fca5a5;border-radius:0 8px 8px 0;margin:16px 0;">
+<tr>
+  <td style="padding:12px 16px;font-size:13px;color:#dc2626;line-height:1.7;">
+    ${html}
+  </td>
+</tr>
+</table>`;
+
+// Divider
+const hr = () =>
+  `<hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0;"/>`;
+
+// Feature row list
+const featureList = (items: string[]) => `
+<table width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0;">
+  ${items.map(item => `
+  <tr>
+    <td style="padding:6px 0;font-size:13px;color:#475569;line-height:1.6;">
+      <span style="color:#f59e0b;font-weight:700;margin-right:10px;">✦</span>${item}
+    </td>
+  </tr>`).join("")}
+</table>`;
+
+/* ════════════════════════════════════════════════
+   1.  ADMIN LOGIN OTP
+════════════════════════════════════════════════ */
 export const sendOTPEmail = async (to: string, otp: string) => {
 
-    const html = emailWrapper(`
-<tr>
-<td align="center">
+  const body = `
+    <h2 style="margin:0 0 8px;font-size:22px;color:#0f172a;font-weight:700;">
+      Admin Login Verification
+    </h2>
+    <p style="margin:0 0 24px;font-size:14px;color:#64748b;line-height:1.7;">
+      Aapke admin account mein ek login attempt detect hua hai.
+      Verification complete karne ke liye neeche diya gaya OTP use karein:
+    </p>
 
-<img src="https://www.shivshakticomputer.in/logo.png"
-style="width:120px;max-width:100%;margin-bottom:20px;" />
+    <table width="100%" cellpadding="0" cellspacing="0">
+    <tr><td align="center" style="padding:24px 0;">
+      <div style="display:inline-block;background:#1a1208;color:#fcd34d;
+                  font-size:40px;font-weight:800;letter-spacing:12px;
+                  padding:20px 40px;border-radius:14px;
+                  font-family:'Courier New',monospace;">
+        ${otp}
+      </div>
+    </td></tr>
+    </table>
 
-<h2 style="margin:0;color:#0f172a;">Verification Required</h2>
+    ${infoAlert("⏱️ Yeh OTP <strong>5 minutes</strong> mein expire ho jayega. Ise kisi ke saath share mat karein.")}
 
-</td>
-</tr>
+    ${hr()}
 
-<tr>
-<td style="padding-top:20px;color:#475569;font-size:15px;">
-Hello,
-</td>
-</tr>
+    <p style="margin:0;font-size:12px;color:#94a3b8;text-align:center;line-height:1.7;">
+      Agar aapne yeh login attempt nahi kiya toh apna password turant change karein<br/>
+      aur academy IT se sampark karein.
+    </p>
+  `;
 
-<tr>
-<td style="padding-top:10px;color:#475569;font-size:15px;">
-Use the following OTP to complete your admin login:
-</td>
-</tr>
-
-<tr>
-<td align="center" style="padding:30px 0;">
-<div style="font-size:32px;font-weight:bold;letter-spacing:6px;color:#0f172a;">
-${otp}
-</div>
-</td>
-</tr>
-
-<tr>
-<td style="font-size:13px;color:#64748b;text-align:center;">
-This code will expire in 5 minutes.
-</td>
-</tr>
-
-<tr>
-<td style="padding-top:30px;border-top:1px solid #e2e8f0;font-size:12px;color:#94a3b8;text-align:center;">
-© 2026 Shivshakti Computer Academy
-</td>
-</tr>
-`);
-
-    await resend.emails.send({
-        from: "Shivshakti Computer Academy <no-reply@mail.shivshakticomputer.in>",
-        to,
-        subject: "Your Verification Code - Shivshakti Computer Academy",
-        html,
-    });
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `${otp} — Admin Login OTP · ${ACADEMY_NAME}`,
+    html: layout(body),
+  });
 };
 
-
-/* --------------------------------
-RESET PASSWORD LINK EMAIL
--------------------------------- */
-
+/* ════════════════════════════════════════════════
+   2.  ADMIN PASSWORD RESET LINK
+════════════════════════════════════════════════ */
 export const sendResetEmail = async (to: string, resetLink: string) => {
 
-    const html = emailWrapper(`
-<tr>
-<td align="center">
-<h2 style="margin:0;color:#0f172a;">Password Reset Request</h2>
-</td>
-</tr>
+  const body = `
+    <h2 style="margin:0 0 8px;font-size:22px;color:#0f172a;font-weight:700;">
+      Password Reset Request
+    </h2>
+    <p style="margin:0 0 20px;font-size:14px;color:#64748b;line-height:1.7;">
+      Aapke account ke liye password reset ki request receive hui hai.
+      Neeche button click karke apna naya password set karein.
+    </p>
 
-<tr>
-<td style="padding-top:20px;color:#475569;font-size:15px;">
-We received a request to reset your password.
-</td>
-</tr>
+    ${btn(resetLink, "Password Reset Karein")}
 
-<tr>
-<td align="center" style="padding:30px 0;">
+    ${infoAlert("⏱️ Yeh reset link <strong>15 minutes</strong> mein expire ho jayega.")}
 
-<a href="${resetLink}"
-style="
-display:inline-block;
-background:#0f172a;
-color:white;
-padding:14px 24px;
-text-decoration:none;
-border-radius:6px;
-font-size:15px;">
-Reset Password
-</a>
+    ${hr()}
 
-</td>
-</tr>
+    <p style="margin:0;font-size:12px;color:#94a3b8;text-align:center;">
+      Agar aapne yeh request nahi ki toh is email ko ignore karein —
+      aapka account safe hai.
+    </p>
+  `;
 
-<tr>
-<td style="font-size:13px;color:#64748b;text-align:center;">
-This link will expire in 15 minutes.
-</td>
-</tr>
+  const result = await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `Password Reset — ${ACADEMY_NAME}`,
+    html: layout(body),
+  });
 
-<tr>
-<td style="padding-top:30px;border-top:1px solid #e2e8f0;font-size:12px;color:#94a3b8;text-align:center;">
-Shivshakti Computer Academy © 2026
-</td>
-</tr>
-`);
-
-    const result = await resend.emails.send({
-        from: "Shivshakti Computer Academy <no-reply@mail.shivshakticomputer.in>",
-        to,
-        subject: "Reset Your Password - Shivshakti Computer Academy",
-        html,
-    });
-
-    console.log("RESET EMAIL:", result);
+  console.log("RESET EMAIL:", result);
 };
 
-
-/* --------------------------------
-STUDENT WELCOME EMAIL
--------------------------------- */
-
+/* ════════════════════════════════════════════════
+   3.  STUDENT WELCOME EMAIL  (new enrollment)
+════════════════════════════════════════════════ */
 export const sendStudentWelcomeEmail = async (
-    to: string,
-    data: {
-        name: string;
-        studentId: string;
-        tempPassword: string;
-    }
+  to: string,
+  data: {
+    name: string;
+    studentId: string;
+    tempPassword: string;
+    courseName?: string;
+    courseDuration?: string;
+    admissionDate?: string;
+    fatherName?: string;
+    phone?: string;
+  }
 ) => {
 
-    const html = emailWrapper(`
-<tr>
-<td align="center">
-<h2 style="margin:0;color:#0f172a;">
-Welcome to Shivshakti Computer Academy 🎓
-</h2>
-</td>
-</tr>
+  const admDate = data.admissionDate
+    ? new Date(data.admissionDate).toLocaleDateString("en-IN", {
+        day: "numeric", month: "long", year: "numeric",
+      })
+    : null;
 
-<tr>
-<td style="padding-top:20px;color:#475569;font-size:15px;">
-Hello ${data.name},
-</td>
-</tr>
+  const body = `
+    <!-- Welcome Banner -->
+    <table width="100%" cellpadding="0" cellspacing="0"
+      style="background:linear-gradient(135deg,#1a1208 0%,#2d1f0d 100%);
+             border-radius:12px;margin-bottom:28px;overflow:hidden;">
+    <tr>
+      <td style="padding:26px 30px;">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;
+                    letter-spacing:0.16em;color:#fcd34d;margin-bottom:10px;">
+          🎓 &nbsp;Enrollment Confirmed
+        </div>
+        <div style="font-size:20px;font-weight:700;color:#fef3c7;line-height:1.35;">
+          ${ACADEMY_NAME} mein<br/>aapka swagat hai!
+        </div>
+        <div style="font-size:13px;color:rgba(254,243,199,0.55);margin-top:8px;">
+          Aapka student account successfully create ho gaya hai.
+        </div>
+      </td>
+    </tr>
+    </table>
 
-<tr>
-<td style="padding-top:10px;color:#475569;font-size:15px;">
-Your student account has been successfully created.
-</td>
-</tr>
+    <p style="margin:0 0 6px;font-size:15px;color:#334155;">
+      Namaste <strong style="color:#1a1208;">${data.name}</strong>,
+    </p>
+    <p style="margin:0 0 24px;font-size:14px;color:#64748b;line-height:1.8;">
+      Hamare academy mein aapka enrollment ho gaya hai. Neeche diye gaye
+      login credentials se aap apna student portal access kar sakte hain.
+    </p>
 
-<tr>
-<td>
+    <!-- Credentials -->
+    ${credBox([
+      { label: "Student ID", value: data.studentId },
+      { label: "Temporary Password", value: data.tempPassword },
+      ...(data.courseName     ? [{ label: "Course", value: data.courseName }]               : []),
+      ...(data.courseDuration ? [{ label: "Duration", value: data.courseDuration ?? "" }]   : []),
+      ...(admDate             ? [{ label: "Admission Date", value: admDate }]               : []),
+    ])}
 
-<table width="100%" cellpadding="0" cellspacing="0"
-style="background:#f1f5f9;border-radius:6px;padding:15px;margin-top:20px;">
+    ${infoAlert("🔐 Pehli baar login karne ke baad <strong>apna password zaroor change karein</strong>. Temporary password kisi ke saath share mat karein.")}
 
-<tr>
-<td style="font-size:15px;color:#0f172a;">
-<strong>Student ID:</strong> ${data.studentId}
-</td>
-</tr>
+    ${btn(PORTAL_URL, "Student Portal mein Login Karein")}
 
-<tr>
-<td style="padding-top:8px;font-size:15px;color:#0f172a;">
-<strong>Temporary Password:</strong> ${data.tempPassword}
-</td>
-</tr>
+    ${hr()}
 
-</table>
+    <!-- What you can do -->
+    <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#334155;
+              text-transform:uppercase;letter-spacing:0.08em;">
+      Portal mein kya milega
+    </p>
+    ${featureList([
+      "Course details, syllabus aur study material",
+      "Fee payment history aur receipts download",
+      "Certificate status track karein",
+      "Apni academic progress dekhein",
+      "Academy se important notifications",
+    ])}
 
-</td>
-</tr>
+    ${hr()}
 
-<tr>
-<td style="padding-top:20px;color:#475569;font-size:15px;">
-Please login and change your password immediately for security.
-</td>
-</tr>
+    <p style="margin:0;font-size:12px;color:#94a3b8;line-height:1.8;text-align:center;">
+      Kisi bhi help ke liye academy se sampark karein.<br/>
+      Hum aapki journey mein aapke saath hain! 🌟
+    </p>
+  `;
 
-<tr>
-<td align="center" style="padding:30px 0;">
+  const result = await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `🎓 Welcome ${data.name}! — ${ACADEMY_NAME} mein aapka swagat hai`,
+    html: layout(body),
+  });
 
-<a href="https://shivshakticomputer.in/student/login"
-style="
-display:inline-block;
-background:#0f172a;
-color:white;
-padding:14px 24px;
-text-decoration:none;
-border-radius:6px;
-font-size:15px;">
-Login Now
-</a>
-
-</td>
-</tr>
-
-<tr>
-<td style="padding-top:30px;border-top:1px solid #e2e8f0;font-size:12px;color:#94a3b8;text-align:center;">
-Shivshakti Computer Academy © 2026
-</td>
-</tr>
-`);
-
-    const result = await resend.emails.send({
-        from: "Shivshakti Computer Academy <no-reply@mail.shivshakticomputer.in>",
-        to,
-        subject: "Welcome to Shivshakti Computer Academy",
-        html,
-    });
-
-    console.log("STUDENT WELCOME EMAIL:", result);
+  console.log("STUDENT WELCOME EMAIL:", result);
 };
 
-
-/* --------------------------------
-STUDENT PASSWORD RESET EMAIL
--------------------------------- */
-
+/* ════════════════════════════════════════════════
+   4.  STUDENT PASSWORD RESET
+════════════════════════════════════════════════ */
 export const sendStudentPasswordResetEmail = async (
-    to: string,
-    data: {
-        name: string;
-        studentId: string;
-        tempPassword: string;
-    }
+  to: string,
+  data: {
+    name: string;
+    studentId: string;
+    tempPassword: string;
+  }
 ) => {
 
-    const html = emailWrapper(`
-<tr>
-<td align="center">
+  const body = `
+    <h2 style="margin:0 0 8px;font-size:22px;color:#0f172a;font-weight:700;">
+      Password Reset — Student Portal
+    </h2>
+    <p style="margin:0 0 24px;font-size:14px;color:#64748b;line-height:1.7;">
+      Namaste <strong style="color:#1a1208;">${data.name}</strong>,<br/>
+      aapke student account ke liye ek temporary password generate kiya gaya hai.
+      Neeche diye credentials se login karein.
+    </p>
 
-<img src="https://www.shivshakticomputer.in/logo.png"
-style="width:120px;max-width:100%;margin-bottom:20px;" />
+    ${credBox([
+      { label: "Student ID",          value: data.studentId    },
+      { label: "Temporary Password",  value: data.tempPassword },
+    ])}
 
-<h2 style="margin:0;color:#0f172a;">Password Reset Successful</h2>
+    ${infoAlert("🔐 Login karne ke turant baad <strong>naya password set karein</strong>. Temporary password kisi ke saath share mat karein.")}
 
-</td>
-</tr>
+    ${btn(PORTAL_URL, "Student Portal mein Login Karein")}
 
-<tr>
-<td style="padding-top:20px;color:#475569;font-size:15px;">
-Hello ${data.name},
-</td>
-</tr>
+    ${hr()}
 
-<tr>
-<td style="padding-top:10px;color:#475569;font-size:15px;">
-A request was made to reset your student portal password.
-Your login credentials have been updated.
-</td>
-</tr>
+    ${warnAlert("⚠️ Agar aapne yeh password reset request nahi ki toh turant academy se sampark karein.")}
+  `;
 
-<tr>
-<td>
+  const result = await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `Password Reset — ${ACADEMY_NAME} Student Portal`,
+    html: layout(body),
+  });
 
-<table width="100%" cellpadding="0" cellspacing="0"
-style="background:#f1f5f9;border-radius:6px;padding:15px;margin-top:20px;">
-
-<tr>
-<td style="font-size:15px;color:#0f172a;">
-<strong>Student ID:</strong> ${data.studentId}
-</td>
-</tr>
-
-<tr>
-<td style="padding-top:8px;font-size:15px;color:#0f172a;">
-<strong>Temporary Password:</strong> ${data.tempPassword}
-</td>
-</tr>
-
-</table>
-
-</td>
-</tr>
-
-<tr>
-<td style="padding-top:20px;color:#475569;font-size:15px;">
-Please login using the temporary password and create a new secure password.
-</td>
-</tr>
-
-<tr>
-<td align="center" style="padding:30px 0;">
-
-<a href="https://shivshakticomputer.in/student/login"
-style="
-display:inline-block;
-background:#0f172a;
-color:white;
-padding:14px 24px;
-text-decoration:none;
-border-radius:6px;
-font-size:15px;">
-Login to Student Portal
-</a>
-
-</td>
-</tr>
-
-<tr>
-<td style="padding-top:20px;font-size:13px;color:#64748b;">
-If you did not request this reset, please contact the academy immediately.
-</td>
-</tr>
-
-<tr>
-<td style="padding-top:30px;border-top:1px solid #e2e8f0;font-size:12px;color:#94a3b8;text-align:center;">
-© 2026 Shivshakti Computer Academy
-</td>
-</tr>
-`);
-
-    const result = await resend.emails.send({
-        from: "Shivshakti Computer Academy <no-reply@mail.shivshakticomputer.in>",
-        to,
-        subject: "Student Portal Password Reset - Shivshakti Computer Academy",
-        html,
-    });
-
-    console.log("STUDENT PASSWORD RESET EMAIL:", result);
+  console.log("STUDENT PASSWORD RESET EMAIL:", result);
 };
