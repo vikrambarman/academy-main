@@ -37,10 +37,27 @@ export async function POST(req: Request) {
             );
         }
 
-        // 🔐 ADMIN → 2FA FLOW
+        // 🔐 ADMIN → password verify karo PEHLE, phir 2FA
         if (user.role === "admin") {
 
-            const otp = Math.floor(100000 + 900000 * Math.random()).toString();
+            // ✅ Pehle password check karo
+            const isMatch = await bcrypt.compare(password, user.password);
+            if (!isMatch) {
+                return NextResponse.json(
+                    { message: "Invalid credentials" },
+                    { status: 401 }
+                );
+            }
+
+            if (!user.isActive) {
+                return NextResponse.json(
+                    { message: "Account disabled" },
+                    { status: 403 }
+                );
+            }
+
+            // ✅ Password sahi hai tab OTP bhejo
+            const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
             user.twoFactorCode = otp;
             user.twoFactorExpiry = new Date(Date.now() + 5 * 60 * 1000);

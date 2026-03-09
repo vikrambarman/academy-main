@@ -562,7 +562,7 @@ export default function HeroSection() {
 
                             {/* Floating badge overlay */}
                             <div className="hero-float-badge" aria-hidden="true">
-                                <div className="hero-float-badge-num">500+</div>
+                                <div className="hero-float-badge-num">1000+</div>
                                 <div className="hero-float-badge-text">Certified Graduates</div>
                             </div>
                         </div>
