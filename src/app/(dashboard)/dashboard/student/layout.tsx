@@ -6,7 +6,7 @@ import { useEffect, useState, useRef, useMemo } from "react";
 import {
   LayoutDashboard, User, FileText, BookOpen,
   GraduationCap, LogOut, Menu, Bell, ChevronRight,
-  X, IndianRupee, BookMarked, Award, Wallet, Lock
+  X, IndianRupee, BookMarked, Award, Wallet, Lock, CalendarDays, Clock
 } from "lucide-react";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import AuthGuard from "@/components/AuthGaurd";
@@ -34,11 +34,20 @@ interface MenuItem {
 /* ─── Nav config ─────────────────────────────────── */
 const menuSections: { title: string; items: MenuItem[] }[] = [
   {
-    title: "Main",
+    title: "Academic",
     items: [
       { name: "Dashboard", href: "/dashboard/student", icon: LayoutDashboard },
       { name: "Profile", href: "/dashboard/student/profile", icon: User },
       { name: "Notices", href: "/dashboard/student/notices", icon: FileText },
+      { name: "Attendance", href: "/dashboard/student/attendance", icon: CalendarDays },
+      { name: "Schedule", href: "/dashboard/student/schedule", icon: Clock },
+    ],
+  },
+  {
+    title: "Finance & Certs",
+    items: [
+      { name: "Fee Ledger", href: "/dashboard/student/fees", icon: Wallet },
+      { name: "Certificates", href: "/dashboard/student/certificates", icon: GraduationCap },
     ],
   },
   {
@@ -46,14 +55,11 @@ const menuSections: { title: string; items: MenuItem[] }[] = [
     items: [
       { name: "Notes", href: "/dashboard/student/notes", icon: BookOpen },
       { name: "Exams", icon: FileText, disabled: true, badge: "Soon" },
-      { name: "Certificates", href: "/dashboard/student/certificates", icon: GraduationCap },
     ],
   },
-  // StudentLayout menuSections mein add karo:
   {
     title: "Account",
     items: [
-      { name: "Fee Ledger", href: "/dashboard/student/fees", icon: Wallet },
       { name: "Change Password", href: "/dashboard/student/change-password", icon: Lock },
     ],
   },
