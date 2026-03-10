@@ -7,6 +7,7 @@ import Enrollment from "@/models/Enrollment";
 import Attendance from "@/models/Attendance";
 import Note from "@/models/Note";
 import Teacher from "@/models/Teacher";
+import Student from "@/models/Student";
 
 export async function GET() {
     try {
