@@ -4,7 +4,7 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 export type AttendanceStatus = "present" | "absent" | "late" | "holiday";
 
 export interface IAttendanceRecord {
-    date: Date;
+    date:   Date;
     status: AttendanceStatus;
     remark?: string;
 }
@@ -32,6 +32,7 @@ const attendanceSchema = new Schema<IAttendance>(
         student:    { type: Schema.Types.ObjectId, ref: "Student",    required: true },
         enrollment: { type: Schema.Types.ObjectId, ref: "Enrollment", required: true },
         course:     { type: Schema.Types.ObjectId, ref: "Course",     required: true },
+        records:    { type: [attendanceRecordSchema], default: [] },  // ← YE MISSING THA
     },
     { timestamps: true }
 );

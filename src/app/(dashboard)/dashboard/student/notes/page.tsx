@@ -191,7 +191,7 @@ export default function StudentNotesPage() {
     }, []);
 
     async function loadNote(note: NoteItem) {
-        if (selectedNote?._id === note._id) return;
+        if (selectedNote?._id === note._id && noteContent) return;
         setSelectedNote(note);
         setContentLoading(true);
         setNoteContent(""); setNoteTitle(""); setNoteMeta(null);

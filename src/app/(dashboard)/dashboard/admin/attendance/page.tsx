@@ -2,396 +2,527 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
-import { Search, Plus, X, ChevronLeft, ChevronRight, CalendarDays, CheckCircle2, XCircle, Clock, Coffee } from "lucide-react";
+import {
+    CalendarDays, ChevronLeft, ChevronRight, Search,
+    CheckCircle2, XCircle, Clock, Coffee, Save, Users, TrendingUp, AlertTriangle
+} from "lucide-react";
 
-type AttStatus = "present"|"absent"|"late"|"holiday";
+type AttStatus = "present" | "absent" | "late" | "holiday";
 
-interface AttRecord { date: string; status: AttStatus; remark?: string; }
-interface AttDoc {
-    _id: string;
-    student: { name:string; studentId:string };
-    enrollment: { _id:string };
-    course: { name:string };
-    records: AttRecord[];
-    stats: { total:number; present:number; absent:number; late:number; holiday:number; percentage:number; };
+interface StudentRow {
+    enrollmentId: string;
+    studentId:    string;
+    studentDbId:  string;
+    courseId:     string;
+    name:         string;
+    studentCode:  string;
+    courseName:   string;
+    status:       AttStatus;
+    remark:       string;
+    alreadyMarked: boolean;
 }
 
-const STATUS_META: Record<AttStatus,{label:string;color:string;bg:string;icon:any}> = {
-    present: { label:"Present", color:"#22c55e", bg:"rgba(34,197,94,.1)",  icon:CheckCircle2 },
-    absent:  { label:"Absent",  color:"#ef4444", bg:"rgba(239,68,68,.1)",  icon:XCircle      },
-    late:    { label:"Late",    color:"#f59e0b", bg:"rgba(245,158,11,.1)", icon:Clock        },
-    holiday: { label:"Holiday", color:"#60a5fa", bg:"rgba(96,165,250,.1)", icon:Coffee       },
+interface AttDoc {
+    _id:        string;
+    student:    { name: string; studentId: string };
+    course:     { name: string; _id: string };
+    enrollment: { _id: string };
+    stats:      { total: number; present: number; absent: number; late: number; holiday: number; percentage: number };
+    records:    { date: string; status: AttStatus; remark?: string }[];
+    todayRecord: { status: AttStatus; remark?: string } | null;
+}
+
+interface Course { _id: string; name: string; }
+
+const STATUS_CFG: Record<AttStatus, { label: string; color: string; bg: string; border: string }> = {
+    present: { label: "Present",  color: "#22c55e", bg: "#052e16", border: "#166534" },
+    absent:  { label: "Absent",   color: "#ef4444", bg: "#2d0a0a", border: "#7f1d1d" },
+    late:    { label: "Late",     color: "#f59e0b", bg: "#2d1a00", border: "#78350f" },
+    holiday: { label: "Holiday",  color: "#60a5fa", bg: "#0c1a2e", border: "#1e3a5f" },
 };
 
+function fmtDate(iso: string) {
+    return new Date(iso).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+}
+
+function isoToday() {
+    return new Date().toISOString().split("T")[0];
+}
+
 export default function AdminAttendancePage() {
-    const [attendance,   setAttendance]   = useState<AttDoc[]>([]);
-    const [students,     setStudents]     = useState<any[]>([]);
-    const [courses,      setCourses]      = useState<any[]>([]);
-    const [search,       setSearch]       = useState("");
-    const [page,         setPage]         = useState(1);
-    const [expanded,     setExpanded]     = useState<Set<string>>(new Set());
-    const [modalOpen,    setModalOpen]    = useState(false);
-    const [toast,        setToast]        = useState<{msg:string;type:"success"|"error"}|null>(null);
-    const [saving,       setSaving]       = useState(false);
-    const LIMIT = 15;
+    const [courses,     setCourses]     = useState<Course[]>([]);
+    const [courseId,    setCourseId]    = useState("");
+    const [date,        setDate]        = useState(isoToday());
+    const [rows,        setRows]        = useState<StudentRow[]>([]);
+    const [search,      setSearch]      = useState("");
+    const [saving,      setSaving]      = useState(false);
+    const [loading,     setLoading]     = useState(false);
+    const [toast,       setToast]       = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
-    // Bulk add form
-    const [bulkForm, setBulkForm] = useState({
-        enrollmentId: "", studentId: "", courseId: "",
-        date: new Date().toISOString().split("T")[0],
-        status: "present" as AttStatus, remark: ""
-    });
+    // Overview tab
+    const [allDocs,     setAllDocs]     = useState<AttDoc[]>([]);
+    const [tab,         setTab]         = useState<"mark" | "overview">("mark");
+    const [ovSearch,    setOvSearch]    = useState("");
+    const [ovPage,      setOvPage]      = useState(1);
+    const OV_LIMIT = 12;
 
-    const showToast = (msg:string, type:"success"|"error") => {
-        setToast({msg,type}); setTimeout(()=>setToast(null),3000);
+    const showToast = (msg: string, type: "success" | "error") => {
+        setToast({ msg, type });
+        setTimeout(() => setToast(null), 3000);
     };
 
-    const load = useCallback(async () => {
-        try {
-            const res = await fetchWithAuth("/api/admin/attendance");
-            const d   = await res.json();
-            setAttendance(d.attendance || []);
-        } catch { showToast("Load failed","error"); }
+    // Load courses
+    useEffect(() => {
+        fetchWithAuth("/api/admin/courses").then(r => r.json())
+            .then(d => setCourses(Array.isArray(d) ? d : (d.courses || [])));
     }, []);
 
-    useEffect(() => {
-        load();
-        fetchWithAuth("/api/admin/students").then(r=>r.json()).then(setStudents);
-        fetchWithAuth("/api/admin/courses").then(r=>r.json()).then(d=>setCourses(Array.isArray(d)?d:[]));
-    }, [load]);
+    // Load attendance overview (all docs)
+    const loadOverview = useCallback(async () => {
+        const res = await fetchWithAuth("/api/admin/attendance");
+        const d   = await res.json();
+        setAllDocs(d.attendance || []);
+    }, []);
 
-    // When student selected — auto populate enrollmentId from first enrollment
-    const handleStudentSelect = (studentId: string) => {
-        const s = students.find(s=>s._id===studentId);
-        const enr = s?.enrollments?.[0];
-        setBulkForm(f => ({
-            ...f, studentId,
-            enrollmentId: enr?._id||"",
-            courseId: enr?.course?._id||""
-        }));
-    };
+    useEffect(() => { loadOverview(); }, [loadOverview]);
 
-    const handleSaveAttendance = async () => {
-        if (!bulkForm.enrollmentId||!bulkForm.studentId||!bulkForm.courseId) {
-            showToast("Student aur enrollment select karo","error"); return;
+    // Load students for selected course + date
+    const loadStudents = useCallback(async () => {
+        if (!courseId) return;
+        setLoading(true);
+        try {
+            // Single call — returns both enrollments + attendance docs
+            const res  = await fetchWithAuth(`/api/admin/attendance?courseId=${courseId}&date=${date}`);
+            const data = await res.json();
+
+            const enrollments: any[] = data.enrollments || [];
+            const attDocs: AttDoc[]  = data.attendance  || [];
+
+            // Build a map: enrollmentId -> todayRecord
+            const attMap: Record<string, { status: AttStatus; remark: string } | null> = {};
+            for (const doc of attDocs) {
+                const eid = typeof doc.enrollment === "string" ? doc.enrollment : doc.enrollment?._id;
+                attMap[eid] = doc.todayRecord
+                    ? { status: doc.todayRecord.status, remark: doc.todayRecord.remark ?? "" }
+                    : null;
+            }
+
+            const built: StudentRow[] = enrollments.map((e: any) => {
+                const existing = attMap[e._id] ?? null;
+                return {
+                    enrollmentId:  e._id,
+                    studentDbId:   e.student?._id ?? e.student,
+                    studentId:     e.student?._id ?? e.student,
+                    studentCode:   e.student?.studentId ?? "",
+                    courseId:      typeof e.course === "string" ? e.course : e.course?._id,
+                    name:          e.student?.name ?? "—",
+                    courseName:    typeof e.course === "string" ? "" : (e.course?.name ?? ""),
+                    status:        existing?.status ?? "present",
+                    remark:        existing?.remark ?? "",
+                    alreadyMarked: existing !== null,
+                };
+            });
+
+            setRows(built);
+        } catch {
+            showToast("Students load nahi hue", "error");
+        } finally {
+            setLoading(false);
         }
+    }, [courseId, date]);
+
+    useEffect(() => { loadStudents(); }, [loadStudents]);
+
+    const setStatus = (enrollmentId: string, status: AttStatus) =>
+        setRows(prev => prev.map(r => r.enrollmentId === enrollmentId ? { ...r, status } : r));
+
+    const setRemark = (enrollmentId: string, remark: string) =>
+        setRows(prev => prev.map(r => r.enrollmentId === enrollmentId ? { ...r, remark } : r));
+
+    const markAll = (status: AttStatus) =>
+        setRows(prev => prev.map(r => ({ ...r, status })));
+
+    const handleSave = async () => {
+        if (!rows.length) return;
         setSaving(true);
         try {
             const res = await fetchWithAuth("/api/admin/attendance", {
-                method:"POST",
-                headers:{"Content-Type":"application/json"},
+                method:  "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    enrollmentId: bulkForm.enrollmentId,
-                    studentId:    bulkForm.studentId,
-                    courseId:     bulkForm.courseId,
-                    records: [{ date:bulkForm.date, status:bulkForm.status, remark:bulkForm.remark }]
+                    date,
+                    records: rows.map(r => ({
+                        enrollmentId: r.enrollmentId,
+                        studentId:    r.studentDbId,
+                        courseId:     r.courseId,
+                        status:       r.status,
+                        remark:       r.remark,
+                    })),
                 }),
             });
             const d = await res.json();
-            if (!res.ok) throw new Error(d.error||d.message);
-            showToast("Attendance save ho gaya ✓","success");
-            setModalOpen(false);
-            load();
-        } catch(e:any) { showToast(e.message||"Error","error"); }
-        finally { setSaving(false); }
+            if (!res.ok) throw new Error(d.message);
+            showToast(`${rows.length} students ki attendance save ho gaya ✓`, "success");
+            setRows(prev => prev.map(r => ({ ...r, alreadyMarked: true })));
+            loadOverview();
+        } catch (e: any) {
+            showToast(e.message || "Save nahi hua", "error");
+        } finally {
+            setSaving(false);
+        }
     };
 
-    const patchRecord = async (enrollmentId:string, date:string, status:AttStatus) => {
-        try {
-            await fetchWithAuth("/api/admin/attendance", {
-                method:"PATCH",
-                headers:{"Content-Type":"application/json"},
-                body: JSON.stringify({ enrollmentId, date, status }),
-            });
-            load();
-        } catch { showToast("Update failed","error"); }
-    };
-
-    const toggleExpand = (id:string) => setExpanded(p=>{ const n=new Set(p); n.has(id)?n.delete(id):n.add(id); return n; });
-
-    const filtered   = attendance.filter(a =>
-        a.student?.name?.toLowerCase().includes(search.toLowerCase()) ||
-        a.student?.studentId?.toLowerCase().includes(search.toLowerCase())
+    const filtered = rows.filter(r =>
+        r.name.toLowerCase().includes(search.toLowerCase()) ||
+        r.studentCode.toLowerCase().includes(search.toLowerCase())
     );
-    const totalPages = Math.ceil(filtered.length/LIMIT)||1;
-    const paginated  = filtered.slice((page-1)*LIMIT, page*LIMIT);
 
-    // Summary
-    const avgPct = attendance.length > 0
-        ? Math.round(attendance.reduce((s,a)=>s+(a.stats?.percentage||0),0)/attendance.length)
+    // Overview filtered + paged
+    const ovFiltered = allDocs.filter(d =>
+        d.student?.name?.toLowerCase().includes(ovSearch.toLowerCase()) ||
+        d.student?.studentId?.toLowerCase().includes(ovSearch.toLowerCase())
+    );
+    const ovTotalPages = Math.ceil(ovFiltered.length / OV_LIMIT) || 1;
+    const ovPaged      = ovFiltered.slice((ovPage - 1) * OV_LIMIT, ovPage * OV_LIMIT);
+
+    const avgPct   = allDocs.length > 0
+        ? Math.round(allDocs.reduce((s, a) => s + (a.stats?.percentage || 0), 0) / allDocs.length)
         : 0;
-    const below75 = attendance.filter(a=>(a.stats?.percentage||0)<75).length;
+    const below75  = allDocs.filter(a => (a.stats?.percentage || 0) < 75).length;
+
+    const presentCount = rows.filter(r => r.status === "present").length;
+    const absentCount  = rows.filter(r => r.status === "absent").length;
+    const lateCount    = rows.filter(r => r.status === "late").length;
 
     return (
         <>
-            <style>{aaStyles}</style>
-            {toast && <div className={`aa-toast ${toast.type}`}>{toast.msg}</div>}
-            <div className="aa-root">
+            <style>{styles}</style>
+            {toast && <div className={`att-toast ${toast.type}`}>{toast.msg}</div>}
+
+            <div className="att-root">
 
                 {/* Header */}
-                <div className="aa-header">
+                <div className="att-header">
                     <div>
-                        <h1 className="aa-title">Attendance</h1>
-                        <p className="aa-sub">Student-wise attendance records manage karo</p>
+                        <h1 className="att-title">Attendance</h1>
+                        <p className="att-sub">Date-wise bulk attendance manage karo</p>
                     </div>
-                    <button className="aa-add-btn" onClick={()=>setModalOpen(true)}>
-                        <Plus size={13}/> Add Record
-                    </button>
-                </div>
-
-                {/* KPIs */}
-                <div className="aa-kpi-row">
-                    <div className="aa-kpi amber">
-                        <div className="aa-kpi-label">Total Students</div>
-                        <div className="aa-kpi-val">{attendance.length}</div>
-                    </div>
-                    <div className="aa-kpi green">
-                        <div className="aa-kpi-label">Avg Attendance</div>
-                        <div className="aa-kpi-val">{avgPct}%</div>
-                    </div>
-                    <div className="aa-kpi red">
-                        <div className="aa-kpi-label">Below 75%</div>
-                        <div className="aa-kpi-val">{below75}</div>
-                    </div>
-                </div>
-
-                {/* Search */}
-                <div className="aa-search-wrap">
-                    <Search size={13} className="aa-search-icon"/>
-                    <input className="aa-search" placeholder="Search by name or ID..."
-                        value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}}/>
-                </div>
-
-                {/* Records */}
-                <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                    {paginated.length===0 ? (
-                        <div className="aa-empty"><CalendarDays size={24} style={{opacity:.3,marginBottom:8}}/><div>No attendance records</div></div>
-                    ) : paginated.map(att => {
-                        const pct    = att.stats?.percentage || 0;
-                        const isOpen = expanded.has(att._id);
-                        const color  = pct>=75?"#22c55e":pct>=50?"#f59e0b":"#ef4444";
-
-                        return (
-                            <div key={att._id} className="aa-card">
-                                <div className="aa-card-row" onClick={()=>toggleExpand(att._id)}>
-                                    <div className="aa-card-left">
-                                        <div className="aa-avatar" style={{background:`linear-gradient(135deg,${color}33,${color}22)`,color}}>
-                                            {att.student?.name?.charAt(0).toUpperCase()}
-                                        </div>
-                                        <div>
-                                            <div className="aa-name">{att.student?.name}</div>
-                                            <div className="aa-meta">{att.student?.studentId} · {att.course?.name}</div>
-                                        </div>
-                                    </div>
-                                    <div className="aa-card-right">
-                                        <div className="aa-stat-chips">
-                                            {(["present","absent","late","holiday"] as AttStatus[]).map(s => (
-                                                <span key={s} className="aa-chip" style={{color:STATUS_META[s].color,background:STATUS_META[s].bg}}>
-                                                    {att.stats?.[s]||0} {s}
-                                                </span>
-                                            ))}
-                                        </div>
-                                        <div className="aa-pct-wrap">
-                                            <div className="aa-pct-bar">
-                                                <div className="aa-pct-fill" style={{width:`${pct}%`,background:color}}/>
-                                            </div>
-                                            <span className="aa-pct-val" style={{color}}>{pct}%</span>
-                                        </div>
-                                        {isOpen ? <ChevronLeft size={13} style={{color:"#475569",transform:"rotate(90deg)"}}/> : <ChevronLeft size={13} style={{color:"#475569",transform:"rotate(-90deg)"}}/>}
-                                    </div>
-                                </div>
-
-                                {isOpen && (
-                                    <div className="aa-records-wrap">
-                                        <div className="aa-records-head">
-                                            <span>Date</span><span>Status</span><span>Remark</span><span>Change</span>
-                                        </div>
-                                        {att.records?.slice().reverse().map((rec,i) => {
-                                            const sm = STATUS_META[rec.status];
-                                            const Icon = sm?.icon;
-                                            return (
-                                                <div key={i} className="aa-record-row">
-                                                    <span className="aa-rec-date">
-                                                        {new Date(rec.date).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})}
-                                                    </span>
-                                                    <span className="aa-rec-status" style={{color:sm?.color,background:sm?.bg}}>
-                                                        {Icon && <Icon size={10}/>} {sm?.label}
-                                                    </span>
-                                                    <span className="aa-rec-remark">{rec.remark||"—"}</span>
-                                                    <select className="aa-mini-select"
-                                                        value={rec.status}
-                                                        onChange={e=>patchRecord(att.enrollment?._id, rec.date, e.target.value as AttStatus)}>
-                                                        {(["present","absent","late","holiday"] as AttStatus[]).map(s=>(
-                                                            <option key={s} value={s}>{s}</option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-
-                {totalPages>1 && (
-                    <div className="aa-pag">
-                        <button className="aa-pag-btn" disabled={page===1} onClick={()=>setPage(p=>p-1)}>
-                            <ChevronLeft size={13}/> Prev
+                    <div className="att-tabs">
+                        <button className={`att-tab ${tab === "mark" ? "active" : ""}`} onClick={() => setTab("mark")}>
+                            <CalendarDays size={13} /> Mark Attendance
                         </button>
-                        <span className="aa-pag-info">Page {page} of {totalPages}</span>
-                        <button className="aa-pag-btn" disabled={page===totalPages} onClick={()=>setPage(p=>p+1)}>
-                            Next <ChevronRight size={13}/>
+                        <button className={`att-tab ${tab === "overview" ? "active" : ""}`} onClick={() => setTab("overview")}>
+                            <TrendingUp size={13} /> Overview
                         </button>
                     </div>
-                )}
-            </div>
+                </div>
 
-            {/* Add Record Modal */}
-            {modalOpen && (
-                <div className="aa-overlay" onClick={e=>e.target===e.currentTarget&&setModalOpen(false)}>
-                    <div className="aa-modal">
-                        <div className="aa-modal-head">
-                            <span className="aa-modal-title">Add Attendance Record</span>
-                            <button className="aa-modal-close" onClick={()=>setModalOpen(false)}><X size={13}/></button>
-                        </div>
-                        <div className="aa-modal-body">
-                            <div className="aa-field">
-                                <label className="aa-label">Student</label>
-                                <select className="aa-select" value={bulkForm.studentId} onChange={e=>handleStudentSelect(e.target.value)}>
-                                    <option value="">-- Student chunno --</option>
-                                    {students.map(s=><option key={s._id} value={s._id}>{s.name} ({s.studentId})</option>)}
+                {/* ═══ MARK ATTENDANCE TAB ═══ */}
+                {tab === "mark" && (
+                    <>
+                        {/* Filters */}
+                        <div className="att-filter-bar">
+                            <div className="att-field">
+                                <label className="att-label">Course</label>
+                                <select className="att-select" value={courseId} onChange={e => setCourseId(e.target.value)}>
+                                    <option value="">-- Course chunno --</option>
+                                    {courses.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
                                 </select>
                             </div>
-                            {bulkForm.studentId && (
-                                <div className="aa-field">
-                                    <label className="aa-label">Enrollment / Course</label>
-                                    <select className="aa-select" value={bulkForm.enrollmentId}
-                                        onChange={e=>{
-                                            const s=students.find(s=>s._id===bulkForm.studentId);
-                                            const enr=s?.enrollments?.find((en:any)=>en._id===e.target.value);
-                                            setBulkForm(f=>({...f,enrollmentId:e.target.value,courseId:enr?.course?._id||""}));
-                                        }}>
-                                        {students.find(s=>s._id===bulkForm.studentId)?.enrollments?.map((e:any)=>(
-                                            <option key={e._id} value={e._id}>{e.course?.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            )}
-                            <div className="aa-form-grid">
-                                <div className="aa-field">
-                                    <label className="aa-label">Date</label>
-                                    <input className="aa-input" type="date" value={bulkForm.date}
-                                        onChange={e=>setBulkForm(f=>({...f,date:e.target.value}))}/>
-                                </div>
-                                <div className="aa-field">
-                                    <label className="aa-label">Status</label>
-                                    <select className="aa-select" value={bulkForm.status}
-                                        onChange={e=>setBulkForm(f=>({...f,status:e.target.value as AttStatus}))}>
-                                        {(["present","absent","late","holiday"] as AttStatus[]).map(s=>(
-                                            <option key={s} value={s}>{STATUS_META[s].label}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-                            <div className="aa-field">
-                                <label className="aa-label">Remark (optional)</label>
-                                <input className="aa-input" placeholder="e.g. Medical leave"
-                                    value={bulkForm.remark} onChange={e=>setBulkForm(f=>({...f,remark:e.target.value}))}/>
-                            </div>
-                            <div className="aa-modal-footer">
-                                <button className="aa-ghost-btn" onClick={()=>setModalOpen(false)}>Cancel</button>
-                                <button className="aa-amber-btn" onClick={handleSaveAttendance} disabled={saving}>
-                                    {saving?"Saving...":"Save Record"}
-                                </button>
+                            <div className="att-field">
+                                <label className="att-label">Date</label>
+                                <input className="att-input" type="date" value={date}
+                                    onChange={e => setDate(e.target.value)} />
                             </div>
                         </div>
-                    </div>
-                </div>
-            )}
+
+                        {courseId && (
+                            <>
+                                {/* Summary bar */}
+                                <div className="att-summary-bar">
+                                    <div className="att-sum-chip green">{presentCount} Present</div>
+                                    <div className="att-sum-chip red">{absentCount} Absent</div>
+                                    <div className="att-sum-chip amber">{lateCount} Late</div>
+                                    <div style={{ flex: 1 }} />
+                                    <span className="att-bulk-label">Mark All:</span>
+                                    {(["present", "absent", "late", "holiday"] as AttStatus[]).map(s => (
+                                        <button key={s} className="att-bulk-btn"
+                                            style={{ color: STATUS_CFG[s].color, borderColor: STATUS_CFG[s].border, background: STATUS_CFG[s].bg }}
+                                            onClick={() => markAll(s)}>
+                                            {STATUS_CFG[s].label}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Search */}
+                                <div className="att-search-wrap">
+                                    <Search size={13} className="att-search-icon" />
+                                    <input className="att-search" placeholder="Search student..."
+                                        value={search} onChange={e => setSearch(e.target.value)} />
+                                </div>
+
+                                {/* Table */}
+                                {loading ? (
+                                    <div className="att-loading">
+                                        <div className="att-spinner" /> Loading students...
+                                    </div>
+                                ) : rows.length === 0 ? (
+                                    <div className="att-empty">
+                                        <Users size={28} style={{ opacity: .3, marginBottom: 8 }} />
+                                        <div>Is course mein koi enrolled student nahi</div>
+                                    </div>
+                                ) : (
+                                    <div className="att-table-wrap">
+                                        <div className="att-table-head">
+                                            <span>#</span>
+                                            <span>Student</span>
+                                            <span>Status</span>
+                                            <span>Remark</span>
+                                        </div>
+                                        {filtered.map((row, i) => (
+                                            <div key={row.enrollmentId} className={`att-table-row ${row.alreadyMarked ? "marked" : ""}`}>
+                                                <span className="att-row-num">{i + 1}</span>
+                                                <div className="att-row-student">
+                                                    <div className="att-avatar" style={{ background: STATUS_CFG[row.status].bg, color: STATUS_CFG[row.status].color }}>
+                                                        {row.name.charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <div>
+                                                        <div className="att-row-name">{row.name}</div>
+                                                        <div className="att-row-id">{row.studentCode}</div>
+                                                    </div>
+                                                    {row.alreadyMarked && <span className="att-marked-badge">✓ Marked</span>}
+                                                </div>
+                                                <div className="att-status-btns">
+                                                    {(["present", "absent", "late", "holiday"] as AttStatus[]).map(s => (
+                                                        <button key={s}
+                                                            className={`att-status-btn ${row.status === s ? "active" : ""}`}
+                                                            style={row.status === s
+                                                                ? { background: STATUS_CFG[s].bg, color: STATUS_CFG[s].color, borderColor: STATUS_CFG[s].border }
+                                                                : {}}
+                                                            onClick={() => setStatus(row.enrollmentId, s)}>
+                                                            {s === "present" && <CheckCircle2 size={10} />}
+                                                            {s === "absent"  && <XCircle      size={10} />}
+                                                            {s === "late"    && <Clock         size={10} />}
+                                                            {s === "holiday" && <Coffee        size={10} />}
+                                                            {STATUS_CFG[s].label}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                <input className="att-remark-input" placeholder="Remark..."
+                                                    value={row.remark}
+                                                    onChange={e => setRemark(row.enrollmentId, e.target.value)} />
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Save bar */}
+                                {rows.length > 0 && (
+                                    <div className="att-save-bar">
+                                        <span className="att-save-info">
+                                            {fmtDate(date)} · {rows.length} students · {courses.find(c => c._id === courseId)?.name}
+                                        </span>
+                                        <button className="att-save-btn" onClick={handleSave} disabled={saving}>
+                                            <Save size={13} />
+                                            {saving ? "Saving..." : "Save Attendance"}
+                                        </button>
+                                    </div>
+                                )}
+                            </>
+                        )}
+
+                        {!courseId && (
+                            <div className="att-empty">
+                                <CalendarDays size={32} style={{ opacity: .2, marginBottom: 12 }} />
+                                <div style={{ fontSize: 14, marginBottom: 4 }}>Course select karo</div>
+                                <div style={{ fontSize: 12, color: "#334155" }}>Phir date choose karo aur saare students ki attendance ek saath mark karo</div>
+                            </div>
+                        )}
+                    </>
+                )}
+
+                {/* ═══ OVERVIEW TAB ═══ */}
+                {tab === "overview" && (
+                    <>
+                        {/* KPIs */}
+                        <div className="att-kpi-row">
+                            <div className="att-kpi amber">
+                                <div className="att-kpi-label"><Users size={11} /> Total Students</div>
+                                <div className="att-kpi-val">{allDocs.length}</div>
+                            </div>
+                            <div className="att-kpi green">
+                                <div className="att-kpi-label"><TrendingUp size={11} /> Avg Attendance</div>
+                                <div className="att-kpi-val">{avgPct}%</div>
+                            </div>
+                            <div className="att-kpi red">
+                                <div className="att-kpi-label"><AlertTriangle size={11} /> Below 75%</div>
+                                <div className="att-kpi-val">{below75}</div>
+                            </div>
+                        </div>
+
+                        <div className="att-search-wrap">
+                            <Search size={13} className="att-search-icon" />
+                            <input className="att-search" placeholder="Search student..."
+                                value={ovSearch} onChange={e => { setOvSearch(e.target.value); setOvPage(1); }} />
+                        </div>
+
+                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                            {ovPaged.length === 0 ? (
+                                <div className="att-empty"><div>No records found</div></div>
+                            ) : ovPaged.map(doc => {
+                                const pct   = doc.stats?.percentage ?? 0;
+                                const color = pct >= 75 ? "#22c55e" : pct >= 50 ? "#f59e0b" : "#ef4444";
+                                return (
+                                    <div key={doc._id} className="att-ov-card">
+                                        <div className="att-ov-left">
+                                            <div className="att-avatar" style={{ background: `${color}22`, color }}>
+                                                {doc.student?.name?.charAt(0).toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <div className="att-row-name">{doc.student?.name}</div>
+                                                <div className="att-row-id">{doc.student?.studentId} · {doc.course?.name}</div>
+                                            </div>
+                                        </div>
+                                        <div className="att-ov-right">
+                                            <div className="att-chip-row">
+                                                {(["present","absent","late","holiday"] as AttStatus[]).map(s => (
+                                                    <span key={s} className="att-chip"
+                                                        style={{ color: STATUS_CFG[s].color, background: STATUS_CFG[s].bg, border: `1px solid ${STATUS_CFG[s].border}` }}>
+                                                        {doc.stats?.[s] ?? 0} {s}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                            <div className="att-pct-wrap">
+                                                <div className="att-pct-track">
+                                                    <div className="att-pct-fill" style={{ width: `${pct}%`, background: color }} />
+                                                </div>
+                                                <span style={{ color, fontSize: 12, fontWeight: 700, minWidth: 36 }}>{pct}%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {ovTotalPages > 1 && (
+                            <div className="att-pag">
+                                <button className="att-pag-btn" disabled={ovPage === 1} onClick={() => setOvPage(p => p - 1)}>
+                                    <ChevronLeft size={13} /> Prev
+                                </button>
+                                <span className="att-pag-info">Page {ovPage} of {ovTotalPages}</span>
+                                <button className="att-pag-btn" disabled={ovPage === ovTotalPages} onClick={() => setOvPage(p => p + 1)}>
+                                    Next <ChevronRight size={13} />
+                                </button>
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
         </>
     );
 }
 
-const aaStyles = `
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap');
-    .aa-root  { font-family:'Plus Jakarta Sans',sans-serif; color:#f1f5f9; display:flex; flex-direction:column; gap:16px; }
-    .aa-toast { position:fixed; top:16px; right:16px; z-index:999; padding:10px 18px; border-radius:9px; font-size:12px; font-weight:700; font-family:'Plus Jakarta Sans',sans-serif; box-shadow:0 8px 24px rgba(0,0,0,.4); }
-    .aa-toast.success { background:#166534; color:#bbf7d0; border:1px solid rgba(34,197,94,.3); }
-    .aa-toast.error   { background:#7f1d1d; color:#fecaca; border:1px solid rgba(239,68,68,.3); }
+const styles = `
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap');
 
-    .aa-header { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px; }
-    .aa-title  { font-family:'DM Serif Display',serif; font-size:1.6rem; color:#f1f5f9; font-weight:400; }
-    .aa-sub    { font-size:12px; color:#475569; margin-top:3px; }
-    .aa-add-btn { display:inline-flex; align-items:center; gap:7px; padding:9px 18px; border-radius:9px; border:none; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:700; background:linear-gradient(135deg,#f59e0b,#fbbf24); color:#1a1208; transition:opacity .15s; }
-    .aa-add-btn:hover { opacity:.88; }
+.att-root  { font-family:'Plus Jakarta Sans',sans-serif; color:#f1f5f9; display:flex; flex-direction:column; gap:16px; }
+.att-toast { position:fixed; top:16px; right:16px; z-index:999; padding:10px 18px; border-radius:9px; font-size:12px; font-weight:700; font-family:'Plus Jakarta Sans',sans-serif; box-shadow:0 8px 24px rgba(0,0,0,.5); animation:attToastIn .2s ease; }
+.att-toast.success { background:#052e16; color:#86efac; border:1px solid #166534; }
+.att-toast.error   { background:#2d0a0a; color:#fca5a5; border:1px solid #7f1d1d; }
+@keyframes attToastIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
 
-    .aa-kpi-row { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
-    @media(max-width:600px){ .aa-kpi-row { grid-template-columns:1fr 1fr; } }
-    .aa-kpi { background:#1a1a1a; border:1px solid #2a2a2a; border-radius:10px; padding:14px 16px; }
-    .aa-kpi.amber { border-left:3px solid #f59e0b; }
-    .aa-kpi.green { border-left:3px solid #22c55e; }
-    .aa-kpi.red   { border-left:3px solid #ef4444; }
-    .aa-kpi-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#475569; margin-bottom:6px; }
-    .aa-kpi-val   { font-family:'DM Serif Display',serif; font-size:1.3rem; color:#f1f5f9; }
+.att-header { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+.att-title  { font-family:'DM Serif Display',serif; font-size:1.6rem; color:#f1f5f9; font-weight:400; }
+.att-sub    { font-size:12px; color:#475569; margin-top:3px; }
 
-    .aa-search-wrap { position:relative; max-width:320px; }
-    .aa-search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#475569; pointer-events:none; }
-    .aa-search { font-family:'Plus Jakarta Sans',sans-serif; width:100%; padding:9px 12px 9px 32px; background:#1a1a1a; border:1px solid #2a2a2a; border-radius:9px; color:#f1f5f9; font-size:13px; outline:none; transition:border-color .15s; }
-    .aa-search:focus { border-color:#f59e0b; }
-    .aa-search::placeholder { color:#475569; }
+.att-tabs { display:flex; gap:4px; background:#111; border:1px solid #222; border-radius:10px; padding:4px; }
+.att-tab  { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:7px; border:none; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; font-size:12px; font-weight:600; color:#475569; background:transparent; transition:all .15s; }
+.att-tab.active { background:#1a1a1a; color:#f1f5f9; border:1px solid #2a2a2a; }
+.att-tab:hover:not(.active) { color:#94a3b8; }
 
-    .aa-card { background:#1a1a1a; border:1px solid #2a2a2a; border-radius:12px; overflow:hidden; }
-    .aa-card-row { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; cursor:pointer; gap:12px; flex-wrap:wrap; transition:background .13s; }
-    .aa-card-row:hover { background:rgba(245,158,11,.03); }
-    .aa-card-left { display:flex; align-items:center; gap:12px; }
-    .aa-avatar { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; flex-shrink:0; }
-    .aa-name { font-size:13px; font-weight:700; color:#f1f5f9; }
-    .aa-meta { font-size:11px; color:#475569; margin-top:1px; }
-    .aa-card-right { display:flex; align-items:center; gap:12px; flex-wrap:wrap; justify-content:flex-end; }
-    .aa-stat-chips { display:flex; gap:5px; flex-wrap:wrap; }
-    .aa-chip { font-size:10px; font-weight:700; padding:2px 8px; border-radius:100px; }
-    .aa-pct-wrap { display:flex; align-items:center; gap:6px; }
-    .aa-pct-bar  { width:60px; height:4px; background:#222; border-radius:100px; overflow:hidden; }
-    .aa-pct-fill { height:100%; border-radius:100px; transition:width .4s; }
-    .aa-pct-val  { font-size:11px; font-weight:700; }
+.att-filter-bar { display:flex; gap:12px; flex-wrap:wrap; background:#1a1a1a; border:1px solid #2a2a2a; border-radius:12px; padding:16px; }
+.att-field  { display:flex; flex-direction:column; gap:5px; flex:1; min-width:180px; }
+.att-label  { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#475569; }
+.att-select, .att-input { font-family:'Plus Jakarta Sans',sans-serif; padding:9px 12px; font-size:13px; background:#111; border:1px solid #2a2a2a; border-radius:8px; color:#f1f5f9; outline:none; transition:border-color .15s; width:100%; }
+.att-select:focus,.att-input:focus { border-color:#f59e0b; }
+.att-select option { background:#1a1a1a; }
 
-    .aa-records-wrap { border-top:1px solid #222; }
-    .aa-records-head { display:grid; grid-template-columns:1fr 1fr 1fr 80px; gap:8px; padding:9px 18px; background:#1f1f1f; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:#334155; }
-    .aa-record-row { display:grid; grid-template-columns:1fr 1fr 1fr 80px; gap:8px; padding:10px 18px; border-top:1px solid #1a1a1a; align-items:center; transition:background .12s; }
-    .aa-record-row:hover { background:rgba(245,158,11,.02); }
-    .aa-rec-date   { font-size:11px; color:#64748b; }
-    .aa-rec-status { display:inline-flex; align-items:center; gap:4px; font-size:10px; font-weight:700; padding:2px 9px; border-radius:100px; }
-    .aa-rec-remark { font-size:11px; color:#475569; }
-    .aa-mini-select { font-family:'Plus Jakarta Sans',sans-serif; font-size:10px; font-weight:600; padding:3px 7px; background:#111; border:1px solid #2a2a2a; border-radius:6px; color:#94a3b8; outline:none; cursor:pointer; }
-    .aa-mini-select:focus { border-color:#f59e0b; }
+.att-summary-bar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.att-sum-chip { font-size:11px; font-weight:700; padding:4px 12px; border-radius:100px; }
+.att-sum-chip.green  { background:rgba(34,197,94,.1);  color:#22c55e; border:1px solid #166534; }
+.att-sum-chip.red    { background:rgba(239,68,68,.1);  color:#ef4444; border:1px solid #7f1d1d; }
+.att-sum-chip.amber  { background:rgba(245,158,11,.1); color:#f59e0b; border:1px solid #78350f; }
+.att-bulk-label { font-size:11px; color:#475569; font-weight:600; }
+.att-bulk-btn { font-family:'Plus Jakarta Sans',sans-serif; font-size:10px; font-weight:700; padding:4px 11px; border-radius:7px; border:1px solid; cursor:pointer; transition:opacity .13s; }
+.att-bulk-btn:hover { opacity:.8; }
 
-    .aa-empty { background:#1a1a1a; border:1px dashed #2a2a2a; border-radius:12px; padding:48px; text-align:center; color:#475569; font-size:13px; display:flex; flex-direction:column; align-items:center; }
+.att-search-wrap { position:relative; max-width:300px; }
+.att-search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#475569; pointer-events:none; }
+.att-search { font-family:'Plus Jakarta Sans',sans-serif; width:100%; padding:9px 12px 9px 32px; background:#1a1a1a; border:1px solid #2a2a2a; border-radius:9px; color:#f1f5f9; font-size:13px; outline:none; }
+.att-search:focus { border-color:#f59e0b; }
+.att-search::placeholder { color:#475569; }
 
-    .aa-pag     { display:flex; align-items:center; justify-content:center; gap:10px; }
-    .aa-pag-btn { display:flex; align-items:center; gap:4px; padding:6px 14px; border-radius:8px; border:1px solid #2a2a2a; background:#1a1a1a; color:#94a3b8; font-size:12px; font-weight:500; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all .14s; }
-    .aa-pag-btn:hover:not(:disabled) { border-color:#f59e0b; color:#f59e0b; }
-    .aa-pag-btn:disabled { opacity:.35; cursor:not-allowed; }
-    .aa-pag-info { font-size:12px; color:#475569; }
+.att-table-wrap { background:#1a1a1a; border:1px solid #2a2a2a; border-radius:12px; overflow:hidden; }
+.att-table-head { display:grid; grid-template-columns:40px 1fr 1fr 1fr; gap:12px; padding:10px 16px; background:#1f1f1f; border-bottom:1px solid #222; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:#334155; }
+.att-table-row  { display:grid; grid-template-columns:40px 1fr 1fr 1fr; gap:12px; padding:12px 16px; border-top:1px solid #1f1f1f; align-items:center; transition:background .12s; }
+.att-table-row:hover  { background:rgba(245,158,11,.02); }
+.att-table-row.marked { background:rgba(34,197,94,.02); }
+@media(max-width:700px) {
+    .att-table-head { grid-template-columns:32px 1fr; }
+    .att-table-row  { grid-template-columns:32px 1fr; row-gap:8px; }
+    .att-status-btns,.att-remark-input { grid-column:2; }
+}
 
-    .aa-overlay { position:fixed; inset:0; background:rgba(0,0,0,.72); backdrop-filter:blur(4px); z-index:60; display:flex; align-items:center; justify-content:center; padding:20px; }
-    .aa-modal   { background:#1a1a1a; border:1px solid #2a2a2a; border-radius:14px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; box-shadow:0 24px 60px rgba(0,0,0,.6); animation:aaIn .18s ease; }
-    @keyframes aaIn { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
-    .aa-modal-head   { display:flex; align-items:center; justify-content:space-between; padding:15px 18px; border-bottom:1px solid #2a2a2a; position:sticky; top:0; background:#1a1a1a; }
-    .aa-modal-title  { font-family:'DM Serif Display',serif; font-size:1.05rem; color:#f1f5f9; }
-    .aa-modal-close  { width:26px; height:26px; border-radius:7px; border:1px solid #2a2a2a; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#64748b; }
-    .aa-modal-close:hover { background:#222; color:#f1f5f9; }
-    .aa-modal-body   { padding:18px; display:flex; flex-direction:column; gap:12px; }
-    .aa-modal-footer { display:flex; justify-content:flex-end; gap:8px; }
-    .aa-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    .aa-field  { display:flex; flex-direction:column; gap:5px; }
-    .aa-label  { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#475569; }
-    .aa-input, .aa-select { font-family:'Plus Jakarta Sans',sans-serif; padding:9px 12px; font-size:13px; background:#111; border:1px solid #2a2a2a; border-radius:8px; color:#f1f5f9; outline:none; transition:border-color .15s; width:100%; }
-    .aa-input:focus,.aa-select:focus { border-color:#f59e0b; }
-    .aa-input::placeholder { color:#334155; }
-    .aa-select option { background:#1a1a1a; }
-    .aa-amber-btn { padding:9px 18px; border-radius:8px; border:none; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; font-size:12px; font-weight:700; background:linear-gradient(135deg,#f59e0b,#fbbf24); color:#1a1208; }
-    .aa-amber-btn:disabled { opacity:.5; cursor:not-allowed; }
-    .aa-ghost-btn { padding:9px 16px; border-radius:8px; border:1px solid #2a2a2a; background:transparent; color:#64748b; font-size:12px; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; }
+.att-row-num  { font-size:10px; color:#334155; font-weight:600; text-align:center; }
+.att-row-student { display:flex; align-items:center; gap:9px; }
+.att-avatar   { width:32px; height:32px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; }
+.att-row-name { font-size:12.5px; color:#e2e8f0; font-weight:600; }
+.att-row-id   { font-size:10px; color:#475569; margin-top:1px; }
+.att-marked-badge { font-size:9px; font-weight:700; padding:2px 7px; border-radius:100px; background:rgba(34,197,94,.1); color:#22c55e; border:1px solid #166534; margin-left:6px; }
+
+.att-status-btns { display:flex; gap:5px; flex-wrap:wrap; }
+.att-status-btn { display:inline-flex; align-items:center; gap:4px; font-family:'Plus Jakarta Sans',sans-serif; font-size:10px; font-weight:700; padding:5px 10px; border-radius:7px; border:1px solid #2a2a2a; background:#111; color:#475569; cursor:pointer; transition:all .13s; }
+.att-status-btn.active { }
+.att-status-btn:hover:not(.active) { border-color:#3a3a3a; color:#94a3b8; }
+
+.att-remark-input { font-family:'Plus Jakarta Sans',sans-serif; font-size:12px; padding:7px 10px; background:#111; border:1px solid #2a2a2a; border-radius:7px; color:#94a3b8; outline:none; width:100%; }
+.att-remark-input:focus { border-color:#f59e0b; }
+.att-remark-input::placeholder { color:#334155; }
+
+.att-save-bar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; background:#1a1a1a; border:1px solid #2a2a2a; border-radius:12px; padding:14px 18px; position:sticky; bottom:0; }
+.att-save-info { font-size:12px; color:#64748b; }
+.att-save-btn  { display:inline-flex; align-items:center; gap:7px; padding:10px 22px; border-radius:9px; border:none; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:700; background:linear-gradient(135deg,#f59e0b,#fbbf24); color:#1a1208; transition:opacity .15s; }
+.att-save-btn:hover    { opacity:.88; }
+.att-save-btn:disabled { opacity:.5; cursor:not-allowed; }
+
+.att-kpi-row { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+@media(max-width:600px){ .att-kpi-row { grid-template-columns:1fr 1fr; } }
+.att-kpi       { background:#1a1a1a; border:1px solid #2a2a2a; border-radius:10px; padding:14px 16px; }
+.att-kpi.amber { border-left:3px solid #f59e0b; }
+.att-kpi.green { border-left:3px solid #22c55e; }
+.att-kpi.red   { border-left:3px solid #ef4444; }
+.att-kpi-label { display:flex; align-items:center; gap:5px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#475569; margin-bottom:6px; }
+.att-kpi-val   { font-family:'DM Serif Display',serif; font-size:1.3rem; color:#f1f5f9; }
+
+.att-ov-card { background:#1a1a1a; border:1px solid #2a2a2a; border-radius:12px; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; transition:border-color .13s; }
+.att-ov-card:hover { border-color:#2e2e2e; }
+.att-ov-left  { display:flex; align-items:center; gap:10px; }
+.att-ov-right { display:flex; flex-direction:column; gap:7px; align-items:flex-end; }
+.att-chip-row { display:flex; gap:5px; flex-wrap:wrap; justify-content:flex-end; }
+.att-chip     { font-size:10px; font-weight:700; padding:2px 9px; border-radius:100px; }
+.att-pct-wrap  { display:flex; align-items:center; gap:8px; }
+.att-pct-track { width:80px; height:4px; background:#222; border-radius:100px; overflow:hidden; }
+.att-pct-fill  { height:100%; border-radius:100px; transition:width .4s; }
+
+.att-pag     { display:flex; align-items:center; justify-content:center; gap:10px; }
+.att-pag-btn { display:flex; align-items:center; gap:4px; padding:6px 14px; border-radius:8px; border:1px solid #2a2a2a; background:#1a1a1a; color:#94a3b8; font-size:12px; font-weight:500; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all .14s; }
+.att-pag-btn:hover:not(:disabled) { border-color:#f59e0b; color:#f59e0b; }
+.att-pag-btn:disabled { opacity:.35; cursor:not-allowed; }
+.att-pag-info { font-size:12px; color:#475569; }
+
+.att-loading { display:flex; align-items:center; gap:10px; padding:32px; color:#475569; font-size:13px; }
+.att-spinner { width:18px; height:18px; border:2px solid #2a2a2a; border-top-color:#f59e0b; border-radius:50%; animation:attSpin .7s linear infinite; }
+@keyframes attSpin { to { transform:rotate(360deg); } }
+
+.att-empty { background:#1a1a1a; border:1px dashed #2a2a2a; border-radius:12px; padding:48px; text-align:center; color:#475569; font-size:13px; display:flex; flex-direction:column; align-items:center; }
 `;

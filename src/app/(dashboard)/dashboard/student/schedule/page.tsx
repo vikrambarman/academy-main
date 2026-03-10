@@ -1,506 +1,321 @@
-// app/dashboard/student/schedule/page.tsx
+// FILE: app/dashboard/student/timetable/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
-import { Clock, BookOpen, MapPin, User, CalendarDays, Info } from "lucide-react";
+import { Clock, BookOpen, User, MapPin, CalendarDays } from "lucide-react";
 
-/* ─── Types ─────────────────────────────────────── */
 type WeekDay = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday";
 
 interface Slot {
-    day: WeekDay; startTime: string; endTime: string;
-    subject: string; teacher?: string; room?: string;
+    day: WeekDay;
+    startTime: string;
+    endTime: string;
+    subject: string;
+    teacher?: string;
+    room?: string;
 }
 
-interface TimetableDoc {
+interface Timetable {
     _id: string;
-    course: { name?: string; authority?: string; duration?: string; };
+    course: { name: string; authority?: string };
     slots: Slot[];
     validFrom: string;
     validTo?: string;
-    isActive: boolean;
 }
 
-/* ─── Constants ──────────────────────────────────── */
-const DAYS: WeekDay[] = ["monday","tuesday","wednesday","thursday","friday","saturday"];
-
-const DAY_LABELS: Record<WeekDay, { short: string; full: string }> = {
-    monday:    { short: "Mon", full: "Monday"    },
-    tuesday:   { short: "Tue", full: "Tuesday"   },
-    wednesday: { short: "Wed", full: "Wednesday" },
-    thursday:  { short: "Thu", full: "Thursday"  },
-    friday:    { short: "Fri", full: "Friday"    },
-    saturday:  { short: "Sat", full: "Saturday"  },
-};
-
-// Distinct colors per subject slot (cycles)
-const SLOT_COLORS = [
-    { bg: "#eff6ff", color: "#1d4ed8", border: "#bfdbfe" },
-    { bg: "#f0fdf4", color: "#15803d", border: "#bbf7d0" },
-    { bg: "#fffbeb", color: "#92400e", border: "#fde68a" },
-    { bg: "#f5f3ff", color: "#5b21b6", border: "#ddd6fe" },
-    { bg: "#fef2f2", color: "#991b1b", border: "#fecaca" },
-    { bg: "#f0fdfa", color: "#0f766e", border: "#99f6e4" },
+const DAYS: { key: WeekDay; label: string; short: string }[] = [
+    { key: "monday",    label: "Monday",    short: "Mon" },
+    { key: "tuesday",   label: "Tuesday",   short: "Tue" },
+    { key: "wednesday", label: "Wednesday", short: "Wed" },
+    { key: "thursday",  label: "Thursday",  short: "Thu" },
+    { key: "friday",    label: "Friday",    short: "Fri" },
+    { key: "saturday",  label: "Saturday",  short: "Sat" },
 ];
 
-function getSlotColor(idx: number) { return SLOT_COLORS[idx % SLOT_COLORS.length]; }
+const TODAY_KEY = DAYS[new Date().getDay() === 0 ? 0 : new Date().getDay() - 1]?.key ?? "monday";
 
-function getTodayDay(): WeekDay {
-    const days: (WeekDay | null)[] = [null,"monday","tuesday","wednesday","thursday","friday","saturday"];
-    return days[new Date().getDay()] ?? "monday";
-}
+const DAY_COLORS: Record<WeekDay, { accent: string; light: string; border: string; text: string }> = {
+    monday:    { accent: "#f59e0b", light: "#fefce8", border: "#fde68a", text: "#92400e" },
+    tuesday:   { accent: "#22c55e", light: "#f0fdf4", border: "#bbf7d0", text: "#14532d" },
+    wednesday: { accent: "#3b82f6", light: "#eff6ff", border: "#bfdbfe", text: "#1e3a8a" },
+    thursday:  { accent: "#a855f7", light: "#fdf4ff", border: "#e9d5ff", text: "#581c87" },
+    friday:    { accent: "#f97316", light: "#fff7ed", border: "#fed7aa", text: "#7c2d12" },
+    saturday:  { accent: "#f43f5e", light: "#fff1f2", border: "#fecdd3", text: "#881337" },
+};
 
 function fmtTime(t: string) {
     const [h, m] = t.split(":").map(Number);
     const ampm = h >= 12 ? "PM" : "AM";
-    const h12  = h % 12 || 12;
-    return `${h12}:${String(m).padStart(2,"0")} ${ampm}`;
+    return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${ampm}`;
 }
 
-function isCurrentSlot(start: string, end: string): boolean {
-    const now  = new Date();
-    const mins = now.getHours() * 60 + now.getMinutes();
-    const [sh, sm] = start.split(":").map(Number);
-    const [eh, em] = end.split(":").map(Number);
-    return mins >= sh * 60 + sm && mins <= eh * 60 + em;
+function fmtDate(iso: string) {
+    return new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 }
 
-/* ══════════════════════════════════════════════════
-   MAIN
-══════════════════════════════════════════════════ */
-export default function StudentSchedule() {
-    const [timetables, setTimetables] = useState<TimetableDoc[]>([]);
-    const [loading,    setLoading]    = useState(true);
-    const [activeDoc,  setActiveDoc]  = useState<string | null>(null);
-    const [activeDay,  setActiveDay]  = useState<WeekDay>(getTodayDay());
-    const [viewMode,   setViewMode]   = useState<"day" | "week">("day");
+export default function StudentTimetablePage() {
+    const [timetables, setTimetables] = useState<Timetable[]>([]);
+    const [loading, setLoading]       = useState(true);
+    const [activeTab, setActiveTab]   = useState(0);
+    const [activeDay, setActiveDay]   = useState<WeekDay>(TODAY_KEY);
 
     useEffect(() => {
         fetchWithAuth("/api/student/timetable")
             .then(r => r.json())
-            .then(d => {
-                const list = d.timetables ?? [];
-                setTimetables(list);
-                if (list.length > 0) setActiveDoc(list[0]._id);
-            })
-            .catch(() => {})
+            .then(d => setTimetables(d.timetables || []))
+            .catch(console.error)
             .finally(() => setLoading(false));
     }, []);
 
-    const activeTT  = timetables.find(t => t._id === activeDoc);
-    const today     = getTodayDay();
-
-    /* slots for active day */
-    const daySlots = activeTT?.slots
-        .filter(s => s.day === activeDay)
-        .sort((a, b) => a.startTime.localeCompare(b.startTime)) ?? [];
-
-    /* all subjects for color mapping */
-    const subjectColorMap: Record<string, typeof SLOT_COLORS[0]> = {};
-    activeTT?.slots.forEach((s, i) => {
-        const subjects = [...new Set(activeTT.slots.map(sl => sl.subject))];
-        if (!subjectColorMap[s.subject])
-            subjectColorMap[s.subject] = getSlotColor(subjects.indexOf(s.subject));
-    });
-
     if (loading) return (
-        <div style={{ padding: "48px 0", display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
-            <div style={{ width: 36, height: 36, border: "3px solid #dbeafe", borderTopColor: "#2563eb", borderRadius: "50%", animation: "spSpin 0.7s linear infinite" }} />
-            <style>{`@keyframes spSpin{to{transform:rotate(360deg)}}`}</style>
-            <span style={{ fontSize: 13, color: "#64748b", fontFamily: "'Plus Jakarta Sans',sans-serif" }}>Loading schedule…</span>
+        <div className="st-loader">
+            <div className="st-spinner"/>
+            <span>Timetable load ho raha hai...</span>
         </div>
     );
 
+    if (!timetables.length) return (
+        <div className="st-empty">
+            <CalendarDays size={40} style={{ opacity: .15, marginBottom: 12 }}/>
+            <div className="st-empty-title">Koi timetable nahi mila</div>
+            <div className="st-empty-sub">Admin ne abhi timetable assign nahi kiya hai</div>
+        </div>
+    );
+
+    const tt       = timetables[activeTab];
+    const daySlots = tt.slots.filter(s => s.day === activeDay)
+        .sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+    const daysWithSlots = new Set(tt.slots.map(s => s.day));
+
     return (
         <>
-            <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap');
+            <style>{styles}</style>
+            <div className="st-root">
 
-                .ss-root * { box-sizing: border-box; }
-                .ss-root { font-family: 'Plus Jakarta Sans', sans-serif; color: #0f172a; }
-
-                .ss-page-title {
-                    font-family: 'DM Serif Display', serif; font-size: 1.4rem; color: #0f172a;
-                    display: flex; align-items: center; gap: 10px; margin-bottom: 4px;
-                }
-                .ss-page-sub { font-size: 13px; color: #64748b; font-weight: 300; margin-bottom: 22px; }
-
-                /* ── Top bar ── */
-                .ss-topbar {
-                    display: flex; align-items: center; justify-content: space-between;
-                    flex-wrap: wrap; gap: 10px; margin-bottom: 18px;
-                }
-
-                /* course tabs */
-                .ss-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
-
-                .ss-tab {
-                    font-family: 'Plus Jakarta Sans', sans-serif;
-                    font-size: 12px; font-weight: 600;
-                    padding: 7px 14px; border-radius: 9px; cursor: pointer;
-                    border: 1px solid #e0effe; background: #fff; color: #64748b;
-                    transition: all 0.15s;
-                }
-                .ss-tab:hover  { background: #f0f9ff; border-color: #bfdbfe; color: #2563eb; }
-                .ss-tab.active { background: #2563eb; border-color: #2563eb; color: #fff; }
-
-                /* view toggle */
-                .ss-view-toggle {
-                    display: flex; gap: 0;
-                    background: #f1f5f9; border-radius: 9px; padding: 3px;
-                }
-
-                .ss-view-btn {
-                    font-family: 'Plus Jakarta Sans', sans-serif;
-                    font-size: 11px; font-weight: 600;
-                    padding: 5px 12px; border-radius: 7px; cursor: pointer;
-                    border: none; background: transparent; color: #64748b;
-                    transition: all 0.15s;
-                }
-                .ss-view-btn.active { background: #fff; color: #0f172a; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-
-                /* ── Day selector ── */
-                .ss-days {
-                    display: grid; grid-template-columns: repeat(6,1fr);
-                    gap: 6px; margin-bottom: 18px;
-                }
-
-                .ss-day-btn {
-                    font-family: 'Plus Jakarta Sans', sans-serif;
-                    display: flex; flex-direction: column; align-items: center; gap: 3px;
-                    padding: 10px 6px; border-radius: 11px; cursor: pointer;
-                    border: 1px solid #e0effe; background: #fff;
-                    transition: all 0.15s;
-                }
-
-                .ss-day-btn:hover { background: #f0f9ff; border-color: #bfdbfe; }
-
-                .ss-day-btn.active {
-                    background: #2563eb; border-color: #2563eb;
-                }
-
-                .ss-day-short {
-                    font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
-                    text-transform: uppercase; color: #94a3b8;
-                }
-
-                .ss-day-btn.active .ss-day-short { color: rgba(255,255,255,0.65); }
-
-                .ss-day-count {
-                    font-family: 'DM Serif Display', serif;
-                    font-size: 1rem; color: #0f172a;
-                }
-
-                .ss-day-btn.active .ss-day-count { color: #fff; }
-
-                .ss-day-today-dot {
-                    width: 5px; height: 5px; border-radius: 50%; background: #2563eb;
-                }
-                .ss-day-btn.active .ss-day-today-dot { background: rgba(255,255,255,0.7); }
-
-                /* ── Slot cards (day view) ── */
-                .ss-slots { display: flex; flex-direction: column; gap: 10px; }
-
-                .ss-slot-card {
-                    display: flex; gap: 0;
-                    border: 1px solid #e0effe; border-radius: 13px; overflow: hidden;
-                    transition: box-shadow 0.18s, transform 0.15s;
-                }
-
-                .ss-slot-card:hover { box-shadow: 0 4px 16px rgba(37,99,235,0.09); transform: translateY(-1px); }
-
-                .ss-slot-card.current { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
-
-                .ss-slot-time {
-                    width: 76px; flex-shrink: 0; padding: 14px 12px;
-                    display: flex; flex-direction: column; align-items: center;
-                    justify-content: center; gap: 3px; border-right: 1px solid #e0effe;
-                    background: #f8fbff;
-                }
-
-                .ss-slot-time-start { font-size: 13px; font-weight: 700; color: #0f172a; }
-                .ss-slot-time-sep   { width: 1px; height: 12px; background: #e0effe; }
-                .ss-slot-time-end   { font-size: 11px; font-weight: 500; color: #94a3b8; }
-
-                .ss-slot-body {
-                    flex: 1; padding: 14px 16px;
-                    display: flex; align-items: center; justify-content: space-between;
-                    gap: 12px; background: #fff;
-                }
-
-                .ss-slot-subject { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
-
-                .ss-slot-meta { display: flex; gap: 12px; flex-wrap: wrap; }
-
-                .ss-slot-meta-item {
-                    display: flex; align-items: center; gap: 4px;
-                    font-size: 11px; color: #64748b; font-weight: 400;
-                }
-
-                .ss-slot-accent {
-                    width: 4px; align-self: stretch; flex-shrink: 0; border-radius: 0 4px 4px 0;
-                }
-
-                .ss-now-badge {
-                    display: inline-flex; align-items: center; gap: 4px;
-                    font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
-                    text-transform: uppercase; background: #2563eb; color: #fff;
-                    padding: 3px 8px; border-radius: 100px;
-                    animation: ssPulse 2s ease-in-out infinite; flex-shrink: 0;
-                }
-
-                @keyframes ssPulse { 0%,100%{opacity:1} 50%{opacity:0.65} }
-
-                /* ── Week grid ── */
-                .ss-week-grid {
-                    display: grid;
-                    grid-template-columns: repeat(6,1fr);
-                    gap: 8px;
-                }
-
-                .ss-week-col {}
-
-                .ss-week-day-header {
-                    font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
-                    text-transform: uppercase; text-align: center;
-                    padding: 8px 4px; margin-bottom: 8px;
-                    border-radius: 8px;
-                    color: #64748b; background: #f8fafc;
-                }
-
-                .ss-week-day-header.today { background: #eff6ff; color: #2563eb; }
-
-                .ss-week-slot {
-                    border-radius: 9px; padding: 10px 10px;
-                    margin-bottom: 6px; border: 1px solid transparent;
-                    transition: box-shadow 0.15s;
-                }
-
-                .ss-week-slot:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
-
-                .ss-week-slot-subject { font-size: 11px; font-weight: 700; color: #0f172a; margin-bottom: 3px; }
-                .ss-week-slot-time    { font-size: 9px; color: #64748b; display: flex; align-items: center; gap: 3px; }
-
-                .ss-week-empty {
-                    font-size: 11px; color: #e2e8f0; text-align: center; padding: 12px 0;
-                }
-
-                /* ── No schedule ── */
-                .ss-empty {
-                    background: #fff; border: 1px solid #e0effe; border-radius: 14px;
-                    padding: 48px 24px; text-align: center;
-                }
-                .ss-empty-icon { width: 48px; height: 48px; background: #eff6ff; border-radius: 13px; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; color: #2563eb; }
-                .ss-empty-title { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 5px; }
-                .ss-empty-sub   { font-size: 12px; color: #94a3b8; }
-
-                /* ── Info note ── */
-                .ss-info-note {
-                    display: flex; gap: 9px; align-items: flex-start;
-                    background: #f8fbff; border: 1px solid #e0effe; border-radius: 10px;
-                    padding: 11px 14px; font-size: 12px; font-weight: 300;
-                    color: #475569; line-height: 1.65; margin-bottom: 16px;
-                }
-
-                @media (max-width: 640px) {
-                    .ss-week-grid { grid-template-columns: repeat(3,1fr); }
-                    .ss-days      { grid-template-columns: repeat(3,1fr); }
-                }
-            `}</style>
-
-            <div className="ss-root">
-
-                {/* Header */}
-                <div className="ss-page-title">
-                    <CalendarDays size={22} style={{ color: "#2563eb" }} />
-                    Class Schedule
+                {/* Page header */}
+                <div>
+                    <h1 className="st-title">My Timetable</h1>
+                    <p className="st-sub">Apna weekly class schedule dekho</p>
                 </div>
-                <div className="ss-page-sub">Your weekly timetable for all enrolled courses.</div>
 
-                {timetables.length === 0 ? (
-                    <div className="ss-empty">
-                        <div className="ss-empty-icon"><CalendarDays size={22} /></div>
-                        <div className="ss-empty-title">No schedule assigned yet</div>
-                        <div className="ss-empty-sub">Your class schedule will appear here once the academy creates it.</div>
+                {/* Course tabs — multiple timetables */}
+                {timetables.length > 1 && (
+                    <div className="st-course-tabs">
+                        {timetables.map((t, i) => (
+                            <button key={t._id}
+                                className={`st-course-tab ${activeTab === i ? "active" : ""}`}
+                                onClick={() => { setActiveTab(i); setActiveDay(TODAY_KEY); }}>
+                                {t.course?.name}
+                            </button>
+                        ))}
+                    </div>
+                )}
+
+                {/* Course info bar */}
+                <div className="st-info-bar">
+                    <div className="st-info-course">
+                        <BookOpen size={14} color="#2563eb"/>
+                        <span>{tt.course?.name}</span>
+                    </div>
+                    <div className="st-info-dates">
+                        <CalendarDays size={12} color="#94a3b8"/>
+                        <span>Valid: {fmtDate(tt.validFrom)}{tt.validTo ? ` → ${fmtDate(tt.validTo)}` : " (ongoing)"}</span>
+                    </div>
+                </div>
+
+                {/* Day selector */}
+                <div className="st-day-row">
+                    {DAYS.map(d => {
+                        const hasSlots = daysWithSlots.has(d.key);
+                        const col      = DAY_COLORS[d.key];
+                        const isActive = activeDay === d.key;
+                        const isToday  = d.key === TODAY_KEY;
+                        return (
+                            <button key={d.key}
+                                className={`st-day-btn ${isActive ? "active" : ""} ${!hasSlots ? "empty" : ""}`}
+                                style={isActive ? { background: col.light, borderColor: col.accent, color: col.text } : {}}
+                                onClick={() => setActiveDay(d.key)}>
+                                <span className="st-day-short">{d.short}</span>
+                                {isToday && <span className="st-today-dot" style={{ background: isActive ? col.accent : "#2563eb" }}/>}
+                                {hasSlots && (
+                                    <span className="st-day-count"
+                                        style={{ background: isActive ? col.accent : "#e2e8f0", color: isActive ? "#fff" : "#475569" }}>
+                                        {tt.slots.filter(s => s.day === d.key).length}
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* Day label */}
+                <div className="st-day-label" style={{ color: DAY_COLORS[activeDay].accent }}>
+                    {DAYS.find(d => d.key === activeDay)?.label}
+                    {activeDay === TODAY_KEY && <span className="st-today-tag">Today</span>}
+                </div>
+
+                {/* Slots */}
+                {daySlots.length === 0 ? (
+                    <div className="st-no-slots">
+                        <Clock size={20} style={{ opacity: .3 }}/>
+                        Is din koi class nahi hai
                     </div>
                 ) : (
-                    <>
-                        {/* Topbar */}
-                        <div className="ss-topbar">
-                            {timetables.length > 1 && (
-                                <div className="ss-tabs">
-                                    {timetables.map(t => (
-                                        <button
-                                            key={t._id}
-                                            className={`ss-tab ${activeDoc === t._id ? "active" : ""}`}
-                                            onClick={() => setActiveDoc(t._id)}
-                                        >
-                                            {t.course?.name ?? "Course"}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                            <div className="ss-view-toggle">
-                                {(["day","week"] as const).map(v => (
-                                    <button
-                                        key={v}
-                                        className={`ss-view-btn ${viewMode === v ? "active" : ""}`}
-                                        onClick={() => setViewMode(v)}
-                                    >
-                                        {v === "day" ? "Day View" : "Week View"}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {activeTT && (
-                            <>
-                                {/* Info note */}
-                                <div className="ss-info-note">
-                                    <Info size={14} style={{ flexShrink: 0, marginTop: 1, color: "#2563eb" }} />
-                                    Schedule for <strong>{activeTT.course?.name}</strong>.
-                                    Valid from {new Date(activeTT.validFrom).toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" })}
-                                    {activeTT.validTo ? ` to ${new Date(activeTT.validTo).toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" })}` : " (ongoing)"}.
-                                </div>
-
-                                {viewMode === "day" ? (
-                                    <>
-                                        {/* Day selector */}
-                                        <div className="ss-days">
-                                            {DAYS.map(day => {
-                                                const count   = activeTT.slots.filter(s => s.day === day).length;
-                                                const isToday = day === today;
-                                                return (
-                                                    <button
-                                                        key={day}
-                                                        className={`ss-day-btn ${activeDay === day ? "active" : ""}`}
-                                                        onClick={() => setActiveDay(day)}
-                                                    >
-                                                        <span className="ss-day-short">{DAY_LABELS[day].short}</span>
-                                                        <span className="ss-day-count">{count}</span>
-                                                        {isToday && <span className="ss-day-today-dot" title="Today" />}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-
-                                        {/* Day label */}
-                                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                                            <span style={{ fontFamily: "'DM Serif Display',serif", fontSize: "1.05rem", color: "#0f172a" }}>
-                                                {DAY_LABELS[activeDay].full}
-                                            </span>
-                                            {activeDay === today && (
-                                                <span style={{ fontSize: 10, fontWeight: 700, background: "#eff6ff", color: "#2563eb", border: "1px solid #bfdbfe", padding: "2px 8px", borderRadius: 100 }}>
-                                                    Today
+                    <div className="st-slots">
+                        {daySlots.map((slot, i) => {
+                            const col = DAY_COLORS[slot.day];
+                            return (
+                                <div key={i} className="st-slot-card"
+                                    style={{ borderLeftColor: col.accent }}>
+                                    {/* Time column */}
+                                    <div className="st-slot-time">
+                                        <span className="st-time-start" style={{ color: col.accent }}>{fmtTime(slot.startTime)}</span>
+                                        <div className="st-time-line" style={{ background: col.border }}/>
+                                        <span className="st-time-end">{fmtTime(slot.endTime)}</span>
+                                    </div>
+                                    {/* Content */}
+                                    <div className="st-slot-body">
+                                        <div className="st-slot-subject">{slot.subject}</div>
+                                        <div className="st-slot-meta">
+                                            {slot.teacher && (
+                                                <span className="st-meta-chip">
+                                                    <User size={10}/> {slot.teacher}
                                                 </span>
                                             )}
-                                            <span style={{ fontSize: 11, color: "#94a3b8" }}>
-                                                {daySlots.length} {daySlots.length === 1 ? "class" : "classes"}
+                                            {slot.room && (
+                                                <span className="st-meta-chip">
+                                                    <MapPin size={10}/> {slot.room}
+                                                </span>
+                                            )}
+                                            <span className="st-meta-chip" style={{ color: col.text, background: col.light, borderColor: col.border }}>
+                                                <Clock size={10}/> {fmtTime(slot.startTime)} – {fmtTime(slot.endTime)}
                                             </span>
                                         </div>
-
-                                        {/* Slots */}
-                                        {daySlots.length === 0 ? (
-                                            <div style={{ background: "#fff", border: "1px solid #e0effe", borderRadius: 14, padding: "32px 24px", textAlign: "center" }}>
-                                                <div style={{ fontSize: 28, marginBottom: 8 }}>🎉</div>
-                                                <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", marginBottom: 4 }}>No classes today</div>
-                                                <div style={{ fontSize: 12, color: "#94a3b8" }}>Enjoy your free day!</div>
-                                            </div>
-                                        ) : (
-                                            <div className="ss-slots">
-                                                {daySlots.map((slot, i) => {
-                                                    const sc      = subjectColorMap[slot.subject] ?? getSlotColor(i);
-                                                    const current = activeDay === today && isCurrentSlot(slot.startTime, slot.endTime);
-                                                    return (
-                                                        <div key={i} className={`ss-slot-card ${current ? "current" : ""}`}>
-                                                            <div className="ss-slot-time">
-                                                                <span className="ss-slot-time-start">{fmtTime(slot.startTime)}</span>
-                                                                <div className="ss-slot-time-sep" />
-                                                                <span className="ss-slot-time-end">{fmtTime(slot.endTime)}</span>
-                                                            </div>
-                                                            <div className="ss-slot-body">
-                                                                <div>
-                                                                    <div className="ss-slot-subject">{slot.subject}</div>
-                                                                    <div className="ss-slot-meta">
-                                                                        {slot.teacher && (
-                                                                            <span className="ss-slot-meta-item">
-                                                                                <User size={10} /> {slot.teacher}
-                                                                            </span>
-                                                                        )}
-                                                                        {slot.room && (
-                                                                            <span className="ss-slot-meta-item">
-                                                                                <MapPin size={10} /> {slot.room}
-                                                                            </span>
-                                                                        )}
-                                                                        <span className="ss-slot-meta-item">
-                                                                            <Clock size={10} />
-                                                                            {(() => {
-                                                                                const [sh,sm] = slot.startTime.split(":").map(Number);
-                                                                                const [eh,em] = slot.endTime.split(":").map(Number);
-                                                                                return `${(eh*60+em)-(sh*60+sm)} min`;
-                                                                            })()}
-                                                                        </span>
-                                                                    </div>
-                                                                </div>
-                                                                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
-                                                                    <span
-                                                                        style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 700, padding: "4px 10px", borderRadius: 100, background: sc.bg, color: sc.color, border: `1px solid ${sc.border}` }}
-                                                                    >
-                                                                        <BookOpen size={9} /> {slot.subject}
-                                                                    </span>
-                                                                    {current && <span className="ss-now-badge">● Now</span>}
-                                                                </div>
-                                                            </div>
-                                                            <div className="ss-slot-accent" style={{ background: sc.color }} />
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
-                                    </>
-                                ) : (
-                                    /* Week view */
-                                    <div className="ss-week-grid">
-                                        {DAYS.map(day => {
-                                            const slots = activeTT.slots
-                                                .filter(s => s.day === day)
-                                                .sort((a,b) => a.startTime.localeCompare(b.startTime));
-                                            const isToday = day === today;
-                                            return (
-                                                <div key={day} className="ss-week-col">
-                                                    <div className={`ss-week-day-header ${isToday ? "today" : ""}`}>
-                                                        {DAY_LABELS[day].short}
-                                                        {isToday && " •"}
-                                                    </div>
-                                                    {slots.length === 0
-                                                        ? <div className="ss-week-empty">—</div>
-                                                        : slots.map((slot, i) => {
-                                                            const sc = subjectColorMap[slot.subject] ?? getSlotColor(i);
-                                                            return (
-                                                                <div
-                                                                    key={i}
-                                                                    className="ss-week-slot"
-                                                                    style={{ background: sc.bg, borderColor: sc.border }}
-                                                                >
-                                                                    <div className="ss-week-slot-subject" style={{ color: sc.color }}>{slot.subject}</div>
-                                                                    <div className="ss-week-slot-time">
-                                                                        <Clock size={8} />{fmtTime(slot.startTime)}
-                                                                    </div>
-                                                                </div>
-                                                            );
-                                                        })
-                                                    }
-                                                </div>
-                                            );
-                                        })}
                                     </div>
-                                )}
-                            </>
-                        )}
-                    </>
+                                    {/* Index bubble */}
+                                    <div className="st-slot-num" style={{ background: col.light, color: col.accent, border: `1px solid ${col.border}` }}>
+                                        {i + 1}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
                 )}
+
+                {/* Weekly overview mini grid */}
+                <div className="st-overview">
+                    <div className="st-overview-title">Weekly Overview</div>
+                    <div className="st-overview-grid">
+                        {DAYS.map(d => {
+                            const dayS = tt.slots.filter(s => s.day === d.key)
+                                .sort((a, b) => a.startTime.localeCompare(b.startTime));
+                            const col  = DAY_COLORS[d.key];
+                            return (
+                                <div key={d.key} className={`st-ov-col ${activeDay === d.key ? "st-ov-col--active" : ""}`}
+                                    onClick={() => setActiveDay(d.key)}>
+                                    <div className="st-ov-day" style={activeDay === d.key ? { color: col.accent } : {}}>
+                                        {d.short}
+                                        {d.key === TODAY_KEY && <span className="st-ov-today-dot" style={{ background: col.accent }}/>}
+                                    </div>
+                                    {dayS.length === 0 ? (
+                                        <div className="st-ov-empty">—</div>
+                                    ) : dayS.map((s, i) => (
+                                        <div key={i} className="st-ov-slot"
+                                            style={{ background: col.light, borderColor: col.border, color: col.text }}>
+                                            <div className="st-ov-slot-name">{s.subject}</div>
+                                            <div className="st-ov-slot-time">{fmtTime(s.startTime)}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
             </div>
         </>
     );
 }
+
+const styles = `
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap');
+*,*::before,*::after{box-sizing:border-box;}
+
+.st-root{font-family:'Plus Jakarta Sans',sans-serif;color:#0f172a;display:flex;flex-direction:column;gap:18px;max-width:860px;margin:0 auto;padding-bottom:48px;}
+
+.st-title{font-family:'DM Serif Display',serif;font-size:1.65rem;color:#0f172a;font-weight:400;margin:0 0 3px;}
+.st-sub{font-size:12px;color:#94a3b8;margin:0;}
+
+/* Course tabs */
+.st-course-tabs{display:flex;gap:6px;flex-wrap:wrap;}
+.st-course-tab{font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;padding:7px 16px;border-radius:100px;border:1px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .14s;}
+.st-course-tab.active{background:#eff6ff;color:#2563eb;border-color:#bfdbfe;}
+
+/* Info bar */
+.st-info-bar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:12px 16px;}
+.st-info-course{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:#0f172a;flex:1;}
+.st-info-dates{display:flex;align-items:center;gap:6px;font-size:11px;color:#94a3b8;}
+
+/* Day row */
+.st-day-row{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px;}
+.st-day-btn{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:54px;padding:10px 8px;border-radius:13px;border:1px solid #e2e8f0;background:#fff;cursor:pointer;transition:all .14s;position:relative;}
+.st-day-btn:hover:not(.active){border-color:#cbd5e1;}
+.st-day-btn.active{box-shadow:0 2px 10px rgba(0,0,0,.07);}
+.st-day-btn.empty{opacity:.45;}
+.st-day-short{font-size:11px;font-weight:700;color:inherit;}
+.st-today-dot{width:5px;height:5px;border-radius:50%;position:absolute;top:6px;right:8px;}
+.st-day-count{font-size:9px;font-weight:800;padding:1px 6px;border-radius:100px;line-height:1.5;}
+
+.st-day-label{font-family:'DM Serif Display',serif;font-size:1.15rem;font-weight:400;display:flex;align-items:center;gap:10px;}
+.st-today-tag{font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;font-weight:700;padding:2px 9px;border-radius:100px;background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;}
+
+/* Slot cards */
+.st-slots{display:flex;flex-direction:column;gap:10px;}
+.st-slot-card{background:#fff;border:1px solid #e2e8f0;border-left:3px solid;border-radius:14px;padding:16px 18px;display:flex;align-items:flex-start;gap:16px;box-shadow:0 1px 4px rgba(15,23,42,.04);transition:box-shadow .13s;}
+.st-slot-card:hover{box-shadow:0 4px 16px rgba(15,23,42,.08);}
+
+.st-slot-time{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;min-width:64px;}
+.st-time-start{font-size:12px;font-weight:700;}
+.st-time-line{width:1px;height:20px;border-radius:1px;}
+.st-time-end{font-size:11px;color:#94a3b8;font-weight:500;}
+
+.st-slot-body{flex:1;}
+.st-slot-subject{font-size:15px;font-weight:700;color:#0f172a;margin-bottom:8px;}
+.st-slot-meta{display:flex;flex-wrap:wrap;gap:6px;}
+.st-meta-chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:3px 9px;border-radius:100px;background:#f1f5f9;border:1px solid #e2e8f0;color:#475569;}
+
+.st-slot-num{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
+
+.st-no-slots{display:flex;align-items:center;justify-content:center;gap:10px;padding:40px;font-size:13px;color:#94a3b8;background:#f8fafc;border:1px dashed #e2e8f0;border-radius:14px;}
+
+/* Weekly overview */
+.st-overview{background:#fff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;}
+.st-overview-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#94a3b8;padding:12px 16px;border-bottom:1px solid #f1f5f9;background:#f8fafc;}
+.st-overview-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:0;}
+.st-ov-col{padding:10px 8px;border-right:1px solid #f1f5f9;display:flex;flex-direction:column;gap:5px;cursor:pointer;transition:background .12s;}
+.st-ov-col:last-child{border-right:none;}
+.st-ov-col:hover{background:#f8fafc;}
+.st-ov-col--active{background:#fafbff;}
+.st-ov-day{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#94a3b8;margin-bottom:3px;position:relative;display:flex;align-items:center;gap:4px;}
+.st-ov-today-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.st-ov-empty{font-size:10px;color:#cbd5e1;text-align:center;padding:4px 0;}
+.st-ov-slot{border-radius:6px;border:1px solid;padding:4px 6px;}
+.st-ov-slot-name{font-size:9px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.st-ov-slot-time{font-size:8px;opacity:.7;margin-top:1px;}
+
+/* States */
+.st-loader{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:320px;gap:12px;font-size:13px;color:#94a3b8;font-family:'Plus Jakarta Sans',sans-serif;}
+.st-spinner{width:28px;height:28px;border:3px solid #dbeafe;border-top-color:#2563eb;border-radius:50%;animation:stSpin .7s linear infinite;}
+@keyframes stSpin{to{transform:rotate(360deg)}}
+.st-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:280px;text-align:center;padding:40px;font-family:'Plus Jakarta Sans',sans-serif;}
+.st-empty-title{font-family:'DM Serif Display',serif;font-size:1.2rem;color:#0f172a;margin-bottom:6px;}
+.st-empty-sub{font-size:12px;color:#94a3b8;}
+
+@media(max-width:640px){
+    .st-overview-grid{grid-template-columns:repeat(3,1fr);}
+    .st-ov-col{border-bottom:1px solid #f1f5f9;}
+    .st-day-row{gap:5px;}
+    .st-day-btn{min-width:46px;padding:8px 6px;}
+}
+`;

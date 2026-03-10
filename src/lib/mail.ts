@@ -363,3 +363,147 @@ export const sendStudentPasswordResetEmail = async (
 
   console.log("STUDENT PASSWORD RESET EMAIL:", result);
 };
+
+
+/* ════════════════════════════════════════════════
+   5.  TIMETABLE ASSIGNED EMAIL
+════════════════════════════════════════════════ */
+export const sendTimetableEmail = async (
+  to: string,
+  data: {
+    name:       string;
+    studentId:  string;
+    courseName: string;
+    slots: {
+      day:       string;
+      startTime: string;
+      endTime:   string;
+      subject:   string;
+      teacher?:  string;
+      room?:     string;
+    }[];
+  }
+) => {
+
+  const DAY_ORDER = ["monday","tuesday","wednesday","thursday","friday","saturday"];
+  const DAY_LABEL: Record<string, string> = {
+    monday: "Monday", tuesday: "Tuesday", wednesday: "Wednesday",
+    thursday: "Thursday", friday: "Friday", saturday: "Saturday",
+  };
+  const DAY_COLOR: Record<string, string> = {
+    monday: "#f59e0b", tuesday: "#22c55e", wednesday: "#3b82f6",
+    thursday: "#a855f7", friday: "#f97316", saturday: "#f43f5e",
+  };
+
+  // Group slots by day
+  const grouped: Record<string, typeof data.slots> = {};
+  for (const s of data.slots) {
+    if (!grouped[s.day]) grouped[s.day] = [];
+    grouped[s.day].push(s);
+  }
+
+  // Sort each day's slots by startTime
+  for (const day of Object.keys(grouped)) {
+    grouped[day].sort((a, b) => a.startTime.localeCompare(b.startTime));
+  }
+
+  const orderedDays = DAY_ORDER.filter(d => grouped[d]);
+
+  // Format time: "09:00" → "9:00 AM"
+  const fmtTime = (t: string) => {
+    const [h, m] = t.split(":").map(Number);
+    return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
+  };
+
+  const slotTable = orderedDays.map(day => {
+    const color = DAY_COLOR[day] || "#64748b";
+    const slots = grouped[day];
+
+    const rows = slots.map(s => `
+      <tr>
+        <td style="padding:10px 16px;font-size:13px;color:#1a1208;font-weight:600;
+                   font-family:'Courier New',monospace;white-space:nowrap;">
+          ${fmtTime(s.startTime)} – ${fmtTime(s.endTime)}
+        </td>
+        <td style="padding:10px 16px;font-size:13px;font-weight:700;color:#0f172a;">
+          ${s.subject}
+        </td>
+        <td style="padding:10px 16px;font-size:12px;color:#64748b;">
+          ${[s.teacher, s.room ? `Room ${s.room}` : ""].filter(Boolean).join(" · ") || "—"}
+        </td>
+      </tr>
+    `).join("");
+
+    return `
+      <!-- Day header -->
+      <tr>
+        <td colspan="3" style="padding:10px 16px 6px;background:#f8fafc;
+            border-top:2px solid ${color};">
+          <span style="font-size:10px;font-weight:800;text-transform:uppercase;
+                       letter-spacing:0.14em;color:${color};">
+            ${DAY_LABEL[day]}
+          </span>
+        </td>
+      </tr>
+      ${rows}
+    `;
+  }).join("");
+
+  const body = `
+    <!-- Header banner -->
+    <table width="100%" cellpadding="0" cellspacing="0"
+      style="background:linear-gradient(135deg,#1a1208 0%,#2d1f0d 100%);
+             border-radius:12px;margin-bottom:28px;overflow:hidden;">
+    <tr>
+      <td style="padding:24px 28px;">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;
+                    letter-spacing:0.16em;color:#fcd34d;margin-bottom:8px;">
+          📅 &nbsp;New Timetable Assigned
+        </div>
+        <div style="font-size:19px;font-weight:700;color:#fef3c7;line-height:1.35;">
+          Aapka class schedule ready hai!
+        </div>
+        <div style="font-size:13px;color:rgba(254,243,199,0.55);margin-top:6px;">
+          ${data.courseName}
+        </div>
+      </td>
+    </tr>
+    </table>
+
+    <p style="margin:0 0 20px;font-size:14px;color:#64748b;line-height:1.8;">
+      Namaste <strong style="color:#1a1208;">${data.name}</strong>,<br/>
+      aapka weekly class schedule assign kar diya gaya hai.
+      Neeche apna complete timetable dekh sakte hain.
+    </p>
+
+    <!-- Timetable -->
+    <table width="100%" cellpadding="0" cellspacing="0"
+      style="border:1.5px solid #e2e8f0;border-radius:12px;overflow:hidden;margin:0 0 24px;">
+      <tr style="background:#f1f5f9;">
+        <td style="padding:10px 16px;font-size:9px;font-weight:700;text-transform:uppercase;
+                   letter-spacing:0.1em;color:#94a3b8;width:30%;">Time</td>
+        <td style="padding:10px 16px;font-size:9px;font-weight:700;text-transform:uppercase;
+                   letter-spacing:0.1em;color:#94a3b8;">Subject</td>
+        <td style="padding:10px 16px;font-size:9px;font-weight:700;text-transform:uppercase;
+                   letter-spacing:0.1em;color:#94a3b8;">Details</td>
+      </tr>
+      ${slotTable}
+    </table>
+
+    ${btn(PORTAL_URL, "Portal mein Schedule Dekho")}
+
+    <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0;"/>
+
+    <p style="margin:0;font-size:12px;color:#94a3b8;line-height:1.8;text-align:center;">
+      Student ID: <strong>${data.studentId}</strong><br/>
+      Kisi bhi sawaal ke liye academy se sampark karein.
+    </p>
+  `;
+
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `📅 Aapka Class Schedule — ${data.courseName} · ${ACADEMY_NAME}`,
+    html: layout(body),
+  });
+};

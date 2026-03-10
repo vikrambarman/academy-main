@@ -3,6 +3,24 @@ import { connectDB } from "@/lib/db";
 import Enrollment from "@/models/Enrollment";
 import Course from "@/models/Course";
 
+// GET /api/admin/enrollments?courseId=xxx
+export async function GET(req: NextRequest) {
+    await connectDB();
+
+    const { searchParams } = new URL(req.url);
+    const courseId = searchParams.get("courseId");
+
+    const query: any = { isActive: true };
+    if (courseId) query.course = courseId;
+
+    const enrollments = await Enrollment.find(query)
+        .populate("student", "name studentId")
+        .populate("course", "name")
+        .lean();
+
+    return NextResponse.json({ enrollments });
+}
+
 export async function POST(req: NextRequest) {
 
     await connectDB();
@@ -43,5 +61,4 @@ export async function POST(req: NextRequest) {
         message: "Enrollment created",
         enrollment
     });
-
 }
