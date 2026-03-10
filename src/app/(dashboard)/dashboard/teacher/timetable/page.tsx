@@ -1,4 +1,4 @@
-// src/app/(dashboard)/dashboard/teacher/timetable/page.tsx
+// src/app/dashboard/teacher/timetable/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -53,7 +53,7 @@ export default function TeacherTimetablePage() {
     };
 
     useEffect(() => {
-        fetchWithAuth("/api/admin/courses").then(r => r.json()).then(d => setCourses(d.courses || d || [])).catch(() => {});
+        fetchWithAuth("/api/teacher/courses").then(r => r.json()).then(d => setCourses(d.courses || [])).catch(() => {});
     }, []);
 
     useEffect(() => {

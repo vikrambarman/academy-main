@@ -1,4 +1,4 @@
-// src/app/(dashboard)/dashboard/teacher/page.tsx
+// src/app/dashboard/teacher/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -29,7 +29,7 @@ export default function TeacherDashboard() {
         try {
             const [meRes, coursesRes] = await Promise.all([
                 fetchWithAuth("/api/teacher/me"),
-                fetchWithAuth("/api/admin/courses"),
+                fetchWithAuth("/api/teacher/courses"),  // ← admin route nahi, teacher ka apna route
             ]);
             const meData      = await meRes.json();
             const coursesData = await coursesRes.json();

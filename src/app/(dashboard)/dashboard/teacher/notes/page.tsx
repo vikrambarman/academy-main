@@ -1,4 +1,4 @@
-// src/app/(dashboard)/dashboard/teacher/notes/page.tsx
+// src/app/dashboard/teacher/notes/page.tsx
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
@@ -44,9 +44,9 @@ export default function TeacherNotesPage() {
     };
 
     useEffect(() => {
-        fetchWithAuth("/api/admin/courses")
+        fetchWithAuth("/api/teacher/courses")
             .then(r => r.json())
-            .then(d => setCourses(d.courses || d || []))
+            .then(d => setCourses(d.courses || []))
             .catch(() => {});
     }, []);
 
@@ -191,10 +191,10 @@ export default function TeacherNotesPage() {
                                             onClick={() => openEdit(note)}>
                                             <Edit2 size={12}/>
                                         </button>
-                                        {/* <button className="tn-icon-btn tn-icon-btn--red" title="Delete"
+                                        <button className="tn-icon-btn tn-icon-btn--red" title="Delete"
                                             onClick={() => handleDelete(note._id)}>
                                             <Trash2 size={12}/>
-                                        </button> */}
+                                        </button>
                                     </div>
                                 </div>
 
