@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Enrollment from "@/models/Enrollment";
-import Course from "@/models/Course";
+import "@/models/Course"; 
+import "@/models/Student";
 
 // GET /api/admin/enrollments?courseId=xxx
 export async function GET(req: NextRequest) {
