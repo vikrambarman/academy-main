@@ -4,7 +4,7 @@ import { connectDB } from "@/lib/db";
 import { verifyUser } from "@/lib/verifyUser";
 import Attendance from "@/models/Attendance";
 import Enrollment from "@/models/Enrollment";
-import Student from "@/models/Student";
+import "@/models/Student"; // ← Student schema register karo populate ke liye
 
 // GET ?courseId=xxx&date=2026-03-10
 export async function GET(req: NextRequest) {
