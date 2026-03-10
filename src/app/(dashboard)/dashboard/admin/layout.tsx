@@ -8,7 +8,7 @@ import {
     LayoutDashboard, Users, BookOpen, BarChart3,
     FileText, Settings, LogOut, Menu, Notebook,
     IndianRupee, Award, CalendarDays, Clock,
-    ChevronRight, Bell
+    ChevronRight, Bell,
 } from "lucide-react";
 import AuthGuard from "@/components/AuthGaurd";
 
@@ -24,6 +24,7 @@ const menuSections = [
         title: "MANAGEMENT",
         items: [
             { name: "Students", href: "/dashboard/admin/students", icon: Users },
+            { name: "Teachers", href: "/dashboard/admin/teachers", icon:  Users},
             { name: "Courses", href: "/dashboard/admin/courses", icon: BookOpen },
             { name: "Enrollments", href: "/dashboard/admin/enroll", icon: Users },
             { name: "Fees", href: "/dashboard/admin/fees", icon: IndianRupee },
