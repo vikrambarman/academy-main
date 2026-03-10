@@ -1,24 +1,26 @@
-// src/app/(auth)/teacher/login/page.tsx
+// src/app/teacher/login/page.tsx
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function TeacherLoginPage() {
     const router = useRouter();
     const [identifier, setIdentifier] = useState("");
-    const [password, setPassword]     = useState("");
-    const [loading, setLoading]       = useState(false);
-    const [error, setError]           = useState("");
+    const [password,   setPassword]   = useState("");
+    const [showPwd,    setShowPwd]    = useState(false);
+    const [loading,    setLoading]    = useState(false);
+    const [error,      setError]      = useState("");
 
     const handleLogin = async () => {
         if (!identifier || !password) return setError("ID/Email aur password dono required hain");
         setLoading(true); setError("");
         try {
             const res  = await fetch("/api/auth/teacher/login", {
-                method: "POST",
+                method:  "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ identifier, password }),
+                body:    JSON.stringify({ identifier, password }),
             });
             const data = await res.json();
             if (!res.ok) return setError(data.message || "Login failed");
@@ -35,36 +37,132 @@ export default function TeacherLoginPage() {
         <>
             <style>{css}</style>
             <div className="tl-root">
+                {/* Background layers */}
+                <div className="tl-bg-glow tl-bg-glow--1" />
+                <div className="tl-bg-glow tl-bg-glow--2" />
+                <div className="tl-bg-grid" />
+
                 <div className="tl-card">
-                    <div className="tl-logo">
-                        <img src="/logo.png" alt="Logo" className="tl-logo-img"/>
+
+                    {/* Logo */}
+                    <div className="tl-logo-wrap">
+                        <Image src="/logo.png" alt="Logo" width={44} height={44} className="object-contain" />
                     </div>
-                    <div className="tl-badge">Teacher Portal</div>
+
+                    {/* Badge */}
+                    <div className="tl-badge">
+                        <span className="tl-badge-dot" />
+                        Teacher Portal
+                    </div>
+
                     <h1 className="tl-title">Welcome Back</h1>
-                    <p className="tl-sub">Apni ID aur password se login karein</p>
+                    <p className="tl-sub">Apni Teacher ID ya email se login karein</p>
 
+                    {/* Fields */}
                     <div className="tl-fields">
+
+                        {/* Identifier */}
                         <div className="tl-field">
-                            <label className="tl-label">Employee ID / Email</label>
-                            <input className="tl-input" placeholder="TCH-001 ya email"
-                                value={identifier}
-                                onChange={e => setIdentifier(e.target.value)}
-                                onKeyDown={e => e.key === "Enter" && handleLogin()}/>
+                            <label className="tl-label" htmlFor="identifier">
+                                Employee ID / Email
+                            </label>
+                            <div className="tl-input-wrap">
+                                <span className="tl-input-icon">
+                                    {/* person icon */}
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                                    </svg>
+                                </span>
+                                <input
+                                    id="identifier"
+                                    className="tl-input"
+                                    placeholder="TCH-001 ya email address"
+                                    value={identifier}
+                                    onChange={e => { setIdentifier(e.target.value); setError(""); }}
+                                    onKeyDown={e => e.key === "Enter" && handleLogin()}
+                                    autoComplete="username"
+                                />
+                            </div>
                         </div>
+
+                        {/* Password */}
                         <div className="tl-field">
-                            <label className="tl-label">Password</label>
-                            <input className="tl-input" type="password" placeholder="••••••••"
-                                value={password}
-                                onChange={e => setPassword(e.target.value)}
-                                onKeyDown={e => e.key === "Enter" && handleLogin()}/>
+                            <label className="tl-label" htmlFor="password">Password</label>
+                            <div className="tl-input-wrap">
+                                <span className="tl-input-icon">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                    </svg>
+                                </span>
+                                <input
+                                    id="password"
+                                    className="tl-input tl-input--pwd"
+                                    type={showPwd ? "text" : "password"}
+                                    placeholder="••••••••"
+                                    value={password}
+                                    onChange={e => { setPassword(e.target.value); setError(""); }}
+                                    onKeyDown={e => e.key === "Enter" && handleLogin()}
+                                    autoComplete="current-password"
+                                />
+                                <button
+                                    type="button"
+                                    className="tl-eye-btn"
+                                    onClick={() => setShowPwd(p => !p)}
+                                    aria-label={showPwd ? "Hide password" : "Show password"}
+                                    tabIndex={-1}
+                                >
+                                    {showPwd ? (
+                                        /* eye-off */
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                                            <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                                            <line x1="1" y1="1" x2="23" y2="23"/>
+                                        </svg>
+                                    ) : (
+                                        /* eye */
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                            <circle cx="12" cy="12" r="3"/>
+                                        </svg>
+                                    )}
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    {error && <div className="tl-error">{error}</div>}
+                    {/* Error */}
+                    {error && (
+                        <div className="tl-error" role="alert">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                            {error}
+                        </div>
+                    )}
 
-                    <button className="tl-btn" onClick={handleLogin} disabled={loading}>
-                        {loading ? "Logging in..." : "Login"}
+                    {/* Login button */}
+                    <button
+                        className="tl-btn"
+                        onClick={handleLogin}
+                        disabled={loading}
+                        aria-busy={loading}
+                    >
+                        {loading ? (
+                            <><span className="tl-spinner"/> Logging in...</>
+                        ) : (
+                            "Login to Dashboard"
+                        )}
                     </button>
+
+                    {/* Footer */}
+                    <div className="tl-footer">
+                        Credentials bhool gaye? &nbsp;
+                        <a href="/admin/login" className="tl-footer-link">Admin se contact karein</a>
+                    </div>
+                </div>
+
+                <div className="tl-bottom-note">
+                    © 2026 Shivshakti Computer Academy
                 </div>
             </div>
         </>
@@ -72,31 +170,234 @@ export default function TeacherLoginPage() {
 }
 
 const css = `
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Serif+Display&display=swap');
-*,*::before,*::after{box-sizing:border-box;}
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap');
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-.tl-root{min-height:100vh;background:#0b1120;display:flex;align-items:center;justify-content:center;padding:24px;font-family:'Plus Jakarta Sans',sans-serif;}
+.tl-root {
+    min-height: 100vh;
+    background: #07111a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    position: relative;
+    overflow: hidden;
+}
 
-.tl-card{width:100%;max-width:400px;background:#111827;border:1px solid #1e293b;border-radius:20px;padding:40px 36px;display:flex;flex-direction:column;align-items:center;gap:0;box-shadow:0 24px 60px rgba(0,0,0,.4);}
+/* Background effects */
+.tl-bg-glow {
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(80px);
+}
+.tl-bg-glow--1 {
+    width: 500px; height: 500px;
+    top: -180px; right: -140px;
+    background: radial-gradient(circle, rgba(20,184,166,.18) 0%, transparent 70%);
+}
+.tl-bg-glow--2 {
+    width: 400px; height: 400px;
+    bottom: -120px; left: -100px;
+    background: radial-gradient(circle, rgba(99,102,241,.1) 0%, transparent 70%);
+}
+.tl-bg-grid {
+    position: fixed; inset: 0; pointer-events: none;
+    background-image:
+        linear-gradient(rgba(20,184,166,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(20,184,166,.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
 
-.tl-logo{margin-bottom:20px;}
-.tl-logo-img{height:52px;object-fit:contain;}
+/* Card */
+.tl-card {
+    width: 100%; max-width: 420px;
+    background: rgba(13,27,36,.85);
+    border: 1px solid rgba(20,184,166,.18);
+    border-radius: 22px;
+    padding: 38px 36px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    backdrop-filter: blur(16px);
+    box-shadow:
+        0 0 0 1px rgba(20,184,166,.06),
+        0 32px 64px rgba(0,0,0,.5),
+        inset 0 1px 0 rgba(255,255,255,.04);
+    position: relative;
+    z-index: 1;
+}
 
-.tl-badge{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.16em;color:#6366f1;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);padding:4px 12px;border-radius:100px;margin-bottom:16px;}
+/* Top accent line */
+.tl-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 20%; right: 20%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #14b8a6, transparent);
+    border-radius: 1px;
+}
 
-.tl-title{font-family:'DM Serif Display',serif;font-size:1.6rem;color:#f8fafc;font-weight:400;margin:0 0 4px;text-align:center;}
-.tl-sub{font-size:12px;color:#64748b;margin:0 0 28px;text-align:center;}
+/* Logo */
+.tl-logo-wrap {
+    width: 58px; height: 58px;
+    background: rgba(20,184,166,.08);
+    border: 1px solid rgba(20,184,166,.2);
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 18px;
+    overflow: hidden;
+}
 
-.tl-fields{width:100%;display:flex;flex-direction:column;gap:14px;margin-bottom:6px;}
-.tl-field{display:flex;flex-direction:column;gap:6px;width:100%;}
-.tl-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#64748b;}
-.tl-input{width:100%;background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:11px 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:#f1f5f9;outline:none;transition:border-color .13s;}
-.tl-input:focus{border-color:#6366f1;}
-.tl-input::placeholder{color:#334155;}
+/* Badge */
+.tl-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 9px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .16em;
+    color: #14b8a6;
+    background: rgba(20,184,166,.08);
+    border: 1px solid rgba(20,184,166,.2);
+    padding: 5px 14px;
+    border-radius: 100px;
+    margin-bottom: 18px;
+}
+.tl-badge-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%; background: #14b8a6;
+    box-shadow: 0 0 6px #14b8a6;
+    animation: tlPulse 2s ease-in-out infinite;
+}
+@keyframes tlPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: .5; transform: scale(.75); }
+}
 
-.tl-error{width:100%;font-size:12px;color:#f87171;background:#2d0a0a;border:1px solid #7f1d1d;border-radius:8px;padding:9px 12px;margin-top:4px;text-align:center;}
+/* Heading */
+.tl-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.65rem; font-weight: 400;
+    color: #f8fafc; text-align: center;
+    margin-bottom: 6px;
+}
+.tl-sub {
+    font-size: 12px; color: #64748b;
+    text-align: center; margin-bottom: 28px;
+    line-height: 1.6;
+}
 
-.tl-btn{margin-top:20px;width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .14s;}
-.tl-btn:hover:not(:disabled){opacity:.88;}
-.tl-btn:disabled{opacity:.5;cursor:not-allowed;}
+/* Fields */
+.tl-fields { width: 100%; display: flex; flex-direction: column; gap: 14px; margin-bottom: 6px; }
+.tl-field  { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.tl-label  { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: #475569; }
+
+.tl-input-wrap { position: relative; width: 100%; }
+.tl-input-icon {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    color: #334155; pointer-events: none; display: flex; align-items: center;
+    transition: color .15s;
+}
+.tl-input-wrap:focus-within .tl-input-icon { color: #14b8a6; }
+
+.tl-input {
+    width: 100%;
+    background: rgba(7,17,26,.8);
+    border: 1px solid #132330;
+    border-radius: 11px;
+    padding: 12px 12px 12px 38px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px; color: #f1f5f9;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+}
+.tl-input::placeholder { color: #1e3a4a; }
+.tl-input:focus {
+    border-color: #14b8a6;
+    box-shadow: 0 0 0 3px rgba(20,184,166,.1);
+}
+.tl-input--pwd { padding-right: 44px; }
+
+.tl-eye-btn {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    background: transparent; border: none; cursor: pointer;
+    color: #334155; display: flex; align-items: center;
+    padding: 4px; border-radius: 6px;
+    transition: color .15s, background .15s;
+}
+.tl-eye-btn:hover { color: #14b8a6; background: rgba(20,184,166,.08); }
+
+/* Error */
+.tl-error {
+    width: 100%;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 600; color: #f87171;
+    background: rgba(239,68,68,.08);
+    border: 1px solid rgba(239,68,68,.2);
+    border-radius: 9px;
+    padding: 10px 13px;
+    margin-top: 6px;
+    animation: tlShake .3s ease;
+}
+@keyframes tlShake {
+    0%, 100% { transform: translateX(0); }
+    25%       { transform: translateX(-4px); }
+    75%       { transform: translateX(4px); }
+}
+
+/* Button */
+.tl-btn {
+    width: 100%; margin-top: 20px;
+    padding: 13px;
+    border-radius: 11px; border: none;
+    background: linear-gradient(135deg, #0d9488, #14b8a6);
+    color: #f0fdfa;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px; font-weight: 700;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: opacity .15s, transform .12s, box-shadow .15s;
+    box-shadow: 0 4px 16px rgba(20,184,166,.25);
+}
+.tl-btn:hover:not(:disabled) {
+    opacity: .9;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(20,184,166,.35);
+}
+.tl-btn:active:not(:disabled) { transform: translateY(0); }
+.tl-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Spinner */
+.tl-spinner {
+    width: 14px; height: 14px;
+    border: 2px solid rgba(240,253,250,.3);
+    border-top-color: #f0fdfa;
+    border-radius: 50%;
+    animation: tlSpin .7s linear infinite;
+}
+@keyframes tlSpin { to { transform: rotate(360deg); } }
+
+/* Footer */
+.tl-footer {
+    margin-top: 20px;
+    font-size: 12px; color: #334155; text-align: center;
+}
+.tl-footer-link {
+    color: #14b8a6; text-decoration: none; font-weight: 600;
+    transition: color .14s;
+}
+.tl-footer-link:hover { color: #2dd4bf; text-decoration: underline; }
+
+/* Bottom note */
+.tl-bottom-note {
+    margin-top: 24px;
+    font-size: 11px; color: #1e3a4a;
+    position: relative; z-index: 1;
+}
+
+@media (max-width: 480px) {
+    .tl-card { padding: 28px 22px 24px; }
+    .tl-title { font-size: 1.45rem; }
+}
 `;

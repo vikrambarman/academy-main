@@ -1,24 +1,21 @@
-// ============================================================
-// change-password/page.tsx
-// ============================================================
+// src/app/change-password/page.tsx
 "use client";
 
 import { Suspense, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import Image from "next/image";
 import { AuthCard } from "@/components/auth/authCard";
 
 function ChangePasswordInner() {
     const searchParams = useSearchParams();
-    const router = useRouter();
-    const forced = searchParams.get("forced") === "true";
+    const router  = useRouter();
+    const forced  = searchParams.get("forced") === "true";
 
     const [oldPassword, setOldPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [showOld, setShowOld] = useState(false);
     const [showNew, setShowNew] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
+    const [status,  setStatus]  = useState<{ type: "success" | "error"; text: string } | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -26,7 +23,7 @@ function ChangePasswordInner() {
         setStatus(null);
         try {
             const res = await fetch("/api/auth/change-password", {
-                method: "POST",
+                method:  "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
                 body: JSON.stringify({
@@ -36,8 +33,13 @@ function ChangePasswordInner() {
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.message);
+
             if (forced) {
-                router.push("/dashboard/student");
+                // ✅ Role ke hisaab se redirect — API response mein role aana chahiye
+                const role = data.role as string | undefined;
+                if      (role === "admin")   router.push("/dashboard/admin");
+                else if (role === "teacher") router.push("/dashboard/teacher");
+                else                         router.push("/dashboard/student");
             } else {
                 setStatus({ type: "success", text: "Password changed successfully." });
                 setOldPassword("");
@@ -116,7 +118,7 @@ function ChangePasswordInner() {
             {!forced && (
                 <>
                     <div className="auth-divider" aria-hidden="true" />
-                    <button type="button" onClick={() => router.push("/dashboard")} className="auth-back">
+                    <button type="button" onClick={() => router.back()} className="auth-back">
                         <span aria-hidden="true">←</span> Back to Dashboard
                     </button>
                 </>

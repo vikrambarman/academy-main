@@ -1,50 +1,94 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { jwtVerify } from "jose";
+import { jwtVerify, SignJWT } from "jose";
 
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+const accessSecret = new TextEncoder().encode(process.env.JWT_SECRET!);
+const refreshSecret = new TextEncoder().encode(process.env.REFRESH_SECRET!);
+
+function redirectToLogin(pathname: string, base: string) {
+    if (pathname.startsWith("/dashboard/admin")) return NextResponse.redirect(new URL("/admin/login", base));
+    if (pathname.startsWith("/dashboard/teacher")) return NextResponse.redirect(new URL("/teacher/login", base));
+    if (pathname.startsWith("/dashboard/student")) return NextResponse.redirect(new URL("/student/login", base));
+    return NextResponse.redirect(new URL("/login", base));
+}
 
 export async function proxy(request: NextRequest) {
-
-    const accessToken = request.cookies.get("accessToken")?.value;
     const { pathname } = request.nextUrl;
 
-    if (pathname.startsWith("/dashboard")) {
+    if (!pathname.startsWith("/dashboard")) return NextResponse.next();
 
-        // No token → redirect to proper login
-        if (!accessToken) {
-            if (pathname.startsWith("/dashboard/admin"))   return NextResponse.redirect(new URL("/admin/login",   request.url));
-            if (pathname.startsWith("/dashboard/teacher")) return NextResponse.redirect(new URL("/teacher/login", request.url));
-            if (pathname.startsWith("/dashboard/student")) return NextResponse.redirect(new URL("/student/login", request.url));
-            return NextResponse.redirect(new URL("/login", request.url));
-        }
+    const accessToken = request.cookies.get("accessToken")?.value;
+    const refreshToken = request.cookies.get("refreshToken")?.value;
 
+    // ── 1. Access token try karo ──
+    if (accessToken) {
         try {
-            const { payload } = await jwtVerify(accessToken, secret);
-            const role         = payload.role         as string;
+            const { payload } = await jwtVerify(accessToken, accessSecret);
+            const role = payload.role as string;
             const isFirstLogin = payload.isFirstLogin as boolean;
 
-            // Force password change
             if (isFirstLogin && !pathname.startsWith("/change-password")) {
                 return NextResponse.redirect(new URL("/change-password?forced=true", request.url));
             }
 
-            // Role mismatch guards
-            if (pathname.startsWith("/dashboard/admin")   && role !== "admin")   return NextResponse.redirect(new URL("/admin/login",   request.url));
-            if (pathname.startsWith("/dashboard/teacher") && role !== "teacher") return NextResponse.redirect(new URL("/teacher/login", request.url));
-            if (pathname.startsWith("/dashboard/student") && role !== "student") return NextResponse.redirect(new URL("/student/login", request.url));
+            if (pathname.startsWith("/dashboard/admin") && role !== "admin") return redirectToLogin(pathname, request.url);
+            if (pathname.startsWith("/dashboard/teacher") && role !== "teacher") return redirectToLogin(pathname, request.url);
+            if (pathname.startsWith("/dashboard/student") && role !== "student") return redirectToLogin(pathname, request.url);
 
             return NextResponse.next();
 
         } catch {
-            if (pathname.startsWith("/dashboard/admin"))   return NextResponse.redirect(new URL("/admin/login",   request.url));
-            if (pathname.startsWith("/dashboard/teacher")) return NextResponse.redirect(new URL("/teacher/login", request.url));
-            if (pathname.startsWith("/dashboard/student")) return NextResponse.redirect(new URL("/student/login", request.url));
-            return NextResponse.redirect(new URL("/login", request.url));
+            // Access token expire/invalid — refresh try karo (neeche)
         }
     }
 
-    return NextResponse.next();
+    // ── 2. Access token nahi/expire — refresh token se silently renew karo ──
+    if (refreshToken) {
+        try {
+            const { payload } = await jwtVerify(refreshToken, refreshSecret);
+
+            const role = payload.role as string;
+            const isFirstLogin = (payload.isFirstLogin ?? false) as boolean;
+
+            // Naya access token banao (middleware mein sirf jose use hoti hai, jsonwebtoken nahi)
+            const newAccessToken = await new SignJWT({
+                id: payload.id,
+                role,
+                isFirstLogin,
+            })
+                .setProtectedHeader({ alg: "HS256" })
+                .setExpirationTime("15m")
+                .sign(accessSecret);
+
+            // Force password change check
+            if (isFirstLogin && !pathname.startsWith("/change-password")) {
+                const res = NextResponse.redirect(new URL("/change-password?forced=true", request.url));
+                res.cookies.set("accessToken", newAccessToken, {
+                    httpOnly: true, secure: false, sameSite: "lax", path: "/", maxAge: 60 * 15,
+                });
+                return res;
+            }
+
+            // Role mismatch check
+            if (pathname.startsWith("/dashboard/admin") && role !== "admin") return redirectToLogin(pathname, request.url);
+            if (pathname.startsWith("/dashboard/teacher") && role !== "teacher") return redirectToLogin(pathname, request.url);
+            if (pathname.startsWith("/dashboard/student") && role !== "student") return redirectToLogin(pathname, request.url);
+
+            // ✅ Silently naya access token cookie mein set karo — user ko pata nahi chalega
+            const res = NextResponse.next();
+            res.cookies.set("accessToken", newAccessToken, {
+                httpOnly: true, secure: false, sameSite: "lax", path: "/", maxAge: 60 * 15,
+            });
+            return res;
+
+        } catch {
+            // Refresh token bhi expire — ab login pe bhejo
+            return redirectToLogin(pathname, request.url);
+        }
+    }
+
+    // ── 3. Dono token nahi ──
+    return redirectToLogin(pathname, request.url);
 }
 
 export const config = {

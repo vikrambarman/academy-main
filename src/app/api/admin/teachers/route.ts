@@ -86,7 +86,7 @@ export async function PATCH(req: NextRequest) {
         const user: any = await verifyUser();
         if (user.role !== "admin") return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
 
-        const { teacherId, password, isActive } = await req.json();
+        const { teacherId, password, isActive, name, phone } = await req.json();
         if (!teacherId) return NextResponse.json({ message: "teacherId required" }, { status: 400 });
 
         const teacher = await Teacher.findById(teacherId).populate("user");
@@ -94,18 +94,29 @@ export async function PATCH(req: NextRequest) {
 
         const linkedUser = teacher.user as any;
 
+        // Update name & phone
+        if (name !== undefined) {
+            teacher.name     = name;
+            linkedUser.name  = name;
+        }
+        if (phone !== undefined) {
+            teacher.phone = phone;
+        }
+
+        // Reset password
         if (password !== undefined) {
             linkedUser.password     = await bcrypt.hash(password, 10);
             linkedUser.isFirstLogin = true;
-            await linkedUser.save();
         }
 
+        // Toggle active
         if (isActive !== undefined) {
             teacher.isActive    = isActive;
             linkedUser.isActive = isActive;
-            await teacher.save();
-            await linkedUser.save();
         }
+
+        await teacher.save();
+        await linkedUser.save();
 
         return NextResponse.json({ message: "Teacher update ho gaya" });
 

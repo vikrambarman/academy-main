@@ -64,6 +64,7 @@ export async function POST(req: Request) {
 
         const response = NextResponse.json({
             message: "Password changed successfully",
+            role: user.role,          // ✅ YAHI EK LINE ADD HUI — frontend redirect ke liye
         });
 
         response.cookies.set("accessToken", newAccessToken, {
