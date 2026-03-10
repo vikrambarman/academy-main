@@ -14,12 +14,18 @@ interface Stats {
     activeCourses: number;
 }
 
+interface Course {
+    _id: string;
+    name: string;
+    studentCount: number;
+}
+
 export default function TeacherDashboard() {
-    const [teacher,  setTeacher]  = useState<{ name: string } | null>(null);
-    const [courses,  setCourses]  = useState<any[]>([]);
-    const [loading,  setLoading]  = useState(true);
-    const [error,    setError]    = useState(false);
-    const [stats,    setStats]    = useState<Stats>({
+    const [teacher, setTeacher] = useState<{ name: string } | null>(null);
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error,   setError]   = useState(false);
+    const [stats,   setStats]   = useState<Stats>({
         totalStudents: 0, todayPresent: 0, todayAbsent: 0,
         notMarkedToday: 0, totalNotes: 0, activeCourses: 0,
     });
@@ -27,52 +33,15 @@ export default function TeacherDashboard() {
     const load = async () => {
         setLoading(true); setError(false);
         try {
-            const [meRes, coursesRes] = await Promise.all([
-                fetchWithAuth("/api/teacher/me"),
-                fetchWithAuth("/api/teacher/courses"),  // ← admin route nahi, teacher ka apna route
-            ]);
-            const meData      = await meRes.json();
-            const coursesData = await coursesRes.json();
+            // ✅ Sirf EK API call — sab kuch server side calculate hota hai
+            const res  = await fetchWithAuth("/api/teacher/dashboard");
+            const data = await res.json();
 
-            setTeacher(meData.teacher);
-            const allCourses = coursesData.courses || coursesData || [];
-            setCourses(allCourses);
+            if (!res.ok) throw new Error(data.message);
 
-            const today = new Date().toISOString().slice(0, 10);
-
-            // ✅ Race condition fix: har course se local counts nikalo, baad mein sum karo
-            const perCourse = await Promise.all(allCourses.map(async (course: any) => {
-                const attRes  = await fetchWithAuth(`/api/teacher/attendance?courseId=${course._id}&date=${today}`);
-                const attData = await attRes.json();
-                const enrollments = attData.enrollments || [];
-                const attendance  = attData.attendance  || [];
-
-                let students = 0, present = 0, absent = 0, unmarked = 0;
-                students = enrollments.length;
-
-                for (const enr of enrollments) {
-                    const att = attendance.find((a: any) => String(a.enrollmentId) === String(enr._id));
-                    if (!att?.todayRecord)                                                        { unmarked++; continue; }
-                    if (att.todayRecord.status === "present" || att.todayRecord.status === "late") present++;
-                    else if (att.todayRecord.status === "absent")                                  absent++;
-                }
-
-                return { students, present, absent, unmarked };
-            }));
-
-            // Sab courses ke results ek baar mein sum karo — no race condition
-            const totalStudents = perCourse.reduce((s, c) => s + c.students, 0);
-            const todayPresent  = perCourse.reduce((s, c) => s + c.present,  0);
-            const todayAbsent   = perCourse.reduce((s, c) => s + c.absent,   0);
-            const notMarked     = perCourse.reduce((s, c) => s + c.unmarked, 0);
-
-            let totalNotes = 0;
-            try {
-                const notesData = await fetchWithAuth("/api/teacher/notes").then(r => r.json());
-                totalNotes = (notesData.notes || []).length;
-            } catch {}
-
-            setStats({ totalStudents, todayPresent, todayAbsent, notMarkedToday: notMarked, totalNotes, activeCourses: allCourses.length });
+            setTeacher(data.teacher);
+            setCourses(data.courses  ?? []);
+            setStats(data.stats);
         } catch (e) {
             console.error(e); setError(true);
         } finally {
@@ -82,8 +51,8 @@ export default function TeacherDashboard() {
 
     useEffect(() => { load(); }, []);
 
-    const hour     = new Date().getHours();
-    const greeting = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
+    const hour       = new Date().getHours();
+    const greeting   = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
     const greetEmoji = hour < 12 ? "🌤" : hour < 17 ? "☀️" : "🌙";
 
     const CARDS = [
@@ -96,9 +65,9 @@ export default function TeacherDashboard() {
     ];
 
     const QUICK = [
-        { href: "/dashboard/teacher/attendance", icon: CalendarCheck, label: "Mark Attendance",  sub: "Aaj ki attendance mark karo",   color: "#14b8a6" },
-        { href: "/dashboard/teacher/timetable",  icon: Clock,         label: "Manage Timetable", sub: "Class schedule set karo",        color: "#818cf8" },
-        { href: "/dashboard/teacher/notes",      icon: BookOpen,      label: "Add Notes",         sub: "Study material create karo",    color: "#34d399" },
+        { href: "/dashboard/teacher/attendance", icon: CalendarCheck, label: "Mark Attendance",  sub: "Aaj ki attendance mark karo", color: "#14b8a6" },
+        { href: "/dashboard/teacher/timetable",  icon: Clock,         label: "Manage Timetable", sub: "Class schedule set karo",     color: "#818cf8" },
+        { href: "/dashboard/teacher/notes",      icon: BookOpen,      label: "Add Notes",         sub: "Study material create karo", color: "#34d399" },
     ];
 
     return (
@@ -122,7 +91,6 @@ export default function TeacherDashboard() {
                             {new Date().toLocaleDateString("en-IN", { weekday:"long", day:"numeric", month:"long", year:"numeric" })}
                         </div>
                     </div>
-
                     <div className="td-greeting-right">
                         <div className="td-today-pill">
                             <CalendarCheck size={14} color="#14b8a6"/>
@@ -134,7 +102,7 @@ export default function TeacherDashboard() {
                     </div>
                 </div>
 
-                {/* ── Error state ── */}
+                {/* ── Error ── */}
                 {error && !loading && (
                     <div className="td-error-banner">
                         <AlertCircle size={15}/>
@@ -169,7 +137,7 @@ export default function TeacherDashboard() {
                     })}
                 </div>
 
-                {/* ── Attendance snapshot ── */}
+                {/* ── Attendance Snapshot ── */}
                 {!loading && !error && stats.totalStudents > 0 && (
                     <div className="td-att-snapshot">
                         <div className="td-snapshot-title">Today's Attendance Snapshot</div>
@@ -215,17 +183,22 @@ export default function TeacherDashboard() {
 
                 {loading ? (
                     <div className="td-courses">
-                        {[1,2,3].map(i => <div key={i} className="td-course-card td-course-card--skel"><div className="td-skel td-skel--course"/></div>)}
+                        {[1,2,3].map(i => (
+                            <div key={i} className="td-course-card td-course-card--skel">
+                                <div className="td-skel td-skel--course"/>
+                            </div>
+                        ))}
                     </div>
                 ) : courses.length === 0 ? (
                     <div className="td-empty">Koi course nahi mila</div>
                 ) : (
                     <div className="td-courses">
-                        {courses.map((c: any, i: number) => (
+                        {courses.map((c, i) => (
                             <div key={c._id} className="td-course-card" style={{ animationDelay: `${i * 60}ms` }}>
                                 <div className="td-course-num">{String(i+1).padStart(2,"0")}</div>
                                 <div className="td-course-dot"/>
                                 <div className="td-course-name">{c.name}</div>
+                                <div className="td-course-badge">{c.studentCount} students</div>
                                 <a href="/dashboard/teacher/attendance" className="td-course-cta">
                                     Mark Attendance <ArrowRight size={11}/>
                                 </a>
@@ -268,95 +241,76 @@ const css = `
 
 .td-root { display:flex; flex-direction:column; gap:20px; max-width:960px; margin:0 auto; font-family:'Plus Jakarta Sans',sans-serif; }
 
-/* ── Skeleton ── */
+@keyframes tdShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 .td-skel {
     background: linear-gradient(90deg, #0d1b24 25%, #132330 50%, #0d1b24 75%);
     background-size: 200% 100%;
     animation: tdShimmer 1.4s ease infinite;
     border-radius: 6px;
 }
-@keyframes tdShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-.td-skel--name  { height: 36px; width: 55%; border-radius: 8px; display:inline-block; }
-.td-skel--icon  { height: 32px; width: 32px; border-radius: 8px; margin-bottom: 8px; }
-.td-skel--val   { height: 28px; width: 50%; border-radius: 6px; margin-bottom: 6px; }
-.td-skel--label { height: 10px; width: 70%; border-radius: 4px; }
-.td-skel--course{ height: 20px; width: 60%; border-radius: 5px; }
+.td-skel--name   { height:36px; width:55%; border-radius:8px; display:inline-block; }
+.td-skel--icon   { height:32px; width:32px; border-radius:8px; margin-bottom:8px; }
+.td-skel--val    { height:28px; width:50%; border-radius:6px; margin-bottom:6px; }
+.td-skel--label  { height:10px; width:70%; border-radius:4px; }
+.td-skel--course { height:20px; width:60%; border-radius:5px; }
 
-/* ── Spin ── */
-@keyframes tdSpin { to { transform: rotate(360deg); } }
+@keyframes tdSpin    { to { transform: rotate(360deg); } }
 .td-spin { animation: tdSpin .7s linear infinite; }
+@keyframes tdFadeUp  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+@keyframes tdPulse   { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.7)} }
 
-/* ── Fade in cards ── */
-@keyframes tdFadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-
-/* ── Greeting ── */
 .td-greeting {
-    display:flex; align-items:flex-start; justify-content:space-between;
-    flex-wrap:wrap; gap:14px;
+    display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:14px;
     background: linear-gradient(135deg, #0d1b24 0%, #0a1920 100%);
-    border: 1px solid #132330;
-    border-radius: 18px; padding: 26px 28px;
-    position: relative; overflow: hidden;
+    border:1px solid #132330; border-radius:18px; padding:26px 28px;
+    position:relative; overflow:hidden;
 }
 .td-greeting::after {
-    content:''; position:absolute; top:-60px; right:-60px;
-    width:200px; height:200px; border-radius:50%;
-    background: radial-gradient(circle, rgba(20,184,166,.08) 0%, transparent 70%);
-    pointer-events: none;
+    content:''; position:absolute; top:-60px; right:-60px; width:200px; height:200px;
+    border-radius:50%; background:radial-gradient(circle, rgba(20,184,166,.08) 0%, transparent 70%);
+    pointer-events:none;
 }
-.td-greeting-left { display:flex; flex-direction:column; gap:6px; }
+.td-greeting-left  { display:flex; flex-direction:column; gap:6px; }
 .td-greeting-eyebrow {
     display:flex; align-items:center; gap:7px;
     font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.12em; color:#14b8a6;
 }
 .td-eyebrow-dot {
     width:6px; height:6px; border-radius:50%; background:#14b8a6;
-    box-shadow: 0 0 8px #14b8a6; animation: tdPulse 2s ease-in-out infinite;
+    box-shadow:0 0 8px #14b8a6; animation:tdPulse 2s ease-in-out infinite;
 }
-@keyframes tdPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.7)} }
-.td-greeting-name {
-    font-family:'DM Serif Display',serif; font-size:2rem; color:#f8fafc;
-    font-weight:400; line-height:1.2; margin:0;
-}
-.td-greeting-date { font-size:12px; color:#475569; }
-
+.td-greeting-name  { font-family:'DM Serif Display',serif; font-size:2rem; color:#f8fafc; font-weight:400; line-height:1.2; margin:0; }
+.td-greeting-date  { font-size:12px; color:#475569; }
 .td-greeting-right { display:flex; align-items:center; gap:8px; flex-shrink:0; }
 .td-today-pill {
-    display:flex; align-items:center; gap:7px;
-    padding:8px 14px; background:rgba(20,184,166,.08);
-    border:1px solid rgba(20,184,166,.2); border-radius:100px;
-    font-size:12px; font-weight:700; color:#14b8a6;
+    display:flex; align-items:center; gap:7px; padding:8px 14px;
+    background:rgba(20,184,166,.08); border:1px solid rgba(20,184,166,.2);
+    border-radius:100px; font-size:12px; font-weight:700; color:#14b8a6;
 }
 .td-refresh-btn {
-    width:34px; height:34px; border-radius:9px;
-    border:1px solid #132330; background:transparent;
-    color:#475569; cursor:pointer; display:flex;
-    align-items:center; justify-content:center;
-    transition:all .14s;
+    width:34px; height:34px; border-radius:9px; border:1px solid #132330;
+    background:transparent; color:#475569; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; transition:all .14s;
 }
 .td-refresh-btn:hover:not(:disabled) { border-color:#14b8a6; color:#14b8a6; background:rgba(20,184,166,.06); }
 .td-refresh-btn:disabled { opacity:.5; cursor:not-allowed; }
 
-/* ── Error banner ── */
 .td-error-banner {
     display:flex; align-items:center; gap:10px;
     background:rgba(239,68,68,.07); border:1px solid rgba(239,68,68,.2);
-    border-radius:12px; padding:12px 16px;
-    font-size:13px; color:#f87171;
+    border-radius:12px; padding:12px 16px; font-size:13px; color:#f87171;
 }
 .td-retry-btn {
-    background:transparent; border:none; color:#14b8a6;
-    font-size:13px; font-weight:700; cursor:pointer; text-decoration:underline;
+    background:transparent; border:none; color:#14b8a6; font-size:13px;
+    font-weight:700; cursor:pointer; text-decoration:underline;
     font-family:'Plus Jakarta Sans',sans-serif;
 }
 
-/* ── KPI Cards ── */
 .td-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
 .td-card {
     border:1px solid; border-radius:14px; padding:18px 20px;
     display:flex; flex-direction:column; gap:5px;
-    transition:transform .15s, box-shadow .15s;
-    animation: tdFadeUp .4s ease both;
+    transition:transform .15s, box-shadow .15s; animation:tdFadeUp .4s ease both;
 }
 .td-card:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.25); }
 .td-card-icon-wrap {
@@ -366,19 +320,14 @@ const css = `
 .td-card-val   { font-family:'DM Serif Display',serif; font-size:1.9rem; line-height:1; }
 .td-card-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#475569; }
 
-/* ── Attendance Snapshot ── */
 .td-att-snapshot {
-    background:#0d1b24; border:1px solid #132330;
-    border-radius:14px; padding:18px 22px;
-    display:flex; flex-direction:column; gap:12px;
-    animation: tdFadeUp .4s ease both;
+    background:#0d1b24; border:1px solid #132330; border-radius:14px; padding:18px 22px;
+    display:flex; flex-direction:column; gap:12px; animation:tdFadeUp .4s ease both;
 }
 .td-snapshot-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:#475569; }
 .td-snapshot-bar-wrap { display:flex; align-items:center; gap:12px; }
 .td-snapshot-bar {
-    flex:1; height:10px; border-radius:100px;
-    background:#132330; overflow:hidden;
-    display:flex;
+    flex:1; height:10px; border-radius:100px; background:#132330; overflow:hidden; display:flex;
 }
 .td-bar-seg { height:100%; transition:width .6s ease; }
 .td-bar-seg--present  { background:#22c55e; }
@@ -389,53 +338,47 @@ const css = `
 .td-legend-item { display:flex; align-items:center; gap:6px; font-size:11px; color:#64748b; }
 .td-legend-dot  { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
 
-/* ── Section head ── */
-.td-section-head { display:flex; align-items:center; gap:8px; }
+.td-section-head  { display:flex; align-items:center; gap:8px; }
 .td-section-title { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.12em; color:#334155; }
 .td-section-count {
     font-size:10px; font-weight:800; padding:2px 8px; border-radius:100px;
     background:#132330; color:#64748b;
 }
 
-/* ── Courses ── */
 .td-courses { display:flex; flex-direction:column; gap:7px; }
 .td-course-card {
     display:flex; align-items:center; gap:12px;
-    background:#0d1b24; border:1px solid #132330;
-    border-radius:11px; padding:12px 18px;
-    transition:border-color .14s, background .14s;
-    animation: tdFadeUp .4s ease both;
+    background:#0d1b24; border:1px solid #132330; border-radius:11px; padding:12px 18px;
+    transition:border-color .14s, background .14s; animation:tdFadeUp .4s ease both;
 }
 .td-course-card:hover { border-color:rgba(20,184,166,.25); background:rgba(20,184,166,.03); }
 .td-course-card--skel { pointer-events:none; min-height:46px; }
-.td-course-num  { font-size:10px; font-weight:800; color:#1e3a4a; min-width:22px; }
-.td-course-dot  { width:7px; height:7px; border-radius:50%; background:#14b8a6; flex-shrink:0; }
-.td-course-name { font-size:13px; font-weight:600; color:#e2e8f0; flex:1; }
-.td-course-cta  {
-    display:flex; align-items:center; gap:5px;
-    font-size:11px; font-weight:700; color:#14b8a6;
-    text-decoration:none; white-space:nowrap;
-    opacity:.7; transition:opacity .13s;
+.td-course-num   { font-size:10px; font-weight:800; color:#1e3a4a; min-width:22px; }
+.td-course-dot   { width:7px; height:7px; border-radius:50%; background:#14b8a6; flex-shrink:0; }
+.td-course-name  { font-size:13px; font-weight:600; color:#e2e8f0; flex:1; }
+.td-course-badge {
+    font-size:10px; font-weight:700; padding:3px 9px; border-radius:100px;
+    background:rgba(20,184,166,.08); border:1px solid rgba(20,184,166,.15); color:#14b8a6;
+}
+.td-course-cta {
+    display:flex; align-items:center; gap:5px; font-size:11px; font-weight:700;
+    color:#14b8a6; text-decoration:none; white-space:nowrap; opacity:.7; transition:opacity .13s;
 }
 .td-course-cta:hover { opacity:1; }
 
-/* ── Quick Actions ── */
 .td-quick { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
 .td-quick-card {
-    display:flex; align-items:center; gap:14px;
-    padding:16px 18px; background:#0d1b24;
-    border:1px solid #132330; border-radius:14px;
-    text-decoration:none;
+    display:flex; align-items:center; gap:14px; padding:16px 18px;
+    background:#0d1b24; border:1px solid #132330; border-radius:14px; text-decoration:none;
     transition:border-color .14s, background .14s, transform .14s;
-    animation: tdFadeUp .45s ease both;
-    position:relative;
+    animation:tdFadeUp .45s ease both; position:relative;
 }
 .td-quick-card:hover { transform:translateY(-2px); border-color:rgba(20,184,166,.25); background:#0a161e; }
 .td-quick-icon {
     width:40px; height:40px; border-radius:11px; border:1px solid;
     display:flex; align-items:center; justify-content:center; flex-shrink:0;
 }
-.td-quick-text { flex:1; min-width:0; }
+.td-quick-text  { flex:1; min-width:0; }
 .td-quick-label { font-size:13px; font-weight:700; color:#f1f5f9; margin-bottom:3px; }
 .td-quick-sub   { font-size:11px; color:#475569; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .td-quick-arrow { flex-shrink:0; opacity:.5; transition:opacity .14s, transform .14s; }
