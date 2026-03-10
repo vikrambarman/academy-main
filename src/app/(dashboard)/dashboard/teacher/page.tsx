@@ -39,22 +39,32 @@ export default function TeacherDashboard() {
             setCourses(allCourses);
 
             const today = new Date().toISOString().slice(0, 10);
-            let totalStudents = 0, todayPresent = 0, todayAbsent = 0, notMarked = 0;
 
-            await Promise.all(allCourses.map(async (course: any) => {
+            // ✅ Race condition fix: har course se local counts nikalo, baad mein sum karo
+            const perCourse = await Promise.all(allCourses.map(async (course: any) => {
                 const attRes  = await fetchWithAuth(`/api/teacher/attendance?courseId=${course._id}&date=${today}`);
                 const attData = await attRes.json();
                 const enrollments = attData.enrollments || [];
                 const attendance  = attData.attendance  || [];
 
-                totalStudents += enrollments.length;
+                let students = 0, present = 0, absent = 0, unmarked = 0;
+                students = enrollments.length;
+
                 for (const enr of enrollments) {
                     const att = attendance.find((a: any) => String(a.enrollmentId) === String(enr._id));
-                    if (!att?.todayRecord)                                                   { notMarked++;    continue; }
-                    if (att.todayRecord.status === "present" || att.todayRecord.status === "late") todayPresent++;
-                    else if (att.todayRecord.status === "absent")                            todayAbsent++;
+                    if (!att?.todayRecord)                                                        { unmarked++; continue; }
+                    if (att.todayRecord.status === "present" || att.todayRecord.status === "late") present++;
+                    else if (att.todayRecord.status === "absent")                                  absent++;
                 }
+
+                return { students, present, absent, unmarked };
             }));
+
+            // Sab courses ke results ek baar mein sum karo — no race condition
+            const totalStudents = perCourse.reduce((s, c) => s + c.students, 0);
+            const todayPresent  = perCourse.reduce((s, c) => s + c.present,  0);
+            const todayAbsent   = perCourse.reduce((s, c) => s + c.absent,   0);
+            const notMarked     = perCourse.reduce((s, c) => s + c.unmarked, 0);
 
             let totalNotes = 0;
             try {
