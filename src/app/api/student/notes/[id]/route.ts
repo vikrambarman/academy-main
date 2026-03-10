@@ -1,19 +1,14 @@
 /**
  * FILE: src/app/api/student/notes/[id]/route.ts
- * Next.js 16+ async params fix
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
 import { connectDB } from "@/lib/db";
 import { verifyUser } from "@/lib/verifyUser";
 import Note from "@/models/Note";
 import Student from "@/models/Student";
 import Enrollment from "@/models/Enrollment";
 import { Types } from "mongoose";
-
-const NOTES_BASE = path.join(process.cwd(), "src", "content", "notes");
 
 interface PopulatedCourse {
     _id: Types.ObjectId;
@@ -37,7 +32,6 @@ export async function GET(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // Next.js 16+ — params await karo
         const { id } = await params;
 
         await connectDB();
@@ -71,23 +65,7 @@ export async function GET(
             );
         }
 
-        // .md file read
-        const absolutePath = path.join(
-            NOTES_BASE,
-            note.courseSlug,
-            note.moduleSlug,
-            `${note.topicSlug}.md`
-        );
-
-        if (!fs.existsSync(absolutePath)) {
-            return NextResponse.json(
-                { error: "Note file server pe nahi mili" },
-                { status: 404 }
-            );
-        }
-
-        const content = fs.readFileSync(absolutePath, "utf8");
-
+        // ✅ Content seedha MongoDB se lo — fs ki zaroorat nahi
         return NextResponse.json({
             success: true,
             note: {
@@ -97,7 +75,7 @@ export async function GET(
                 courseSlug: note.courseSlug as string,
                 updatedAt: note.updatedAt as Date,
             },
-            content,
+            content: note.content || "",
         });
 
     } catch (error) {

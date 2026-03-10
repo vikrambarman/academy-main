@@ -1,11 +1,8 @@
 /**
  * FILE: src/app/api/admin/notes/[id]/route.ts
- * GET    → single note (content ke saath)
+ * GET    → single note (with content)
  * PUT    → update note
- * DELETE → note delete
- *
- * NOTE: fs remove kar diya — Vercel pe kaam nahi karta.
- *       Content MongoDB ke `content` field se aata hai.
+ * DELETE → delete note
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -14,9 +11,7 @@ import { verifyUser } from "@/lib/verifyUser";
 import Note from "@/models/Note";
 import { slugify } from "@/lib/slugify";
 
-/**
- * GET /api/admin/notes/[id]
- */
+// ─── GET /api/admin/notes/[id] ───────────────────────────────────────────────
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -35,10 +30,22 @@ export async function GET(
             return NextResponse.json({ error: "Note nahi mila" }, { status: 404 });
         }
 
-        // Content MongoDB mein hai — seedha return karo
-        const { content, ...noteMeta } = note;
-
-        return NextResponse.json({ success: true, note: noteMeta, content: content ?? "" });
+        return NextResponse.json({
+            success: true,
+            note: {
+                _id:         note._id,
+                title:       note.title,
+                courseSlug:  note.courseSlug,
+                moduleSlug:  note.moduleSlug,
+                moduleName:  note.moduleName,
+                topicSlug:   note.topicSlug,
+                topicName:   note.topicName,
+                isPublished: note.isPublished,
+                order:       note.order,
+                updatedAt:   note.updatedAt,
+            },
+            content: note.content || "",
+        });
 
     } catch (error) {
         console.error("GET /api/admin/notes/[id] error:", error);
@@ -46,10 +53,7 @@ export async function GET(
     }
 }
 
-/**
- * PUT /api/admin/notes/[id]
- * Body: { content?, moduleName?, topicName?, isPublished?, order? }
- */
+// ─── PUT /api/admin/notes/[id] ───────────────────────────────────────────────
 export async function PUT(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -63,51 +67,42 @@ export async function PUT(
         const { id } = await params;
         await connectDB();
 
-        const note = await Note.findById(id);
-        if (!note) {
+        const body = await request.json();
+        const {
+            moduleName,
+            topicName,
+            content,
+            isPublished,
+            order,
+        } = body;
+
+        // Jo fields aaye sirf wahi update karo
+        const updateData: Record<string, any> = {};
+
+        if (moduleName  !== undefined) {
+            updateData.moduleName  = moduleName;
+            updateData.moduleSlug  = slugify(moduleName);
+        }
+        if (topicName   !== undefined) {
+            updateData.topicName   = topicName;
+            updateData.topicSlug   = slugify(topicName);
+            updateData.title       = topicName;   // title = topicName
+        }
+        if (content     !== undefined) updateData.content     = content;
+        if (isPublished !== undefined) updateData.isPublished = isPublished;
+        if (order       !== undefined) updateData.order       = order;
+
+        const updated = await Note.findByIdAndUpdate(
+            id,
+            { $set: updateData },
+            { new: true, lean: true }
+        ) as any;
+
+        if (!updated) {
             return NextResponse.json({ error: "Note nahi mila" }, { status: 404 });
         }
 
-        const body = await request.json();
-        const {
-            content,
-            moduleName,
-            topicName,
-            isPublished,
-            order,
-        }: {
-            content?: string;
-            moduleName?: string;
-            topicName?: string;
-            isPublished?: boolean;
-            order?: number;
-        } = body;
-
-        // Module / topic name change hone par slugs update karo
-        if (moduleName) {
-            note.moduleName = moduleName;
-            note.moduleSlug = slugify(moduleName);
-        }
-        if (topicName) {
-            note.topicName = topicName;
-            note.topicSlug = slugify(topicName);
-            note.title = topicName;
-        }
-
-        // Content update — MongoDB mein save
-        if (content !== undefined) {
-            note.content = content;
-        }
-
-        if (isPublished !== undefined) note.isPublished = isPublished;
-        if (order !== undefined) note.order = order;
-
-        // filePath legacy field clear kar do (ab zaroorat nahi)
-        note.filePath = undefined;
-
-        await note.save();
-
-        return NextResponse.json({ success: true, note });
+        return NextResponse.json({ success: true, note: updated });
 
     } catch (error: any) {
         if (error.code === 11000) {
@@ -121,9 +116,7 @@ export async function PUT(
     }
 }
 
-/**
- * DELETE /api/admin/notes/[id]
- */
+// ─── DELETE /api/admin/notes/[id] ────────────────────────────────────────────
 export async function DELETE(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -137,8 +130,8 @@ export async function DELETE(
         const { id } = await params;
         await connectDB();
 
-        const note = await Note.findByIdAndDelete(id);
-        if (!note) {
+        const deleted = await Note.findByIdAndDelete(id).lean();
+        if (!deleted) {
             return NextResponse.json({ error: "Note nahi mila" }, { status: 404 });
         }
 
