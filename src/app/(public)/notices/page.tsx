@@ -34,9 +34,7 @@ async function getNotices() {
 
 function formatDate(dateStr: string) {
     return new Date(dateStr).toLocaleDateString("en-IN", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
+        day: "numeric", month: "short", year: "numeric",
     });
 }
 
@@ -45,287 +43,6 @@ export default async function NoticesPage() {
 
     return (
         <>
-            <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap');
-
-                .np-root {
-                    font-family: 'DM Sans', sans-serif;
-                    background: #faf8f4;
-                    min-height: 100vh;
-                }
-
-                /* ── Hero ── */
-                .np-hero {
-                    padding: 88px 24px 64px;
-                    position: relative;
-                    overflow: hidden;
-                }
-
-                .np-hero-glow {
-                    position: absolute;
-                    top: -80px; right: -80px;
-                    width: 420px; height: 420px;
-                    background: radial-gradient(circle, rgba(217,119,6,0.08) 0%, transparent 65%);
-                    pointer-events: none;
-                }
-
-                .np-hero-inner {
-                    max-width: 1100px;
-                    margin: 0 auto;
-                    position: relative;
-                    z-index: 1;
-                }
-
-                .np-eyebrow {
-                    font-size: 10px;
-                    font-weight: 500;
-                    letter-spacing: 0.18em;
-                    text-transform: uppercase;
-                    color: #b45309;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    margin-bottom: 14px;
-                }
-
-                .np-eyebrow::before {
-                    content: '';
-                    display: inline-block;
-                    width: 24px; height: 1.5px;
-                    background: #d97706;
-                }
-
-                .np-hero-layout {
-                    display: flex;
-                    align-items: flex-end;
-                    justify-content: space-between;
-                    gap: 40px;
-                    flex-wrap: wrap;
-                }
-
-                .np-title {
-                    font-family: 'Playfair Display', serif;
-                    font-size: clamp(2rem, 4vw, 3rem);
-                    font-weight: 700;
-                    color: #1a1208;
-                    line-height: 1.15;
-                }
-
-                .np-title em {
-                    font-style: italic;
-                    color: #b45309;
-                }
-
-                .np-hero-right {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: flex-end;
-                    gap: 10px;
-                    padding-bottom: 4px;
-                }
-
-                .np-hero-desc {
-                    font-size: 0.88rem;
-                    font-weight: 300;
-                    color: #6b5e4b;
-                    line-height: 1.8;
-                    max-width: 340px;
-                    text-align: right;
-                }
-
-                .np-count-pill {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 7px;
-                    font-size: 0.78rem;
-                    font-weight: 400;
-                    color: #92540a;
-                    background: #fffbeb;
-                    border: 1px solid #fcd34d;
-                    padding: 5px 14px;
-                    border-radius: 100px;
-                }
-
-                .np-count-dot {
-                    width: 5px; height: 5px;
-                    background: #d97706;
-                    border-radius: 50%;
-                }
-
-                /* ── List section ── */
-                .np-body {
-                    padding: 0 24px 88px;
-                    position: relative;
-                }
-
-                .np-body::before {
-                    content: '';
-                    position: absolute;
-                    top: 0; left: 10%; right: 10%;
-                    height: 1px;
-                    background: linear-gradient(to right, transparent, #e2d9c8, transparent);
-                }
-
-                .np-body-inner {
-                    max-width: 1100px;
-                    margin: 0 auto;
-                    padding-top: 52px;
-                }
-
-                /* ── Notices list ── */
-                .np-list {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 1px;
-                    background: #e8dfd0;
-                    border: 1px solid #e8dfd0;
-                    border-radius: 20px;
-                    overflow: hidden;
-                }
-
-                .np-card {
-                    background: #fff;
-                    padding: 32px 36px;
-                    display: flex;
-                    align-items: flex-start;
-                    justify-content: space-between;
-                    gap: 32px;
-                    text-decoration: none;
-                    transition: background 0.2s;
-                    position: relative;
-                    overflow: hidden;
-                }
-
-                .np-card::before {
-                    content: '';
-                    position: absolute;
-                    left: 0; top: 0; bottom: 0;
-                    width: 3px;
-                    background: linear-gradient(to bottom, #d97706, #fcd34d);
-                    transform: scaleY(0);
-                    transform-origin: top;
-                    transition: transform 0.28s ease;
-                }
-
-                .np-card:hover { background: #fffefb; }
-                .np-card:hover::before { transform: scaleY(1); }
-
-                /* Left content */
-                .np-card-left {
-                    flex: 1;
-                    min-width: 0;
-                }
-
-                .np-card-meta {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    margin-bottom: 12px;
-                    flex-wrap: wrap;
-                }
-
-                .np-card-date {
-                    font-size: 0.75rem;
-                    font-weight: 300;
-                    color: #92826b;
-                    letter-spacing: 0.03em;
-                }
-
-                .np-card-cat {
-                    font-size: 9px;
-                    font-weight: 500;
-                    letter-spacing: 0.12em;
-                    text-transform: uppercase;
-                    color: #92540a;
-                    background: #fffbeb;
-                    border: 1px solid #fde68a;
-                    padding: 3px 10px;
-                    border-radius: 100px;
-                }
-
-                .np-card-title {
-                    font-family: 'Playfair Display', serif;
-                    font-size: 1.1rem;
-                    font-weight: 700;
-                    color: #1a1208;
-                    line-height: 1.3;
-                    margin-bottom: 10px;
-                }
-
-                .np-card-excerpt {
-                    font-size: 0.82rem;
-                    font-weight: 300;
-                    color: #6b5e4b;
-                    line-height: 1.75;
-                    display: -webkit-box;
-                    -webkit-line-clamp: 2;
-                    -webkit-box-orient: vertical;
-                    overflow: hidden;
-                }
-
-                /* Right arrow */
-                .np-card-arrow {
-                    width: 40px; height: 40px;
-                    background: #faf8f4;
-                    border: 1px solid #e8dfd0;
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 1rem;
-                    color: #92826b;
-                    flex-shrink: 0;
-                    align-self: center;
-                    transition: background 0.2s, color 0.2s, transform 0.2s, border-color 0.2s;
-                }
-
-                .np-card:hover .np-card-arrow {
-                    background: #1a1208;
-                    border-color: #1a1208;
-                    color: #fef3c7;
-                    transform: translateX(3px);
-                }
-
-                /* Empty */
-                .np-empty {
-                    background: #fff;
-                    border: 1px solid #e8dfd0;
-                    border-radius: 20px;
-                    padding: 64px 24px;
-                    text-align: center;
-                }
-
-                .np-empty-icon {
-                    font-size: 2.5rem;
-                    margin-bottom: 14px;
-                }
-
-                .np-empty-title {
-                    font-family: 'Playfair Display', serif;
-                    font-size: 1.1rem;
-                    font-weight: 600;
-                    color: #1a1208;
-                    margin-bottom: 8px;
-                }
-
-                .np-empty-sub {
-                    font-size: 0.82rem;
-                    font-weight: 300;
-                    color: #92826b;
-                }
-
-                /* ── Responsive ── */
-                @media (max-width: 640px) {
-                    .np-hero { padding: 64px 20px 52px; }
-                    .np-body { padding: 0 20px 64px; }
-                    .np-hero-layout { flex-direction: column; align-items: flex-start; }
-                    .np-hero-right { align-items: flex-start; }
-                    .np-hero-desc { text-align: left; }
-                    .np-card { padding: 24px 20px; gap: 16px; }
-                    .np-list { border-radius: 16px; }
-                }
-            `}</style>
-
             <Script
                 id="notices-schema"
                 type="application/ld+json"
@@ -343,71 +60,145 @@ export default async function NoticesPage() {
                 }}
             />
 
-            <main className="np-root">
+            <main style={{ background: "var(--color-bg)", minHeight: "100vh", fontFamily: "'DM Sans', sans-serif" }}>
 
-                {/* Hero */}
-                <div className="np-hero">
-                    <div className="np-hero-glow" aria-hidden="true" />
-                    <div className="np-hero-inner">
-                        <div className="np-eyebrow">Announcements</div>
-                        <div className="np-hero-layout">
-                            <h1 className="np-title">
-                                Notices &<br /><em>Updates</em>
+                {/* ══════════════════════ HERO ══════════════════════ */}
+                <section className="relative overflow-hidden px-6 pt-[88px] pb-16"
+                    style={{ background: "var(--color-bg)" }}
+                    aria-labelledby="notices-hero-heading">
+
+                    {/* Glow */}
+                    <div aria-hidden="true" className="absolute -top-20 -right-20 w-[420px] h-[420px] rounded-full pointer-events-none z-0"
+                        style={{ background: "radial-gradient(circle,color-mix(in srgb,var(--color-primary) 9%,transparent) 0%,transparent 65%)" }} />
+
+                    <div className="relative z-10 max-w-[1100px] mx-auto">
+                        {/* Eyebrow */}
+                        <div className="flex items-center gap-2 mb-3.5 text-[10px] font-medium tracking-[0.18em] uppercase"
+                            style={{ color: "var(--color-primary)" }}>
+                            <span aria-hidden="true"
+                                style={{ display: "inline-block", width: 24, height: 1.5, background: "var(--color-primary)", flexShrink: 0 }} />
+                            Announcements
+                        </div>
+
+                        <div className="flex items-end justify-between gap-10 flex-wrap">
+                            <h1 id="notices-hero-heading"
+                                className="font-serif font-bold leading-[1.15]"
+                                style={{ fontSize: "clamp(2rem,4vw,3rem)", color: "var(--color-text)" }}>
+                                Notices &<br />
+                                <em className="italic" style={{ color: "var(--color-accent)" }}>Updates</em>
                             </h1>
-                            <div className="np-hero-right">
-                                <p className="np-hero-desc">
+
+                            <div className="flex flex-col items-end gap-2.5 pb-1">
+                                <p className="text-[0.88rem] font-light leading-[1.8] max-w-[340px] text-right max-sm:text-left"
+                                    style={{ color: "var(--color-text-muted)" }}>
                                     Admission notices, exam schedules and
                                     important updates from the academy.
                                 </p>
                                 {notices.length > 0 && (
-                                    <div className="np-count-pill">
-                                        <span className="np-count-dot" aria-hidden="true" />
+                                    <div className="inline-flex items-center gap-1.5 text-[0.78rem] font-normal px-3.5 py-1.5 rounded-full"
+                                        style={{
+                                            color:      "var(--color-primary)",
+                                            background: "color-mix(in srgb,var(--color-primary) 8%,var(--color-bg))",
+                                            border:     "1px solid color-mix(in srgb,var(--color-primary) 25%,transparent)",
+                                        }}>
+                                        <span className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                                            style={{ background: "var(--color-primary)" }} aria-hidden="true" />
                                         {notices.length} active notice{notices.length !== 1 ? "s" : ""}
                                     </div>
                                 )}
                             </div>
                         </div>
                     </div>
-                </div>
+                </section>
 
-                {/* List */}
-                <div className="np-body">
-                    <div className="np-body-inner">
+                {/* ══════════════════════ NOTICES LIST ══════════════════════ */}
+                <section className="relative px-6 pb-[88px]" aria-label="Notices list">
+                    {/* Top divider */}
+                    <div aria-hidden="true" className="absolute top-0 pointer-events-none"
+                        style={{ left: "10%", right: "10%", height: 1, background: "linear-gradient(to right,transparent,var(--color-border),transparent)" }} />
+
+                    <div className="max-w-[1100px] mx-auto pt-14">
+
+                        {/* Empty state */}
                         {notices.length === 0 ? (
-                            <div className="np-empty">
-                                <div className="np-empty-icon" aria-hidden="true">📋</div>
-                                <div className="np-empty-title">No notices at the moment</div>
-                                <div className="np-empty-sub">Check back soon for updates and announcements.</div>
+                            <div className="text-center py-16 rounded-[20px]"
+                                style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}>
+                                <div className="text-[2.5rem] mb-3.5" aria-hidden="true">📋</div>
+                                <div className="font-serif text-[1.1rem] font-semibold mb-2"
+                                    style={{ color: "var(--color-text)" }}>
+                                    No notices at the moment
+                                </div>
+                                <div className="text-[0.82rem] font-light"
+                                    style={{ color: "var(--color-text-muted)" }}>
+                                    Check back soon for updates and announcements.
+                                </div>
                             </div>
                         ) : (
-                            <div className="np-list">
+                            /* Notices list */
+                            <div className="flex flex-col rounded-[20px] overflow-hidden"
+                                style={{ gap: 1, background: "var(--color-border)", border: "1px solid var(--color-border)" }}>
                                 {notices.map((notice: any) => (
-                                    <Link
-                                        key={notice._id}
+                                    <Link key={notice._id}
                                         href={`/notices/${notice.slug}`}
-                                        className="np-card"
-                                    >
-                                        <div className="np-card-left">
-                                            <div className="np-card-meta">
-                                                <span className="np-card-date">
+                                        className="group relative flex items-start justify-between gap-8 no-underline px-9 py-8 overflow-hidden transition-colors duration-200 max-sm:px-5 max-sm:py-6 max-sm:gap-4"
+                                        style={{ background: "var(--color-bg-card)" }}
+                                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "color-mix(in srgb,var(--color-primary) 3%,var(--color-bg-card))"}
+                                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "var(--color-bg-card)"}>
+
+                                        {/* Left accent bar */}
+                                        <span aria-hidden="true"
+                                            className="absolute left-0 top-0 bottom-0 w-[3px] origin-top scale-y-0 group-hover:scale-y-100 transition-transform duration-[280ms] ease-out"
+                                            style={{ background: "linear-gradient(to bottom,var(--color-primary),color-mix(in srgb,var(--color-primary) 50%,transparent))" }} />
+
+                                        {/* Content */}
+                                        <div className="flex-1 min-w-0">
+                                            {/* Meta row */}
+                                            <div className="flex items-center gap-2.5 flex-wrap mb-3">
+                                                <span className="text-[0.75rem] font-light tracking-[0.03em]"
+                                                    style={{ color: "var(--color-text-muted)" }}>
                                                     {formatDate(notice.createdAt)}
                                                 </span>
                                                 {notice.category && (
-                                                    <span className="np-card-cat">{notice.category}</span>
+                                                    <span className="text-[9px] font-medium tracking-[0.12em] uppercase px-2.5 py-0.5 rounded-full"
+                                                        style={{
+                                                            color:      "var(--color-primary)",
+                                                            background: "color-mix(in srgb,var(--color-primary) 10%,var(--color-bg))",
+                                                            border:     "1px solid color-mix(in srgb,var(--color-primary) 25%,transparent)",
+                                                        }}>
+                                                        {notice.category}
+                                                    </span>
                                                 )}
                                             </div>
-                                            <h2 className="np-card-title">{notice.title}</h2>
+
+                                            <h2 className="font-serif text-[1.1rem] font-bold leading-[1.3] mb-2.5"
+                                                style={{ color: "var(--color-text)" }}>
+                                                {notice.title}
+                                            </h2>
+
                                             {notice.excerpt && (
-                                                <p className="np-card-excerpt">{notice.excerpt}</p>
+                                                <p className="text-[0.82rem] font-light leading-[1.75] line-clamp-2"
+                                                    style={{ color: "var(--color-text-muted)" }}>
+                                                    {notice.excerpt}
+                                                </p>
                                             )}
                                         </div>
-                                        <div className="np-card-arrow" aria-hidden="true">→</div>
+
+                                        {/* Arrow */}
+                                        <div className="w-10 h-10 rounded-full flex items-center justify-center self-center flex-shrink-0 text-base transition-all duration-200 group-hover:translate-x-0.5"
+                                            style={{
+                                                background:  "var(--color-bg)",
+                                                border:      "1px solid var(--color-border)",
+                                                color:       "var(--color-text-muted)",
+                                            }}
+                                            aria-hidden="true">
+                                            →
+                                        </div>
                                     </Link>
                                 ))}
                             </div>
                         )}
                     </div>
-                </div>
+                </section>
 
             </main>
         </>

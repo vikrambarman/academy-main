@@ -1,6 +1,5 @@
-// ============================================================
-// HomeCTA.tsx  (Server Component)
-// ============================================================
+"use client"
+
 import Link from "next/link";
 
 const checkpoints = [
@@ -14,404 +13,180 @@ export default function HomeCTA() {
     return (
         <>
             <style>{`
-                .cta-root {
-                    font-family: 'DM Sans', sans-serif;
-                    background: #faf8f4;
-                    padding: 88px 24px;
-                    position: relative;
-                    overflow: hidden;
-                }
-
+                /* Top fade line */
                 .cta-root::before {
                     content: '';
                     position: absolute;
-                    top: 0;
-                    left: 10%;
-                    right: 10%;
+                    top: 0; left: 10%; right: 10%;
                     height: 1px;
-                    background: linear-gradient(to right, transparent, #e2d9c8, transparent);
+                    background: linear-gradient(to right, transparent, var(--color-border), transparent);
                 }
 
-                .cta-inner {
-                    max-width: 1100px;
-                    margin: 0 auto;
-                }
-
-                /* ── Main card ── */
-                .cta-card {
-                    background: #1a1208;
-                    border-radius: 28px;
-                    overflow: hidden;
-                    display: grid;
-                    grid-template-columns: 1fr 380px;
-                    position: relative;
-                }
-
-                /* Dot grid decoration */
+                /* Dot grid on card */
                 .cta-card::before {
                     content: '';
                     position: absolute;
-                    top: -20px;
-                    right: 340px;
-                    width: 200px;
-                    height: 200px;
-                    background-image: radial-gradient(circle, rgba(252,211,77,0.1) 1.5px, transparent 1.5px);
+                    top: -20px; right: 340px;
+                    width: 200px; height: 200px;
+                    background-image: radial-gradient(circle, rgba(96,165,250,0.12) 1.5px, transparent 1.5px);
                     background-size: 14px 14px;
                     pointer-events: none;
                     z-index: 0;
                 }
 
-                /* Amber glow inside card */
+                /* Blue glow on card */
                 .cta-card::after {
                     content: '';
                     position: absolute;
-                    bottom: -60px;
-                    left: -60px;
-                    width: 340px;
-                    height: 340px;
-                    background: radial-gradient(circle, rgba(217,119,6,0.14) 0%, transparent 65%);
+                    bottom: -60px; left: -60px;
+                    width: 340px; height: 340px;
+                    background: radial-gradient(circle, rgba(26,86,219,0.15) 0%, transparent 65%);
                     pointer-events: none;
                     z-index: 0;
                 }
 
-                /* Left content */
-                .cta-left {
-                    padding: 56px 52px;
-                    position: relative;
-                    z-index: 1;
-                }
-
-                .cta-eyebrow {
-                    font-size: 10px;
-                    font-weight: 500;
-                    letter-spacing: 0.18em;
-                    text-transform: uppercase;
-                    color: #fcd34d;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    margin-bottom: 18px;
-                }
-
-                .cta-eyebrow::before {
-                    content: '';
-                    display: inline-block;
-                    width: 24px;
-                    height: 1.5px;
-                    background: #fcd34d;
-                }
-
-                .cta-title {
-                    font-family: 'Playfair Display', serif;
-                    font-size: clamp(1.8rem, 2.8vw, 2.6rem);
-                    font-weight: 700;
-                    color: #fef3c7;
-                    line-height: 1.15;
-                }
-
-                .cta-title em {
-                    font-style: italic;
-                    color: #fcd34d;
-                }
-
-                .cta-body {
-                    font-size: 0.88rem;
-                    font-weight: 300;
-                    color: rgba(254,243,199,0.55);
-                    line-height: 1.8;
-                    margin-top: 16px;
-                    max-width: 420px;
-                }
-
-                /* Checklist */
-                .cta-checks {
-                    margin-top: 28px;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 10px;
-                }
-
-                .cta-check {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    font-size: 0.82rem;
-                    font-weight: 300;
-                    color: rgba(254,243,199,0.7);
-                }
-
-                .cta-check-dot {
-                    width: 18px;
-                    height: 18px;
-                    background: rgba(252,211,77,0.15);
-                    border: 1px solid rgba(252,211,77,0.3);
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    flex-shrink: 0;
-                    font-size: 0.55rem;
-                    color: #fcd34d;
-                }
-
-                /* CTA buttons */
-                .cta-btns {
-                    display: flex;
-                    gap: 12px;
-                    margin-top: 36px;
-                    flex-wrap: wrap;
-                }
-
-                .cta-btn-primary {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 8px;
-                    background: #fef3c7;
-                    color: #1a1208;
-                    font-size: 0.88rem;
-                    font-weight: 500;
-                    padding: 13px 26px;
-                    border-radius: 100px;
-                    text-decoration: none;
-                    transition: background 0.2s, transform 0.15s;
-                    box-shadow: 0 4px 20px rgba(252,211,77,0.2);
-                }
-
-                .cta-btn-primary:hover {
-                    background: #fff;
-                    transform: translateY(-2px);
-                }
-
-                .cta-btn-primary-arrow {
-                    transition: transform 0.2s;
-                }
-
-                .cta-btn-primary:hover .cta-btn-primary-arrow {
-                    transform: translateX(4px);
-                }
-
-                .cta-btn-secondary {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 8px;
-                    background: transparent;
-                    color: #fef3c7;
-                    font-size: 0.88rem;
-                    font-weight: 400;
-                    padding: 13px 26px;
-                    border-radius: 100px;
-                    border: 1.5px solid rgba(254,243,199,0.25);
-                    text-decoration: none;
-                    transition: border-color 0.2s, background 0.2s, transform 0.15s;
-                }
-
-                .cta-btn-secondary:hover {
-                    border-color: rgba(254,243,199,0.6);
-                    background: rgba(255,255,255,0.05);
-                    transform: translateY(-2px);
-                }
-
-                /* Right contact card */
-                .cta-right {
-                    background: #fff;
-                    padding: 48px 36px;
-                    display: flex;
-                    flex-direction: column;
-                    position: relative;
-                    z-index: 1;
-                }
-
-                /* Amber top accent */
+                /* Right panel — primary top accent bar */
                 .cta-right::before {
                     content: '';
                     position: absolute;
                     top: 0; left: 0; right: 0;
                     height: 3px;
-                    background: linear-gradient(to right, #fcd34d, #d97706);
+                    background: linear-gradient(to right, var(--color-primary), var(--color-accent));
                 }
 
-                .cta-right-title {
-                    font-family: 'Playfair Display', serif;
-                    font-size: 1.15rem;
-                    font-weight: 600;
-                    color: #1a1208;
-                    line-height: 1.3;
-                }
+                /* Arrows */
+                .cta-primary-arrow  { transition: transform 0.2s; }
+                .cta-btn-primary:hover  .cta-primary-arrow  { transform: translateX(4px); }
 
-                .cta-right-desc {
-                    font-size: 0.8rem;
-                    font-weight: 300;
-                    color: #6b5e4b;
-                    line-height: 1.75;
-                    margin-top: 12px;
-                }
-
-                /* Divider */
-                .cta-right-divider {
-                    height: 1px;
-                    background: #f0e8d8;
-                    margin: 24px 0;
-                }
-
-                /* Phone numbers */
-                .cta-phones {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 10px;
-                }
-
+                /* Phone hover */
                 .cta-phone {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    text-decoration: none;
-                    padding: 12px 14px;
-                    border: 1px solid #e8dfd0;
-                    border-radius: 12px;
                     transition: border-color 0.2s, background 0.2s;
                 }
-
                 .cta-phone:hover {
-                    border-color: #fcd34d;
-                    background: #fffbeb;
+                    border-color: var(--color-primary) !important;
+                    background: color-mix(in srgb, var(--color-primary) 6%, var(--color-bg-card)) !important;
                 }
 
-                .cta-phone-icon {
-                    width: 30px;
-                    height: 30px;
-                    background: #fef9ee;
-                    border: 1px solid #fde68a;
-                    border-radius: 8px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 0.8rem;
-                    flex-shrink: 0;
-                }
-
-                .cta-phone-num {
-                    font-size: 0.88rem;
-                    font-weight: 500;
-                    color: #1a1208;
-                }
-
-                .cta-right-note {
-                    margin-top: auto;
-                    padding-top: 20px;
-                    font-size: 0.72rem;
-                    font-weight: 300;
-                    color: #92826b;
-                    line-height: 1.6;
-                    display: flex;
-                    align-items: flex-start;
-                    gap: 6px;
-                }
-
-                /* ── Responsive ── */
                 @media (max-width: 960px) {
-                    .cta-card {
-                        grid-template-columns: 1fr;
-                    }
-
-                    .cta-left {
-                        padding: 44px 36px;
-                    }
-
-                    .cta-right {
-                        padding: 36px 36px 44px;
-                    }
+                    .cta-card { grid-template-columns: 1fr !important; }
+                    .cta-left { padding: 44px 36px !important; }
+                    .cta-right { padding: 36px 36px 44px !important; }
                 }
-
                 @media (max-width: 480px) {
-                    .cta-root { padding: 64px 16px; }
-
-                    .cta-card {
-                        border-radius: 20px;
-                    }
-
-                    .cta-left {
-                        padding: 36px 24px;
-                    }
-
-                    .cta-right {
-                        padding: 28px 24px 36px;
-                    }
-
-                    .cta-btns {
-                        flex-direction: column;
-                    }
-
-                    .cta-btn-primary,
-                    .cta-btn-secondary {
-                        justify-content: center;
-                    }
+                    .cta-root  { padding: 64px 16px !important; }
+                    .cta-card  { border-radius: 20px !important; }
+                    .cta-left  { padding: 36px 24px !important; }
+                    .cta-right { padding: 28px 24px 36px !important; }
+                    .cta-btns  { flex-direction: column !important; }
+                    .cta-btn-primary, .cta-btn-secondary { justify-content: center !important; }
                 }
             `}</style>
 
-            <section className="cta-root" aria-labelledby="home-cta-heading">
-                <div className="cta-inner">
-                    <div className="cta-card">
+            <section
+                className="cta-root relative overflow-hidden py-20 md:py-24 px-6"
+                style={{ background: "var(--color-bg)" }}
+                aria-labelledby="home-cta-heading"
+            >
+                <div className="max-w-[1100px] mx-auto">
+                    <div className="cta-card relative grid rounded-[28px] overflow-hidden"
+                        style={{ gridTemplateColumns: "1fr 380px", background: "var(--color-bg-sidebar)" }}>
 
-                        {/* Left */}
-                        <div className="cta-left">
-                            <div className="cta-eyebrow">Start Today</div>
+                        {/* ── Left ── */}
+                        <div className="cta-left relative z-10 p-14 md:px-[52px] md:py-[56px]">
 
-                            <h2 id="home-cta-heading" className="cta-title">
+                            {/* Eyebrow */}
+                            <div className="flex items-center gap-2 mb-[18px] text-[10px] font-medium tracking-[0.18em] uppercase"
+                                style={{ color: "var(--color-info)" }}>
+                                <span style={{ display: "inline-block", width: 24, height: 1.5, background: "var(--color-info)", flexShrink: 0 }} />
+                                Start Today
+                            </div>
+
+                            <h2
+                                id="home-cta-heading"
+                                className="font-serif font-bold leading-[1.15]"
+                                style={{ fontSize: "clamp(1.8rem,2.8vw,2.6rem)", color: "var(--color-text-inverse)" }}
+                            >
                                 Secure Your Future<br />
-                                with <em>Digital Skills</em>
+                                with{" "}
+                                <em className="not-italic" style={{ color: "var(--color-accent)" }}>Digital Skills</em>
                             </h2>
 
-                            <p className="cta-body">
+                            <p className="text-[0.88rem] font-light leading-[1.8] mt-4 max-w-[420px]"
+                                style={{ color: "rgba(255,255,255,0.5)" }}>
                                 Practical computer training, government-recognized certifications,
                                 and career-focused programs — designed for jobs,
                                 entrepreneurship and higher studies.
                             </p>
 
-                            <div className="cta-checks">
-                                {checkpoints.map((pt, i) => (
-                                    <div key={i} className="cta-check">
-                                        <div className="cta-check-dot" aria-hidden="true">✓</div>
+                            {/* Checklist */}
+                            <div className="flex flex-col gap-2.5 mt-7">
+                                {checkpoints.map((pt) => (
+                                    <div key={pt} className="flex items-center gap-2.5 text-[0.82rem] font-light"
+                                        style={{ color: "rgba(255,255,255,0.65)" }}>
+                                        <div className="w-[18px] h-[18px] rounded-full shrink-0 flex items-center justify-center text-[0.55rem]"
+                                            style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.18)", color: "var(--color-info)" }}
+                                            aria-hidden="true">✓</div>
                                         {pt}
                                     </div>
                                 ))}
                             </div>
 
-                            <div className="cta-btns">
-                                <Link href="/courses" className="cta-btn-primary">
+                            {/* Buttons */}
+                            <div className="cta-btns flex flex-wrap gap-3 mt-9">
+                                <Link href="/courses"
+                                    className="cta-btn-primary inline-flex items-center gap-2 text-[0.88rem] font-medium px-[26px] py-3 rounded-full no-underline transition-all duration-200 hover:-translate-y-0.5"
+                                    style={{ background: "var(--color-accent)", color: "#fff", boxShadow: "0 4px 20px rgba(239,69,35,0.3)" }}>
                                     View Courses
-                                    <span className="cta-btn-primary-arrow" aria-hidden="true">→</span>
+                                    <span className="cta-primary-arrow" aria-hidden="true">→</span>
                                 </Link>
-                                <Link href="/enquiry" className="cta-btn-secondary">
+                                <Link href="/enquiry"
+                                    className="cta-btn-secondary inline-flex items-center gap-2 text-[0.88rem] font-normal px-[26px] py-3 rounded-full no-underline transition-all duration-200 hover:-translate-y-0.5"
+                                    style={{ color: "var(--color-text-inverse)", border: "1.5px solid rgba(255,255,255,0.22)" }}
+                                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.55)"; (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; }}
+                                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.22)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}>
                                     Admission Enquiry
                                 </Link>
                             </div>
                         </div>
 
-                        {/* Right */}
-                        <div className="cta-right">
-                            <h3 className="cta-right-title">
+                        {/* ── Right ── */}
+                        <div className="cta-right relative z-10 flex flex-col px-9 py-12"
+                            style={{ background: "var(--color-bg-card)" }}>
+
+                            <h3 className="font-serif text-[1.15rem] font-semibold leading-[1.3]"
+                                style={{ color: "var(--color-text)" }}>
                                 Need Guidance?<br />Talk to Us
                             </h3>
-                            <p className="cta-right-desc">
+                            <p className="text-[0.8rem] font-light leading-[1.75] mt-3"
+                                style={{ color: "var(--color-text-muted)" }}>
                                 Get help with course selection, eligibility criteria,
                                 certification details and admission guidance.
                             </p>
 
-                            <div className="cta-right-divider" />
+                            {/* Divider */}
+                            <div className="my-6 h-px" style={{ background: "var(--color-border)" }} />
 
-                            <div className="cta-phones">
+                            {/* Phone numbers */}
+                            <div className="flex flex-col gap-2.5">
                                 {[
                                     { num: "+91 74770 36832", href: "tel:+917477036832" },
                                     { num: "+91 90090 87883", href: "tel:+919009087883" },
                                 ].map((p) => (
-                                    <a key={p.href} href={p.href} className="cta-phone">
-                                        <span className="cta-phone-icon" aria-hidden="true">📞</span>
-                                        <span className="cta-phone-num">{p.num}</span>
+                                    <a key={p.href} href={p.href}
+                                        className="cta-phone flex items-center gap-2.5 no-underline px-3.5 py-3 rounded-xl"
+                                        style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
+                                        <span className="w-[30px] h-[30px] rounded-lg shrink-0 flex items-center justify-center text-[0.8rem]"
+                                            style={{ background: "color-mix(in srgb, var(--color-primary) 8%, var(--color-bg))", border: "1px solid color-mix(in srgb, var(--color-primary) 20%, transparent)" }}
+                                            aria-hidden="true">📞</span>
+                                        <span className="text-[0.88rem] font-medium"
+                                            style={{ color: "var(--color-text)" }}>{p.num}</span>
                                     </a>
                                 ))}
                             </div>
 
-                            <p className="cta-right-note">
+                            {/* Note */}
+                            <p className="flex items-start gap-1.5 mt-auto pt-5 text-[0.72rem] font-light leading-[1.6]"
+                                style={{ color: "var(--color-text-muted)" }}>
                                 <span aria-hidden="true">📍</span>
                                 Ambikapur, Chhattisgarh · Mon–Sat, 8 AM – 6 PM
                             </p>

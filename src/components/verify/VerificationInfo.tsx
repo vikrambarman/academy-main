@@ -1,6 +1,8 @@
+"use client"
 // ============================================================
 // components/verify/VerificationInfo.tsx
 // ============================================================
+
 const authorities = [
     {
         icon: "🎓",
@@ -37,235 +39,108 @@ const credentials = [
 
 export default function VerificationInfo() {
     return (
-        <>
-            <style>{`
-                .vi-card {
-                    background: #1a1208;
-                    border-radius: 24px;
-                    overflow: hidden;
-                    position: relative;
-                }
+        <div className="rounded-[24px] overflow-hidden relative"
+            style={{ background: "var(--color-bg-sidebar)" }}>
 
-                .vi-card-glow {
-                    position: absolute;
-                    top: -60px; right: -60px;
-                    width: 280px; height: 280px;
-                    background: radial-gradient(circle, rgba(217,119,6,0.1) 0%, transparent 65%);
-                    pointer-events: none;
-                }
+            {/* Glows & dots */}
+            <div aria-hidden="true" className="absolute -top-16 -right-16 w-[280px] h-[280px] rounded-full pointer-events-none"
+                style={{ background: "radial-gradient(circle,color-mix(in srgb,var(--color-primary) 15%,transparent) 0%,transparent 65%)" }} />
+            <div aria-hidden="true" className="absolute -bottom-2.5 -left-2.5 w-[120px] h-[120px] pointer-events-none"
+                style={{
+                    backgroundImage: "radial-gradient(circle,color-mix(in srgb,var(--color-warning) 12%,transparent) 1.5px,transparent 1.5px)",
+                    backgroundSize:  "12px 12px",
+                }} />
 
-                .vi-card-dots {
-                    position: absolute;
-                    bottom: -10px; left: -10px;
-                    width: 120px; height: 120px;
-                    background-image: radial-gradient(circle, rgba(252,211,77,0.1) 1.5px, transparent 1.5px);
-                    background-size: 12px 12px;
-                    pointer-events: none;
-                }
-
-                /* Header */
-                .vi-header {
-                    padding: 32px 36px 28px;
-                    border-bottom: 1px solid rgba(252,211,77,0.08);
-                    position: relative;
-                    z-index: 1;
-                }
-
-                .vi-header-label {
-                    font-size: 9px;
-                    font-weight: 500;
-                    letter-spacing: 0.18em;
-                    text-transform: uppercase;
-                    color: #fcd34d;
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
-                    margin-bottom: 8px;
-                }
-
-                .vi-header-label::before {
-                    content: '';
-                    display: inline-block;
-                    width: 14px; height: 1.5px;
-                    background: #fcd34d;
-                }
-
-                .vi-header-title {
-                    font-family: 'Playfair Display', serif;
-                    font-size: 1.2rem;
-                    font-weight: 700;
-                    color: #fef3c7;
-                    line-height: 1.25;
-                }
-
-                .vi-header-sub {
-                    font-size: 0.8rem;
-                    font-weight: 300;
-                    color: rgba(254,243,199,0.45);
-                    margin-top: 6px;
-                    line-height: 1.6;
-                }
-
-                /* Authorities list */
-                .vi-authorities {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 1px;
-                    background: rgba(252,211,77,0.06);
-                    position: relative;
-                    z-index: 1;
-                }
-
-                .vi-auth-row {
-                    background: rgba(255,255,255,0.02);
-                    padding: 18px 36px;
-                    display: flex;
-                    align-items: flex-start;
-                    gap: 12px;
-                    transition: background 0.18s;
-                    position: relative;
-                }
-
-                .vi-auth-row::before {
-                    content: '';
-                    position: absolute;
-                    left: 0; top: 4px; bottom: 4px;
-                    width: 2px;
-                    background: #fcd34d;
-                    border-radius: 2px;
-                    transform: scaleY(0);
-                    transition: transform 0.22s ease;
-                    transform-origin: top;
-                }
-
-                .vi-auth-row:hover { background: rgba(252,211,77,0.05); }
-                .vi-auth-row:hover::before { transform: scaleY(1); }
-
-                .vi-auth-icon {
-                    width: 32px; height: 32px;
-                    background: rgba(252,211,77,0.08);
-                    border: 1px solid rgba(252,211,77,0.14);
-                    border-radius: 9px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 0.85rem;
-                    flex-shrink: 0;
-                }
-
-                .vi-auth-badge {
-                    font-size: 8px;
-                    font-weight: 500;
-                    letter-spacing: 0.1em;
-                    text-transform: uppercase;
-                    color: rgba(252,211,77,0.6);
-                    margin-bottom: 3px;
-                }
-
-                .vi-auth-name {
-                    font-size: 0.82rem;
-                    font-weight: 500;
-                    color: #fef3c7;
-                    line-height: 1.3;
-                    margin-bottom: 3px;
-                }
-
-                .vi-auth-desc {
-                    font-size: 0.74rem;
-                    font-weight: 300;
-                    color: rgba(254,243,199,0.35);
-                    line-height: 1.5;
-                }
-
-                /* Credentials footer */
-                .vi-footer {
-                    padding: 24px 36px 32px;
-                    border-top: 1px solid rgba(252,211,77,0.08);
-                    position: relative;
-                    z-index: 1;
-                }
-
-                .vi-footer-label {
-                    font-size: 9px;
-                    font-weight: 500;
-                    letter-spacing: 0.16em;
-                    text-transform: uppercase;
-                    color: rgba(252,211,77,0.4);
-                    margin-bottom: 14px;
-                }
-
-                .vi-creds {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 8px;
-                }
-
-                .vi-cred {
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    font-size: 0.78rem;
-                    font-weight: 300;
-                    color: rgba(254,243,199,0.5);
-                }
-
-                .vi-cred-check {
-                    width: 16px; height: 16px;
-                    background: rgba(74,222,128,0.12);
-                    border: 1px solid rgba(74,222,128,0.2);
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 0.55rem;
-                    color: #4ade80;
-                    flex-shrink: 0;
-                }
-
-                @media (max-width: 480px) {
-                    .vi-header { padding: 24px 24px 20px; }
-                    .vi-auth-row { padding: 16px 24px; }
-                    .vi-footer { padding: 20px 24px 28px; }
-                }
-            `}</style>
-
-            <div className="vi-card">
-                <div className="vi-card-glow" aria-hidden="true" />
-                <div className="vi-card-dots" aria-hidden="true" />
-
-                <div className="vi-header">
-                    <div className="vi-header-label">How It Works</div>
-                    <div className="vi-header-title">Certificate Authorities</div>
-                    <div className="vi-header-sub">
-                        All certificates are issued and verifiable through these recognized organizations.
-                    </div>
+            {/* ── Header ── */}
+            <div className="relative z-10 px-9 pt-8 pb-7 max-sm:px-6 max-sm:pt-6 max-sm:pb-5"
+                style={{ borderBottom: "1px solid color-mix(in srgb,var(--color-warning) 10%,transparent)" }}>
+                {/* Eyebrow */}
+                <div className="flex items-center gap-1.5 mb-2 text-[9px] font-medium tracking-[0.18em] uppercase"
+                    style={{ color: "var(--color-warning)" }}>
+                    <span aria-hidden="true"
+                        style={{ display: "inline-block", width: 14, height: 1.5, background: "var(--color-warning)", flexShrink: 0 }} />
+                    How It Works
                 </div>
+                <div className="font-serif text-[1.2rem] font-bold leading-[1.25]"
+                    style={{ color: "var(--color-text-inverse)" }}>
+                    Certificate Authorities
+                </div>
+                <div className="text-[0.8rem] font-light leading-[1.6] mt-1.5"
+                    style={{ color: "color-mix(in srgb,var(--color-text-inverse) 45%,transparent)" }}>
+                    All certificates are issued and verifiable through these recognized organizations.
+                </div>
+            </div>
 
-                <div className="vi-authorities">
-                    {authorities.map((a) => (
-                        <div key={a.name} className="vi-auth-row">
-                            <div className="vi-auth-icon" aria-hidden="true">{a.icon}</div>
-                            <div>
-                                <div className="vi-auth-badge">{a.role}</div>
-                                <div className="vi-auth-name">{a.name}</div>
-                                <div className="vi-auth-desc">{a.desc}</div>
+            {/* ── Authorities list ── */}
+            <div className="relative z-10 flex flex-col"
+                style={{ gap: 1, background: "color-mix(in srgb,var(--color-warning) 6%,transparent)" }}>
+                {authorities.map((a, i) => (
+                    <div key={a.name}
+                        className="relative flex items-start gap-3 px-9 py-[18px] transition-colors duration-200 max-sm:px-6 max-sm:py-4 group"
+                        style={{ background: "color-mix(in srgb,var(--color-text-inverse) 2%,transparent)" }}
+                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "color-mix(in srgb,var(--color-warning) 6%,transparent)"}
+                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "color-mix(in srgb,var(--color-text-inverse) 2%,transparent)"}>
+
+                        {/* Left accent bar */}
+                        <span aria-hidden="true"
+                            className="absolute left-0 top-1 bottom-1 w-0.5 rounded-full origin-top scale-y-0 group-hover:scale-y-100 transition-transform duration-[220ms] ease-out"
+                            style={{ background: "var(--color-warning)" }} />
+
+                        {/* Icon */}
+                        <div className="w-8 h-8 rounded-[9px] flex items-center justify-center text-[0.85rem] flex-shrink-0"
+                            style={{
+                                background: "color-mix(in srgb,var(--color-warning) 10%,transparent)",
+                                border:     "1px solid color-mix(in srgb,var(--color-warning) 16%,transparent)",
+                            }}
+                            aria-hidden="true">
+                            {a.icon}
+                        </div>
+
+                        <div>
+                            <div className="text-[8px] font-medium tracking-[0.1em] uppercase mb-0.5"
+                                style={{ color: "color-mix(in srgb,var(--color-warning) 60%,transparent)" }}>
+                                {a.role}
                             </div>
+                            <div className="text-[0.82rem] font-medium leading-[1.3] mb-0.5"
+                                style={{ color: "var(--color-text-inverse)" }}>
+                                {a.name}
+                            </div>
+                            <div className="text-[0.74rem] font-light leading-[1.5]"
+                                style={{ color: "color-mix(in srgb,var(--color-text-inverse) 35%,transparent)" }}>
+                                {a.desc}
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* ── Credentials footer ── */}
+            <div className="relative z-10 px-9 pt-6 pb-8 max-sm:px-6 max-sm:pb-6"
+                style={{ borderTop: "1px solid color-mix(in srgb,var(--color-warning) 10%,transparent)" }}>
+                <div className="text-[9px] font-medium tracking-[0.16em] uppercase mb-3.5"
+                    style={{ color: "color-mix(in srgb,var(--color-warning) 40%,transparent)" }}>
+                    Institute Credentials
+                </div>
+                <div className="flex flex-col gap-2">
+                    {credentials.map(c => (
+                        <div key={c} className="flex items-center gap-2 text-[0.78rem] font-light"
+                            style={{ color: "color-mix(in srgb,var(--color-text-inverse) 50%,transparent)" }}>
+                            {/* Check circle */}
+                            <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 text-[0.55rem]"
+                                style={{
+                                    background: "color-mix(in srgb,var(--color-success) 14%,transparent)",
+                                    border:     "1px solid color-mix(in srgb,var(--color-success) 22%,transparent)",
+                                    color:      "var(--color-success)",
+                                }}
+                                aria-hidden="true">
+                                ✓
+                            </div>
+                            {c}
                         </div>
                     ))}
                 </div>
-
-                <div className="vi-footer">
-                    <div className="vi-footer-label">Institute Credentials</div>
-                    <div className="vi-creds">
-                        {credentials.map((c) => (
-                            <div key={c} className="vi-cred">
-                                <div className="vi-cred-check" aria-hidden="true">✓</div>
-                                {c}
-                            </div>
-                        ))}
-                    </div>
-                </div>
             </div>
-        </>
+
+        </div>
     );
 }

@@ -11,96 +11,63 @@ interface Props {
 }
 
 const LABELS: Record<string, string> = {
-    all: "All Photos",
-    classrooms: "Classrooms",
-    events: "Events",
+    all:          "All Photos",
+    classrooms:   "Classrooms",
+    events:       "Events",
     certificates: "Certificates",
 };
 
 export default function GalleryFilter({ active, setActive, categories, counts }: Props) {
     return (
-        <>
-            <style>{`
-                .gf-root {
-                    display: flex;
-                    flex-wrap: wrap;
-                    align-items: center;
-                    gap: 8px;
-                    margin-bottom: 44px;
-                }
-
-                .gf-btn {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 8px;
-                    font-family: 'DM Sans', sans-serif;
-                    font-size: 0.82rem;
-                    font-weight: 400;
-                    color: #6b5e4b;
-                    background: #fff;
-                    border: 1px solid #e8dfd0;
-                    border-radius: 100px;
-                    padding: 8px 18px;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                    white-space: nowrap;
-                    position: relative;
-                    overflow: hidden;
-                }
-
-                .gf-btn::before {
-                    content: '';
-                    position: absolute;
-                    inset: 0;
-                    background: #fffbeb;
-                    opacity: 0;
-                    transition: opacity 0.2s;
-                }
-
-                .gf-btn:hover { border-color: #d97706; color: #1a1208; }
-                .gf-btn:hover::before { opacity: 1; }
-
-                .gf-btn span { position: relative; z-index: 1; }
-
-                .gf-btn.active {
-                    background: #1a1208;
-                    border-color: #1a1208;
-                    color: #fef3c7;
-                    font-weight: 500;
-                }
-
-                .gf-btn.active::before { display: none; }
-
-                .gf-count {
-                    position: relative;
-                    z-index: 1;
-                    font-size: 10px;
-                    font-weight: 300;
-                    background: rgba(255,255,255,0.15);
-                    padding: 1px 7px;
-                    border-radius: 100px;
-                    line-height: 1.6;
-                }
-
-                .gf-btn:not(.active) .gf-count {
-                    background: #f0e8d8;
-                    color: #92826b;
-                }
-            `}</style>
-
-            <div className="gf-root" role="group" aria-label="Filter gallery by category">
-                {categories.map((cat) => (
+        <div className="flex flex-wrap items-center gap-2 mb-11"
+            role="group" aria-label="Filter gallery by category">
+            {categories.map((cat) => {
+                const isActive = active === cat;
+                return (
                     <button
                         key={cat}
                         onClick={() => setActive(cat)}
-                        className={`gf-btn ${active === cat ? "active" : ""}`}
-                        aria-pressed={active === cat}
-                    >
+                        aria-pressed={isActive}
+                        className="inline-flex items-center gap-2 rounded-full px-[18px] py-2 text-[0.82rem] whitespace-nowrap transition-all duration-200 cursor-pointer"
+                        style={{
+                            fontFamily: "'DM Sans', sans-serif",
+                            fontWeight:  isActive ? 500 : 400,
+                            background:  isActive ? "var(--color-bg-sidebar)" : "var(--color-bg-card)",
+                            border:      isActive
+                                ? "1px solid var(--color-bg-sidebar)"
+                                : "1px solid var(--color-border)",
+                            color: isActive ? "var(--color-text-inverse)" : "var(--color-text-muted)",
+                        }}
+                        onMouseEnter={e => {
+                            if (!isActive) {
+                                (e.currentTarget as HTMLElement).style.borderColor = "var(--color-primary)";
+                                (e.currentTarget as HTMLElement).style.color       = "var(--color-text)";
+                                (e.currentTarget as HTMLElement).style.background  = "color-mix(in srgb,var(--color-primary) 5%,var(--color-bg-card))";
+                            }
+                        }}
+                        onMouseLeave={e => {
+                            if (!isActive) {
+                                (e.currentTarget as HTMLElement).style.borderColor = "var(--color-border)";
+                                (e.currentTarget as HTMLElement).style.color       = "var(--color-text-muted)";
+                                (e.currentTarget as HTMLElement).style.background  = "var(--color-bg-card)";
+                            }
+                        }}>
                         <span>{LABELS[cat] ?? cat.charAt(0).toUpperCase() + cat.slice(1)}</span>
-                        <span className="gf-count">{counts[cat]}</span>
+                        {/* Count badge */}
+                        <span className="text-[10px] font-light rounded-full px-1.5 leading-[1.6]"
+                            style={{
+                                background: isActive
+                                    ? "color-mix(in srgb,var(--color-text-inverse) 15%,transparent)"
+                                    : "color-mix(in srgb,var(--color-primary) 10%,var(--color-bg))",
+                                color: isActive
+                                    ? "var(--color-text-inverse)"
+                                    : "var(--color-text-muted)",
+                            }}>
+                            {counts[cat]}
+                        </span>
                     </button>
-                ))}
-            </div>
-        </>
+                );
+            })}
+        </div>
     );
 }

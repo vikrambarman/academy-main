@@ -38,363 +38,179 @@ export default function FAQPage() {
 
     return (
         <>
+            {/* Only accordion animation CSS — no color, no layout */}
             <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap');
-
-                .fq-root {
-                    font-family: 'DM Sans', sans-serif;
-                    background: #faf8f4;
-                    min-height: 100vh;
-                }
-
-                /* ── Hero ── */
-                .fq-hero {
-                    padding: 88px 24px 64px;
-                    position: relative;
-                    overflow: hidden;
-                }
-
-                .fq-hero-glow {
-                    position: absolute;
-                    top: -80px; right: -80px;
-                    width: 420px; height: 420px;
-                    background: radial-gradient(circle, rgba(217,119,6,0.08) 0%, transparent 65%);
-                    pointer-events: none;
-                }
-
-                .fq-hero-inner {
-                    max-width: 800px;
-                    margin: 0 auto;
-                    position: relative;
-                    z-index: 1;
-                }
-
-                .fq-eyebrow {
-                    font-size: 10px;
-                    font-weight: 500;
-                    letter-spacing: 0.18em;
-                    text-transform: uppercase;
-                    color: #b45309;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    margin-bottom: 14px;
-                }
-
-                .fq-eyebrow::before {
-                    content: '';
-                    display: inline-block;
-                    width: 24px; height: 1.5px;
-                    background: #d97706;
-                }
-
-                .fq-hero-layout {
-                    display: flex;
-                    align-items: flex-end;
-                    justify-content: space-between;
-                    gap: 40px;
-                    flex-wrap: wrap;
-                }
-
-                .fq-title {
-                    font-family: 'Playfair Display', serif;
-                    font-size: clamp(2rem, 4vw, 3rem);
-                    font-weight: 700;
-                    color: #1a1208;
-                    line-height: 1.15;
-                }
-
-                .fq-title em {
-                    font-style: italic;
-                    color: #b45309;
-                }
-
-                .fq-hero-desc {
-                    font-size: 0.88rem;
-                    font-weight: 300;
-                    color: #6b5e4b;
-                    line-height: 1.8;
-                    max-width: 300px;
-                    padding-bottom: 4px;
-                }
-
-                /* ── Body ── */
-                .fq-body {
-                    padding: 0 24px 88px;
-                    position: relative;
-                }
-
-                .fq-body::before {
-                    content: '';
-                    position: absolute;
-                    top: 0; left: 10%; right: 10%;
-                    height: 1px;
-                    background: linear-gradient(to right, transparent, #e2d9c8, transparent);
-                }
-
-                .fq-body-inner {
-                    max-width: 800px;
-                    margin: 0 auto;
-                    padding-top: 52px;
-                }
-
-                /* ── Accordion ── */
-                .fq-list {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 1px;
-                    background: #e8dfd0;
-                    border: 1px solid #e8dfd0;
-                    border-radius: 20px;
-                    overflow: hidden;
-                    margin-bottom: 20px;
-                }
-
-                .fq-item {
-                    background: #fff;
-                    position: relative;
-                    overflow: hidden;
-                }
-
-                /* Left amber bar — shows when open */
-                .fq-item::before {
-                    content: '';
-                    position: absolute;
-                    left: 0; top: 0; bottom: 0;
-                    width: 3px;
-                    background: linear-gradient(to bottom, #d97706, #fcd34d);
-                    transform: scaleY(0);
-                    transform-origin: top;
-                    transition: transform 0.28s ease;
-                }
-
-                .fq-item.open { background: #fffefb; }
-                .fq-item.open::before { transform: scaleY(1); }
-
-                /* Trigger */
-                .fq-trigger {
-                    width: 100%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    gap: 16px;
-                    padding: 20px 24px 20px 28px;
-                    background: none;
-                    border: none;
-                    cursor: pointer;
-                    text-align: left;
-                }
-
-                .fq-trigger:hover { background: #fef9ee; }
-                .fq-item.open .fq-trigger { background: transparent; }
-
-                .fq-q-num {
-                    font-family: 'Playfair Display', serif;
-                    font-size: 0.72rem;
-                    font-weight: 700;
-                    color: rgba(180,83,9,0.35);
-                    flex-shrink: 0;
-                    min-width: 24px;
-                }
-
-                .fq-item.open .fq-q-num { color: #b45309; }
-
-                .fq-q-text {
-                    font-size: 0.88rem;
-                    font-weight: 500;
-                    color: #1a1208;
-                    line-height: 1.4;
-                    flex: 1;
-                }
-
-                .fq-icon {
-                    width: 28px; height: 28px;
-                    background: #faf8f4;
-                    border: 1px solid #e8dfd0;
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 1rem;
-                    color: #92826b;
-                    flex-shrink: 0;
-                    font-weight: 300;
-                    line-height: 1;
-                    transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.25s ease;
-                }
-
-                .fq-item.open .fq-icon {
-                    background: #1a1208;
-                    border-color: #1a1208;
-                    color: #fcd34d;
-                    transform: rotate(45deg);
-                }
-
-                /* Answer */
                 .fq-answer {
                     max-height: 0;
                     overflow: hidden;
                     opacity: 0;
                     transition: max-height 0.32s ease, opacity 0.24s ease;
                 }
-
-                .fq-item.open .fq-answer {
+                .fq-answer.open {
                     max-height: 300px;
                     opacity: 1;
                 }
-
-                .fq-answer-inner {
-                    padding: 0 24px 20px 52px;
-                    font-size: 0.84rem;
-                    font-weight: 300;
-                    color: #6b5e4b;
-                    line-height: 1.85;
-                }
-
-                /* ── CTA strip ── */
-                .fq-cta {
-                    background: #1a1208;
-                    border-radius: 18px;
-                    padding: 28px 32px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    gap: 20px;
-                    flex-wrap: wrap;
-                    position: relative;
-                    overflow: hidden;
-                }
-
-                .fq-cta::before {
-                    content: '';
-                    position: absolute;
-                    right: -10px; top: 50%;
-                    transform: translateY(-50%);
-                    width: 140px; height: 140px;
-                    background-image: radial-gradient(circle, rgba(252,211,77,0.1) 1.5px, transparent 1.5px);
-                    background-size: 12px 12px;
-                    pointer-events: none;
-                }
-
-                .fq-cta-left {}
-
-                .fq-cta-label {
-                    font-size: 9px;
-                    font-weight: 500;
-                    letter-spacing: 0.16em;
-                    text-transform: uppercase;
-                    color: rgba(252,211,77,0.5);
-                    margin-bottom: 4px;
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
-                }
-
-                .fq-cta-label::before {
-                    content: '';
-                    display: inline-block;
-                    width: 12px; height: 1.5px;
-                    background: rgba(252,211,77,0.4);
-                }
-
-                .fq-cta-text {
-                    font-family: 'Playfair Display', serif;
-                    font-size: 0.95rem;
-                    font-weight: 600;
-                    color: #fef3c7;
-                }
-
-                .fq-cta-btn {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 8px;
-                    font-family: 'DM Sans', sans-serif;
-                    font-size: 0.82rem;
-                    font-weight: 500;
-                    color: #1a1208;
-                    background: #fcd34d;
-                    padding: 11px 22px;
-                    border-radius: 100px;
-                    text-decoration: none;
-                    white-space: nowrap;
-                    position: relative;
-                    z-index: 1;
-                    transition: background 0.18s, transform 0.15s;
-                    flex-shrink: 0;
-                }
-
-                .fq-cta-btn:hover { background: #fef3c7; transform: translateY(-1px); }
-
-                .fq-cta-arrow { transition: transform 0.18s; }
-                .fq-cta-btn:hover .fq-cta-arrow { transform: translateX(3px); }
-
-                /* ── Responsive ── */
-                @media (max-width: 640px) {
-                    .fq-hero { padding: 64px 20px 52px; }
-                    .fq-body { padding: 0 20px 64px; }
-                    .fq-hero-layout { flex-direction: column; align-items: flex-start; gap: 12px; }
-                    .fq-trigger { padding: 18px 18px 18px 22px; }
-                    .fq-answer-inner { padding: 0 18px 18px 42px; }
-                    .fq-cta { flex-direction: column; align-items: flex-start; }
-                }
             `}</style>
 
-            <main className="fq-root">
-                <div className="fq-hero">
-                    <div className="fq-hero-glow" aria-hidden="true" />
-                    <div className="fq-hero-inner">
-                        <div className="fq-eyebrow">Help & Information</div>
-                        <div className="fq-hero-layout">
-                            <h1 className="fq-title">
-                                Frequently<br /><em>Asked Questions</em>
+            <main style={{ background: "var(--color-bg)", minHeight: "100vh", fontFamily: "'DM Sans', sans-serif" }}>
+
+                {/* ══════════════════════ HERO ══════════════════════ */}
+                <section className="relative overflow-hidden px-6 pt-[88px] pb-16"
+                    style={{ background: "var(--color-bg)" }}
+                    aria-labelledby="faq-hero-heading">
+
+                    {/* Glow */}
+                    <div aria-hidden="true" className="absolute -top-20 -right-20 w-[420px] h-[420px] rounded-full pointer-events-none z-0"
+                        style={{ background: "radial-gradient(circle,color-mix(in srgb,var(--color-primary) 9%,transparent) 0%,transparent 65%)" }} />
+
+                    <div className="relative z-10 max-w-[800px] mx-auto">
+                        {/* Eyebrow */}
+                        <div className="flex items-center gap-2 mb-3.5 text-[10px] font-medium tracking-[0.18em] uppercase"
+                            style={{ color: "var(--color-primary)" }}>
+                            <span aria-hidden="true"
+                                style={{ display: "inline-block", width: 24, height: 1.5, background: "var(--color-primary)", flexShrink: 0 }} />
+                            Help & Information
+                        </div>
+
+                        <div className="flex items-end justify-between gap-10 flex-wrap">
+                            <h1 id="faq-hero-heading"
+                                className="font-serif font-bold leading-[1.15]"
+                                style={{ fontSize: "clamp(2rem,4vw,3rem)", color: "var(--color-text)" }}>
+                                Frequently<br />
+                                <em className="italic" style={{ color: "var(--color-accent)" }}>Asked Questions</em>
                             </h1>
-                            <p className="fq-hero-desc">
+                            <p className="text-[0.88rem] font-light leading-[1.8] max-w-[300px] pb-1"
+                                style={{ color: "var(--color-text-muted)" }}>
                                 Common questions about admissions, certifications,
                                 training structure and policies.
                             </p>
                         </div>
                     </div>
-                </div>
+                </section>
 
-                <div className="fq-body">
-                    <div className="fq-body-inner">
-                        <div className="fq-list" role="list">
-                            {faqs.map((faq, i) => (
-                                <div
-                                    key={i}
-                                    className={`fq-item ${openIndex === i ? "open" : ""}`}
-                                    role="listitem"
-                                >
-                                    <button
-                                        className="fq-trigger"
-                                        onClick={() => setOpenIndex(openIndex === i ? null : i)}
-                                        aria-expanded={openIndex === i}
-                                    >
-                                        <span className="fq-q-num" aria-hidden="true">
-                                            {String(i + 1).padStart(2, "0")}
-                                        </span>
-                                        <span className="fq-q-text">{faq.q}</span>
-                                        <span className="fq-icon" aria-hidden="true">+</span>
-                                    </button>
-                                    <div className="fq-answer" aria-hidden={openIndex !== i}>
-                                        <div className="fq-answer-inner">{faq.a}</div>
+                {/* ══════════════════════ FAQ BODY ══════════════════════ */}
+                <section className="relative px-6 pb-[88px]" aria-label="FAQ accordion">
+                    {/* Top divider */}
+                    <div aria-hidden="true" className="absolute top-0 pointer-events-none"
+                        style={{ left: "10%", right: "10%", height: 1, background: "linear-gradient(to right,transparent,var(--color-border),transparent)" }} />
+
+                    <div className="max-w-[800px] mx-auto pt-14">
+
+                        {/* Accordion list */}
+                        <div className="flex flex-col rounded-[20px] overflow-hidden mb-5"
+                            style={{ gap: 1, background: "var(--color-border)", border: "1px solid var(--color-border)" }}
+                            role="list">
+                            {faqs.map((faq, i) => {
+                                const isOpen = openIndex === i;
+                                return (
+                                    <div key={i}
+                                        className="relative overflow-hidden transition-colors duration-200"
+                                        style={{ background: isOpen ? "color-mix(in srgb,var(--color-primary) 3%,var(--color-bg-card))" : "var(--color-bg-card)" }}
+                                        role="listitem">
+
+                                        {/* Left accent bar — visible when open */}
+                                        <span aria-hidden="true"
+                                            className="absolute left-0 top-0 bottom-0 w-[3px] transition-transform duration-[280ms] ease-out origin-top"
+                                            style={{
+                                                background: "linear-gradient(to bottom,var(--color-primary),color-mix(in srgb,var(--color-primary) 50%,transparent))",
+                                                transform: isOpen ? "scaleY(1)" : "scaleY(0)",
+                                            }} />
+
+                                        {/* Trigger */}
+                                        <button
+                                            className="w-full flex items-center justify-between gap-4 pl-7 pr-6 py-5 text-left cursor-pointer transition-colors duration-200"
+                                            style={{
+                                                background: "none",
+                                                border: "none",
+                                                fontFamily: "'DM Sans', sans-serif",
+                                            }}
+                                            onClick={() => setOpenIndex(isOpen ? null : i)}
+                                            aria-expanded={isOpen}
+                                            onMouseEnter={e => { if (!isOpen) (e.currentTarget as HTMLElement).style.background = "color-mix(in srgb,var(--color-primary) 3%,var(--color-bg-card))"; }}
+                                            onMouseLeave={e => { if (!isOpen) (e.currentTarget as HTMLElement).style.background = "none"; }}>
+
+                                            {/* Number */}
+                                            <span className="font-serif text-[0.72rem] font-bold flex-shrink-0 min-w-[24px]"
+                                                style={{ color: isOpen ? "var(--color-primary)" : "color-mix(in srgb,var(--color-primary) 35%,transparent)" }}
+                                                aria-hidden="true">
+                                                {String(i + 1).padStart(2, "0")}
+                                            </span>
+
+                                            {/* Question */}
+                                            <span className="text-[0.88rem] font-medium leading-[1.4] flex-1"
+                                                style={{ color: "var(--color-text)" }}>
+                                                {faq.q}
+                                            </span>
+
+                                            {/* Toggle icon */}
+                                            <span className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-base font-light leading-none transition-all duration-[250ms] ease-out"
+                                                style={{
+                                                    background:  isOpen ? "var(--color-bg-sidebar)" : "var(--color-bg)",
+                                                    border:      isOpen ? "1px solid var(--color-bg-sidebar)" : "1px solid var(--color-border)",
+                                                    color:       isOpen ? "var(--color-warning)" : "var(--color-text-muted)",
+                                                    transform:   isOpen ? "rotate(45deg)" : "rotate(0deg)",
+                                                }}
+                                                aria-hidden="true">
+                                                +
+                                            </span>
+                                        </button>
+
+                                        {/* Answer */}
+                                        <div className={`fq-answer ${isOpen ? "open" : ""}`}
+                                            aria-hidden={!isOpen}>
+                                            <div className="pl-[52px] pr-6 pb-5 text-[0.84rem] font-light leading-[1.85]"
+                                                style={{ color: "var(--color-text-muted)" }}>
+                                                {faq.a}
+                                            </div>
+                                        </div>
+
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
 
-                        <div className="fq-cta" aria-label="Still have questions?">
-                            <div className="fq-cta-left">
-                                <div className="fq-cta-label">Need More Help</div>
-                                <div className="fq-cta-text">Still have questions? Talk to our team.</div>
+                        {/* CTA strip */}
+                        <div className="relative overflow-hidden rounded-[18px] px-8 py-7 flex items-center justify-between gap-5 flex-wrap"
+                            style={{ background: "var(--color-bg-sidebar)" }}
+                            aria-label="Still have questions?">
+
+                            {/* Dot pattern */}
+                            <div aria-hidden="true" className="absolute -right-2.5 top-1/2 -translate-y-1/2 w-36 h-36 pointer-events-none"
+                                style={{
+                                    backgroundImage: "radial-gradient(circle,color-mix(in srgb,var(--color-warning) 12%,transparent) 1.5px,transparent 1.5px)",
+                                    backgroundSize: "12px 12px",
+                                }} />
+
+                            <div className="relative z-10">
+                                <div className="flex items-center gap-1.5 text-[9px] font-medium tracking-[0.16em] uppercase mb-1"
+                                    style={{ color: "color-mix(in srgb,var(--color-warning) 55%,transparent)" }}>
+                                    <span aria-hidden="true"
+                                        style={{ display: "inline-block", width: 12, height: 1.5, background: "color-mix(in srgb,var(--color-warning) 45%,transparent)", flexShrink: 0 }} />
+                                    Need More Help
+                                </div>
+                                <div className="font-serif text-[0.95rem] font-semibold"
+                                    style={{ color: "var(--color-text-inverse)" }}>
+                                    Still have questions? Talk to our team.
+                                </div>
                             </div>
-                            <Link href="/contact" className="fq-cta-btn">
+
+                            <Link href="/contact"
+                                className="relative z-10 inline-flex items-center gap-2 no-underline rounded-full px-[22px] py-[11px] text-[0.82rem] font-medium flex-shrink-0 transition-all duration-200 hover:-translate-y-px"
+                                style={{
+                                    background:  "var(--color-warning)",
+                                    color:       "var(--color-bg-sidebar)",
+                                    fontFamily:  "'DM Sans', sans-serif",
+                                }}
+                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "color-mix(in srgb,var(--color-warning) 80%,#fff)"}
+                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "var(--color-warning)"}>
                                 Contact the Academy
-                                <span className="fq-cta-arrow" aria-hidden="true">→</span>
+                                <span className="transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true">→</span>
                             </Link>
                         </div>
+
                     </div>
-                </div>
+                </section>
+
             </main>
         </>
     );

@@ -5,31 +5,56 @@ import Script from "next/script";
 
 const CONTACT_METHODS = ["Phone", "WhatsApp"];
 
-export default function EnquiryPage() {
-    const [courses, setCourses] = useState<any[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [success, setSuccess] = useState(false);
-    const [error, setError] = useState(false);
+const admissionSteps = [
+    { num: "1", title: "Submit Enquiry",    desc: "Fill the form with your details and preferred course."          },
+    { num: "2", title: "Team Contacts You", desc: "We reach out within 24 hours on your preferred channel."        },
+    { num: "3", title: "Visit the Academy", desc: "Come in for a demo session or direct admission."                },
+    { num: "4", title: "Enroll & Begin",    desc: "Complete admission formalities and start learning."             },
+];
 
-    const [form, setForm] = useState({
-        name: "",
-        mobile: "",
-        course: "",
-        contactMethod: "Phone",
-        message: "",
+const contactLinks = [
+    { href: "tel:+917477036832",                         icon: "📞", label: "Call Us",   value: "+91 74770 36832",  external: false },
+    { href: "https://wa.me/919009087883", icon: "💬", label: "WhatsApp", value: "+91 90090 87883", external: true  },
+];
+
+/* ── Reusable eyebrow ── */
+function Eyebrow({ label }: { label: string }) {
+    return (
+        <div className="flex items-center gap-2 mb-3.5 text-[10px] font-medium tracking-[0.18em] uppercase"
+            style={{ color: "var(--color-primary)" }}>
+            <span aria-hidden="true"
+                style={{ display: "inline-block", width: 24, height: 1.5, background: "var(--color-primary)", flexShrink: 0 }} />
+            {label}
+        </div>
+    );
+}
+
+/* ── Dark panel eyebrow ── */
+function EyebrowDark({ label, small = false }: { label: string; small?: boolean }) {
+    return (
+        <div className={`flex items-center gap-1.5 mb-2 font-medium tracking-[0.18em] uppercase ${small ? "text-[9px]" : "text-[9px]"}`}
+            style={{ color: "var(--color-warning)" }}>
+            <span aria-hidden="true"
+                style={{ display: "inline-block", width: small ? 12 : 14, height: 1.5, background: "var(--color-warning)", flexShrink: 0 }} />
+            {label}
+        </div>
+    );
+}
+
+export default function EnquiryPage() {
+    const [courses, setCourses]   = useState<any[]>([]);
+    const [loading, setLoading]   = useState(false);
+    const [success, setSuccess]   = useState(false);
+    const [error, setError]       = useState(false);
+    const [form, setForm]         = useState({
+        name: "", mobile: "", course: "", contactMethod: "Phone", message: "",
     });
 
     useEffect(() => {
-        const fetchCourses = async () => {
-            try {
-                const res = await fetch("/api/public/courses");
-                const result = await res.json();
-                setCourses(result.data || []);
-            } catch (err) {
-                console.error("Failed to fetch courses:", err);
-            }
-        };
-        fetchCourses();
+        fetch("/api/public/courses")
+            .then(r => r.json())
+            .then(result => setCourses(result.data || []))
+            .catch(err => console.error("Failed to fetch courses:", err));
     }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -45,530 +70,40 @@ export default function EnquiryPage() {
             if (res.ok) {
                 setSuccess(true);
                 setForm({ name: "", mobile: "", course: "", contactMethod: "Phone", message: "" });
-            } else {
-                setError(true);
-            }
-        } catch {
-            setError(true);
-        }
+            } else { setError(true); }
+        } catch { setError(true); }
         setLoading(false);
+    };
+
+    /* Shared input style helpers */
+    const inputBase: React.CSSProperties = {
+        background: "var(--color-bg)",
+        border: "1px solid var(--color-border)",
+        color: "var(--color-text)",
+        fontFamily: "'DM Sans', sans-serif",
+        borderRadius: 12,
+        padding: "12px 16px",
+        fontSize: "0.85rem",
+        fontWeight: 300,
+        width: "100%",
+        outline: "none",
+        boxSizing: "border-box",
+        appearance: "none",
+        transition: "border-color 0.2s, background 0.2s, box-shadow 0.2s",
+    };
+    const onFocus = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        e.currentTarget.style.borderColor = "var(--color-primary)";
+        e.currentTarget.style.background  = "var(--color-bg-card)";
+        e.currentTarget.style.boxShadow   = "0 0 0 3px color-mix(in srgb,var(--color-primary) 12%,transparent)";
+    };
+    const onBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        e.currentTarget.style.borderColor = "var(--color-border)";
+        e.currentTarget.style.background  = "var(--color-bg)";
+        e.currentTarget.style.boxShadow   = "none";
     };
 
     return (
         <>
-            <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap');
-
-                .eq-root {
-                    font-family: 'DM Sans', sans-serif;
-                    background: #faf8f4;
-                    min-height: 100vh;
-                }
-
-                /* ── Hero ── */
-                .eq-hero {
-                    padding: 88px 24px 64px;
-                    position: relative;
-                    overflow: hidden;
-                }
-
-                .eq-hero-glow {
-                    position: absolute;
-                    top: -80px; right: -80px;
-                    width: 420px; height: 420px;
-                    background: radial-gradient(circle, rgba(217,119,6,0.08) 0%, transparent 65%);
-                    pointer-events: none;
-                }
-
-                .eq-hero-inner {
-                    max-width: 1100px;
-                    margin: 0 auto;
-                    position: relative;
-                    z-index: 1;
-                }
-
-                .eq-eyebrow {
-                    font-size: 10px;
-                    font-weight: 500;
-                    letter-spacing: 0.18em;
-                    text-transform: uppercase;
-                    color: #b45309;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    margin-bottom: 14px;
-                }
-
-                .eq-eyebrow::before {
-                    content: '';
-                    display: inline-block;
-                    width: 24px; height: 1.5px;
-                    background: #d97706;
-                }
-
-                .eq-hero-layout {
-                    display: flex;
-                    align-items: flex-end;
-                    justify-content: space-between;
-                    gap: 40px;
-                    flex-wrap: wrap;
-                }
-
-                .eq-title {
-                    font-family: 'Playfair Display', serif;
-                    font-size: clamp(2rem, 4vw, 3rem);
-                    font-weight: 700;
-                    color: #1a1208;
-                    line-height: 1.15;
-                }
-
-                .eq-title em {
-                    font-style: italic;
-                    color: #b45309;
-                }
-
-                .eq-hero-desc {
-                    font-size: 0.88rem;
-                    font-weight: 300;
-                    color: #6b5e4b;
-                    line-height: 1.8;
-                    max-width: 340px;
-                    padding-bottom: 4px;
-                }
-
-                /* ── Body ── */
-                .eq-body {
-                    padding: 0 24px 88px;
-                    position: relative;
-                }
-
-                .eq-body::before {
-                    content: '';
-                    position: absolute;
-                    top: 0; left: 10%; right: 10%;
-                    height: 1px;
-                    background: linear-gradient(to right, transparent, #e2d9c8, transparent);
-                }
-
-                .eq-body-inner {
-                    max-width: 1100px;
-                    margin: 0 auto;
-                    padding-top: 52px;
-                    display: grid;
-                    grid-template-columns: 1fr 360px;
-                    gap: 20px;
-                    align-items: start;
-                }
-
-                /* ── Form card ── */
-                .eq-form-card {
-                    background: #fff;
-                    border: 1px solid #e8dfd0;
-                    border-radius: 24px;
-                    overflow: hidden;
-                }
-
-                .eq-form-header {
-                    background: #1a1208;
-                    padding: 32px 36px 28px;
-                    position: relative;
-                    overflow: hidden;
-                }
-
-                .eq-form-header::before {
-                    content: '';
-                    position: absolute;
-                    bottom: -16px; right: -16px;
-                    width: 110px; height: 110px;
-                    background-image: radial-gradient(circle, rgba(252,211,77,0.12) 1.5px, transparent 1.5px);
-                    background-size: 11px 11px;
-                    pointer-events: none;
-                }
-
-                .eq-form-header-label {
-                    font-size: 9px;
-                    font-weight: 500;
-                    letter-spacing: 0.18em;
-                    text-transform: uppercase;
-                    color: #fcd34d;
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
-                    margin-bottom: 8px;
-                }
-
-                .eq-form-header-label::before {
-                    content: '';
-                    display: inline-block;
-                    width: 14px; height: 1.5px;
-                    background: #fcd34d;
-                }
-
-                .eq-form-header-title {
-                    font-family: 'Playfair Display', serif;
-                    font-size: 1.2rem;
-                    font-weight: 700;
-                    color: #fef3c7;
-                    line-height: 1.25;
-                    position: relative;
-                    z-index: 1;
-                }
-
-                .eq-form-header-sub {
-                    font-size: 0.8rem;
-                    font-weight: 300;
-                    color: rgba(254,243,199,0.45);
-                    margin-top: 6px;
-                    line-height: 1.6;
-                    position: relative;
-                    z-index: 1;
-                }
-
-                .eq-form-body {
-                    padding: 32px 36px 36px;
-                }
-
-                /* Grid layout */
-                .eq-form-grid {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 14px;
-                }
-
-                .eq-span-2 { grid-column: 1 / -1; }
-
-                /* Field */
-                .eq-field {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 5px;
-                }
-
-                .eq-label {
-                    font-size: 10px;
-                    font-weight: 500;
-                    letter-spacing: 0.12em;
-                    text-transform: uppercase;
-                    color: #92826b;
-                }
-
-                .eq-input,
-                .eq-select,
-                .eq-textarea {
-                    font-family: 'DM Sans', sans-serif;
-                    font-size: 0.85rem;
-                    font-weight: 300;
-                    color: #1a1208;
-                    background: #faf8f4;
-                    border: 1px solid #e8dfd0;
-                    border-radius: 12px;
-                    padding: 12px 16px;
-                    outline: none;
-                    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
-                    width: 100%;
-                    box-sizing: border-box;
-                    appearance: none;
-                    -webkit-appearance: none;
-                }
-
-                .eq-input::placeholder,
-                .eq-textarea::placeholder { color: #b8a898; }
-
-                .eq-input:focus,
-                .eq-select:focus,
-                .eq-textarea:focus {
-                    border-color: #d97706;
-                    background: #fff;
-                    box-shadow: 0 0 0 3px rgba(217,119,6,0.08);
-                }
-
-                /* Custom select wrapper */
-                .eq-select-wrap {
-                    position: relative;
-                }
-
-                .eq-select-wrap::after {
-                    content: '▾';
-                    position: absolute;
-                    right: 14px;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    font-size: 0.7rem;
-                    color: #92826b;
-                    pointer-events: none;
-                }
-
-                .eq-textarea {
-                    resize: vertical;
-                    min-height: 100px;
-                }
-
-                /* Contact method tabs */
-                .eq-method-tabs {
-                    display: flex;
-                    gap: 8px;
-                }
-
-                .eq-method-tab {
-                    flex: 1;
-                    font-family: 'DM Sans', sans-serif;
-                    font-size: 0.82rem;
-                    font-weight: 400;
-                    color: #6b5e4b;
-                    background: #faf8f4;
-                    border: 1px solid #e8dfd0;
-                    border-radius: 10px;
-                    padding: 10px 16px;
-                    cursor: pointer;
-                    text-align: center;
-                    transition: all 0.18s;
-                }
-
-                .eq-method-tab:hover {
-                    border-color: #d97706;
-                    color: #1a1208;
-                }
-
-                .eq-method-tab.active {
-                    background: #1a1208;
-                    border-color: #1a1208;
-                    color: #fef3c7;
-                    font-weight: 500;
-                }
-
-                /* Submit */
-                .eq-submit {
-                    width: 100%;
-                    font-family: 'DM Sans', sans-serif;
-                    font-size: 0.9rem;
-                    font-weight: 500;
-                    color: #fef3c7;
-                    background: #1a1208;
-                    border: none;
-                    border-radius: 12px;
-                    padding: 15px;
-                    cursor: pointer;
-                    transition: background 0.2s, transform 0.15s;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 8px;
-                    margin-top: 4px;
-                }
-
-                .eq-submit:hover:not(:disabled) {
-                    background: #2d1f0d;
-                    transform: translateY(-1px);
-                }
-
-                .eq-submit:disabled { opacity: 0.6; cursor: not-allowed; }
-
-                /* Alerts */
-                .eq-alert {
-                    border-radius: 12px;
-                    padding: 13px 18px;
-                    font-size: 0.82rem;
-                    font-weight: 300;
-                    line-height: 1.65;
-                    margin-bottom: 20px;
-                    display: flex;
-                    gap: 10px;
-                    align-items: flex-start;
-                }
-
-                .eq-alert-success {
-                    background: #f0fdf4;
-                    border: 1px solid #bbf7d0;
-                    color: #15803d;
-                }
-
-                .eq-alert-error {
-                    background: #fef2f2;
-                    border: 1px solid #fecaca;
-                    color: #dc2626;
-                }
-
-                /* ── Side info card ── */
-                .eq-info-card {
-                    background: #1a1208;
-                    border-radius: 24px;
-                    overflow: hidden;
-                    position: relative;
-                }
-
-                .eq-info-glow {
-                    position: absolute;
-                    top: -40px; right: -40px;
-                    width: 200px; height: 200px;
-                    background: radial-gradient(circle, rgba(217,119,6,0.1) 0%, transparent 65%);
-                    pointer-events: none;
-                }
-
-                .eq-info-dots {
-                    position: absolute;
-                    bottom: -8px; left: -8px;
-                    width: 110px; height: 110px;
-                    background-image: radial-gradient(circle, rgba(252,211,77,0.1) 1.5px, transparent 1.5px);
-                    background-size: 11px 11px;
-                    pointer-events: none;
-                }
-
-                .eq-info-header {
-                    padding: 28px 28px 24px;
-                    border-bottom: 1px solid rgba(252,211,77,0.08);
-                    position: relative;
-                    z-index: 1;
-                }
-
-                .eq-info-label {
-                    font-size: 9px;
-                    font-weight: 500;
-                    letter-spacing: 0.18em;
-                    text-transform: uppercase;
-                    color: #fcd34d;
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
-                    margin-bottom: 8px;
-                }
-
-                .eq-info-label::before {
-                    content: '';
-                    display: inline-block;
-                    width: 12px; height: 1.5px;
-                    background: #fcd34d;
-                }
-
-                .eq-info-title {
-                    font-family: 'Playfair Display', serif;
-                    font-size: 1.05rem;
-                    font-weight: 700;
-                    color: #fef3c7;
-                    line-height: 1.25;
-                }
-
-                /* Process steps */
-                .eq-steps {
-                    padding: 20px 28px 0;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 1px;
-                    background: rgba(252,211,77,0.06);
-                    position: relative;
-                    z-index: 1;
-                }
-
-                .eq-step {
-                    background: rgba(255,255,255,0.02);
-                    padding: 16px 0;
-                    display: flex;
-                    align-items: flex-start;
-                    gap: 12px;
-                    border-bottom: 1px solid rgba(252,211,77,0.06);
-                    transition: background 0.18s;
-                }
-
-                .eq-step:last-child { border-bottom: none; }
-
-                .eq-step-num {
-                    font-family: 'Playfair Display', serif;
-                    font-size: 0.7rem;
-                    font-weight: 700;
-                    color: #1a1208;
-                    background: #fcd34d;
-                    width: 22px; height: 22px;
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    flex-shrink: 0;
-                    margin-top: 2px;
-                }
-
-                .eq-step-title {
-                    font-size: 0.82rem;
-                    font-weight: 500;
-                    color: #fef3c7;
-                    margin-bottom: 3px;
-                    line-height: 1.3;
-                }
-
-                .eq-step-desc {
-                    font-size: 0.74rem;
-                    font-weight: 300;
-                    color: rgba(254,243,199,0.38);
-                    line-height: 1.5;
-                }
-
-                /* Contact links */
-                .eq-contact-strip {
-                    padding: 20px 28px 28px;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 10px;
-                    position: relative;
-                    z-index: 1;
-                    border-top: 1px solid rgba(252,211,77,0.08);
-                }
-
-                .eq-contact-link {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    text-decoration: none;
-                    padding: 10px 14px;
-                    background: rgba(255,255,255,0.03);
-                    border: 1px solid rgba(252,211,77,0.1);
-                    border-radius: 12px;
-                    transition: background 0.18s, border-color 0.18s;
-                }
-
-                .eq-contact-link:hover {
-                    background: rgba(252,211,77,0.08);
-                    border-color: rgba(252,211,77,0.2);
-                }
-
-                .eq-contact-icon {
-                    font-size: 0.9rem;
-                    flex-shrink: 0;
-                    width: 28px;
-                    text-align: center;
-                }
-
-                .eq-contact-label {
-                    font-size: 9px;
-                    font-weight: 500;
-                    letter-spacing: 0.1em;
-                    text-transform: uppercase;
-                    color: rgba(252,211,77,0.5);
-                    margin-bottom: 2px;
-                }
-
-                .eq-contact-value {
-                    font-size: 0.8rem;
-                    font-weight: 400;
-                    color: rgba(254,243,199,0.7);
-                }
-
-                /* ── Responsive ── */
-                @media (max-width: 960px) {
-                    .eq-body-inner { grid-template-columns: 1fr; }
-                    .eq-info-card { display: grid; grid-template-columns: 1fr 1fr; }
-                    .eq-info-header { grid-column: 1 / -1; }
-                }
-
-                @media (max-width: 640px) {
-                    .eq-hero { padding: 64px 20px 52px; }
-                    .eq-body { padding: 0 20px 64px; }
-                    .eq-hero-layout { flex-direction: column; align-items: flex-start; gap: 12px; }
-                    .eq-form-grid { grid-template-columns: 1fr; }
-                    .eq-span-2 { grid-column: 1; }
-                    .eq-form-header { padding: 24px 24px 20px; }
-                    .eq-form-body { padding: 24px 24px 28px; }
-                    .eq-info-card { display: block; }
-                }
-            `}</style>
-
             <Script
                 id="enquiry-schema"
                 type="application/ld+json"
@@ -582,207 +117,269 @@ export default function EnquiryPage() {
                 }}
             />
 
-            <main className="eq-root">
+            <main style={{ background: "var(--color-bg)", minHeight: "100vh", fontFamily: "'DM Sans', sans-serif" }}>
 
-                {/* Hero */}
-                <div className="eq-hero">
-                    <div className="eq-hero-glow" aria-hidden="true" />
-                    <div className="eq-hero-inner">
-                        <div className="eq-eyebrow">Admissions Open</div>
-                        <div className="eq-hero-layout">
-                            <h1 className="eq-title">
-                                Course <em>Enquiry</em><br />
+                {/* ══════════════════════ HERO ══════════════════════ */}
+                <section className="relative overflow-hidden px-6 pt-[88px] pb-16"
+                    style={{ background: "var(--color-bg)" }}
+                    aria-labelledby="enquiry-hero-heading">
+
+                    {/* Glow */}
+                    <div aria-hidden="true" className="absolute -top-20 -right-20 w-[420px] h-[420px] rounded-full pointer-events-none z-0"
+                        style={{ background: "radial-gradient(circle,color-mix(in srgb,var(--color-primary) 9%,transparent) 0%,transparent 65%)" }} />
+
+                    <div className="relative z-10 max-w-[1100px] mx-auto">
+                        <Eyebrow label="Admissions Open" />
+                        <div className="flex items-end justify-between gap-10 flex-wrap">
+                            <h1 id="enquiry-hero-heading"
+                                className="font-serif font-bold leading-[1.15]"
+                                style={{ fontSize: "clamp(2rem,4vw,3rem)", color: "var(--color-text)" }}>
+                                Course <em className="italic" style={{ color: "var(--color-accent)" }}>Enquiry</em><br />
                                 in Ambikapur
                             </h1>
-                            <p className="eq-hero-desc">
+                            <p className="text-[0.88rem] font-light leading-[1.8] max-w-[340px] pb-1"
+                                style={{ color: "var(--color-text-muted)" }}>
                                 Submit your enquiry and our admission team
                                 will contact you within 24 hours.
                             </p>
                         </div>
                     </div>
-                </div>
+                </section>
 
-                {/* Body */}
-                <div className="eq-body">
-                    <div className="eq-body-inner">
+                {/* ══════════════════════ BODY ══════════════════════ */}
+                <section className="relative px-6 pb-[88px]" aria-label="Enquiry form">
+                    {/* Top divider */}
+                    <div aria-hidden="true" className="absolute top-0 pointer-events-none"
+                        style={{ left: "10%", right: "10%", height: 1, background: "linear-gradient(to right,transparent,var(--color-border),transparent)" }} />
 
-                        {/* Form */}
-                        <div className="eq-form-card">
-                            <div className="eq-form-header">
-                                <div className="eq-form-header-label">Admission Enquiry</div>
-                                <div className="eq-form-header-title">
+                    <div className="max-w-[1100px] mx-auto pt-14 grid grid-cols-1 md:grid-cols-[1fr_360px] gap-5 items-start">
+
+                        {/* ── Form card ── */}
+                        <div className="rounded-[24px] overflow-hidden"
+                            style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}>
+
+                            {/* Dark header */}
+                            <div className="relative overflow-hidden px-9 py-8"
+                                style={{ background: "var(--color-bg-sidebar)", borderBottom: "1px solid var(--color-border)" }}>
+                                {/* Dot pattern */}
+                                <div aria-hidden="true" className="absolute -bottom-4 -right-4 w-28 h-28 pointer-events-none"
+                                    style={{
+                                        backgroundImage: "radial-gradient(circle,color-mix(in srgb,var(--color-warning) 15%,transparent) 1.5px,transparent 1.5px)",
+                                        backgroundSize: "11px 11px",
+                                    }} />
+                                <EyebrowDark label="Admission Enquiry" />
+                                <div className="font-serif text-[1.2rem] font-bold leading-[1.25] relative z-10"
+                                    style={{ color: "var(--color-text-inverse)" }}>
                                     Tell Us About Yourself
                                 </div>
-                                <div className="eq-form-header-sub">
+                                <div className="text-[0.8rem] font-light leading-[1.6] mt-1.5 relative z-10"
+                                    style={{ color: "color-mix(in srgb,var(--color-text-inverse) 45%,transparent)" }}>
                                     Fill in the form and we&apos;ll get back to you shortly.
                                 </div>
                             </div>
 
-                            <div className="eq-form-body">
+                            {/* Form body */}
+                            <div className="px-9 py-8">
                                 {success && (
-                                    <div className="eq-alert eq-alert-success" role="alert">
-                                        <span aria-hidden="true">✓</span>
-                                        <span>
-                                            Thank you! Your enquiry has been submitted.
-                                            Our team will contact you within 24 hours.
-                                        </span>
+                                    <div role="alert" className="flex items-start gap-2.5 rounded-xl px-4 py-3 mb-5 text-[0.82rem] font-light leading-[1.65]"
+                                        style={{ background: "color-mix(in srgb,var(--color-success) 10%,var(--color-bg))", border: "1px solid color-mix(in srgb,var(--color-success) 35%,transparent)", color: "var(--color-success)" }}>
+                                        <span>✓</span>
+                                        <span>Thank you! Your enquiry has been submitted. Our team will contact you within 24 hours.</span>
                                     </div>
                                 )}
                                 {error && (
-                                    <div className="eq-alert eq-alert-error" role="alert">
-                                        <span aria-hidden="true">✕</span>
-                                        <span>
-                                            Something went wrong. Please try again or call us directly.
-                                        </span>
+                                    <div role="alert" className="flex items-start gap-2.5 rounded-xl px-4 py-3 mb-5 text-[0.82rem] font-light leading-[1.65]"
+                                        style={{ background: "color-mix(in srgb,var(--color-error) 10%,var(--color-bg))", border: "1px solid color-mix(in srgb,var(--color-error) 35%,transparent)", color: "var(--color-error)" }}>
+                                        <span>✕</span>
+                                        <span>Something went wrong. Please try again or call us directly.</span>
                                     </div>
                                 )}
 
-                                <form onSubmit={handleSubmit} className="eq-form-grid">
+                                <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
 
-                                    <div className="eq-field">
-                                        <label className="eq-label" htmlFor="eq-name">Full Name</label>
-                                        <input
-                                            id="eq-name"
-                                            type="text"
-                                            required
-                                            placeholder="Your full name"
-                                            value={form.name}
-                                            onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                            className="eq-input"
-                                        />
+                                    {/* Full Name */}
+                                    <div className="flex flex-col gap-1.5">
+                                        <label htmlFor="eq-name" className="text-[10px] font-medium tracking-[0.12em] uppercase"
+                                            style={{ color: "var(--color-text-muted)" }}>Full Name</label>
+                                        <input id="eq-name" type="text" required placeholder="Your full name"
+                                            value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
+                                            style={inputBase} onFocus={onFocus} onBlur={onBlur} />
                                     </div>
 
-                                    <div className="eq-field">
-                                        <label className="eq-label" htmlFor="eq-mobile">Mobile Number</label>
-                                        <input
-                                            id="eq-mobile"
-                                            type="tel"
-                                            required
-                                            placeholder="+91 XXXXX XXXXX"
-                                            value={form.mobile}
-                                            onChange={(e) => setForm({ ...form, mobile: e.target.value })}
-                                            className="eq-input"
-                                        />
+                                    {/* Mobile */}
+                                    <div className="flex flex-col gap-1.5">
+                                        <label htmlFor="eq-mobile" className="text-[10px] font-medium tracking-[0.12em] uppercase"
+                                            style={{ color: "var(--color-text-muted)" }}>Mobile Number</label>
+                                        <input id="eq-mobile" type="tel" required placeholder="+91 XXXXX XXXXX"
+                                            value={form.mobile} onChange={e => setForm({ ...form, mobile: e.target.value })}
+                                            style={inputBase} onFocus={onFocus} onBlur={onBlur} />
                                     </div>
 
-                                    <div className="eq-field">
-                                        <label className="eq-label" htmlFor="eq-course">Course Interested In</label>
-                                        <div className="eq-select-wrap">
-                                            <select
-                                                id="eq-course"
-                                                required
-                                                value={form.course}
-                                                onChange={(e) => setForm({ ...form, course: e.target.value })}
-                                                className="eq-select"
-                                            >
+                                    {/* Course select */}
+                                    <div className="flex flex-col gap-1.5">
+                                        <label htmlFor="eq-course" className="text-[10px] font-medium tracking-[0.12em] uppercase"
+                                            style={{ color: "var(--color-text-muted)" }}>Course Interested In</label>
+                                        <div className="relative">
+                                            <select id="eq-course" required
+                                                value={form.course} onChange={e => setForm({ ...form, course: e.target.value })}
+                                                style={inputBase} onFocus={onFocus} onBlur={onBlur}>
                                                 <option value="">Select a course</option>
-                                                {courses.map((course) => (
-                                                    <option key={course._id} value={course.name}>
-                                                        {course.name}
-                                                    </option>
+                                                {courses.map(course => (
+                                                    <option key={course._id} value={course.name}>{course.name}</option>
                                                 ))}
                                             </select>
+                                            {/* Chevron */}
+                                            <span aria-hidden="true" className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[0.7rem] pointer-events-none"
+                                                style={{ color: "var(--color-text-muted)" }}>▾</span>
                                         </div>
                                     </div>
 
-                                    <div className="eq-field">
-                                        <label className="eq-label">Preferred Contact Method</label>
-                                        <div className="eq-method-tabs" role="group" aria-label="Contact method">
-                                            {CONTACT_METHODS.map((method) => (
-                                                <button
-                                                    key={method}
-                                                    type="button"
-                                                    className={`eq-method-tab ${form.contactMethod === method ? "active" : ""}`}
-                                                    onClick={() => setForm({ ...form, contactMethod: method })}
-                                                    aria-pressed={form.contactMethod === method}
-                                                >
-                                                    {method === "WhatsApp" ? "💬 " : "📞 "}{method}
-                                                </button>
-                                            ))}
+                                    {/* Contact method tabs */}
+                                    <div className="flex flex-col gap-1.5">
+                                        <span className="text-[10px] font-medium tracking-[0.12em] uppercase"
+                                            style={{ color: "var(--color-text-muted)" }}>Preferred Contact Method</span>
+                                        <div className="flex gap-2" role="group" aria-label="Contact method">
+                                            {CONTACT_METHODS.map(method => {
+                                                const active = form.contactMethod === method;
+                                                return (
+                                                    <button key={method} type="button"
+                                                        aria-pressed={active}
+                                                        onClick={() => setForm({ ...form, contactMethod: method })}
+                                                        className="flex-1 text-[0.82rem] rounded-[10px] px-4 py-2.5 text-center transition-all duration-200 cursor-pointer"
+                                                        style={{
+                                                            fontFamily: "'DM Sans', sans-serif",
+                                                            background: active ? "var(--color-bg-sidebar)" : "var(--color-bg)",
+                                                            border:     active ? "1px solid var(--color-bg-sidebar)" : "1px solid var(--color-border)",
+                                                            color:      active ? "var(--color-text-inverse)" : "var(--color-text-muted)",
+                                                            fontWeight: active ? 500 : 400,
+                                                        }}>
+                                                        {method === "WhatsApp" ? "💬 " : "📞 "}{method}
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
                                     </div>
 
-                                    <div className="eq-field eq-span-2">
-                                        <label className="eq-label" htmlFor="eq-message">Message (Optional)</label>
-                                        <textarea
-                                            id="eq-message"
+                                    {/* Message — full width */}
+                                    <div className="flex flex-col gap-1.5 col-span-1 sm:col-span-2">
+                                        <label htmlFor="eq-message" className="text-[10px] font-medium tracking-[0.12em] uppercase"
+                                            style={{ color: "var(--color-text-muted)" }}>Message (Optional)</label>
+                                        <textarea id="eq-message"
                                             placeholder="Any questions or specific requirements..."
-                                            value={form.message}
-                                            onChange={(e) => setForm({ ...form, message: e.target.value })}
-                                            className="eq-textarea"
-                                        />
+                                            value={form.message} onChange={e => setForm({ ...form, message: e.target.value })}
+                                            style={{ ...inputBase, minHeight: 100, resize: "vertical" }}
+                                            onFocus={onFocus} onBlur={onBlur} />
                                     </div>
 
-                                    <div className="eq-span-2">
-                                        <button
-                                            type="submit"
-                                            disabled={loading}
-                                            className="eq-submit"
-                                        >
-                                            {loading
-                                                ? "Submitting..."
-                                                : <>Submit Enquiry <span aria-hidden="true">→</span></>
-                                            }
+                                    {/* Submit — full width */}
+                                    <div className="col-span-1 sm:col-span-2">
+                                        <button type="submit" disabled={loading}
+                                            className="w-full flex items-center justify-center gap-2 rounded-xl py-[15px] text-[0.9rem] font-medium transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed hover:-translate-y-px"
+                                            style={{
+                                                background: "var(--color-bg-sidebar)",
+                                                color: "var(--color-text-inverse)",
+                                                fontFamily: "'DM Sans', sans-serif",
+                                                border: "none",
+                                            }}
+                                            onMouseEnter={e => { if (!loading) (e.currentTarget as HTMLElement).style.background = "var(--color-primary)"; }}
+                                            onMouseLeave={e => { if (!loading) (e.currentTarget as HTMLElement).style.background = "var(--color-bg-sidebar)"; }}>
+                                            {loading ? "Submitting..." : <>Submit Enquiry <span aria-hidden="true">→</span></>}
                                         </button>
                                     </div>
+
                                 </form>
                             </div>
                         </div>
 
-                        {/* Side info */}
-                        <div className="eq-info-card">
-                            <div className="eq-info-glow" aria-hidden="true" />
-                            <div className="eq-info-dots" aria-hidden="true" />
+                        {/* ── Side info card ── */}
+                        <div className="rounded-[24px] overflow-hidden relative"
+                            style={{ background: "var(--color-bg-sidebar)" }}>
 
-                            <div className="eq-info-header">
-                                <div className="eq-info-label">What Happens Next</div>
-                                <div className="eq-info-title">
+                            {/* Glows & dots */}
+                            <div aria-hidden="true" className="absolute -top-10 -right-10 w-52 h-52 rounded-full pointer-events-none"
+                                style={{ background: "radial-gradient(circle,color-mix(in srgb,var(--color-primary) 15%,transparent) 0%,transparent 65%)" }} />
+                            <div aria-hidden="true" className="absolute -bottom-2 -left-2 w-28 h-28 pointer-events-none"
+                                style={{
+                                    backgroundImage: "radial-gradient(circle,color-mix(in srgb,var(--color-warning) 12%,transparent) 1.5px,transparent 1.5px)",
+                                    backgroundSize: "11px 11px",
+                                }} />
+
+                            {/* Header */}
+                            <div className="relative z-10 px-7 pt-7 pb-6"
+                                style={{ borderBottom: "1px solid color-mix(in srgb,var(--color-warning) 10%,transparent)" }}>
+                                <EyebrowDark label="What Happens Next" small />
+                                <div className="font-serif text-[1.05rem] font-bold leading-[1.25]"
+                                    style={{ color: "var(--color-text-inverse)" }}>
                                     Our Admission Process
                                 </div>
                             </div>
 
-                            <div className="eq-steps">
-                                {[
-                                    { num: "1", title: "Submit Enquiry", desc: "Fill the form with your details and preferred course." },
-                                    { num: "2", title: "Team Contacts You", desc: "We reach out within 24 hours on your preferred channel." },
-                                    { num: "3", title: "Visit the Academy", desc: "Come in for a demo session or direct admission." },
-                                    { num: "4", title: "Enroll & Begin", desc: "Complete admission formalities and start learning." },
-                                ].map((step) => (
-                                    <div key={step.num} className="eq-step">
-                                        <div className="eq-step-num" aria-hidden="true">{step.num}</div>
+                            {/* Steps */}
+                            <div className="relative z-10 px-7 pt-5 flex flex-col"
+                                style={{ borderBottom: "1px solid color-mix(in srgb,var(--color-warning) 8%,transparent)" }}>
+                                {admissionSteps.map((step, i) => (
+                                    <div key={step.num}
+                                        className="flex items-start gap-3 py-4"
+                                        style={{ borderBottom: i < admissionSteps.length - 1 ? "1px solid color-mix(in srgb,var(--color-warning) 7%,transparent)" : "none" }}>
+                                        {/* Step number badge */}
+                                        <div className="w-[22px] h-[22px] rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 font-serif text-[0.7rem] font-bold"
+                                            style={{ background: "var(--color-warning)", color: "var(--color-bg-sidebar)" }}
+                                            aria-hidden="true">
+                                            {step.num}
+                                        </div>
                                         <div>
-                                            <div className="eq-step-title">{step.title}</div>
-                                            <div className="eq-step-desc">{step.desc}</div>
+                                            <div className="text-[0.82rem] font-medium leading-[1.3] mb-0.5"
+                                                style={{ color: "var(--color-text-inverse)" }}>
+                                                {step.title}
+                                            </div>
+                                            <div className="text-[0.74rem] font-light leading-[1.5]"
+                                                style={{ color: "color-mix(in srgb,var(--color-text-inverse) 40%,transparent)" }}>
+                                                {step.desc}
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
                             </div>
 
-                            <div className="eq-contact-strip">
-                                <a href="tel:+917477036832" className="eq-contact-link">
-                                    <span className="eq-contact-icon">📞</span>
-                                    <div>
-                                        <div className="eq-contact-label">Call Us</div>
-                                        <div className="eq-contact-value">+91 74770 36832</div>
-                                    </div>
-                                </a>
-                                <a
-                                    href="https://wa.me/919009087883"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="eq-contact-link"
-                                >
-                                    <span className="eq-contact-icon">💬</span>
-                                    <div>
-                                        <div className="eq-contact-label">WhatsApp</div>
-                                        <div className="eq-contact-value">+91 90090 87883</div>
-                                    </div>
-                                </a>
+                            {/* Contact links */}
+                            <div className="relative z-10 px-7 pt-5 pb-7 flex flex-col gap-2.5">
+                                {contactLinks.map(link => (
+                                    <a key={link.label}
+                                        href={link.href}
+                                        target={link.external ? "_blank" : undefined}
+                                        rel={link.external ? "noopener noreferrer" : undefined}
+                                        className="flex items-center gap-2.5 no-underline rounded-xl px-3.5 py-2.5 transition-all duration-200"
+                                        style={{
+                                            background: "color-mix(in srgb,var(--color-text-inverse) 3%,transparent)",
+                                            border: "1px solid color-mix(in srgb,var(--color-warning) 12%,transparent)",
+                                        }}
+                                        onMouseEnter={e => {
+                                            (e.currentTarget as HTMLElement).style.background   = "color-mix(in srgb,var(--color-warning) 10%,transparent)";
+                                            (e.currentTarget as HTMLElement).style.borderColor  = "color-mix(in srgb,var(--color-warning) 25%,transparent)";
+                                        }}
+                                        onMouseLeave={e => {
+                                            (e.currentTarget as HTMLElement).style.background   = "color-mix(in srgb,var(--color-text-inverse) 3%,transparent)";
+                                            (e.currentTarget as HTMLElement).style.borderColor  = "color-mix(in srgb,var(--color-warning) 12%,transparent)";
+                                        }}>
+                                        <span className="text-[0.9rem] w-7 text-center flex-shrink-0" aria-hidden="true">{link.icon}</span>
+                                        <div>
+                                            <div className="text-[9px] font-medium tracking-[0.1em] uppercase mb-0.5"
+                                                style={{ color: "color-mix(in srgb,var(--color-warning) 55%,transparent)" }}>
+                                                {link.label}
+                                            </div>
+                                            <div className="text-[0.8rem] font-normal"
+                                                style={{ color: "color-mix(in srgb,var(--color-text-inverse) 70%,transparent)" }}>
+                                                {link.value}
+                                            </div>
+                                        </div>
+                                    </a>
+                                ))}
                             </div>
-                        </div>
 
+                        </div>
                     </div>
-                </div>
+                </section>
+
             </main>
         </>
     );

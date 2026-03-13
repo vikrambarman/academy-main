@@ -1,3 +1,5 @@
+"use client"
+
 export default function VisitUs() {
     const infoItems = [
         {
@@ -18,7 +20,7 @@ export default function VisitUs() {
             content: (
                 <>
                     <a href="tel:+917477036832" className="vu-link">+91 74770 36832</a>
-                    <span style={{ color: "#d5c9b5", margin: "0 6px" }}>·</span>
+                    <span className="vu-sep">·</span>
                     <a href="tel:+919009087883" className="vu-link">+91 90090 87883</a>
                 </>
             ),
@@ -29,9 +31,7 @@ export default function VisitUs() {
             content: (
                 <>
                     Monday – Saturday<br />
-                    <span style={{ color: "#b45309", fontWeight: 500 }}>
-                        8:00 AM – 6:00 PM
-                    </span>
+                    <span className="vu-hours-highlight">8:00 AM – 6:00 PM</span>
                 </>
             ),
         },
@@ -50,391 +50,178 @@ export default function VisitUs() {
     return (
         <>
             <style>{`
-                .vu-root {
-                    font-family: 'DM Sans', sans-serif;
-                    background: #faf8f4;
-                    padding: 88px 24px;
-                    position: relative;
-                    overflow: hidden;
-                }
-
+                /* Top fade line */
                 .vu-root::before {
                     content: '';
                     position: absolute;
-                    top: 0;
-                    left: 10%;
-                    right: 10%;
+                    top: 0; left: 10%; right: 10%;
                     height: 1px;
-                    background: linear-gradient(to right, transparent, #e2d9c8, transparent);
+                    background: linear-gradient(to right, transparent, var(--color-border), transparent);
                 }
 
-                .vu-inner {
-                    max-width: 1100px;
-                    margin: 0 auto;
-                }
-
-                /* ── Header ── */
-                .vu-header {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 48px;
-                    align-items: end;
-                    margin-bottom: 52px;
-                }
-
-                .vu-eyebrow {
-                    font-size: 10px;
-                    font-weight: 500;
-                    letter-spacing: 0.18em;
-                    text-transform: uppercase;
-                    color: #b45309;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    margin-bottom: 14px;
-                }
-
-                .vu-eyebrow::before {
-                    content: '';
-                    display: inline-block;
-                    width: 24px;
-                    height: 1.5px;
-                    background: #d97706;
-                }
-
-                .vu-title {
-                    font-family: 'Playfair Display', serif;
-                    font-size: clamp(1.8rem, 3vw, 2.5rem);
-                    font-weight: 700;
-                    color: #1a1208;
-                    line-height: 1.2;
-                }
-
-                .vu-title em {
-                    font-style: italic;
-                    color: #b45309;
-                }
-
-                .vu-desc {
-                    font-size: 0.88rem;
-                    font-weight: 300;
-                    color: #6b5e4b;
-                    line-height: 1.8;
-                    align-self: end;
-                    padding-bottom: 4px;
-                }
-
-                /* ── Main grid ── */
-                .vu-layout {
-                    display: grid;
-                    grid-template-columns: 1fr 1.4fr;
-                    gap: 28px;
-                    align-items: stretch;
-                }
-
-                /* ── Info panel ── */
-                .vu-info {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 0;
-                    background: #fff;
-                    border: 1px solid #e8dfd0;
-                    border-radius: 20px;
-                    overflow: hidden;
-                }
-
-                /* Academy name header */
-                .vu-info-header {
-                    padding: 28px 28px 24px;
-                    border-bottom: 1px solid #f0e8d8;
-                    background: #1a1208;
-                    position: relative;
-                    overflow: hidden;
-                }
-
-                /* Dot pattern on dark header */
-                .vu-info-header::after {
-                    content: '';
-                    position: absolute;
-                    right: -10px;
-                    bottom: -10px;
-                    width: 100px;
-                    height: 100px;
-                    background-image: radial-gradient(circle, rgba(252,211,77,0.15) 1.5px, transparent 1.5px);
-                    background-size: 12px 12px;
-                    pointer-events: none;
-                }
-
-                .vu-academy-name {
-                    font-family: 'Playfair Display', serif;
-                    font-size: 1.1rem;
-                    font-weight: 600;
-                    color: #fef3c7;
-                    line-height: 1.3;
-                }
-
-                .vu-academy-sub {
-                    font-size: 0.73rem;
-                    font-weight: 300;
-                    color: rgba(254,243,199,0.5);
-                    margin-top: 4px;
-                    letter-spacing: 0.04em;
-                }
-
-                /* Info rows */
+                /* Info row — left accent bar */
                 .vu-info-row {
-                    display: flex;
-                    align-items: flex-start;
-                    gap: 14px;
-                    padding: 20px 28px;
-                    border-bottom: 1px solid #f8f3ea;
-                    transition: background 0.2s;
                     position: relative;
+                    transition: background 0.2s;
                 }
-
-                .vu-info-row:last-of-type {
-                    border-bottom: none;
-                }
-
-                .vu-info-row:hover {
-                    background: #fffbeb;
-                }
-
-                /* Left amber bar on hover */
                 .vu-info-row::before {
                     content: '';
                     position: absolute;
-                    left: 0;
-                    top: 0;
-                    bottom: 0;
+                    left: 0; top: 0; bottom: 0;
                     width: 2px;
-                    background: #d97706;
+                    background: var(--color-primary);
                     transform: scaleY(0);
                     transform-origin: top;
                     transition: transform 0.24s ease;
                 }
+                .vu-info-row:hover::before { transform: scaleY(1); }
 
-                .vu-info-row:hover::before {
-                    transform: scaleY(1);
+                /* Dot pattern on dark panel header */
+                .vu-info-header::after {
+                    content: '';
+                    position: absolute;
+                    right: -10px; bottom: -10px;
+                    width: 100px; height: 100px;
+                    background-image: radial-gradient(circle, rgba(96,165,250,0.15) 1.5px, transparent 1.5px);
+                    background-size: 12px 12px;
+                    pointer-events: none;
                 }
 
-                .vu-info-icon {
-                    width: 34px;
-                    height: 34px;
-                    background: #fef9ee;
-                    border: 1px solid #fde68a;
-                    border-radius: 9px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 0.9rem;
-                    flex-shrink: 0;
-                    transition: background 0.2s;
-                }
+                /* Maps btn arrow */
+                .vu-maps-arrow { transition: transform 0.2s; }
+                .vu-maps-btn:hover .vu-maps-arrow { transform: translateX(4px); }
 
-                .vu-info-row:hover .vu-info-icon {
-                    background: #fff7d6;
-                }
-
-                .vu-info-label {
-                    font-size: 9px;
-                    font-weight: 500;
-                    letter-spacing: 0.14em;
-                    text-transform: uppercase;
-                    color: #92826b;
-                    margin-bottom: 5px;
-                }
-
-                .vu-info-value {
-                    font-size: 0.82rem;
-                    font-weight: 300;
-                    color: #1a1208;
-                    line-height: 1.65;
-                }
-
+                /* Inline helpers */
                 .vu-link {
-                    color: #b45309;
+                    color: var(--color-primary);
                     text-decoration: none;
                     font-weight: 400;
                     transition: color 0.2s;
                 }
-
                 .vu-link:hover {
-                    color: #92540a;
+                    color: var(--color-accent);
                     text-decoration: underline;
                 }
-
-                /* Maps CTA at bottom of info panel */
-                .vu-maps-btn {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    gap: 12px;
-                    margin: 0 28px 24px;
-                    padding: 14px 20px;
-                    background: #1a1208;
-                    color: #fef3c7;
-                    border-radius: 14px;
-                    text-decoration: none;
-                    font-size: 0.85rem;
+                .vu-sep {
+                    color: var(--color-border);
+                    margin: 0 6px;
+                }
+                .vu-hours-highlight {
+                    color: var(--color-primary);
                     font-weight: 500;
-                    transition: background 0.2s, transform 0.15s;
                 }
 
-                .vu-maps-btn:hover {
-                    background: #2d1f0d;
-                    transform: translateY(-1px);
-                }
-
-                .vu-maps-btn-arrow {
-                    font-size: 0.8rem;
-                    color: #fcd34d;
-                    transition: transform 0.2s;
-                }
-
-                .vu-maps-btn:hover .vu-maps-btn-arrow {
-                    transform: translateX(4px);
-                }
-
-                /* ── Map ── */
-                .vu-map-wrap {
-                    border-radius: 20px;
-                    overflow: hidden;
-                    border: 1px solid #e8dfd0;
-                    position: relative;
-                    min-height: 440px;
-                    background: #f0ead8;
-                }
-
-                .vu-map-wrap iframe {
-                    width: 100%;
-                    height: 100%;
-                    min-height: 440px;
-                    border: none;
-                    display: block;
-                }
-
-                /* Map label badge */
-                .vu-map-badge {
-                    position: absolute;
-                    top: 16px;
-                    left: 16px;
-                    background: rgba(26,18,8,0.85);
-                    backdrop-filter: blur(6px);
-                    color: #fef3c7;
-                    font-size: 0.75rem;
-                    font-weight: 500;
-                    padding: 6px 14px;
-                    border-radius: 100px;
-                    border: 1px solid rgba(252,211,77,0.2);
-                    pointer-events: none;
-                    z-index: 1;
-                }
-
-                /* ── Responsive ── */
                 @media (max-width: 900px) {
-                    .vu-header {
-                        grid-template-columns: 1fr;
-                        gap: 16px;
-                        margin-bottom: 36px;
-                    }
-
-                    .vu-layout {
-                        grid-template-columns: 1fr;
-                    }
-
-                    .vu-map-wrap {
-                        min-height: 320px;
-                    }
-
-                    .vu-map-wrap iframe {
-                        min-height: 320px;
-                    }
+                    .vu-layout { grid-template-columns: 1fr !important; }
+                    .vu-header { grid-template-columns: 1fr !important; gap: 16px !important; margin-bottom: 36px !important; }
+                    .vu-map-wrap { min-height: 320px !important; }
+                    .vu-map-wrap iframe { min-height: 320px !important; }
                 }
-
                 @media (max-width: 480px) {
-                    .vu-root {
-                        padding: 64px 16px;
-                    }
-
-                    .vu-info-row {
-                        padding: 18px 20px;
-                    }
-
-                    .vu-info-header {
-                        padding: 22px 20px;
-                    }
-
-                    .vu-maps-btn {
-                        margin: 0 20px 20px;
-                    }
+                    .vu-root { padding: 64px 16px !important; }
+                    .vu-info-row-inner { padding: 18px 20px !important; }
+                    .vu-info-header { padding: 22px 20px !important; }
+                    .vu-maps-btn { margin: 0 20px 20px !important; }
                 }
             `}</style>
 
-            <section className="vu-root" aria-labelledby="visit-us-heading">
-                <div className="vu-inner">
+            <section
+                className="vu-root relative overflow-hidden py-20 md:py-24 px-6"
+                style={{ background: "var(--color-bg)" }}
+                aria-labelledby="visit-us-heading"
+            >
+                <div className="max-w-[1100px] mx-auto">
 
-                    {/* Header */}
-                    <div className="vu-header">
+                    {/* ── Header ── */}
+                    <div className="vu-header grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 items-end mb-12 md:mb-14">
                         <div>
-                            <div className="vu-eyebrow">Find Us</div>
-                            <h2 id="visit-us-heading" className="vu-title">
+                            <div className="flex items-center gap-2 mb-3.5 text-[10px] font-medium tracking-[0.18em] uppercase"
+                                style={{ color: "var(--color-primary)" }}>
+                                <span style={{ display: "inline-block", width: 24, height: 1.5, background: "var(--color-primary)", flexShrink: 0 }} />
+                                Find Us
+                            </div>
+                            <h2
+                                id="visit-us-heading"
+                                className="font-serif font-bold leading-[1.2]"
+                                style={{ fontSize: "clamp(1.8rem,3vw,2.5rem)", color: "var(--color-text)" }}
+                            >
                                 Visit Us in<br />
-                                <em>Ambikapur</em>
+                                <em className="not-italic" style={{ color: "var(--color-accent)" }}>Ambikapur</em>
                             </h2>
                         </div>
-                        <p className="vu-desc">
+                        <p className="text-[0.88rem] font-light leading-[1.8] md:pb-1"
+                            style={{ color: "var(--color-text-muted)" }}>
                             Visit our training centre for course enquiries, admission
                             guidance and free career counselling — walk in anytime
                             during working hours.
                         </p>
                     </div>
 
-                    {/* Layout */}
-                    <div className="vu-layout">
+                    {/* ── Layout ── */}
+                    <div className="vu-layout grid gap-7" style={{ gridTemplateColumns: "1fr 1.4fr", alignItems: "stretch" }}>
 
                         {/* Info panel */}
-                        <div className="vu-info">
+                        <div className="flex flex-col rounded-[20px] overflow-hidden"
+                            style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}>
 
                             {/* Dark header */}
-                            <div className="vu-info-header">
-                                <div className="vu-academy-name">
+                            <div className="vu-info-header relative overflow-hidden px-7 pt-7 pb-6"
+                                style={{ background: "var(--color-bg-sidebar)", borderBottom: "1px solid var(--color-border)" }}>
+                                <div className="font-serif text-[1.1rem] font-semibold leading-[1.3]"
+                                    style={{ color: "var(--color-text-inverse)" }}>
                                     Shivshakti Computer Academy
                                 </div>
-                                <div className="vu-academy-sub">
+                                <div className="text-[0.73rem] font-light mt-1 tracking-[0.04em]"
+                                    style={{ color: "rgba(255,255,255,0.45)" }}>
                                     Ambikapur, Surguja, Chhattisgarh
                                 </div>
                             </div>
 
                             {/* Info rows */}
                             {infoItems.map((item, i) => (
-                                <div key={i} className="vu-info-row">
-                                    <div className="vu-info-icon" aria-hidden="true">
-                                        {item.icon}
-                                    </div>
-                                    <div>
-                                        <div className="vu-info-label">{item.label}</div>
-                                        <div className="vu-info-value">{item.content}</div>
+                                <div key={i}
+                                    className="vu-info-row"
+                                    style={{ borderBottom: i < infoItems.length - 1 ? "1px solid var(--color-border)" : "none" }}
+                                    onMouseEnter={e => (e.currentTarget.style.background = "color-mix(in srgb, var(--color-primary) 5%, var(--color-bg-card))")}
+                                    onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                                >
+                                    <div className="vu-info-row-inner flex items-start gap-3.5 px-7 py-5">
+                                        {/* Icon box */}
+                                        <div className="w-[34px] h-[34px] rounded-[9px] shrink-0 flex items-center justify-center text-[0.9rem]"
+                                            style={{ background: "color-mix(in srgb, var(--color-primary) 8%, var(--color-bg))", border: "1px solid color-mix(in srgb, var(--color-primary) 20%, transparent)" }}>
+                                            {item.icon}
+                                        </div>
+                                        <div>
+                                            <div className="text-[9px] font-medium tracking-[0.14em] uppercase mb-1.5"
+                                                style={{ color: "var(--color-text-muted)" }}>
+                                                {item.label}
+                                            </div>
+                                            <div className="text-[0.82rem] font-light leading-[1.65]"
+                                                style={{ color: "var(--color-text)" }}>
+                                                {item.content}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
 
                             {/* Maps CTA */}
-                            <a
-                                href="https://www.google.com/maps?q=Shivshakti+Computer+Academy+Ambikapur"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="vu-maps-btn"
-                            >
+                            <a href="https://www.google.com/maps?q=Shivshakti+Computer+Academy+Ambikapur"
+                                target="_blank" rel="noopener noreferrer"
+                                className="vu-maps-btn flex items-center justify-between gap-3 mx-7 mb-6 mt-1 px-5 py-3.5 rounded-[14px] no-underline text-[0.85rem] font-medium transition-all duration-200 hover:-translate-y-px"
+                                style={{ background: "var(--color-primary)", color: "#fff" }}>
                                 <span>Open in Google Maps</span>
-                                <span className="vu-maps-btn-arrow" aria-hidden="true">→</span>
+                                <span className="vu-maps-arrow text-[0.8rem]" aria-hidden="true">→</span>
                             </a>
-
                         </div>
 
                         {/* Map */}
-                        <div className="vu-map-wrap">
-                            <div className="vu-map-badge" aria-hidden="true">
+                        <div className="vu-map-wrap relative rounded-[20px] overflow-hidden"
+                            style={{ minHeight: 440, border: "1px solid var(--color-border)", background: "color-mix(in srgb, var(--color-primary) 5%, var(--color-bg))" }}>
+                            {/* Badge */}
+                            <div className="absolute top-4 left-4 z-10 text-[0.75rem] font-medium px-3.5 py-1.5 rounded-full pointer-events-none backdrop-blur-md"
+                                style={{ background: "color-mix(in srgb, var(--color-bg-sidebar) 88%, transparent)", color: "var(--color-text-inverse)", border: "1px solid rgba(255,255,255,0.12)" }}
+                                aria-hidden="true">
                                 📍 Ambikapur, Chhattisgarh
                             </div>
                             <iframe
@@ -442,6 +229,7 @@ export default function VisitUs() {
                                 loading="lazy"
                                 title="Shivshakti Computer Academy Ambikapur Location Map"
                                 allowFullScreen
+                                style={{ width: "100%", height: "100%", minHeight: 440, border: "none", display: "block" }}
                             />
                         </div>
 

@@ -42,9 +42,7 @@ export async function generateMetadata({
 
 function formatDate(dateStr: string) {
     return new Date(dateStr).toLocaleDateString("en-IN", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
+        day: "numeric", month: "long", year: "numeric",
     });
 }
 
@@ -59,209 +57,6 @@ export default async function NoticeDetail({
 
     return (
         <>
-            <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap');
-
-                .nd-root {
-                    font-family: 'DM Sans', sans-serif;
-                    background: #faf8f4;
-                    min-height: 100vh;
-                }
-
-                /* ── Header banner ── */
-                .nd-banner {
-                    background: #1a1208;
-                    padding: 72px 24px 56px;
-                    position: relative;
-                    overflow: hidden;
-                }
-
-                .nd-banner-glow {
-                    position: absolute;
-                    top: -60px; right: -60px;
-                    width: 320px; height: 320px;
-                    background: radial-gradient(circle, rgba(217,119,6,0.12) 0%, transparent 65%);
-                    pointer-events: none;
-                }
-
-                .nd-banner-dots {
-                    position: absolute;
-                    bottom: -10px; left: -10px;
-                    width: 140px; height: 140px;
-                    background-image: radial-gradient(circle, rgba(252,211,77,0.12) 1.5px, transparent 1.5px);
-                    background-size: 12px 12px;
-                    pointer-events: none;
-                }
-
-                .nd-banner-inner {
-                    max-width: 800px;
-                    margin: 0 auto;
-                    position: relative;
-                    z-index: 1;
-                }
-
-                /* Breadcrumb */
-                .nd-breadcrumb {
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    font-size: 0.75rem;
-                    font-weight: 300;
-                    color: rgba(254,243,199,0.4);
-                    margin-bottom: 24px;
-                    flex-wrap: wrap;
-                }
-
-                .nd-breadcrumb a {
-                    color: rgba(254,243,199,0.4);
-                    text-decoration: none;
-                    transition: color 0.18s;
-                }
-
-                .nd-breadcrumb a:hover { color: #fcd34d; }
-
-                .nd-breadcrumb-sep { font-size: 0.65rem; opacity: 0.4; }
-
-                .nd-breadcrumb-current {
-                    color: rgba(254,243,199,0.7);
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                    max-width: 280px;
-                }
-
-                /* Meta row */
-                .nd-meta {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    flex-wrap: wrap;
-                    margin-bottom: 16px;
-                }
-
-                .nd-date {
-                    font-size: 0.78rem;
-                    font-weight: 300;
-                    color: rgba(254,243,199,0.45);
-                    letter-spacing: 0.04em;
-                }
-
-                .nd-cat {
-                    font-size: 9px;
-                    font-weight: 500;
-                    letter-spacing: 0.14em;
-                    text-transform: uppercase;
-                    color: #1a1208;
-                    background: #fcd34d;
-                    padding: 3px 10px;
-                    border-radius: 100px;
-                }
-
-                /* Title */
-                .nd-title {
-                    font-family: 'Playfair Display', serif;
-                    font-size: clamp(1.6rem, 4vw, 2.4rem);
-                    font-weight: 700;
-                    color: #fef3c7;
-                    line-height: 1.2;
-                }
-
-                /* ── Content ── */
-                .nd-content-wrap {
-                    padding: 56px 24px 88px;
-                }
-
-                .nd-content-inner {
-                    max-width: 800px;
-                    margin: 0 auto;
-                }
-
-                /* Article card */
-                .nd-article {
-                    background: #fff;
-                    border: 1px solid #e8dfd0;
-                    border-radius: 20px;
-                    padding: 48px 52px;
-                    margin-bottom: 24px;
-                }
-
-                .nd-article-body {
-                    font-size: 0.95rem;
-                    font-weight: 300;
-                    color: #3a2e1e;
-                    line-height: 2;
-                    white-space: pre-line;
-                }
-
-                .nd-article-body p { margin-bottom: 1.2em; }
-                .nd-article-body p:last-child { margin-bottom: 0; }
-
-                /* Divider */
-                .nd-divider {
-                    width: 48px; height: 2px;
-                    background: linear-gradient(to right, #d97706, #fcd34d);
-                    border-radius: 2px;
-                    margin-bottom: 28px;
-                }
-
-                /* Back link */
-                .nd-back-card {
-                    background: #1a1208;
-                    border-radius: 16px;
-                    padding: 22px 28px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    gap: 16px;
-                    text-decoration: none;
-                    transition: background 0.2s;
-                }
-
-                .nd-back-card:hover { background: #2d1f0d; }
-
-                .nd-back-label {
-                    font-size: 9px;
-                    font-weight: 500;
-                    letter-spacing: 0.15em;
-                    text-transform: uppercase;
-                    color: rgba(254,243,199,0.4);
-                    margin-bottom: 4px;
-                }
-
-                .nd-back-text {
-                    font-family: 'Playfair Display', serif;
-                    font-size: 0.95rem;
-                    font-weight: 600;
-                    color: #fef3c7;
-                }
-
-                .nd-back-arrow {
-                    width: 36px; height: 36px;
-                    background: rgba(252,211,77,0.12);
-                    border: 1px solid rgba(252,211,77,0.2);
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    color: #fcd34d;
-                    font-size: 1rem;
-                    flex-shrink: 0;
-                    transition: background 0.2s, transform 0.2s;
-                }
-
-                .nd-back-card:hover .nd-back-arrow {
-                    background: rgba(252,211,77,0.2);
-                    transform: translateX(-3px);
-                }
-
-                /* ── Responsive ── */
-                @media (max-width: 640px) {
-                    .nd-banner { padding: 56px 20px 44px; }
-                    .nd-content-wrap { padding: 40px 20px 64px; }
-                    .nd-article { padding: 28px 24px; }
-                }
-            `}</style>
-
             <Script
                 id="notice-schema"
                 type="application/ld+json"
@@ -279,55 +74,114 @@ export default async function NoticeDetail({
                 }}
             />
 
-            <main className="nd-root">
+            <main style={{ background: "var(--color-bg)", minHeight: "100vh", fontFamily: "'DM Sans', sans-serif" }}>
 
-                {/* Dark banner header */}
-                <div className="nd-banner">
-                    <div className="nd-banner-glow" aria-hidden="true" />
-                    <div className="nd-banner-dots" aria-hidden="true" />
-                    <div className="nd-banner-inner">
+                {/* ══════════════════════ DARK BANNER ══════════════════════ */}
+                <section className="relative overflow-hidden px-6 pt-[72px] pb-14"
+                    style={{ background: "var(--color-bg-sidebar)" }}
+                    aria-labelledby="notice-title">
+
+                    {/* Glow */}
+                    <div aria-hidden="true" className="absolute -top-16 -right-16 w-[320px] h-[320px] rounded-full pointer-events-none"
+                        style={{ background: "radial-gradient(circle,color-mix(in srgb,var(--color-primary) 15%,transparent) 0%,transparent 65%)" }} />
+                    {/* Dot pattern */}
+                    <div aria-hidden="true" className="absolute -bottom-2.5 -left-2.5 w-36 h-36 pointer-events-none"
+                        style={{
+                            backgroundImage: "radial-gradient(circle,color-mix(in srgb,var(--color-warning) 14%,transparent) 1.5px,transparent 1.5px)",
+                            backgroundSize: "12px 12px",
+                        }} />
+
+                    <div className="relative z-10 max-w-[800px] mx-auto">
 
                         {/* Breadcrumb */}
-                        <nav className="nd-breadcrumb" aria-label="Breadcrumb">
-                            <Link href="/">Home</Link>
-                            <span className="nd-breadcrumb-sep" aria-hidden="true">›</span>
-                            <Link href="/notices">Notices</Link>
-                            <span className="nd-breadcrumb-sep" aria-hidden="true">›</span>
-                            <span className="nd-breadcrumb-current">{notice.title}</span>
+                        <nav className="flex items-center gap-2 flex-wrap mb-6 text-[0.75rem] font-light"
+                            style={{ color: "color-mix(in srgb,var(--color-text-inverse) 40%,transparent)" }}
+                            aria-label="Breadcrumb">
+                            <Link href="/" className="transition-colors duration-200 no-underline hover:text-yellow-300"
+                                style={{ color: "inherit" }}>Home</Link>
+                            <span aria-hidden="true" className="text-[0.65rem] opacity-40">›</span>
+                            <Link href="/notices" className="transition-colors duration-200 no-underline hover:text-yellow-300"
+                                style={{ color: "inherit" }}>Notices</Link>
+                            <span aria-hidden="true" className="text-[0.65rem] opacity-40">›</span>
+                            <span className="overflow-hidden text-ellipsis whitespace-nowrap max-w-[280px]"
+                                style={{ color: "color-mix(in srgb,var(--color-text-inverse) 70%,transparent)" }}>
+                                {notice.title}
+                            </span>
                         </nav>
 
-                        {/* Meta */}
-                        <div className="nd-meta">
-                            <span className="nd-date">{formatDate(notice.createdAt)}</span>
+                        {/* Meta row */}
+                        <div className="flex items-center gap-2.5 flex-wrap mb-4">
+                            <span className="text-[0.78rem] font-light tracking-[0.04em]"
+                                style={{ color: "color-mix(in srgb,var(--color-text-inverse) 45%,transparent)" }}>
+                                {formatDate(notice.createdAt)}
+                            </span>
                             {notice.category && (
-                                <span className="nd-cat">{notice.category}</span>
+                                <span className="text-[9px] font-medium tracking-[0.14em] uppercase px-2.5 py-0.5 rounded-full"
+                                    style={{
+                                        color:      "var(--color-bg-sidebar)",
+                                        background: "var(--color-warning)",
+                                    }}>
+                                    {notice.category}
+                                </span>
                             )}
                         </div>
 
-                        <h1 className="nd-title">{notice.title}</h1>
+                        <h1 id="notice-title"
+                            className="font-serif font-bold leading-[1.2]"
+                            style={{ fontSize: "clamp(1.6rem,4vw,2.4rem)", color: "color-mix(in srgb,var(--color-text-inverse) 95%,transparent)" }}>
+                            {notice.title}
+                        </h1>
                     </div>
-                </div>
+                </section>
 
-                {/* Content */}
-                <div className="nd-content-wrap">
-                    <div className="nd-content-inner">
-                        <article className="nd-article">
-                            <div className="nd-divider" aria-hidden="true" />
-                            <div className="nd-article-body">
+                {/* ══════════════════════ CONTENT ══════════════════════ */}
+                <section className="px-6 pt-14 pb-[88px] max-sm:px-5 max-sm:pt-10 max-sm:pb-16"
+                    aria-label="Notice content">
+                    <div className="max-w-[800px] mx-auto">
+
+                        {/* Article card */}
+                        <article className="rounded-[20px] px-[52px] py-12 mb-6 max-sm:px-6 max-sm:py-7"
+                            style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}>
+                            {/* Accent divider */}
+                            <div className="w-12 h-0.5 rounded-full mb-7"
+                                style={{ background: "linear-gradient(to right,var(--color-primary),color-mix(in srgb,var(--color-primary) 40%,transparent))" }}
+                                aria-hidden="true" />
+                            <div className="text-[0.95rem] font-light leading-[2] whitespace-pre-line"
+                                style={{ color: "var(--color-text)" }}>
                                 {notice.content}
                             </div>
                         </article>
 
-                        {/* Back link */}
-                        <Link href="/notices" className="nd-back-card">
+                        {/* Back card */}
+                        <Link href="/notices"
+                            className="flex items-center justify-between gap-4 no-underline rounded-2xl px-7 py-[22px] transition-colors duration-200 group"
+                            style={{ background: "var(--color-bg-sidebar)" }}
+                            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "color-mix(in srgb,var(--color-primary) 90%,var(--color-bg-sidebar))"}
+                            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "var(--color-bg-sidebar)"}>
                             <div>
-                                <div className="nd-back-label">Back to</div>
-                                <div className="nd-back-text">All Notices & Announcements</div>
+                                <div className="text-[9px] font-medium tracking-[0.15em] uppercase mb-1"
+                                    style={{ color: "color-mix(in srgb,var(--color-text-inverse) 40%,transparent)" }}>
+                                    Back to
+                                </div>
+                                <div className="font-serif text-[0.95rem] font-semibold"
+                                    style={{ color: "var(--color-text-inverse)" }}>
+                                    All Notices & Announcements
+                                </div>
                             </div>
-                            <div className="nd-back-arrow" aria-hidden="true">←</div>
+                            {/* Arrow circle */}
+                            <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:-translate-x-0.5"
+                                style={{
+                                    background: "color-mix(in srgb,var(--color-warning) 15%,transparent)",
+                                    border:     "1px solid color-mix(in srgb,var(--color-warning) 22%,transparent)",
+                                    color:      "var(--color-warning)",
+                                }}
+                                aria-hidden="true">
+                                ←
+                            </div>
                         </Link>
+
                     </div>
-                </div>
+                </section>
 
             </main>
         </>

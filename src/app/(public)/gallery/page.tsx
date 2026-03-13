@@ -12,135 +12,53 @@ export const metadata: Metadata = {
 
 export default function GalleryPage() {
     return (
-        <>
-            <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+        <main style={{ background: "var(--color-bg)", minHeight: "100vh", fontFamily: "'DM Sans', sans-serif" }}>
 
-                .gp-root {
-                    font-family: 'DM Sans', sans-serif;
-                    background: #faf8f4;
-                    min-height: 100vh;
-                }
+            {/* ══════════════════════ HERO ══════════════════════ */}
+            <section className="relative overflow-hidden px-6 pt-[88px] pb-[72px]"
+                style={{ background: "var(--color-bg)" }}
+                aria-labelledby="gallery-hero-heading">
 
-                .gp-hero {
-                    padding: 88px 24px 72px;
-                    position: relative;
-                    overflow: hidden;
-                }
+                {/* Glow */}
+                <div aria-hidden="true" className="absolute -top-20 -right-20 w-[400px] h-[400px] rounded-full pointer-events-none z-0"
+                    style={{ background: "radial-gradient(circle,color-mix(in srgb,var(--color-primary) 9%,transparent) 0%,transparent 65%)" }} />
 
-                .gp-hero-glow {
-                    position: absolute;
-                    top: -80px; right: -80px;
-                    width: 400px; height: 400px;
-                    background: radial-gradient(circle, rgba(217,119,6,0.08) 0%, transparent 65%);
-                    pointer-events: none;
-                }
+                <div className="relative z-10 max-w-[1100px] mx-auto">
+                    {/* Eyebrow */}
+                    <div className="flex items-center gap-2 mb-3.5 text-[10px] font-medium tracking-[0.18em] uppercase"
+                        style={{ color: "var(--color-primary)" }}>
+                        <span aria-hidden="true"
+                            style={{ display: "inline-block", width: 24, height: 1.5, background: "var(--color-primary)", flexShrink: 0 }} />
+                        Our Campus
+                    </div>
 
-                .gp-hero-inner {
-                    max-width: 1100px;
-                    margin: 0 auto;
-                    position: relative;
-                    z-index: 1;
-                }
-
-                .gp-eyebrow {
-                    font-size: 10px;
-                    font-weight: 500;
-                    letter-spacing: 0.18em;
-                    text-transform: uppercase;
-                    color: #b45309;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    margin-bottom: 14px;
-                }
-
-                .gp-eyebrow::before {
-                    content: '';
-                    display: inline-block;
-                    width: 24px; height: 1.5px;
-                    background: #d97706;
-                }
-
-                .gp-hero-layout {
-                    display: flex;
-                    align-items: flex-end;
-                    justify-content: space-between;
-                    gap: 40px;
-                    flex-wrap: wrap;
-                }
-
-                .gp-title {
-                    font-family: 'Playfair Display', serif;
-                    font-size: clamp(2rem, 4vw, 3rem);
-                    font-weight: 700;
-                    color: #1a1208;
-                    line-height: 1.15;
-                }
-
-                .gp-title em {
-                    font-style: italic;
-                    color: #b45309;
-                }
-
-                .gp-hero-desc {
-                    font-size: 0.88rem;
-                    font-weight: 300;
-                    color: #6b5e4b;
-                    line-height: 1.8;
-                    max-width: 340px;
-                    padding-bottom: 4px;
-                }
-
-                .gp-body {
-                    padding: 0 24px 88px;
-                    position: relative;
-                }
-
-                .gp-body::before {
-                    content: '';
-                    position: absolute;
-                    top: 0; left: 10%; right: 10%;
-                    height: 1px;
-                    background: linear-gradient(to right, transparent, #e2d9c8, transparent);
-                }
-
-                .gp-body-inner {
-                    max-width: 1100px;
-                    margin: 0 auto;
-                    padding-top: 52px;
-                }
-
-                @media (max-width: 640px) {
-                    .gp-hero { padding: 64px 20px 52px; }
-                    .gp-body { padding: 0 20px 64px; }
-                    .gp-hero-layout { flex-direction: column; align-items: flex-start; gap: 12px; }
-                }
-            `}</style>
-
-            <main className="gp-root">
-                <div className="gp-hero">
-                    <div className="gp-hero-glow" aria-hidden="true" />
-                    <div className="gp-hero-inner">
-                        <div className="gp-eyebrow">Our Campus</div>
-                        <div className="gp-hero-layout">
-                            <h1 className="gp-title">
-                                Academy<br /><em>Gallery</em>
-                            </h1>
-                            <p className="gp-hero-desc">
-                                A look inside our classrooms, computer labs,
-                                student activities and certification events.
-                            </p>
-                        </div>
+                    <div className="flex items-end justify-between gap-10 flex-wrap">
+                        <h1 id="gallery-hero-heading"
+                            className="font-serif font-bold leading-[1.15]"
+                            style={{ fontSize: "clamp(2rem,4vw,3rem)", color: "var(--color-text)" }}>
+                            Academy<br />
+                            <em className="italic" style={{ color: "var(--color-accent)" }}>Gallery</em>
+                        </h1>
+                        <p className="text-[0.88rem] font-light leading-[1.8] max-w-[340px] pb-1"
+                            style={{ color: "var(--color-text-muted)" }}>
+                            A look inside our classrooms, computer labs,
+                            student activities and certification events.
+                        </p>
                     </div>
                 </div>
+            </section>
 
-                <div className="gp-body">
-                    <div className="gp-body-inner">
-                        <GalleryGrid />
-                    </div>
+            {/* ══════════════════════ GRID BODY ══════════════════════ */}
+            <section className="relative px-6 pb-[88px]" aria-label="Gallery photos">
+                {/* Top divider */}
+                <div aria-hidden="true" className="absolute top-0 pointer-events-none"
+                    style={{ left: "10%", right: "10%", height: 1, background: "linear-gradient(to right,transparent,var(--color-border),transparent)" }} />
+
+                <div className="max-w-[1100px] mx-auto pt-14">
+                    <GalleryGrid />
                 </div>
-            </main>
-        </>
+            </section>
+
+        </main>
     );
 }
