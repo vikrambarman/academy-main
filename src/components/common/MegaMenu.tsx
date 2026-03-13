@@ -1,4 +1,3 @@
-// src/components/MegaMenu.tsx
 import Link from "next/link";
 
 interface Props {
@@ -7,177 +6,152 @@ interface Props {
 }
 
 const academyLinks = [
-    { href: "/about",          label: "About Us",        desc: "Our story, mission & vision"    },
-    { href: "/accreditations", label: "Accreditations",  desc: "Certifications & quality marks" },
-    { href: "/gallery",        label: "Gallery",          desc: "Photos from our campus"         },
+    { href: "/about",          label: "About Us",       desc: "Our story, mission & vision",   icon: "🏫", highlight: false, teacher: false },
+    { href: "/accreditations", label: "Accreditations", desc: "Certifications & quality marks", icon: "🎖️", highlight: false, teacher: false },
+    { href: "/gallery",        label: "Gallery",         desc: "Photos from our campus",         icon: "🖼️", highlight: false, teacher: false },
 ];
 
 const recognitionLinks = [
-    { href: "/msme",         label: "MSME Registration", desc: "Govt. registered institute" },
-    { href: "/affiliations", label: "Affiliations",       desc: "Our partners & tie-ups"    },
+    { href: "/msme",         label: "MSME Registration", desc: "Govt. registered institute", icon: "🏛️", highlight: false, teacher: false },
+    { href: "/affiliations", label: "Affiliations",       desc: "Our partners & tie-ups",    icon: "🤝", highlight: false, teacher: false },
 ];
 
 const resourceLinks = [
-    { href: "/notices",            label: "Notices",            desc: "Admissions & announcements",  highlight: true  },
-    { href: "/verify-certificate", label: "Verify Certificate", desc: "Check your certificate online", highlight: false },
-    { href: "/faq",                label: "FAQ",                desc: "Common questions answered",    highlight: false },
+    { href: "/notices",            label: "Notices",            desc: "Admissions & announcements",    icon: "📢", highlight: true,  teacher: false },
+    { href: "/verify-certificate", label: "Verify Certificate", desc: "Check your certificate online", icon: "🔍", highlight: false, teacher: false },
+    { href: "/faq",                label: "FAQ",                desc: "Common questions answered",     icon: "❓", highlight: false, teacher: false },
 ];
 
-// All three portals
 const portalLinks = [
-    { href: "/admin/login",   label: "Admin Login",   desc: "Staff & admin access",      icon: "🔐" },
-    { href: "/teacher/login", label: "Teacher Login", desc: "Teacher portal access",     icon: "🎓" },
-    { href: "/student/login", label: "Student Login", desc: "Access your student portal", icon: "📚" },
+    { href: "/admin/login",   label: "Admin Login",   desc: "Staff & admin access",        icon: "🔐", highlight: false, teacher: false },
+    { href: "/teacher/login", label: "Teacher Login", desc: "Teacher portal access",       icon: "🎓", highlight: false, teacher: true  },
+    { href: "/student/login", label: "Student Login", desc: "Access your student portal",  icon: "📚", highlight: false, teacher: false },
 ];
 
 export default function MegaMenu({ active, closeMenu }: Props) {
     if (!active) return null;
 
     return (
-        <>
+        <div className="
+            absolute left-0 right-0 z-40
+            bg-white dark:bg-[#0F172A]
+            border-b border-slate-200 dark:border-slate-700
+            shadow-[0_16px_48px_rgba(26,79,187,0.10)] dark:shadow-[0_16px_48px_rgba(0,0,0,0.4)]
+            animate-[mmFadeIn_0.18s_ease_both]
+        ">
             <style>{`
-                .mm-root {
-                    font-family: 'DM Sans', sans-serif;
-                    position: absolute; left: 0; right: 0;
-                    background: #fff; border-bottom: 1px solid #e8dfd0;
-                    box-shadow: 0 16px 48px rgba(100,70,20,0.1);
-                    z-index: 40; animation: mmFadeIn 0.18s ease both;
-                }
                 @keyframes mmFadeIn {
                     from { opacity: 0; transform: translateY(-6px); }
                     to   { opacity: 1; transform: translateY(0); }
                 }
-                .mm-inner {
-                    max-width: 1100px; margin: 0 auto;
-                    padding: 36px 24px 40px;
-                    display: grid; grid-template-columns: 1fr 1fr; gap: 48px;
-                }
-                .mm-col-label {
-                    font-size: 9px; font-weight: 500; letter-spacing: 0.18em;
-                    text-transform: uppercase; color: #b45309;
-                    display: flex; align-items: center; gap: 8px; margin-bottom: 20px;
-                }
-                .mm-col-label::before {
-                    content: ''; display: inline-block;
-                    width: 16px; height: 1.5px; background: #d97706;
-                }
-                .mm-link {
-                    display: flex; align-items: flex-start; gap: 12px;
-                    padding: 10px 12px; border-radius: 12px; text-decoration: none;
-                    margin-bottom: 2px; transition: background 0.18s; position: relative;
-                }
-                .mm-link:hover { background: #fef9ee; }
-                .mm-link::before {
-                    content: ''; position: absolute;
-                    left: 0; top: 8px; bottom: 8px; width: 2px;
-                    background: #d97706; border-radius: 2px;
-                    transform: scaleY(0); transform-origin: top; transition: transform 0.2s ease;
-                }
-                .mm-link:hover::before { transform: scaleY(1); }
-                .mm-link-icon {
-                    width: 32px; height: 32px; background: #fef9ee;
-                    border: 1px solid #fde68a; border-radius: 9px;
-                    display: flex; align-items: center; justify-content: center;
-                    font-size: 0.82rem; flex-shrink: 0; transition: background 0.18s;
-                }
-                .mm-link:hover .mm-link-icon { background: #fef3c7; }
-                .mm-link-title {
-                    font-size: 0.85rem; font-weight: 500;
-                    color: #1a1208; line-height: 1.3; margin-bottom: 2px;
-                }
-                .mm-link-desc { font-size: 0.73rem; font-weight: 300; color: #92826b; line-height: 1.4; }
-                .mm-link-highlight .mm-link-title { color: #b45309; }
-                .mm-link-highlight .mm-link-icon { background: #fffbeb; border-color: #fcd34d; }
-                .mm-new-badge {
-                    display: inline-flex; align-items: center;
-                    font-size: 8px; font-weight: 600; letter-spacing: 0.08em;
-                    text-transform: uppercase; background: #d97706;
-                    color: #fff; padding: 2px 7px; border-radius: 100px;
-                    margin-left: 6px; vertical-align: middle;
-                }
-                /* Teacher portal link — subtle teal tint */
-                .mm-link--teacher .mm-link-icon { background: #f0fdfa; border-color: #99f6e4; }
-                .mm-link--teacher:hover .mm-link-icon { background: #ccfbf1; }
-                .mm-link--teacher .mm-link-title { color: #0f766e; }
             `}</style>
 
-            <div className="mm-root">
-                <div className="mm-inner">
-
-                    {/* ── ACADEMY ── */}
-                    {active === "academy" && (
-                        <>
-                            <div>
-                                <div className="mm-col-label">Academy</div>
-                                {academyLinks.map((l) => (
-                                    <Link key={l.href} href={l.href} onClick={closeMenu} className="mm-link">
-                                        <span className="mm-link-icon" aria-hidden="true">🏫</span>
-                                        <div>
-                                            <div className="mm-link-title">{l.label}</div>
-                                            <div className="mm-link-desc">{l.desc}</div>
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-                            <div>
-                                <div className="mm-col-label">Recognition</div>
-                                {recognitionLinks.map((l) => (
-                                    <Link key={l.href} href={l.href} onClick={closeMenu} className="mm-link">
-                                        <span className="mm-link-icon" aria-hidden="true">🏛</span>
-                                        <div>
-                                            <div className="mm-link-title">{l.label}</div>
-                                            <div className="mm-link-desc">{l.desc}</div>
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-                        </>
-                    )}
-
-                    {/* ── RESOURCES ── */}
-                    {active === "resources" && (
-                        <>
-                            <div>
-                                <div className="mm-col-label">Resources</div>
-                                {resourceLinks.map((l) => (
-                                    <Link
-                                        key={l.href} href={l.href} onClick={closeMenu}
-                                        className={`mm-link ${l.highlight ? "mm-link-highlight" : ""}`}
-                                    >
-                                        <span className="mm-link-icon" aria-hidden="true">
-                                            {l.href === "/notices" ? "📢" : l.href === "/verify-certificate" ? "🔍" : "❓"}
-                                        </span>
-                                        <div>
-                                            <div className="mm-link-title">
-                                                {l.label}
-                                                {l.highlight && <span className="mm-new-badge">New</span>}
-                                            </div>
-                                            <div className="mm-link-desc">{l.desc}</div>
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-
-                            <div>
-                                <div className="mm-col-label">Portals</div>
-                                {portalLinks.map((l) => (
-                                    <Link
-                                        key={l.href} href={l.href} onClick={closeMenu}
-                                        className={`mm-link ${l.href === "/teacher/login" ? "mm-link--teacher" : ""}`}
-                                    >
-                                        <span className="mm-link-icon" aria-hidden="true">{l.icon}</span>
-                                        <div>
-                                            <div className="mm-link-title">{l.label}</div>
-                                            <div className="mm-link-desc">{l.desc}</div>
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-                        </>
-                    )}
-
-                </div>
+            <div className="max-w-[1100px] mx-auto px-6 py-9 grid grid-cols-2 gap-12">
+                {active === "academy" && (
+                    <>
+                        <MegaCol label="Academy"     links={academyLinks}     closeMenu={closeMenu} />
+                        <MegaCol label="Recognition" links={recognitionLinks} closeMenu={closeMenu} />
+                    </>
+                )}
+                {active === "resources" && (
+                    <>
+                        <MegaCol label="Resources" links={resourceLinks} closeMenu={closeMenu} showNew />
+                        <MegaCol label="Portals"   links={portalLinks}   closeMenu={closeMenu} />
+                    </>
+                )}
             </div>
-        </>
+        </div>
+    );
+}
+
+function MegaCol({ label, links, closeMenu, showNew }: {
+    label: string;
+    links: { href: string; label: string; desc: string; icon: string; highlight: boolean; teacher: boolean }[];
+    closeMenu: () => void;
+    showNew?: boolean;
+}) {
+    return (
+        <div>
+            {/* Column label — Blue */}
+            <div className="
+                flex items-center gap-2 mb-5
+                text-[9px] font-medium tracking-[0.18em] uppercase
+                text-blue-700 dark:text-blue-400
+                before:content-[''] before:inline-block before:w-4 before:h-[1.5px]
+                before:bg-blue-600 dark:before:bg-blue-500
+            ">
+                {label}
+            </div>
+
+            {links.map((l) => (
+                <Link
+                    key={l.href}
+                    href={l.href}
+                    onClick={closeMenu}
+                    className={`
+                        group relative flex items-start gap-3
+                        px-3 py-2.5 rounded-xl mb-0.5
+                        transition-colors duration-200 no-underline
+                        ${l.teacher
+                            ? "hover:bg-teal-50 dark:hover:bg-teal-900/20"
+                            : "hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                        }
+                    `}
+                >
+                    {/* Left accent bar — Blue or Teal */}
+                    <span className={`
+                        absolute left-0 top-2 bottom-2 w-0.5 rounded-full
+                        scale-y-0 group-hover:scale-y-100
+                        origin-top transition-transform duration-200
+                        ${l.teacher
+                            ? "bg-teal-500 dark:bg-teal-400"
+                            : "bg-blue-600 dark:bg-blue-400"
+                        }
+                    `} />
+
+                    {/* Icon box */}
+                    <span className={`
+                        w-8 h-8 shrink-0 rounded-[9px] text-[0.82rem]
+                        flex items-center justify-center
+                        border transition-colors duration-200
+                        ${l.teacher
+                            ? "bg-teal-50 border-teal-200 group-hover:bg-teal-100 dark:bg-teal-900/30 dark:border-teal-700"
+                            : l.highlight
+                                ? "bg-orange-50 border-orange-200 group-hover:bg-orange-100 dark:bg-orange-900/20 dark:border-orange-800"
+                                : "bg-blue-50 border-blue-200 group-hover:bg-blue-100 dark:bg-slate-800 dark:border-slate-700"
+                        }
+                    `}>
+                        {l.icon}
+                    </span>
+
+                    {/* Text */}
+                    <div>
+                        <div className={`
+                            text-[0.85rem] font-medium leading-snug mb-0.5
+                            ${l.highlight
+                                ? "text-[#EF4523] dark:text-orange-400"
+                                : l.teacher
+                                    ? "text-teal-700 dark:text-teal-400"
+                                    : "text-[#0F172A] dark:text-slate-100"
+                            }
+                        `}>
+                            {l.label}
+                            {showNew && l.highlight && (
+                                <span className="
+                                    inline-flex items-center ml-1.5 align-middle
+                                    text-[8px] font-semibold tracking-wide uppercase
+                                    bg-[#EF4523] text-white px-1.5 py-0.5 rounded-full
+                                ">
+                                    New
+                                </span>
+                            )}
+                        </div>
+                        <div className="text-[0.73rem] font-light text-slate-400 dark:text-slate-500 leading-snug">
+                            {l.desc}
+                        </div>
+                    </div>
+                </Link>
+            ))}
+        </div>
     );
 }

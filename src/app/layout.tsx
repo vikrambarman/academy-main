@@ -1,3 +1,4 @@
+import { ThemeProvider } from "@/components/ThemeProvider";
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
 
@@ -89,45 +90,47 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
-        {children}
+        <ThemeProvider>
+          {children}
 
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "EducationalOrganization",
-              name: "Shivshakti Computer Academy",
-              url: "https://www.shivshakticomputer.in",
-              logo: "https://www.shivshakticomputer.in/logo.png",
-              address: {
-                "@type": "PostalAddress",
-                streetAddress:
-                  "1st Floor, Above Usha Matching Center, Near Babra Petrol Pump, Banaras Road, Phunderdihari",
-                addressLocality: "Ambikapur",
-                addressRegion: "Chhattisgarh",
-                postalCode: "497001",
-                addressCountry: "IN",
-              },
-              contactPoint: [
-                {
-                  "@type": "ContactPoint",
-                  telephone: "+91 7477036832",
-                  contactType: "customer service",
-                  areaServed: "IN",
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "EducationalOrganization",
+                name: "Shivshakti Computer Academy",
+                url: "https://www.shivshakticomputer.in",
+                logo: "https://www.shivshakticomputer.in/logo.png",
+                address: {
+                  "@type": "PostalAddress",
+                  streetAddress:
+                    "1st Floor, Above Usha Matching Center, Near Babra Petrol Pump, Banaras Road, Phunderdihari",
+                  addressLocality: "Ambikapur",
+                  addressRegion: "Chhattisgarh",
+                  postalCode: "497001",
+                  addressCountry: "IN",
                 },
-                {
-                  "@type": "ContactPoint",
-                  telephone: "+91 9009087883",
-                  contactType: "WhatsApp support",
-                  areaServed: "IN",
-                },
-              ],
-            }),
-          }}
-        />
+                contactPoint: [
+                  {
+                    "@type": "ContactPoint",
+                    telephone: "+91 7477036832",
+                    contactType: "customer service",
+                    areaServed: "IN",
+                  },
+                  {
+                    "@type": "ContactPoint",
+                    telephone: "+91 9009087883",
+                    contactType: "WhatsApp support",
+                    areaServed: "IN",
+                  },
+                ],
+              }),
+            }}
+          />
+        </ThemeProvider>
       </body>
     </html>
   );

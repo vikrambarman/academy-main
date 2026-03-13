@@ -1,6 +1,3 @@
-// ============================================================
-// Navbar.tsx
-// ============================================================
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -9,412 +6,79 @@ import Link from "next/link";
 import Image from "next/image";
 import MegaMenu from "./MegaMenu";
 import { Menu, X, ChevronDown } from "lucide-react";
+import { ThemeToggle } from "../ThemeToggle";
+import { cn } from "@/lib/utils";
 
 export default function Navbar() {
     const [activeDesktop, setActiveDesktop] = useState<string | null>(null);
-    const [mobileOpen, setMobileOpen] = useState(false);
+    const [mobileOpen, setMobileOpen]       = useState(false);
     const [mobileAccordion, setMobileAccordion] = useState<string | null>(null);
-    const [scrolled, setScrolled] = useState(false);
-    const [noticeCount, setNoticeCount] = useState(0);
-    const [mounted, setMounted] = useState(false);
+    const [scrolled, setScrolled]           = useState(false);
+    const [noticeCount, setNoticeCount]     = useState(0);
+    const [mounted, setMounted]             = useState(false);
     const megaRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => setMounted(true), []);
 
     useEffect(() => {
-        const handleScroll = () => setScrolled(window.scrollY > 20);
-        window.addEventListener("scroll", handleScroll);
-        return () => window.removeEventListener("scroll", handleScroll);
+        const onScroll = () => setScrolled(window.scrollY > 20);
+        window.addEventListener("scroll", onScroll);
+        return () => window.removeEventListener("scroll", onScroll);
     }, []);
 
     useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            if (megaRef.current && !megaRef.current.contains(e.target as Node)) {
+        const onClickOutside = (e: MouseEvent) => {
+            if (megaRef.current && !megaRef.current.contains(e.target as Node))
                 setActiveDesktop(null);
-            }
         };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        document.addEventListener("mousedown", onClickOutside);
+        return () => document.removeEventListener("mousedown", onClickOutside);
     }, []);
 
     useEffect(() => {
         document.body.style.overflow = mobileOpen ? "hidden" : "auto";
     }, [mobileOpen]);
 
-    const closeMobile = () => {
-        setMobileOpen(false);
-        setMobileAccordion(null);
-    };
-
     useEffect(() => {
-        const fetchNoticeCount = async () => {
-            try {
-                const res = await fetch("/api/public");
-                const data = await res.json();
-                setNoticeCount(data.data?.length || 0);
-            } catch {}
-        };
-        fetchNoticeCount();
+        fetch("/api/public")
+            .then((r) => r.json())
+            .then((d) => setNoticeCount(d.data?.length || 0))
+            .catch(() => {});
     }, []);
+
+    const closeMobile = () => { setMobileOpen(false); setMobileAccordion(null); };
+
+    const academyLinks = [
+        { href: "/about",          label: "About Us"          },
+        { href: "/accreditations", label: "Accreditations"    },
+        { href: "/gallery",        label: "Gallery"           },
+        { href: "/msme",           label: "MSME Registration" },
+        { href: "/affiliations",   label: "Affiliations"      },
+    ];
+    const resourceLinks = [
+        { href: "/notices",            label: "Notices"            },
+        { href: "/verify-certificate", label: "Verify Certificate" },
+        { href: "/faq",                label: "FAQ"                },
+        { href: "/student/login",      label: "Student Login"      },
+        { href: "/admin/login",        label: "Admin Login"        },
+    ];
 
     return (
         <>
-            <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@300;400;500&display=swap');
+            {/* ══════════════════════════════════
+                DESKTOP NAVBAR
+            ══════════════════════════════════ */}
+            <header className={cn(
+                "sticky top-0 z-30 font-sans transition-all duration-300",
+                scrolled
+                    ? "bg-white/[0.97] dark:bg-[#0F172A]/[0.97] backdrop-blur-xl shadow-[0_1px_0_#E2E8F0,0_4px_24px_rgba(26,79,187,0.08)] dark:shadow-[0_1px_0_rgba(255,255,255,0.06),0_4px_24px_rgba(0,0,0,0.3)]"
+                    : "bg-white/[0.92] dark:bg-[#0F172A]/[0.92] backdrop-blur-lg border-slate-200/60 dark:border-slate-700/60"
+            )}>
+                <div className="max-w-[1100px] mx-auto px-6 h-16 flex items-center justify-between gap-6">
 
-                .nav-root {
-                    font-family: 'DM Sans', sans-serif;
-                    position: sticky;
-                    top: 0;
-                    z-index: 30;
-                    transition: background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-                }
-
-                .nav-root.scrolled {
-                    background: rgba(250,248,244,0.97);
-                    backdrop-filter: blur(12px);
-                    -webkit-backdrop-filter: blur(12px);
-                    box-shadow: 0 1px 0 #e8dfd0, 0 4px 24px rgba(100,70,20,0.07);
-                }
-
-                .nav-root.top {
-                    background: rgba(250,248,244,0.92);
-                    backdrop-filter: blur(8px);
-                    -webkit-backdrop-filter: blur(8px);
-                    border-bottom: 1px solid rgba(232,223,208,0.6);
-                }
-
-                .nav-inner {
-                    max-width: 1100px;
-                    margin: 0 auto;
-                    padding: 0 24px;
-                    height: 64px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    gap: 24px;
-                }
-
-                /* ── Logo ── */
-                .nav-logo {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    text-decoration: none;
-                    flex-shrink: 0;
-                }
-
-                .nav-logo-text {
-                    font-family: 'Playfair Display', serif;
-                    font-size: 1rem;
-                    font-weight: 600;
-                    color: #1a1208;
-                    line-height: 1.2;
-                }
-
-                .nav-logo-sub {
-                    font-size: 0.65rem;
-                    font-weight: 300;
-                    color: #92826b;
-                    letter-spacing: 0.04em;
-                    margin-top: 1px;
-                }
-
-                /* ── Desktop nav ── */
-                .nav-links {
-                    display: flex;
-                    align-items: center;
-                    gap: 4px;
-                    list-style: none;
-                    margin: 0;
-                    padding: 0;
-                }
-
-                .nav-link {
-                    display: flex;
-                    align-items: center;
-                    gap: 4px;
-                    font-size: 0.85rem;
-                    font-weight: 400;
-                    color: #4a3f30;
-                    text-decoration: none;
-                    padding: 6px 12px;
-                    border-radius: 8px;
-                    border: none;
-                    background: none;
-                    cursor: pointer;
-                    transition: background 0.18s, color 0.18s;
-                    white-space: nowrap;
-                }
-
-                .nav-link:hover,
-                .nav-link.active {
-                    background: #fef9ee;
-                    color: #1a1208;
-                }
-
-                .nav-link.active {
-                    color: #b45309;
-                }
-
-                .nav-chevron {
-                    transition: transform 0.22s ease;
-                    color: #92826b;
-                    flex-shrink: 0;
-                }
-
-                .nav-link.active .nav-chevron {
-                    transform: rotate(180deg);
-                    color: #b45309;
-                }
-
-                /* Notice badge */
-                .nav-notice-badge {
-                    font-size: 8px;
-                    font-weight: 600;
-                    background: #d97706;
-                    color: #fff;
-                    padding: 2px 6px;
-                    border-radius: 100px;
-                    letter-spacing: 0.04em;
-                }
-
-                /* CTA */
-                .nav-cta {
-                    font-size: 0.82rem;
-                    font-weight: 500;
-                    color: #fef3c7;
-                    background: #1a1208;
-                    padding: 9px 20px;
-                    border-radius: 100px;
-                    text-decoration: none;
-                    white-space: nowrap;
-                    margin-left: 8px;
-                    transition: background 0.18s, transform 0.15s;
-                    flex-shrink: 0;
-                }
-
-                .nav-cta:hover {
-                    background: #2d1f0d;
-                    transform: translateY(-1px);
-                }
-
-                /* Mobile hamburger */
-                .nav-hamburger {
-                    display: none;
-                    background: none;
-                    border: none;
-                    cursor: pointer;
-                    color: #1a1208;
-                    padding: 4px;
-                }
-
-                @media (max-width: 960px) {
-                    .nav-links { display: none; }
-                    .nav-cta { display: none; }
-                    .nav-hamburger { display: flex; }
-                }
-
-                /* ── Mobile drawer ── */
-                .mob-overlay {
-                    position: fixed;
-                    inset: 0;
-                    background: rgba(26,18,8,0.45);
-                    z-index: 9998;
-                    animation: mobFadeIn 0.2s ease;
-                }
-
-                @keyframes mobFadeIn {
-                    from { opacity: 0; }
-                    to   { opacity: 1; }
-                }
-
-                .mob-drawer {
-                    position: fixed;
-                    top: 0; left: 0;
-                    height: 100%;
-                    width: 300px;
-                    background: #faf8f4;
-                    z-index: 9999;
-                    transform: translateX(-100%);
-                    transition: transform 0.28s ease;
-                    display: flex;
-                    flex-direction: column;
-                    overflow-y: auto;
-                }
-
-                .mob-drawer.open {
-                    transform: translateX(0);
-                }
-
-                /* Drawer header */
-                .mob-header {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    padding: 20px 20px 18px;
-                    border-bottom: 1px solid #e8dfd0;
-                    flex-shrink: 0;
-                }
-
-                .mob-logo {
-                    font-family: 'Playfair Display', serif;
-                    font-size: 0.95rem;
-                    font-weight: 600;
-                    color: #1a1208;
-                    text-decoration: none;
-                }
-
-                .mob-close {
-                    background: none;
-                    border: none;
-                    cursor: pointer;
-                    color: #6b5e4b;
-                    width: 32px;
-                    height: 32px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    border-radius: 8px;
-                    transition: background 0.18s;
-                }
-
-                .mob-close:hover {
-                    background: #f0e8d8;
-                }
-
-                /* Drawer body */
-                .mob-body {
-                    padding: 16px 16px 32px;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 2px;
-                    flex: 1;
-                }
-
-                .mob-link {
-                    display: block;
-                    font-size: 0.88rem;
-                    font-weight: 400;
-                    color: #1a1208;
-                    text-decoration: none;
-                    padding: 11px 14px;
-                    border-radius: 10px;
-                    transition: background 0.18s;
-                }
-
-                .mob-link:hover {
-                    background: #fef9ee;
-                    color: #b45309;
-                }
-
-                /* Accordion trigger */
-                .mob-acc-btn {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    width: 100%;
-                    font-size: 0.88rem;
-                    font-weight: 400;
-                    color: #1a1208;
-                    background: none;
-                    border: none;
-                    cursor: pointer;
-                    padding: 11px 14px;
-                    border-radius: 10px;
-                    text-align: left;
-                    transition: background 0.18s;
-                }
-
-                .mob-acc-btn:hover,
-                .mob-acc-btn.open {
-                    background: #fef9ee;
-                    color: #b45309;
-                }
-
-                .mob-acc-chevron {
-                    transition: transform 0.22s ease;
-                    color: #92826b;
-                    flex-shrink: 0;
-                }
-
-                .mob-acc-btn.open .mob-acc-chevron {
-                    transform: rotate(180deg);
-                    color: #b45309;
-                }
-
-                /* Accordion content */
-                .mob-acc-content {
-                    overflow: hidden;
-                    max-height: 0;
-                    transition: max-height 0.28s ease, opacity 0.22s ease;
-                    opacity: 0;
-                }
-
-                .mob-acc-content.open {
-                    max-height: 320px;
-                    opacity: 1;
-                }
-
-                .mob-acc-inner {
-                    padding: 6px 0 6px 14px;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 1px;
-                }
-
-                .mob-sub-link {
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    font-size: 0.82rem;
-                    font-weight: 300;
-                    color: #4a3f30;
-                    text-decoration: none;
-                    padding: 9px 12px;
-                    border-radius: 8px;
-                    transition: background 0.18s, color 0.18s;
-                    border-left: 2px solid transparent;
-                }
-
-                .mob-sub-link:hover {
-                    background: #fef9ee;
-                    color: #b45309;
-                    border-left-color: #d97706;
-                }
-
-                .mob-divider {
-                    height: 1px;
-                    background: #e8dfd0;
-                    margin: 10px 0;
-                }
-
-                /* Mobile CTA */
-                .mob-cta {
-                    display: block;
-                    text-align: center;
-                    font-size: 0.9rem;
-                    font-weight: 500;
-                    color: #fef3c7;
-                    background: #1a1208;
-                    padding: 14px;
-                    border-radius: 14px;
-                    text-decoration: none;
-                    margin-top: 12px;
-                    transition: background 0.18s;
-                }
-
-                .mob-cta:hover {
-                    background: #2d1f0d;
-                }
-            `}</style>
-
-            <header className={`nav-root ${scrolled ? "scrolled" : "top"}`}>
-                <div className="nav-inner">
-
-                    {/* Hamburger — mobile only */}
+                    {/* Hamburger */}
                     <button
-                        className="nav-hamburger"
+                        className="flex lg:hidden bg-transparent border-none cursor-pointer text-slate-700 dark:text-slate-200 p-1"
                         onClick={() => setMobileOpen(true)}
                         aria-label="Open menu"
                     >
@@ -422,176 +86,287 @@ export default function Navbar() {
                     </button>
 
                     {/* Logo */}
-                    <Link href="/" className="nav-logo">
-                        <Image
-                            src="/logo.png"
-                            alt="Shivshakti Computer Academy"
-                            width={36}
-                            height={36}
-                        />
+                    <Link href="/" className="flex items-center gap-2.5 no-underline shrink-0">
+                        <Image src="/logo.png" alt="Shivshakti Computer Academy" width={36} height={36} />
                         <div className="hidden sm:block">
-                            <div className="nav-logo-text">Shivshakti Computer Academy</div>
-                            <div className="nav-logo-sub">Computer Education · Ambikapur</div>
+                            <div className="font-serif text-[1rem] font-semibold text-[#0F172A] dark:text-slate-100 leading-snug">
+                                Shivshakti Computer Academy
+                            </div>
+                            <div className="text-[0.65rem] font-light text-blue-600 dark:text-blue-400 tracking-[0.06em] mt-px">
+                                Computer Education · Ambikapur
+                            </div>
                         </div>
                     </Link>
 
                     {/* Desktop nav */}
-                    <nav aria-label="Main navigation">
-                        <ul className="nav-links">
+                    <nav aria-label="Main navigation" className="hidden lg:block">
+                        <ul className="flex items-center gap-1 list-none m-0 p-0">
+
+                            {/* Static links */}
+                            {[
+                                { href: "/",        label: "Home"    },
+                                { href: "/courses", label: "Courses" },
+                            ].map((l) => (
+                                <li key={l.href}>
+                                    <Link
+                                        href={l.href}
+                                        className={cn(
+                                            "flex items-center gap-1 text-[0.85rem] font-normal no-underline",
+                                            "text-slate-600 dark:text-slate-300",
+                                            "px-3 py-1.5 rounded-lg",
+                                            "hover:bg-blue-50 hover:text-blue-700",
+                                            "dark:hover:bg-blue-900/30 dark:hover:text-blue-300",
+                                            "transition-colors duration-200 whitespace-nowrap"
+                                        )}
+                                    >
+                                        {l.label}
+                                    </Link>
+                                </li>
+                            ))}
+
+                            {/* Dropdown buttons */}
+                            {(["academy", "resources"] as const).map((key) => (
+                                <li key={key}>
+                                    <button
+                                        onClick={() => setActiveDesktop(activeDesktop === key ? null : key)}
+                                        aria-expanded={activeDesktop === key}
+                                        className={cn(
+                                            "flex items-center gap-1 text-[0.85rem] font-normal capitalize",
+                                            "px-3 py-1.5 rounded-lg border-none bg-transparent cursor-pointer",
+                                            "transition-colors duration-200 whitespace-nowrap",
+                                            activeDesktop === key
+                                                ? "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                                                : "text-slate-600 dark:text-slate-300 hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
+                                        )}
+                                    >
+                                        {key}
+                                        {key === "resources" && noticeCount > 0 && (
+                                            <span className="text-[8px] font-semibold bg-[#EF4523] text-white px-1.5 py-0.5 rounded-full tracking-wide">
+                                                {noticeCount}
+                                            </span>
+                                        )}
+                                        <ChevronDown
+                                            size={14} strokeWidth={2}
+                                            className={cn(
+                                                "shrink-0 transition-transform duration-200",
+                                                activeDesktop === key
+                                                    ? "rotate-180 text-blue-600 dark:text-blue-400"
+                                                    : "text-slate-400 dark:text-slate-500"
+                                            )}
+                                        />
+                                    </button>
+                                </li>
+                            ))}
+
+                            {/* Contact */}
                             <li>
-                                <Link href="/" className="nav-link">Home</Link>
-                            </li>
-                            <li>
-                                <Link href="/courses" className="nav-link">Courses</Link>
-                            </li>
-                            <li>
-                                <button
-                                    className={`nav-link ${activeDesktop === "academy" ? "active" : ""}`}
-                                    onClick={() => setActiveDesktop(
-                                        activeDesktop === "academy" ? null : "academy"
+                                <Link
+                                    href="/contact"
+                                    className={cn(
+                                        "flex items-center gap-1 text-[0.85rem] font-normal no-underline",
+                                        "text-slate-600 dark:text-slate-300",
+                                        "px-3 py-1.5 rounded-lg",
+                                        "hover:bg-blue-50 hover:text-blue-700",
+                                        "dark:hover:bg-blue-900/30 dark:hover:text-blue-300",
+                                        "transition-colors duration-200"
                                     )}
-                                    aria-expanded={activeDesktop === "academy"}
                                 >
-                                    Academy
-                                    <ChevronDown size={14} strokeWidth={2} className="nav-chevron" />
-                                </button>
-                            </li>
-                            <li>
-                                <button
-                                    className={`nav-link ${activeDesktop === "resources" ? "active" : ""}`}
-                                    onClick={() => setActiveDesktop(
-                                        activeDesktop === "resources" ? null : "resources"
-                                    )}
-                                    aria-expanded={activeDesktop === "resources"}
-                                >
-                                    Resources
-                                    {noticeCount > 0 && (
-                                        <span className="nav-notice-badge" aria-label={`${noticeCount} new notices`}>
-                                            {noticeCount}
-                                        </span>
-                                    )}
-                                    <ChevronDown size={14} strokeWidth={2} className="nav-chevron" />
-                                </button>
-                            </li>
-                            <li>
-                                <Link href="/contact" className="nav-link">Contact</Link>
+                                    Contact
+                                </Link>
                             </li>
                         </ul>
                     </nav>
 
-                    <Link href="/enquiry" className="nav-cta">
-                        Admission →
-                    </Link>
-
+                    {/* Right — ThemeToggle + CTA */}
+                    <div className="flex items-center gap-3 shrink-0">
+                        <ThemeToggle />
+                        <Link
+                            href="/enquiry"
+                            className={cn(
+                                "hidden lg:inline-flex items-center gap-1",
+                                "text-[0.82rem] font-medium text-white",
+                                "bg-[#EF4523] hover:bg-[#D63B1B]",
+                                "px-5 py-2 rounded-full no-underline whitespace-nowrap",
+                                "shadow-[0_2px_12px_rgba(239,69,35,0.35)]",
+                                "hover:-translate-y-px hover:shadow-[0_4px_20px_rgba(239,69,35,0.4)]",
+                                "transition-all duration-200"
+                            )}
+                        >
+                            Admission →
+                        </Link>
+                    </div>
                 </div>
 
                 {/* MegaMenu */}
-                <div ref={megaRef} className="hidden lg:block" style={{ position: "relative" }}>
-                    <MegaMenu
-                        active={activeDesktop}
-                        closeMenu={() => setActiveDesktop(null)}
-                    />
+                <div ref={megaRef} className="hidden lg:block relative">
+                    <MegaMenu active={activeDesktop} closeMenu={() => setActiveDesktop(null)} />
                 </div>
             </header>
 
-            {/* Mobile Drawer via Portal */}
+            {/* ══════════════════════════════════
+                MOBILE DRAWER
+            ══════════════════════════════════ */}
             {mounted && createPortal(
                 <>
+                    {/* Overlay */}
                     {mobileOpen && (
                         <div
-                            className="mob-overlay"
+                            className="fixed inset-0 bg-[rgba(15,23,42,0.5)] z-[9998] animate-[mobFadeIn_0.2s_ease]"
                             onClick={closeMobile}
                             aria-hidden="true"
                         />
                     )}
 
-                    <div className={`mob-drawer ${mobileOpen ? "open" : ""}`} role="dialog" aria-modal="true" aria-label="Navigation menu">
-
-                        {/* Header */}
-                        <div className="mob-header">
-                            <Link href="/" className="mob-logo" onClick={closeMobile}>
+                    {/* Drawer */}
+                    <div
+                        className={cn(
+                            "fixed top-0 left-0 h-full w-[300px] z-[9999]",
+                            "bg-white dark:bg-[#0F172A]",
+                            "border-r border-slate-200 dark:border-slate-700",
+                            "flex flex-col overflow-y-auto",
+                            "transition-transform duration-[280ms] ease-in-out",
+                            mobileOpen ? "translate-x-0" : "-translate-x-full"
+                        )}
+                        role="dialog" aria-modal="true" aria-label="Navigation menu"
+                    >
+                        {/* Drawer header */}
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-slate-700 shrink-0">
+                            <Link
+                                href="/"
+                                className="font-serif text-[0.95rem] font-semibold text-[#0F172A] dark:text-slate-100 no-underline"
+                                onClick={closeMobile}
+                            >
                                 Shivshakti Academy
                             </Link>
-                            <button className="mob-close" onClick={closeMobile} aria-label="Close menu">
-                                <X size={18} strokeWidth={2} />
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <ThemeToggle />
+                                <button
+                                    className="bg-transparent border-none cursor-pointer text-slate-500 dark:text-slate-400 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200"
+                                    onClick={closeMobile}
+                                    aria-label="Close menu"
+                                >
+                                    <X size={18} strokeWidth={2} />
+                                </button>
+                            </div>
                         </div>
 
-                        {/* Body */}
-                        <div className="mob-body">
-                            <Link href="/" className="mob-link" onClick={closeMobile}>Home</Link>
-                            <Link href="/courses" className="mob-link" onClick={closeMobile}>Courses</Link>
+                        {/* Drawer body */}
+                        <div className="px-4 py-4 pb-8 flex flex-col gap-0.5 flex-1">
 
-                            {/* Academy accordion */}
-                            <div>
-                                <button
-                                    className={`mob-acc-btn ${mobileAccordion === "academy" ? "open" : ""}`}
-                                    onClick={() => setMobileAccordion(
-                                        mobileAccordion === "academy" ? null : "academy"
+                            {/* Static links */}
+                            {["Home", "Courses", "Contact"].map((label) => (
+                                <Link
+                                    key={label}
+                                    href={label === "Home" ? "/" : `/${label.toLowerCase()}`}
+                                    className={cn(
+                                        "block text-[0.88rem] font-normal no-underline",
+                                        "text-slate-700 dark:text-slate-200",
+                                        "px-3.5 py-2.5 rounded-xl",
+                                        "hover:bg-blue-50 dark:hover:bg-blue-900/20",
+                                        "hover:text-blue-700 dark:hover:text-blue-300",
+                                        "transition-colors duration-200"
                                     )}
+                                    onClick={closeMobile}
                                 >
-                                    Academy
-                                    <ChevronDown size={14} strokeWidth={2} className="mob-acc-chevron" />
-                                </button>
-                                <div className={`mob-acc-content ${mobileAccordion === "academy" ? "open" : ""}`}>
-                                    <div className="mob-acc-inner">
-                                        {[
-                                            { href: "/about", label: "About Us" },
-                                            { href: "/accreditations", label: "Accreditations" },
-                                            { href: "/gallery", label: "Gallery" },
-                                            { href: "/msme", label: "MSME Registration" },
-                                            { href: "/affiliations", label: "Affiliations" },
-                                        ].map((l) => (
-                                            <Link key={l.href} href={l.href} className="mob-sub-link" onClick={closeMobile}>
-                                                {l.label}
-                                            </Link>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
+                                    {label}
+                                </Link>
+                            ))}
 
-                            {/* Resources accordion */}
-                            <div>
-                                <button
-                                    className={`mob-acc-btn ${mobileAccordion === "resources" ? "open" : ""}`}
-                                    onClick={() => setMobileAccordion(
-                                        mobileAccordion === "resources" ? null : "resources"
-                                    )}
-                                >
-                                    Resources
-                                    {noticeCount > 0 && (
-                                        <span className="nav-notice-badge" style={{ marginLeft: 4 }}>
-                                            {noticeCount}
+                            {/* Accordions */}
+                            {[
+                                { key: "academy",   label: "Academy",   links: academyLinks   },
+                                { key: "resources", label: "Resources", links: resourceLinks  },
+                            ].map(({ key, label, links }) => (
+                                <div key={key}>
+                                    <button
+                                        className={cn(
+                                            "flex items-center justify-between w-full text-left",
+                                            "text-[0.88rem] font-normal",
+                                            "px-3.5 py-2.5 rounded-xl border-none bg-transparent cursor-pointer",
+                                            "transition-colors duration-200",
+                                            mobileAccordion === key
+                                                ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
+                                                : "text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300"
+                                        )}
+                                        onClick={() => setMobileAccordion(mobileAccordion === key ? null : key)}
+                                    >
+                                        <span className="flex items-center gap-2">
+                                            {label}
+                                            {key === "resources" && noticeCount > 0 && (
+                                                <span className="text-[8px] font-semibold bg-[#EF4523] text-white px-1.5 py-0.5 rounded-full">
+                                                    {noticeCount}
+                                                </span>
+                                            )}
                                         </span>
-                                    )}
-                                    <ChevronDown size={14} strokeWidth={2} className="mob-acc-chevron" />
-                                </button>
-                                <div className={`mob-acc-content ${mobileAccordion === "resources" ? "open" : ""}`}>
-                                    <div className="mob-acc-inner">
-                                        {[
-                                            { href: "/notices", label: "Notices" },
-                                            { href: "/verify-certificate", label: "Verify Certificate" },
-                                            { href: "/faq", label: "FAQ" },
-                                            { href: "/student/login", label: "Student Login" },
-                                            { href: "/admin/login", label: "Admin Login" },
-                                        ].map((l) => (
-                                            <Link key={l.href} href={l.href} className="mob-sub-link" onClick={closeMobile}>
-                                                {l.label}
-                                            </Link>
-                                        ))}
+                                        <ChevronDown
+                                            size={14} strokeWidth={2}
+                                            className={cn(
+                                                "shrink-0 transition-transform duration-200",
+                                                mobileAccordion === key
+                                                    ? "rotate-180 text-blue-600 dark:text-blue-400"
+                                                    : "text-slate-400 dark:text-slate-500"
+                                            )}
+                                        />
+                                    </button>
+
+                                    {/* Accordion content */}
+                                    <div className={cn(
+                                        "overflow-hidden transition-all duration-[280ms] ease-in-out",
+                                        mobileAccordion === key ? "max-h-80 opacity-100" : "max-h-0 opacity-0"
+                                    )}>
+                                        <div className="pl-3.5 py-1.5 flex flex-col gap-px">
+                                            {links.map((l) => (
+                                                <Link
+                                                    key={l.href}
+                                                    href={l.href}
+                                                    className={cn(
+                                                        "flex items-center gap-2 no-underline",
+                                                        "text-[0.82rem] font-light",
+                                                        "text-slate-500 dark:text-slate-400",
+                                                        "px-3 py-2 rounded-lg",
+                                                        "border-l-2 border-transparent",
+                                                        "hover:bg-blue-50 dark:hover:bg-blue-900/20",
+                                                        "hover:text-blue-700 dark:hover:text-blue-300",
+                                                        "hover:border-l-blue-600 dark:hover:border-l-blue-400",
+                                                        "transition-all duration-200"
+                                                    )}
+                                                    onClick={closeMobile}
+                                                >
+                                                    {l.label}
+                                                </Link>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            ))}
 
-                            <Link href="/contact" className="mob-link" onClick={closeMobile}>Contact</Link>
+                            {/* Divider */}
+                            <div className="h-px bg-slate-200 dark:bg-slate-700 my-2.5" />
 
-                            <div className="mob-divider" />
-
-                            <Link href="/enquiry" className="mob-cta" onClick={closeMobile}>
+                            {/* Mobile CTA — OrangeRed */}
+                            <Link
+                                href="/enquiry"
+                                className={cn(
+                                    "block text-center no-underline mt-3",
+                                    "text-[0.9rem] font-medium text-white",
+                                    "bg-[#EF4523] hover:bg-[#D63B1B]",
+                                    "px-4 py-3.5 rounded-2xl",
+                                    "shadow-[0_2px_12px_rgba(239,69,35,0.3)]",
+                                    "transition-colors duration-200"
+                                )}
+                                onClick={closeMobile}
+                            >
                                 Admission Enquiry →
                             </Link>
                         </div>
                     </div>
+
+                    <style>{`
+                        @keyframes mobFadeIn {
+                            from { opacity: 0; }
+                            to   { opacity: 1; }
+                        }
+                    `}</style>
                 </>,
                 document.body
             )}
