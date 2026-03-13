@@ -127,7 +127,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   /* logout */
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-    router.replace("/login");
+    router.replace("/student/login");
   };
 
   /* ── render ─────────────────────────────────── */

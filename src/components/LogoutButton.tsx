@@ -21,7 +21,7 @@ export default function LogoutButton() {
             });
 
             // After logout → redirect to login
-            window.location.href = "/login";
+            window.location.href = "/";
         } catch (error) {
             console.error("Logout failed:", error);
         }

@@ -1,240 +1,210 @@
-// src/app/login/page.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-const portals = [
-  {
-    href: "/admin/login",
-    badge: "Admin Portal",
-    title: "Administrator",
-    desc: "Manage students, courses, payments, certificates and all academy operations.",
-    features: ["Student Management", "Course & Fees Control", "Certificate Tracking", "Secure OTP Authentication"],
-  },
-  {
-    href: "/teacher/login",
-    badge: "Teacher Portal",
-    title: "Teacher",
-    desc: "Mark attendance, manage timetables and create study notes for your students.",
-    features: ["Mark Daily Attendance", "Manage Class Timetable", "Create & Edit Notes", "View Student Progress"],
-    highlight: true,
-  },
-  {
-    href: "/student/login",
-    badge: "Student Portal",
-    title: "Student",
-    desc: "Access your course details, payment records and certificate status from your dashboard.",
-    features: ["View Course Information", "Track Fee Payments", "Check Certificate Status", "Personal Student Dashboard"],
-  },
+const PORTALS = [
+    {
+        href:      "/admin/login",
+        badge:     "Admin Portal",
+        icon:      "⚙️",
+        title:     "Administrator",
+        desc:      "Manage students, courses, payments, certificates and all academy operations.",
+        features:  ["Student Management", "Course & Fees Control", "Certificate Tracking", "Secure OTP Authentication"],
+    },
+    {
+        href:      "/teacher/login",
+        badge:     "Faculty Portal",
+        icon:      "📋",
+        title:     "Teacher",
+        desc:      "Mark attendance, manage timetables and create study notes for your students.",
+        features:  ["Mark Daily Attendance", "Manage Class Timetable", "Create & Edit Notes", "View Student Progress"],
+        highlight: true,
+    },
+    {
+        href:      "/student/login",
+        badge:     "Student Portal",
+        icon:      "🎓",
+        title:     "Student",
+        desc:      "Access your course details, payment records and certificate status from your dashboard.",
+        features:  ["View Course Information", "Track Fee Payments", "Check Certificate Status", "Personal Dashboard"],
+    },
 ];
 
+const onFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.currentTarget.style.borderColor = "var(--color-primary)";
+};
+
 export default function PortalSelectorPage() {
-  const router = useRouter();
+    const router = useRouter();
 
-  return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700&family=DM+Sans:wght@300;400;500&display=swap');
+    return (
+        <>
+            <style>{`
+                @keyframes ps-fade-in {
+                    from { opacity:0; transform:translateY(12px); }
+                    to   { opacity:1; transform:translateY(0); }
+                }
+                .ps-card { animation: ps-fade-in .35s ease both; }
+                .ps-card:nth-child(1) { animation-delay:.04s; }
+                .ps-card:nth-child(2) { animation-delay:.10s; }
+                .ps-card:nth-child(3) { animation-delay:.16s; }
+            `}</style>
 
-        .ps-root {
-            font-family: 'DM Sans', sans-serif;
-            min-height: 100vh;
-            background: #faf8f4;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 20px;
-            position: relative;
-            overflow: hidden;
-        }
+            <div className="min-h-screen flex items-center justify-center px-5 py-12 relative overflow-hidden"
+                style={{ fontFamily: "'DM Sans', sans-serif", background: "var(--color-bg)" }}>
 
-        .ps-glow-1 {
-            position: fixed; top: -100px; right: -100px;
-            width: 440px; height: 440px;
-            background: radial-gradient(circle, rgba(217,119,6,0.07) 0%, transparent 65%);
-            pointer-events: none;
-        }
-        .ps-glow-2 {
-            position: fixed; bottom: -80px; left: -80px;
-            width: 360px; height: 360px;
-            background: radial-gradient(circle, rgba(252,211,77,0.05) 0%, transparent 65%);
-            pointer-events: none;
-        }
+                {/* Background glows */}
+                <div aria-hidden className="fixed -top-28 -right-28 w-[440px] h-[440px] rounded-full pointer-events-none"
+                    style={{ background: "radial-gradient(circle,color-mix(in srgb,var(--color-primary) 8%,transparent) 0%,transparent 65%)" }} />
+                <div aria-hidden className="fixed -bottom-20 -left-20 w-[360px] h-[360px] rounded-full pointer-events-none"
+                    style={{ background: "radial-gradient(circle,color-mix(in srgb,var(--color-warning) 5%,transparent) 0%,transparent 65%)" }} />
 
-        .ps-wrap { width: 100%; max-width: 1000px; position: relative; z-index: 1; }
+                <div className="relative z-10 w-full" style={{ maxWidth: 1040 }}>
 
-        .ps-header { text-align: center; margin-bottom: 48px; }
-        .ps-logo-wrap {
-            width: 56px; height: 56px; background: #fff;
-            border: 1px solid #e8dfd0; border-radius: 16px;
-            display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 20px; overflow: hidden;
-        }
-        .ps-eyebrow {
-            font-size: 9px; font-weight: 500; letter-spacing: 0.18em;
-            text-transform: uppercase; color: #b45309;
-            display: flex; align-items: center; justify-content: center;
-            gap: 8px; margin-bottom: 12px;
-        }
-        .ps-eyebrow::before, .ps-eyebrow::after {
-            content: ''; display: inline-block;
-            width: 20px; height: 1px; background: #d97706;
-        }
-        .ps-header-title {
-            font-family: 'Playfair Display', serif;
-            font-size: clamp(1.5rem, 3vw, 2.2rem);
-            font-weight: 700; color: #1a1208;
-            line-height: 1.2; margin-bottom: 8px;
-        }
-        .ps-header-sub { font-size: 0.85rem; font-weight: 300; color: #92826b; }
+                    {/* Header */}
+                    <div className="text-center mb-12">
+                        {/* Logo */}
+                        <div className="w-14 h-14 rounded-2xl mx-auto mb-5 flex items-center justify-center overflow-hidden"
+                            style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}>
+                            <Image src="/logo.png" alt="Shivshakti Computer Academy" width={40} height={40} className="object-contain" />
+                        </div>
 
-        /* Grid — 3 columns */
-        .ps-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            margin-bottom: 20px;
-        }
+                        {/* Eyebrow */}
+                        <div className="flex items-center justify-center gap-2 mb-3 text-[9px] font-medium tracking-[0.2em] uppercase"
+                            style={{ color: "var(--color-primary)" }}>
+                            <span aria-hidden style={{ display:"inline-block", width:20, height:1, background:"var(--color-primary)", flexShrink:0 }} />
+                            Portal Access
+                            <span aria-hidden style={{ display:"inline-block", width:20, height:1, background:"var(--color-primary)", flexShrink:0 }} />
+                        </div>
 
-        /* Card */
-        .ps-card {
-            background: #fff; border: 1px solid #e8dfd0;
-            border-radius: 20px; padding: 32px 28px;
-            cursor: pointer; transition: border-color 0.22s, box-shadow 0.22s, transform 0.18s;
-            position: relative; overflow: hidden; outline: none;
-        }
-        .ps-card::before {
-            content: ''; position: absolute; top: 0; left: 0; right: 0;
-            height: 3px; background: linear-gradient(to right, #d97706, #fcd34d);
-            transform: scaleX(0); transform-origin: left; transition: transform 0.3s ease;
-        }
-        .ps-card:hover { border-color: #d97706; box-shadow: 0 12px 40px rgba(100,70,20,0.11); transform: translateY(-2px); }
-        .ps-card:hover::before { transform: scaleX(1); }
-        .ps-card:active { transform: translateY(0) scale(0.99); }
-
-        /* Highlighted teacher card */
-        .ps-card--highlight {
-            border-color: #fde68a;
-            background: linear-gradient(160deg, #fffdf7 0%, #fff 100%);
-        }
-        .ps-card--highlight::before { transform: scaleX(1); opacity: .5; }
-        .ps-card--highlight:hover { border-color: #d97706; box-shadow: 0 12px 48px rgba(217,119,6,.15); }
-
-        .ps-card-badge {
-            display: inline-flex; align-items: center; gap: 5px;
-            font-size: 8px; font-weight: 500; letter-spacing: 0.14em;
-            text-transform: uppercase; color: #92540a;
-            background: #fffbeb; border: 1px solid #fde68a;
-            padding: 4px 11px; border-radius: 100px; margin-bottom: 20px;
-        }
-        .ps-card-badge-dot { width: 4px; height: 4px; background: #d97706; border-radius: 50%; }
-
-        .ps-card-title {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.2rem; font-weight: 700; color: #1a1208;
-            line-height: 1.2; margin-bottom: 10px;
-        }
-        .ps-card-desc {
-            font-size: 0.8rem; font-weight: 300; color: #6b5e4b;
-            line-height: 1.75; margin-bottom: 22px;
-        }
-
-        .ps-card-features {
-            display: flex; flex-direction: column; gap: 0;
-            border: 1px solid #f0e8d8; border-radius: 11px;
-            overflow: hidden; margin-bottom: 24px;
-        }
-        .ps-card-feat {
-            display: flex; align-items: center; gap: 9px;
-            padding: 8px 12px; font-size: 0.77rem; font-weight: 300;
-            color: #4a3f30; border-bottom: 1px solid #f8f3ea;
-            transition: background 0.15s;
-        }
-        .ps-card-feat:last-child { border-bottom: none; }
-        .ps-card:hover .ps-card-feat { background: #fffbeb; }
-        .ps-card-feat-check {
-            width: 14px; height: 14px;
-            background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.2);
-            border-radius: 50%; display: flex; align-items: center;
-            justify-content: center; font-size: 0.5rem; color: #4ade80; flex-shrink: 0;
-        }
-
-        .ps-card-cta {
-            display: flex; align-items: center;
-            justify-content: space-between; font-size: 0.8rem;
-            font-weight: 500; color: #1a1208; padding-top: 4px;
-        }
-        .ps-card-arrow {
-            width: 28px; height: 28px; background: #faf8f4;
-            border: 1px solid #e8dfd0; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 0.8rem; color: #6b5e4b;
-            transition: background 0.18s, color 0.18s, border-color 0.18s, transform 0.18s;
-        }
-        .ps-card:hover .ps-card-arrow {
-            background: #1a1208; border-color: #1a1208;
-            color: #fcd34d; transform: translateX(3px);
-        }
-
-        .ps-footer { text-align: center; font-size: 0.7rem; font-weight: 300; color: #b8a898; }
-
-        @media (max-width: 768px) { .ps-grid { grid-template-columns: 1fr; } }
-        @media (max-width: 1024px) and (min-width: 769px) { .ps-grid { grid-template-columns: 1fr 1fr; } }
-      `}</style>
-
-      <main className="ps-root">
-        <div className="ps-glow-1" aria-hidden="true" />
-        <div className="ps-glow-2" aria-hidden="true" />
-
-        <div className="ps-wrap">
-          <div className="ps-header">
-            <div className="ps-logo-wrap">
-              <Image src="/logo.png" alt="Shivshakti Computer Academy" width={40} height={40} className="object-contain" />
-            </div>
-            <div className="ps-eyebrow">Portal Access</div>
-            <div className="ps-header-title">Shivshakti Computer Academy</div>
-            <div className="ps-header-sub">Select the portal you want to access</div>
-          </div>
-
-          <div className="ps-grid">
-            {portals.map((p) => (
-              <div
-                key={p.href}
-                className={`ps-card ${p.highlight ? "ps-card--highlight" : ""}`}
-                onClick={() => router.push(p.href)}
-                role="button"
-                tabIndex={0}
-                aria-label={`Go to ${p.title} portal`}
-                onKeyDown={(e) => e.key === "Enter" && router.push(p.href)}
-              >
-                <div className="ps-card-badge">
-                  <span className="ps-card-badge-dot" aria-hidden="true" />
-                  {p.badge}
-                </div>
-                <div className="ps-card-title">{p.title} Access</div>
-                <p className="ps-card-desc">{p.desc}</p>
-
-                <div className="ps-card-features">
-                  {p.features.map((f) => (
-                    <div key={f} className="ps-card-feat">
-                      <div className="ps-card-feat-check" aria-hidden="true">✓</div>
-                      {f}
+                        <h1 className="font-serif font-bold leading-[1.2] mb-2"
+                            style={{ fontSize: "clamp(1.5rem,3vw,2.1rem)", color: "var(--color-text)" }}>
+                            Shivshakti Computer Academy
+                        </h1>
+                        <p className="text-[0.86rem] font-light" style={{ color: "var(--color-text-muted)" }}>
+                            Select the portal you want to access
+                        </p>
                     </div>
-                  ))}
-                </div>
 
-                <div className="ps-card-cta">
-                  <span>Sign In →</span>
-                  <div className="ps-card-arrow" aria-hidden="true">→</div>
-                </div>
-              </div>
-            ))}
-          </div>
+                    {/* Portal cards grid */}
+                    <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))" }}>
+                        {PORTALS.map((p) => (
+                            <button
+                                key={p.href}
+                                type="button"
+                                className="ps-card text-left relative rounded-[20px] overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1 focus-visible:outline-none"
+                                style={{
+                                    background:  p.highlight
+                                        ? "color-mix(in srgb,var(--color-primary) 4%,var(--color-bg-card))"
+                                        : "var(--color-bg-card)",
+                                    border:      p.highlight
+                                        ? "1px solid color-mix(in srgb,var(--color-primary) 20%,var(--color-border))"
+                                        : "1px solid var(--color-border)",
+                                    padding:     0,
+                                }}
+                                onClick={() => router.push(p.href)}
+                                aria-label={`Go to ${p.title} portal`}
+                                onMouseEnter={e => {
+                                    const el = e.currentTarget as HTMLElement;
+                                    el.style.borderColor = "var(--color-primary)";
+                                    el.style.boxShadow   = "0 12px 40px color-mix(in srgb,var(--color-primary) 10%,transparent)";
+                                }}
+                                onMouseLeave={e => {
+                                    const el = e.currentTarget as HTMLElement;
+                                    el.style.borderColor = p.highlight
+                                        ? "color-mix(in srgb,var(--color-primary) 20%,var(--color-border))"
+                                        : "var(--color-border)";
+                                    el.style.boxShadow = "none";
+                                }}>
 
-          <div className="ps-footer">© 2026 Shivshakti Computer Academy. All rights reserved.</div>
-        </div>
-      </main>
-    </>
-  );
+                                {/* Top accent bar — only on hover, managed via CSS class */}
+                                <div className="h-[3px] w-full"
+                                    style={{
+                                        background: p.highlight
+                                            ? "linear-gradient(90deg,var(--color-primary),color-mix(in srgb,var(--color-primary) 50%,var(--color-accent)))"
+                                            : "transparent",
+                                        transition: "background .2s",
+                                    }}
+                                    onMouseEnter={e => {
+                                        (e.currentTarget as HTMLElement).style.background = "linear-gradient(90deg,var(--color-primary),color-mix(in srgb,var(--color-primary) 50%,var(--color-accent)))";
+                                    }} />
+
+                                <div className="px-7 pt-6 pb-7">
+                                    {/* Badge */}
+                                    <div className="inline-flex items-center gap-1.5 text-[8px] font-medium tracking-[0.14em] uppercase rounded-full px-2.5 py-[4px] mb-5"
+                                        style={{
+                                            background: "color-mix(in srgb,var(--color-primary) 8%,var(--color-bg))",
+                                            border:     "1px solid color-mix(in srgb,var(--color-primary) 16%,transparent)",
+                                            color:      "var(--color-primary)",
+                                        }}>
+                                        <span className="text-[10px]" aria-hidden>{p.icon}</span>
+                                        {p.badge}
+                                    </div>
+
+                                    {/* Title */}
+                                    <div className="font-serif text-[1.2rem] font-bold leading-[1.2] mb-2.5"
+                                        style={{ color: "var(--color-text)" }}>
+                                        {p.title} Access
+                                    </div>
+
+                                    {/* Description */}
+                                    <p className="text-[0.8rem] font-light leading-[1.75] mb-5"
+                                        style={{ color: "var(--color-text-muted)" }}>
+                                        {p.desc}
+                                    </p>
+
+                                    {/* Features */}
+                                    <div className="flex flex-col rounded-[11px] overflow-hidden mb-6"
+                                        style={{ border: "1px solid var(--color-border)" }}>
+                                        {p.features.map((f, i) => (
+                                            <div key={f}
+                                                className="flex items-center gap-2.5 px-3 py-2 text-[0.76rem] font-light"
+                                                style={{
+                                                    color:        "var(--color-text)",
+                                                    borderBottom: i < p.features.length - 1 ? "1px solid var(--color-border)" : "none",
+                                                    background:   "var(--color-bg)",
+                                                }}>
+                                                <div className="w-3.5 h-3.5 rounded-full flex items-center justify-center flex-shrink-0 text-[0.45rem]"
+                                                    style={{
+                                                        background: "color-mix(in srgb,var(--color-success) 12%,transparent)",
+                                                        border:     "1px solid color-mix(in srgb,var(--color-success) 20%,transparent)",
+                                                        color:      "var(--color-success)",
+                                                    }}
+                                                    aria-hidden>✓</div>
+                                                {f}
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* CTA row */}
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[0.8rem] font-semibold"
+                                            style={{ color: "var(--color-primary)" }}>
+                                            Sign In
+                                        </span>
+                                        <div className="w-7 h-7 rounded-full flex items-center justify-center text-[0.78rem] transition-all duration-200"
+                                            style={{
+                                                background: "color-mix(in srgb,var(--color-primary) 10%,var(--color-bg))",
+                                                border:     "1px solid color-mix(in srgb,var(--color-primary) 20%,transparent)",
+                                                color:      "var(--color-primary)",
+                                            }}
+                                            aria-hidden>
+                                            →
+                                        </div>
+                                    </div>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Footer */}
+                    <p className="mt-8 text-center text-[0.68rem] font-light"
+                        style={{ color: "color-mix(in srgb,var(--color-text-muted) 55%,transparent)" }}>
+                        © 2026 Shivshakti Computer Academy. All rights reserved.
+                    </p>
+                </div>
+            </div>
+        </>
+    );
 }

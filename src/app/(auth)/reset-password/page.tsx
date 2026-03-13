@@ -1,22 +1,22 @@
-// ============================================================
-// reset-password/page.tsx
-// ============================================================
 "use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AuthCard } from "@/components/auth/authCard";
+import {
+    AuthCard, AuthField, AuthLabel, AuthInput, AuthPwToggle,
+    AuthAlert, AuthSubmit, AuthDivider, AuthBack,
+} from "@/components/auth/authCard";
 
 export default function ResetPasswordPage() {
     const router = useRouter();
-    const [token, setToken] = useState<string | null>(null);
 
+    const [token,    setToken]    = useState<string | null>(null);
     const [password, setPassword] = useState("");
-    const [confirm, setConfirm] = useState("");
-    const [showPw, setShowPw] = useState(false);
-    const [showCf, setShowCf] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
+    const [confirm,  setConfirm]  = useState("");
+    const [showPw,   setShowPw]   = useState(false);
+    const [showCf,   setShowCf]   = useState(false);
+    const [loading,  setLoading]  = useState(false);
+    const [status,   setStatus]   = useState<{ type: "success" | "error"; text: string } | null>(null);
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -25,15 +25,15 @@ export default function ResetPasswordPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!token) { setStatus({ type: "error", text: "Invalid or missing reset token." }); return; }
-        if (password !== confirm) { setStatus({ type: "error", text: "Passwords do not match." }); return; }
+        if (!token)             { setStatus({ type: "error", text: "Invalid or missing reset token." }); return; }
+        if (password !== confirm) { setStatus({ type: "error", text: "Passwords do not match." });        return; }
         setLoading(true);
         setStatus(null);
         try {
-            const res = await fetch("/api/auth/reset-password", {
-                method: "POST",
+            const res  = await fetch("/api/auth/reset-password", {
+                method:  "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ token, newPassword: password }),
+                body:    JSON.stringify({ token, newPassword: password }),
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.message);
@@ -47,60 +47,59 @@ export default function ResetPasswordPage() {
     };
 
     return (
-        <AuthCard eyebrow="Account Recovery" title="Reset Password" sub="Enter your new password below.">
-            {status && (
-                <div className={`auth-alert ${status.type === "success" ? "auth-alert-success" : "auth-alert-error"}`} role="alert">
-                    <span aria-hidden="true">{status.type === "success" ? "✓" : "✕"}</span>
-                    <span>{status.text}</span>
-                </div>
-            )}
+        <AuthCard
+            eyebrow="Account Recovery"
+            title="Reset Password"
+            sub="Enter your new password below.">
+
+            {status && <AuthAlert type={status.type}>{status.text}</AuthAlert>}
 
             <form onSubmit={handleSubmit}>
-                <div className="auth-field">
-                    <label className="auth-label" htmlFor="rp-new">New Password</label>
-                    <div className="auth-pw-wrap">
-                        <input
+                <AuthField>
+                    <AuthLabel htmlFor="rp-new">New Password</AuthLabel>
+                    <div className="relative">
+                        <AuthInput
                             id="rp-new"
                             type={showPw ? "text" : "password"}
                             required
                             autoComplete="new-password"
                             placeholder="Choose a strong password"
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="auth-input"
-                            style={{ paddingRight: "54px" }}
+                            onChange={e => setPassword(e.target.value)}
+                            style={{ paddingRight: 56 }}
                         />
-                        <button type="button" onClick={() => setShowPw(!showPw)} className="auth-pw-toggle">{showPw ? "Hide" : "Show"}</button>
+                        <AuthPwToggle show={showPw} onToggle={() => setShowPw(p => !p)} />
                     </div>
-                </div>
+                </AuthField>
 
-                <div className="auth-field">
-                    <label className="auth-label" htmlFor="rp-confirm">Confirm Password</label>
-                    <div className="auth-pw-wrap">
-                        <input
+                <AuthField>
+                    <AuthLabel htmlFor="rp-confirm">Confirm Password</AuthLabel>
+                    <div className="relative">
+                        <AuthInput
                             id="rp-confirm"
                             type={showCf ? "text" : "password"}
                             required
                             autoComplete="new-password"
                             placeholder="Re-enter new password"
                             value={confirm}
-                            onChange={(e) => setConfirm(e.target.value)}
-                            className="auth-input"
-                            style={{ paddingRight: "54px" }}
+                            onChange={e => setConfirm(e.target.value)}
+                            style={{ paddingRight: 56 }}
                         />
-                        <button type="button" onClick={() => setShowCf(!showCf)} className="auth-pw-toggle">{showCf ? "Hide" : "Show"}</button>
+                        <AuthPwToggle show={showCf} onToggle={() => setShowCf(p => !p)} />
                     </div>
-                </div>
+                </AuthField>
 
-                <button type="submit" disabled={loading} className="auth-submit">
-                    {loading ? "Updating…" : <>Update Password <span aria-hidden="true">→</span></>}
-                </button>
+                <AuthSubmit
+                    loading={loading}
+                    loadingLabel="Updating…"
+                    label={<>Update Password <span aria-hidden>→</span></>}
+                />
             </form>
 
-            <div className="auth-divider" aria-hidden="true" />
-            <button type="button" onClick={() => router.push("/login")} className="auth-back">
-                <span aria-hidden="true">←</span> Back to Login
-            </button>
+            <AuthDivider />
+            <AuthBack onClick={() => router.push("/login")}>
+                <span aria-hidden>←</span> Back to Login
+            </AuthBack>
         </AuthCard>
     );
 }

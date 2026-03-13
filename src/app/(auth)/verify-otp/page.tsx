@@ -1,11 +1,8 @@
-// ============================================================
-// verify-otp/page.tsx
-// ============================================================
 "use client";
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AuthCard } from "@/components/auth/authCard";
+import { AuthCard, AuthAlert, AuthSubmit, AuthBack } from "@/components/auth/authCard";
 
 export default function VerifyOTPPage() {
     const router = useRouter();
@@ -27,7 +24,7 @@ export default function VerifyOTPPage() {
 
     useEffect(() => {
         if (timeLeft <= 0) return;
-        const t = setInterval(() => setTimeLeft((p) => p - 1), 1000);
+        const t = setInterval(() => setTimeLeft(p => p - 1), 1000);
         return () => clearInterval(t);
     }, [timeLeft]);
 
@@ -96,48 +93,110 @@ export default function VerifyOTPPage() {
         inputsRef.current[0]?.focus();
     };
 
+    const urgent = timeLeft <= 60 && timeLeft > 0;
+
     return (
-        <AuthCard eyebrow="Two-Factor Auth" title="Verify Login" sub="Enter the 6-digit code sent to your registered email.">
-            {error && (
-                <div className="auth-alert auth-alert-error" role="alert">
-                    <span aria-hidden="true">✕</span>
-                    <span>{error}</span>
-                </div>
-            )}
+        <>
+            <style>{`
+                @keyframes otp-shake {
+                    0%,100% { transform:translateX(0); }
+                    20%     { transform:translateX(-5px); }
+                    40%     { transform:translateX(5px); }
+                    60%     { transform:translateX(-3px); }
+                    80%     { transform:translateX(3px); }
+                }
+                @keyframes otp-urgent-pulse {
+                    0%,100% { opacity:1; }
+                    50%     { opacity:.5; }
+                }
+                .otp-shake  { animation: otp-shake .35s ease; }
+                .otp-urgent { animation: otp-urgent-pulse 1s ease-in-out infinite; }
+            `}</style>
 
-            <form onSubmit={(e) => { e.preventDefault(); verifyOTP(otp.join("")); }}>
-                <div className="otp-row" onPaste={handlePaste}>
-                    {otp.map((digit, index) => (
-                        <input
-                            key={index}
-                            ref={(el) => { inputsRef.current[index] = el; }}
-                            type="text"
-                            inputMode="numeric"
-                            maxLength={1}
-                            value={digit}
-                            onChange={(e) => handleChange(e.target.value, index)}
-                            onKeyDown={(e) => handleKeyDown(e, index)}
-                            className={`otp-box ${digit ? "otp-box-filled" : ""}`}
-                            aria-label={`OTP digit ${index + 1}`}
-                        />
-                    ))}
-                </div>
+            <AuthCard
+                eyebrow="Two-Factor Auth"
+                title="Verify Login"
+                sub="Enter the 6-digit code sent to your registered email."
+                maxWidth={440}>
 
-                <button type="submit" disabled={loading || otp.join("").length < 6} className="auth-submit" style={{ marginTop: "24px" }}>
-                    {loading ? "Verifying…" : <>Verify &amp; Continue <span aria-hidden="true">→</span></>}
-                </button>
-            </form>
+                {error && <AuthAlert type="error">{error}</AuthAlert>}
 
-            <div className="otp-timer-row">
-                <span className="otp-timer-label">Code expires in</span>
-                <span className={`otp-timer-count ${timeLeft <= 60 ? "otp-timer-urgent" : ""}`}>{formatTime()}</span>
-            </div>
+                <form onSubmit={e => { e.preventDefault(); verifyOTP(otp.join("")); }}>
 
-            {timeLeft <= 0 && (
-                <button type="button" onClick={handleResend} className="auth-back" style={{ marginTop: 8 }}>
-                    Resend Code
-                </button>
-            )}
-        </AuthCard>
+                    {/* OTP boxes */}
+                    <div className="flex gap-2.5 justify-center mb-2" onPaste={handlePaste}>
+                        {otp.map((digit, index) => (
+                            <input
+                                key={index}
+                                ref={el => { inputsRef.current[index] = el; }}
+                                type="text"
+                                inputMode="numeric"
+                                maxLength={1}
+                                value={digit}
+                                onChange={e => handleChange(e.target.value, index)}
+                                onKeyDown={e => handleKeyDown(e, index)}
+                                aria-label={`OTP digit ${index + 1}`}
+                                className={`text-center text-[1.2rem] font-semibold outline-none rounded-[12px] transition-all duration-200 ${error ? "otp-shake" : ""}`}
+                                style={{
+                                    width: 52,
+                                    height: 58,
+                                    fontFamily: "'DM Sans', sans-serif",
+                                    background: digit ? "color-mix(in srgb,var(--color-primary) 8%,var(--color-bg))" : "var(--color-bg)",
+                                    border: digit
+                                        ? "2px solid var(--color-primary)"
+                                        : "1px solid var(--color-border)",
+                                    color: "var(--color-text)",
+                                    boxShadow: digit ? "0 0 0 3px color-mix(in srgb,var(--color-primary) 10%,transparent)" : "none",
+                                }}
+                                onFocus={e => {
+                                    e.currentTarget.style.borderColor = "var(--color-primary)";
+                                    e.currentTarget.style.borderWidth = "2px";
+                                    e.currentTarget.style.boxShadow = "0 0 0 3px color-mix(in srgb,var(--color-primary) 12%,transparent)";
+                                }}
+                                onBlur={e => {
+                                    if (!digit) {
+                                        e.currentTarget.style.borderColor = "var(--color-border)";
+                                        e.currentTarget.style.borderWidth = "1px";
+                                        e.currentTarget.style.boxShadow = "none";
+                                    }
+                                }}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Timer */}
+                    <div className="flex items-center justify-center gap-2 my-4">
+                        <span className="text-[0.74rem] font-light" style={{ color: "var(--color-text-muted)" }}>
+                            Code expires in
+                        </span>
+                        <span className={`text-[0.84rem] font-semibold tabular-nums ${urgent ? "otp-urgent" : ""}`}
+                            style={{ color: urgent ? "var(--color-error)" : "var(--color-primary)" }}>
+                            {timeLeft > 0 ? formatTime() : "Expired"}
+                        </span>
+                    </div>
+
+                    <AuthSubmit
+                        loading={loading}
+                        loadingLabel="Verifying…"
+                        label={<>Verify &amp; Continue <span aria-hidden>→</span></>}
+                    />
+                </form>
+
+                {/* Resend */}
+                {timeLeft <= 0 && (
+                    <div className="mt-4">
+                        <AuthBack onClick={handleResend}>
+                            Resend Code
+                        </AuthBack>
+                    </div>
+                )}
+
+                {/* Help note */}
+                <p className="mt-4 text-center text-[0.73rem] font-light leading-[1.6]"
+                    style={{ color: "color-mix(in srgb,var(--color-text-muted) 65%,transparent)" }}>
+                    Check your spam folder if you don't receive the code within a minute.
+                </p>
+            </AuthCard>
+        </>
     );
 }

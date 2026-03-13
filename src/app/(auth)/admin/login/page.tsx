@@ -1,583 +1,401 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const FEATURES = [
-    "Secure Admin Dashboard",
-    "Two-Factor Authentication Protection",
-    "Full Student & Course Management",
-    "Payment & Certificate Tracking",
+    { icon: "⚙️", text: "Full Academy Control Panel"            },
+    { icon: "👥", text: "Student & Faculty Management"          },
+    { icon: "📊", text: "Fee, Payment & Report Analytics"       },
+    { icon: "🔐", text: "OTP-Protected Secure Access"           },
 ];
+
+const onFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.currentTarget.style.borderColor = "var(--color-primary)";
+    e.currentTarget.style.background  = "var(--color-bg-card)";
+    e.currentTarget.style.boxShadow   = "0 0 0 3px color-mix(in srgb,var(--color-primary) 12%,transparent)";
+};
+const onBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.currentTarget.style.borderColor = "var(--color-border)";
+    e.currentTarget.style.background  = "var(--color-bg)";
+    e.currentTarget.style.boxShadow   = "none";
+};
 
 export default function AdminLoginPage() {
     const router = useRouter();
-
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+    const [email,        setEmail]        = useState("");
+    const [password,     setPassword]     = useState("");
     const [showPassword, setShowPassword] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
+    const [loading,      setLoading]      = useState(false);
+    const [error,        setError]        = useState("");
+
+    /* Real stats from API */
+    type Stats = { students: number; courses: number; faculty: number; certificates: number } | null;
+    const [stats,      setStats]      = useState<Stats>(null);
+    const [statsLoading, setStatsLoading] = useState(true);
+
+    useEffect(() => {
+        fetch("/api/admin/public-stats")
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then(d => setStats(d))
+            .catch(() => setStats(null))
+            .finally(() => setStatsLoading(false));
+    }, []);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
-        setError("");
-
+        setLoading(true); setError("");
         try {
-            const res = await fetch("/api/auth/login", {
+            const res  = await fetch("/api/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
                 body: JSON.stringify({ identifier: email, password }),
             });
-
             const data = await res.json();
-
             if (!res.ok) throw new Error(data.message || "Login failed");
-
-            if (data.requires2FA) { router.push(`/verify-otp?uid=${data.userId}`); return; }
-            if (data.forceChangePassword) { router.push("/change-password?forced=true"); return; }
-
-            if (data.role === "admin") {
-                router.push("/dashboard/admin");
-            } else {
-                setError("This login portal is restricted to administrators.");
-            }
-        } catch (err: any) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
+            if (data.requires2FA)         { router.push(`/verify-otp?uid=${data.userId}`); return; }
+            if (data.forceChangePassword) { router.push("/change-password?forced=true");   return; }
+            if (data.role === "admin") { router.push("/dashboard/admin"); }
+            else setError("This portal is restricted to administrators only.");
+        } catch (err: any) { setError(err.message); }
+        finally { setLoading(false); }
     };
 
     return (
         <>
             <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700&family=DM+Sans:wght@300;400;500&display=swap');
-
-                .al-root {
-                    font-family: 'DM Sans', sans-serif;
-                    min-height: 100vh;
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    background: #faf8f4;
+                @keyframes al-pulse {
+                    0%,100% { opacity:1; transform:scale(1); }
+                    50%     { opacity:.5; transform:scale(.75); }
+                }
+                @keyframes al-shimmer-bg {
+                    0%   { background-position: -200% center; }
+                    100% { background-position:  200% center; }
+                }
+                @keyframes al-shimmer {
+                    from { background-position: -200% center; }
+                    to   { background-position:  200% center; }
                 }
 
-                /* ── Left panel ── */
-                .al-left {
-                    background: #1a1208;
-                    padding: 52px 52px;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: space-between;
-                    position: relative;
-                    overflow: hidden;
-                    min-height: 100vh;
+                .al-badge-dot { animation: al-pulse 2s ease-in-out infinite; }
+                .al-skel {
+                    background: linear-gradient(90deg,
+                        color-mix(in srgb,var(--color-text-inverse) 6%,transparent) 25%,
+                        color-mix(in srgb,var(--color-text-inverse) 10%,transparent) 50%,
+                        color-mix(in srgb,var(--color-text-inverse) 6%,transparent) 75%
+                    );
+                    background-size: 200% auto;
+                    animation: al-shimmer-bg 1.4s linear infinite;
+                    border-radius: 6px;
                 }
 
-                /* Background elements */
-                .al-left-glow {
-                    position: absolute;
-                    top: -80px; right: -80px;
-                    width: 360px; height: 360px;
-                    background: radial-gradient(circle, rgba(217,119,6,0.1) 0%, transparent 65%);
-                    pointer-events: none;
+                /* Shimmer on submit hover */
+                .al-submit-shimmer:not(:disabled):hover {
+                    background-image: linear-gradient(
+                        90deg,
+                        var(--color-primary) 0%,
+                        color-mix(in srgb,var(--color-primary) 70%,#fff) 45%,
+                        var(--color-primary) 100%
+                    );
+                    background-size: 200% auto;
+                    animation: al-shimmer 1.4s linear infinite;
                 }
 
-                .al-left-glow-2 {
-                    position: absolute;
-                    bottom: -60px; left: -60px;
-                    width: 280px; height: 280px;
-                    background: radial-gradient(circle, rgba(252,211,77,0.05) 0%, transparent 65%);
-                    pointer-events: none;
-                }
-
-                .al-left-dots {
-                    position: absolute;
-                    bottom: 40px; right: 40px;
-                    width: 140px; height: 140px;
-                    background-image: radial-gradient(circle, rgba(252,211,77,0.1) 1.5px, transparent 1.5px);
-                    background-size: 12px 12px;
-                    pointer-events: none;
-                }
-
-                /* Ghost watermark */
-                .al-left-watermark {
-                    position: absolute;
-                    bottom: -20px; left: -10px;
-                    font-family: 'Playfair Display', serif;
-                    font-size: 160px;
-                    font-weight: 900;
-                    font-style: italic;
-                    color: transparent;
-                    -webkit-text-stroke: 1px rgba(252,211,77,0.04);
-                    pointer-events: none;
-                    user-select: none;
-                    line-height: 1;
-                }
-
-                .al-left-top {
-                    position: relative;
-                    z-index: 1;
-                }
-
-                .al-left-badge {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 6px;
-                    font-size: 9px;
-                    font-weight: 500;
-                    letter-spacing: 0.16em;
-                    text-transform: uppercase;
-                    color: #1a1208;
-                    background: #fcd34d;
-                    padding: 5px 14px;
-                    border-radius: 100px;
-                    margin-bottom: 24px;
-                }
-
-                .al-left-badge-dot {
-                    width: 5px; height: 5px;
-                    background: #92540a;
-                    border-radius: 50%;
-                    flex-shrink: 0;
-                }
-
-                .al-left-name {
-                    font-family: 'Playfair Display', serif;
-                    font-size: 1.5rem;
-                    font-weight: 700;
-                    color: #fef3c7;
-                    line-height: 1.2;
-                    margin-bottom: 6px;
-                }
-
-                .al-left-sub {
-                    font-size: 0.8rem;
-                    font-weight: 300;
-                    color: rgba(254,243,199,0.4);
-                    letter-spacing: 0.06em;
-                    margin-bottom: 40px;
-                }
-
-                /* Feature list */
-                .al-features {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 0;
-                    border: 1px solid rgba(252,211,77,0.08);
-                    border-radius: 16px;
-                    overflow: hidden;
-                }
-
-                .al-feature {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    padding: 14px 18px;
-                    border-bottom: 1px solid rgba(252,211,77,0.06);
-                    transition: background 0.18s;
-                    position: relative;
-                }
-
-                .al-feature:last-child { border-bottom: none; }
-
-                .al-feature::before {
-                    content: '';
-                    position: absolute;
-                    left: 0; top: 4px; bottom: 4px;
-                    width: 2px;
-                    background: #fcd34d;
-                    border-radius: 2px;
-                    transform: scaleY(0);
-                    transition: transform 0.22s ease;
-                    transform-origin: top;
-                }
-
-                .al-feature:hover { background: rgba(252,211,77,0.04); }
-                .al-feature:hover::before { transform: scaleY(1); }
-
-                .al-feature-check {
-                    width: 18px; height: 18px;
-                    background: rgba(74,222,128,0.12);
-                    border: 1px solid rgba(74,222,128,0.22);
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 0.55rem;
-                    color: #4ade80;
-                    flex-shrink: 0;
-                }
-
-                .al-feature-text {
-                    font-size: 0.8rem;
-                    font-weight: 300;
-                    color: rgba(254,243,199,0.55);
-                    line-height: 1.4;
-                }
-
-                .al-left-bottom {
-                    position: relative;
-                    z-index: 1;
-                }
-
-                .al-left-copy {
-                    font-size: 0.7rem;
-                    font-weight: 300;
-                    color: rgba(254,243,199,0.2);
-                    letter-spacing: 0.04em;
-                }
-
-                /* ── Right panel ── */
-                .al-right {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    padding: 40px 24px;
-                    background: #faf8f4;
-                }
-
-                .al-card {
-                    width: 100%;
-                    max-width: 420px;
-                    background: #fff;
-                    border: 1px solid #e8dfd0;
-                    border-radius: 24px;
-                    overflow: hidden;
-                }
-
-                /* Card header */
-                .al-card-header {
-                    padding: 28px 32px 24px;
-                    border-bottom: 1px solid #f5efe4;
-                    text-align: center;
-                }
-
-                .al-card-eyebrow {
-                    font-size: 9px;
-                    font-weight: 500;
-                    letter-spacing: 0.18em;
-                    text-transform: uppercase;
-                    color: #b45309;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 8px;
-                    margin-bottom: 10px;
-                }
-
-                .al-card-eyebrow::before,
-                .al-card-eyebrow::after {
-                    content: '';
-                    display: inline-block;
-                    width: 18px; height: 1px;
-                    background: #d97706;
-                }
-
-                .al-card-title {
-                    font-family: 'Playfair Display', serif;
-                    font-size: 1.35rem;
-                    font-weight: 700;
-                    color: #1a1208;
-                    line-height: 1.2;
-                }
-
-                .al-card-sub {
-                    font-size: 0.78rem;
-                    font-weight: 300;
-                    color: #92826b;
-                    margin-top: 5px;
-                }
-
-                /* Card body */
-                .al-card-body {
-                    padding: 28px 32px 32px;
-                }
-
-                /* Error */
-                .al-error {
-                    background: #fef2f2;
-                    border: 1px solid #fecaca;
-                    border-radius: 10px;
-                    padding: 11px 14px;
-                    font-size: 0.8rem;
-                    font-weight: 300;
-                    color: #dc2626;
-                    display: flex;
-                    gap: 8px;
-                    align-items: flex-start;
-                    margin-bottom: 18px;
-                    line-height: 1.55;
-                }
-
-                /* Field */
-                .al-field {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 5px;
-                    margin-bottom: 14px;
-                }
-
-                .al-label {
-                    font-size: 10px;
-                    font-weight: 500;
-                    letter-spacing: 0.12em;
-                    text-transform: uppercase;
-                    color: #92826b;
-                }
-
-                .al-input {
-                    font-family: 'DM Sans', sans-serif;
-                    font-size: 0.85rem;
-                    font-weight: 300;
-                    color: #1a1208;
-                    background: #faf8f4;
-                    border: 1px solid #e8dfd0;
-                    border-radius: 11px;
-                    padding: 11px 14px;
-                    outline: none;
-                    width: 100%;
-                    box-sizing: border-box;
-                    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
-                }
-
-                .al-input::placeholder { color: #b8a898; }
-
-                .al-input:focus {
-                    border-color: #d97706;
-                    background: #fff;
-                    box-shadow: 0 0 0 3px rgba(217,119,6,0.08);
-                }
-
-                /* Password wrap */
-                .al-pw-wrap { position: relative; }
-
-                .al-pw-toggle {
-                    position: absolute;
-                    right: 13px; top: 50%;
-                    transform: translateY(-50%);
-                    font-size: 10px;
-                    font-weight: 500;
-                    letter-spacing: 0.06em;
-                    text-transform: uppercase;
-                    color: #92826b;
-                    background: none;
-                    border: none;
-                    cursor: pointer;
-                    padding: 2px 6px;
-                    border-radius: 5px;
-                    transition: color 0.16s;
-                }
-
-                .al-pw-toggle:hover { color: #b45309; }
-
-                /* Forgot */
-                .al-forgot {
-                    display: flex;
-                    justify-content: flex-end;
-                    margin-top: 6px;
-                }
-
-                .al-forgot-btn {
-                    font-size: 0.75rem;
-                    font-weight: 400;
-                    color: #92826b;
-                    background: none;
-                    border: none;
-                    cursor: pointer;
-                    padding: 0;
-                    transition: color 0.16s;
-                }
-
-                .al-forgot-btn:hover { color: #b45309; }
-
-                /* Submit */
-                .al-submit {
-                    width: 100%;
-                    font-family: 'DM Sans', sans-serif;
-                    font-size: 0.88rem;
-                    font-weight: 500;
-                    color: #fef3c7;
-                    background: #1a1208;
-                    border: none;
-                    border-radius: 11px;
-                    padding: 13px;
-                    cursor: pointer;
-                    margin-top: 18px;
-                    transition: background 0.2s, transform 0.15s;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 8px;
-                }
-
-                .al-submit:hover:not(:disabled) {
-                    background: #2d1f0d;
-                    transform: translateY(-1px);
-                }
-
-                .al-submit:disabled { opacity: 0.6; cursor: not-allowed; }
-
-                /* Security note */
-                .al-security {
-                    margin-top: 18px;
-                    background: #faf8f4;
-                    border: 1px solid #f0e8d8;
-                    border-radius: 10px;
-                    padding: 11px 14px;
-                    display: flex;
-                    align-items: flex-start;
-                    gap: 8px;
-                    font-size: 0.75rem;
-                    font-weight: 300;
-                    color: #92826b;
-                    line-height: 1.6;
-                }
-
-                .al-security-icon {
-                    font-size: 0.8rem;
-                    flex-shrink: 0;
-                    margin-top: 1px;
-                }
-
-                .al-footer-note {
-                    margin-top: 14px;
-                    text-align: center;
-                    font-size: 0.7rem;
-                    font-weight: 300;
-                    color: #b8a898;
-                }
-
-                /* ── Responsive ── */
-                @media (max-width: 768px) {
-                    .al-root { grid-template-columns: 1fr; }
-                    .al-left { display: none; }
-                    .al-right { min-height: 100vh; padding: 32px 20px; }
-                }
+                /* Input placeholder */
+                .al-input::placeholder { color: color-mix(in srgb,var(--color-text-muted) 50%,transparent); }
             `}</style>
 
-            <div className="al-root">
+            <div className="min-h-screen grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr]"
+                style={{ fontFamily: "'DM Sans', sans-serif", background: "var(--color-bg)" }}>
 
-                {/* Left panel */}
-                <div className="al-left">
-                    <div className="al-left-glow" aria-hidden="true" />
-                    <div className="al-left-glow-2" aria-hidden="true" />
-                    <div className="al-left-dots" aria-hidden="true" />
-                    <div className="al-left-watermark" aria-hidden="true">SCA</div>
+                {/* ═══════════ LEFT PANEL ═══════════ */}
+                <div className="hidden md:flex flex-col justify-between relative overflow-hidden px-14 py-14 min-h-screen"
+                    style={{ background: "var(--color-bg-sidebar)" }}>
 
-                    <div className="al-left-top">
-                        <div className="al-left-badge">
-                            <span className="al-left-badge-dot" aria-hidden="true" />
+                    {/* Decorative */}
+                    <div aria-hidden className="absolute -top-24 -right-24 w-[420px] h-[420px] rounded-full pointer-events-none"
+                        style={{ background: "radial-gradient(circle,color-mix(in srgb,var(--color-primary) 20%,transparent) 0%,transparent 65%)" }} />
+                    <div aria-hidden className="absolute -bottom-20 -left-20 w-[300px] h-[300px] rounded-full pointer-events-none"
+                        style={{ background: "radial-gradient(circle,color-mix(in srgb,var(--color-warning) 8%,transparent) 0%,transparent 65%)" }} />
+                    {/* Dot pattern */}
+                    <div aria-hidden className="absolute bottom-12 right-12 w-40 h-40 pointer-events-none"
+                        style={{
+                            backgroundImage: "radial-gradient(circle,color-mix(in srgb,var(--color-warning) 14%,transparent) 1.5px,transparent 1.5px)",
+                            backgroundSize: "12px 12px",
+                        }} />
+                    {/* Horizontal grid lines */}
+                    <div aria-hidden className="absolute inset-0 pointer-events-none"
+                        style={{
+                            backgroundImage: "linear-gradient(color-mix(in srgb,var(--color-warning) 3%,transparent) 1px,transparent 1px)",
+                            backgroundSize: "100% 72px",
+                        }} />
+                    {/* Ghost watermark */}
+                    <div aria-hidden className="absolute -bottom-4 -left-3 font-serif font-black italic select-none pointer-events-none leading-none"
+                        style={{ fontSize: 170, color: "transparent", WebkitTextStroke: "1px color-mix(in srgb,var(--color-warning) 4%,transparent)" }}>
+                        SCA
+                    </div>
+
+                    {/* TOP */}
+                    <div className="relative z-10">
+                        {/* Restricted badge */}
+                        <div className="inline-flex items-center gap-2 text-[9px] font-medium tracking-[0.18em] uppercase rounded-full px-4 py-[5px] mb-7"
+                            style={{ background: "var(--color-warning)", color: "var(--color-bg-sidebar)" }}>
+                            <span className="al-badge-dot w-1.5 h-1.5 rounded-full flex-shrink-0"
+                                style={{ background: "var(--color-bg-sidebar)" }} aria-hidden />
                             Admin Access Only
                         </div>
-                        <div className="al-left-name">Shivshakti<br />Computer Academy</div>
-                        <div className="al-left-sub">Academy Management System</div>
 
-                        <div className="al-features">
-                            {FEATURES.map((f) => (
-                                <div key={f} className="al-feature">
-                                    <div className="al-feature-check" aria-hidden="true">✓</div>
-                                    <div className="al-feature-text">{f}</div>
+                        {/* Academy name */}
+                        <div className="font-serif text-[1.55rem] font-bold leading-[1.15] mb-2"
+                            style={{ color: "var(--color-text-inverse)" }}>
+                            Shivshakti<br />Computer Academy
+                        </div>
+                        <div className="text-[0.8rem] font-light tracking-[0.07em] mb-8"
+                            style={{ color: "color-mix(in srgb,var(--color-text-inverse) 35%,transparent)" }}>
+                            Academy Management System
+                        </div>
+
+                        {/* Stats grid — real data from API */}
+                        {(statsLoading || stats) && (
+                            <div className="rounded-[18px] mb-7 overflow-hidden"
+                                style={{
+                                    border: "1px solid color-mix(in srgb,var(--color-warning) 10%,transparent)",
+                                    background: "color-mix(in srgb,var(--color-primary) 6%,transparent)",
+                                }}>
+                                <div className="px-5 py-2.5 text-[8px] font-semibold tracking-[0.2em] uppercase"
+                                    style={{
+                                        borderBottom: "1px solid color-mix(in srgb,var(--color-warning) 8%,transparent)",
+                                        color: "color-mix(in srgb,var(--color-warning) 65%,transparent)",
+                                    }}>
+                                    Academy Overview
+                                </div>
+                                <div className="grid grid-cols-2" style={{ gap: 1, background: "color-mix(in srgb,var(--color-warning) 8%,transparent)" }}>
+                                    {[
+                                        { key: "students",     label: "Students Enrolled",   val: stats?.students     },
+                                        { key: "courses",      label: "Active Courses",       val: stats?.courses      },
+                                        { key: "faculty",      label: "Faculty Members",      val: stats?.faculty      },
+                                        { key: "certificates", label: "Certificates Issued",  val: stats?.certificates },
+                                    ].map(({ key, label, val }) => (
+                                        <div key={key} className="px-4 py-3.5"
+                                            style={{ background: "var(--color-bg-sidebar)" }}>
+                                            {statsLoading ? (
+                                                <>
+                                                    <div className="al-skel h-5 w-14 mb-1.5" />
+                                                    <div className="al-skel h-2.5 w-20" />
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="font-serif font-bold text-[1.3rem] leading-none mb-1"
+                                                        style={{ color: "var(--color-warning)" }}>
+                                                        {val?.toLocaleString("en-IN") ?? "—"}
+                                                    </div>
+                                                    <div className="text-[10px] font-light leading-tight"
+                                                        style={{ color: "color-mix(in srgb,var(--color-text-inverse) 40%,transparent)" }}>
+                                                        {label}
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Feature list */}
+                        <div className="flex flex-col rounded-[18px] overflow-hidden"
+                            style={{ border: "1px solid color-mix(in srgb,var(--color-warning) 9%,transparent)" }}>
+                            {FEATURES.map((f, i) => (
+                                <div key={f.text}
+                                    className="group relative flex items-center gap-3 px-5 py-3.5 transition-colors duration-200 cursor-default"
+                                    style={{ borderBottom: i < FEATURES.length - 1 ? "1px solid color-mix(in srgb,var(--color-warning) 7%,transparent)" : "none" }}
+                                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "color-mix(in srgb,var(--color-warning) 5%,transparent)"}
+                                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}>
+                                    <span aria-hidden className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full origin-top scale-y-0 group-hover:scale-y-100 transition-transform duration-200 ease-out"
+                                        style={{ background: "var(--color-warning)" }} />
+                                    <span className="text-[0.8rem] flex-shrink-0" aria-hidden>{f.icon}</span>
+                                    <span className="text-[0.8rem] font-light leading-[1.4]"
+                                        style={{ color: "color-mix(in srgb,var(--color-text-inverse) 50%,transparent)" }}>
+                                        {f.text}
+                                    </span>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    <div className="al-left-bottom">
-                        <div className="al-left-copy">© 2026 Shivshakti Computer Academy</div>
+                    {/* BOTTOM */}
+                    <div className="relative z-10 text-[0.68rem] font-light tracking-[0.04em]"
+                        style={{ color: "color-mix(in srgb,var(--color-text-inverse) 18%,transparent)" }}>
+                        © 2026 Shivshakti Computer Academy · All rights reserved
                     </div>
                 </div>
 
-                {/* Right panel */}
-                <div className="al-right">
-                    <div className="al-card">
+                {/* ═══════════ RIGHT PANEL ═══════════ */}
+                <div className="flex items-center justify-center px-6 py-12 min-h-screen"
+                    style={{ background: "var(--color-bg)" }}>
+                    <div className="w-full max-w-[400px]">
 
-                        <div className="al-card-header">
-                            <div className="al-card-eyebrow">Admin Portal</div>
-                            <div className="al-card-title">Sign In</div>
-                            <div className="al-card-sub">Manage academy operations securely</div>
-                        </div>
+                        {/* Card */}
+                        <div className="rounded-[22px] overflow-hidden"
+                            style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", boxShadow: "0 4px 32px color-mix(in srgb,var(--color-primary) 5%,transparent)" }}>
 
-                        <div className="al-card-body">
-                            {error && (
-                                <div className="al-error" role="alert">
-                                    <span aria-hidden="true">✕</span>
-                                    <span>{error}</span>
+                            {/* Card header accent bar */}
+                            <div className="h-1 w-full"
+                                style={{ background: `linear-gradient(90deg, var(--color-primary), color-mix(in srgb,var(--color-primary) 50%,var(--color-accent)))` }} />
+
+                            {/* Card header */}
+                            <div className="text-center px-8 pt-6 pb-5"
+                                style={{ borderBottom: "1px solid var(--color-border)" }}>
+                                {/* Icon ring */}
+                                <div className="w-12 h-12 rounded-2xl mx-auto mb-3.5 flex items-center justify-center text-xl"
+                                    style={{
+                                        background: "color-mix(in srgb,var(--color-primary) 10%,var(--color-bg))",
+                                        border: "1px solid color-mix(in srgb,var(--color-primary) 20%,transparent)",
+                                    }}
+                                    aria-hidden>⚙️</div>
+                                {/* Eyebrow */}
+                                <div className="flex items-center justify-center gap-2 mb-2 text-[9px] font-medium tracking-[0.2em] uppercase"
+                                    style={{ color: "var(--color-primary)" }}>
+                                    <span aria-hidden style={{ display: "inline-block", width: 16, height: 1, background: "var(--color-primary)", flexShrink: 0 }} />
+                                    Admin Portal
+                                    <span aria-hidden style={{ display: "inline-block", width: 16, height: 1, background: "var(--color-primary)", flexShrink: 0 }} />
                                 </div>
-                            )}
-
-                            <form onSubmit={handleLogin}>
-                                <div className="al-field">
-                                    <label className="al-label" htmlFor="al-email">Admin Email</label>
-                                    <input
-                                        id="al-email"
-                                        type="email"
-                                        required
-                                        autoComplete="email"
-                                        placeholder="admin@example.com"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        className="al-input"
-                                    />
+                                <div className="font-serif text-[1.3rem] font-bold leading-[1.2]"
+                                    style={{ color: "var(--color-text)" }}>
+                                    Sign In
                                 </div>
-
-                                <div className="al-field">
-                                    <label className="al-label" htmlFor="al-password">Password</label>
-                                    <div className="al-pw-wrap">
-                                        <input
-                                            id="al-password"
-                                            type={showPassword ? "text" : "password"}
-                                            required
-                                            autoComplete="current-password"
-                                            placeholder="Enter your password"
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                            className="al-input"
-                                            style={{ paddingRight: "54px" }}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowPassword(!showPassword)}
-                                            className="al-pw-toggle"
-                                            aria-label={showPassword ? "Hide password" : "Show password"}
-                                        >
-                                            {showPassword ? "Hide" : "Show"}
-                                        </button>
-                                    </div>
-                                    <div className="al-forgot">
-                                        <button
-                                            type="button"
-                                            onClick={() => router.push("/forgot-password")}
-                                            className="al-forgot-btn"
-                                        >
-                                            Forgot password?
-                                        </button>
-                                    </div>
+                                <div className="text-[0.76rem] font-light mt-1"
+                                    style={{ color: "var(--color-text-muted)" }}>
+                                    Manage academy operations securely
                                 </div>
-
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="al-submit"
-                                >
-                                    {loading
-                                        ? "Signing in..."
-                                        : <>Sign In <span aria-hidden="true">→</span></>
-                                    }
-                                </button>
-                            </form>
-
-                            <div className="al-security">
-                                <span className="al-security-icon" aria-hidden="true">🔐</span>
-                                <span>Admin accounts require OTP verification after login. Authorized administrators only.</span>
                             </div>
 
-                            <div className="al-footer-note">
-                                Unauthorized access attempts are logged and monitored.
+                            {/* Card body */}
+                            <div className="px-8 py-6">
+
+                                {/* Error */}
+                                {error && (
+                                    <div role="alert"
+                                        className="flex items-start gap-2 rounded-[10px] px-3.5 py-2.5 mb-4 text-[0.78rem] font-light leading-[1.6]"
+                                        style={{
+                                            background: "color-mix(in srgb,var(--color-error) 8%,var(--color-bg))",
+                                            border:     "1px solid color-mix(in srgb,var(--color-error) 28%,transparent)",
+                                            color:      "var(--color-error)",
+                                        }}>
+                                        <span aria-hidden className="flex-shrink-0 mt-px">✕</span>
+                                        <span>{error}</span>
+                                    </div>
+                                )}
+
+                                <form onSubmit={handleLogin} className="flex flex-col gap-4">
+
+                                    {/* Email */}
+                                    <div className="flex flex-col gap-1.5">
+                                        <label htmlFor="al-email"
+                                            className="text-[10px] font-semibold tracking-[0.14em] uppercase"
+                                            style={{ color: "var(--color-text-muted)" }}>
+                                            Admin Email
+                                        </label>
+                                        <input id="al-email" type="email" required autoComplete="email"
+                                            placeholder="admin@shivshakti.edu"
+                                            value={email} onChange={e => setEmail(e.target.value)}
+                                            className="al-input w-full rounded-[11px] px-4 py-[11px] text-[0.84rem] font-light outline-none transition-all duration-200"
+                                            style={{
+                                                fontFamily: "'DM Sans', sans-serif",
+                                                background: "var(--color-bg)",
+                                                border:     "1px solid var(--color-border)",
+                                                color:      "var(--color-text)",
+                                                boxSizing:  "border-box",
+                                            }}
+                                            onFocus={onFocus} onBlur={onBlur} />
+                                    </div>
+
+                                    {/* Password */}
+                                    <div className="flex flex-col gap-1.5">
+                                        <label htmlFor="al-password"
+                                            className="text-[10px] font-semibold tracking-[0.14em] uppercase"
+                                            style={{ color: "var(--color-text-muted)" }}>
+                                            Password
+                                        </label>
+                                        <div className="relative">
+                                            <input id="al-password"
+                                                type={showPassword ? "text" : "password"}
+                                                required autoComplete="current-password"
+                                                placeholder="Enter your password"
+                                                value={password} onChange={e => setPassword(e.target.value)}
+                                                className="al-input w-full rounded-[11px] px-4 py-[11px] text-[0.84rem] font-light outline-none transition-all duration-200"
+                                                style={{
+                                                    fontFamily: "'DM Sans', sans-serif",
+                                                    background: "var(--color-bg)",
+                                                    border:     "1px solid var(--color-border)",
+                                                    color:      "var(--color-text)",
+                                                    boxSizing:  "border-box",
+                                                    paddingRight: 56,
+                                                }}
+                                                onFocus={onFocus} onBlur={onBlur} />
+                                            <button type="button"
+                                                onClick={() => setShowPassword(p => !p)}
+                                                aria-label={showPassword ? "Hide password" : "Show password"}
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-semibold tracking-[0.1em] uppercase px-2 py-0.5 rounded-md transition-colors duration-150 cursor-pointer"
+                                                style={{ background: "none", border: "none", color: "var(--color-text-muted)" }}
+                                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--color-primary)"}
+                                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--color-text-muted)"}>
+                                                {showPassword ? "Hide" : "Show"}
+                                            </button>
+                                        </div>
+                                        <div className="flex justify-end">
+                                            <button type="button"
+                                                onClick={() => router.push("/forgot-password")}
+                                                className="text-[0.73rem] font-normal transition-colors duration-150 cursor-pointer"
+                                                style={{ background: "none", border: "none", color: "var(--color-text-muted)" }}
+                                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--color-primary)"}
+                                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--color-text-muted)"}>
+                                                Forgot password?
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Submit */}
+                                    <button type="submit" disabled={loading}
+                                        className="al-submit-shimmer w-full flex items-center justify-center gap-2 rounded-[11px] py-[13px] text-[0.87rem] font-semibold tracking-wide transition-all duration-200 disabled:opacity-55 disabled:cursor-not-allowed hover:-translate-y-px cursor-pointer"
+                                        style={{
+                                            fontFamily: "'DM Sans', sans-serif",
+                                            background: "var(--color-primary)",
+                                            color: "#fff", border: "none",
+                                            boxShadow: "0 4px 18px color-mix(in srgb,var(--color-primary) 32%,transparent)",
+                                        }}>
+                                        {loading
+                                            ? <><span className="inline-block w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />Signing in…</>
+                                            : <>Sign In <span aria-hidden>→</span></>
+                                        }
+                                    </button>
+                                </form>
+
+                                {/* Security note */}
+                                <div className="flex items-start gap-2.5 rounded-[11px] px-3.5 py-3 mt-5 text-[0.74rem] font-light leading-[1.65]"
+                                    style={{
+                                        background: "color-mix(in srgb,var(--color-warning) 6%,var(--color-bg))",
+                                        border:     "1px solid color-mix(in srgb,var(--color-warning) 16%,transparent)",
+                                        color:      "var(--color-text-muted)",
+                                    }}>
+                                    <span aria-hidden className="flex-shrink-0 mt-px">🔐</span>
+                                    <span>Admin accounts require <strong style={{ color: "var(--color-text)", fontWeight: 500 }}>OTP verification</strong> after login. Unauthorized attempts are logged.</span>
+                                </div>
                             </div>
                         </div>
+
+                        {/* Back link */}
+                        <div className="mt-5 text-center">
+                            <Link href="/"
+                                className="inline-flex items-center gap-1.5 text-[0.76rem] font-light no-underline transition-colors duration-150"
+                                style={{ color: "var(--color-text-muted)" }}
+                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--color-primary)"}
+                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--color-text-muted)"}>
+                                <span aria-hidden>←</span> Back to Home
+                            </Link>
+                        </div>
+
                     </div>
                 </div>
 

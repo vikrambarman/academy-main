@@ -2,34 +2,51 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+
+const COURSE_CHIPS = [
+    "DCA", "PGDCA", "Tally Prime", "MS Office",
+    "Python", "Web Design", "Typing", "CorelDRAW",
+    "Hardware", "Busy Accounting", "AutoCAD", "Photoshop",
+];
 
 const FEATURES = [
-    "View Course Details & Syllabus",
-    "Track Fee Payments",
-    "Check Certificate Status",
-    "Access Academic Information",
+    { icon: "📚", text: "Course Details & Syllabus"    },
+    { icon: "💳", text: "Fee Payment Tracking"          },
+    { icon: "🎓", text: "Certificate Download Status"   },
+    { icon: "📋", text: "Attendance & Progress Records" },
 ];
+
+const onFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.currentTarget.style.borderColor = "var(--color-primary)";
+    e.currentTarget.style.background  = "var(--color-bg-card)";
+    e.currentTarget.style.boxShadow   = "0 0 0 3px color-mix(in srgb,var(--color-primary) 12%,transparent)";
+};
+const onBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.currentTarget.style.borderColor = "var(--color-border)";
+    e.currentTarget.style.background  = "var(--color-bg)";
+    e.currentTarget.style.boxShadow   = "none";
+};
 
 export default function StudentLoginPage() {
     const router = useRouter();
 
-    const [identifier, setIdentifier] = useState("");
-    const [password, setPassword] = useState("");
+    const [identifier,   setIdentifier]   = useState("");
+    const [password,     setPassword]     = useState("");
     const [showPassword, setShowPassword] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
+    const [loading,      setLoading]      = useState(false);
+    const [error,        setError]        = useState("");
 
     const [showForgotModal, setShowForgotModal] = useState(false);
-    const [forgotEmail, setForgotEmail] = useState("");
-    const [forgotLoading, setForgotLoading] = useState(false);
+    const [forgotEmail,     setForgotEmail]     = useState("");
+    const [forgotLoading,   setForgotLoading]   = useState(false);
     const [forgotMsg, setForgotMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
-        setError("");
+        setLoading(true); setError("");
         try {
-            const res = await fetch("/api/auth/login", {
+            const res  = await fetch("/api/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
@@ -38,24 +55,17 @@ export default function StudentLoginPage() {
             const data = await res.json();
             if (!res.ok) throw new Error(data.message || "Login failed");
             if (data.forceChangePassword) { router.push("/change-password?forced=true"); return; }
-            if (data.role === "student") {
-                router.push("/dashboard/student");
-            } else {
-                setError("This login portal is for students only.");
-            }
-        } catch (err: any) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
+            if (data.role === "student") { router.push("/dashboard/student"); }
+            else setError("This portal is for students only.");
+        } catch (err: any) { setError(err.message); }
+        finally { setLoading(false); }
     };
 
     const handleForgotSubmit = async () => {
         if (!forgotEmail) { setForgotMsg({ type: "error", text: "Please enter your email address." }); return; }
-        setForgotLoading(true);
-        setForgotMsg(null);
+        setForgotLoading(true); setForgotMsg(null);
         try {
-            const res = await fetch("/api/auth/student-forgot-password", {
+            const res  = await fetch("/api/auth/student-forgot-password", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email: forgotEmail }),
@@ -76,711 +86,363 @@ export default function StudentLoginPage() {
     return (
         <>
             <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700&family=DM+Sans:wght@300;400;500&display=swap');
-
-                .sl-root {
-                    font-family: 'DM Sans', sans-serif;
-                    min-height: 100vh;
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    background: #faf8f4;
+                @keyframes sl-pulse {
+                    0%,100% { opacity:1; transform:scale(1); }
+                    50%     { opacity:.5; transform:scale(.75); }
                 }
+                @keyframes sl-float-0 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+                @keyframes sl-float-1 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+                @keyframes sl-float-2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+                @keyframes sl-modal-fade  { from{opacity:0} to{opacity:1} }
+                @keyframes sl-modal-slide { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+                @keyframes sl-shimmer     { from{background-position:-200% center} to{background-position:200% center} }
 
-                /* ── Left panel ── */
-                .sl-left {
-                    background: #1a1208;
-                    padding: 52px;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: space-between;
-                    position: relative;
-                    overflow: hidden;
-                    min-height: 100vh;
+                .sl-badge-dot  { animation: sl-pulse 2s ease-in-out infinite; }
+                .sl-chip-0     { animation: sl-float-0 4.2s ease-in-out infinite; }
+                .sl-chip-1     { animation: sl-float-1 3.8s ease-in-out infinite 0.4s; }
+                .sl-chip-2     { animation: sl-float-2 4.6s ease-in-out infinite 0.8s; }
+                .sl-chip-3     { animation: sl-float-0 5s   ease-in-out infinite 0.2s; }
+                .sl-chip-4     { animation: sl-float-1 3.5s ease-in-out infinite 1s;   }
+                .sl-chip-5     { animation: sl-float-2 4.2s ease-in-out infinite 0.6s; }
+                .sl-modal-bd   { animation: sl-modal-fade  .18s ease; }
+                .sl-modal      { animation: sl-modal-slide .2s ease; }
+
+                .sl-submit:not(:disabled):hover {
+                    background-image: linear-gradient(
+                        90deg,
+                        var(--color-primary) 0%,
+                        color-mix(in srgb,var(--color-primary) 70%,#fff) 45%,
+                        var(--color-primary) 100%
+                    );
+                    background-size: 200% auto;
+                    animation: sl-shimmer 1.4s linear infinite;
                 }
-
-                .sl-left-glow {
-                    position: absolute;
-                    top: -80px; right: -80px;
-                    width: 360px; height: 360px;
-                    background: radial-gradient(circle, rgba(217,119,6,0.1) 0%, transparent 65%);
-                    pointer-events: none;
-                }
-
-                .sl-left-glow-2 {
-                    position: absolute;
-                    bottom: -60px; left: -60px;
-                    width: 280px; height: 280px;
-                    background: radial-gradient(circle, rgba(252,211,77,0.05) 0%, transparent 65%);
-                    pointer-events: none;
-                }
-
-                .sl-left-dots {
-                    position: absolute;
-                    bottom: 40px; right: 40px;
-                    width: 140px; height: 140px;
-                    background-image: radial-gradient(circle, rgba(252,211,77,0.1) 1.5px, transparent 1.5px);
-                    background-size: 12px 12px;
-                    pointer-events: none;
-                }
-
-                .sl-left-watermark {
-                    position: absolute;
-                    bottom: -20px; left: -10px;
-                    font-family: 'Playfair Display', serif;
-                    font-size: 160px;
-                    font-weight: 900;
-                    font-style: italic;
-                    color: transparent;
-                    -webkit-text-stroke: 1px rgba(252,211,77,0.04);
-                    pointer-events: none;
-                    user-select: none;
-                    line-height: 1;
-                }
-
-                .sl-left-top { position: relative; z-index: 1; }
-
-                .sl-left-badge {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 6px;
-                    font-size: 9px;
-                    font-weight: 500;
-                    letter-spacing: 0.16em;
-                    text-transform: uppercase;
-                    color: #1a1208;
-                    background: #fcd34d;
-                    padding: 5px 14px;
-                    border-radius: 100px;
-                    margin-bottom: 24px;
-                }
-
-                .sl-left-badge-dot {
-                    width: 5px; height: 5px;
-                    background: #92540a;
-                    border-radius: 50%;
-                }
-
-                .sl-left-name {
-                    font-family: 'Playfair Display', serif;
-                    font-size: 1.5rem;
-                    font-weight: 700;
-                    color: #fef3c7;
-                    line-height: 1.2;
-                    margin-bottom: 6px;
-                }
-
-                .sl-left-sub {
-                    font-size: 0.8rem;
-                    font-weight: 300;
-                    color: rgba(254,243,199,0.4);
-                    letter-spacing: 0.06em;
-                    margin-bottom: 40px;
-                }
-
-                .sl-features {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 0;
-                    border: 1px solid rgba(252,211,77,0.08);
-                    border-radius: 16px;
-                    overflow: hidden;
-                }
-
-                .sl-feature {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    padding: 14px 18px;
-                    border-bottom: 1px solid rgba(252,211,77,0.06);
-                    transition: background 0.18s;
-                    position: relative;
-                }
-
-                .sl-feature:last-child { border-bottom: none; }
-
-                .sl-feature::before {
-                    content: '';
-                    position: absolute;
-                    left: 0; top: 4px; bottom: 4px;
-                    width: 2px;
-                    background: #fcd34d;
-                    border-radius: 2px;
-                    transform: scaleY(0);
-                    transition: transform 0.22s ease;
-                    transform-origin: top;
-                }
-
-                .sl-feature:hover { background: rgba(252,211,77,0.04); }
-                .sl-feature:hover::before { transform: scaleY(1); }
-
-                .sl-feature-check {
-                    width: 18px; height: 18px;
-                    background: rgba(74,222,128,0.12);
-                    border: 1px solid rgba(74,222,128,0.22);
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 0.55rem;
-                    color: #4ade80;
-                    flex-shrink: 0;
-                }
-
-                .sl-feature-text {
-                    font-size: 0.8rem;
-                    font-weight: 300;
-                    color: rgba(254,243,199,0.55);
-                    line-height: 1.4;
-                }
-
-                .sl-left-bottom { position: relative; z-index: 1; }
-
-                .sl-left-copy {
-                    font-size: 0.7rem;
-                    font-weight: 300;
-                    color: rgba(254,243,199,0.2);
-                    letter-spacing: 0.04em;
-                }
-
-                /* ── Right panel ── */
-                .sl-right {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    padding: 40px 24px;
-                    background: #faf8f4;
-                }
-
-                .sl-card {
-                    width: 100%;
-                    max-width: 420px;
-                    background: #fff;
-                    border: 1px solid #e8dfd0;
-                    border-radius: 24px;
-                    overflow: hidden;
-                }
-
-                .sl-card-header {
-                    padding: 28px 32px 24px;
-                    border-bottom: 1px solid #f5efe4;
-                    text-align: center;
-                }
-
-                .sl-card-eyebrow {
-                    font-size: 9px;
-                    font-weight: 500;
-                    letter-spacing: 0.18em;
-                    text-transform: uppercase;
-                    color: #b45309;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 8px;
-                    margin-bottom: 10px;
-                }
-
-                .sl-card-eyebrow::before,
-                .sl-card-eyebrow::after {
-                    content: '';
-                    display: inline-block;
-                    width: 18px; height: 1px;
-                    background: #d97706;
-                }
-
-                .sl-card-title {
-                    font-family: 'Playfair Display', serif;
-                    font-size: 1.35rem;
-                    font-weight: 700;
-                    color: #1a1208;
-                    line-height: 1.2;
-                }
-
-                .sl-card-sub {
-                    font-size: 0.78rem;
-                    font-weight: 300;
-                    color: #92826b;
-                    margin-top: 5px;
-                }
-
-                .sl-card-body { padding: 28px 32px 32px; }
-
-                .sl-error {
-                    background: #fef2f2;
-                    border: 1px solid #fecaca;
-                    border-radius: 10px;
-                    padding: 11px 14px;
-                    font-size: 0.8rem;
-                    font-weight: 300;
-                    color: #dc2626;
-                    display: flex;
-                    gap: 8px;
-                    align-items: flex-start;
-                    margin-bottom: 18px;
-                    line-height: 1.55;
-                }
-
-                .sl-field {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 5px;
-                    margin-bottom: 14px;
-                }
-
-                .sl-label {
-                    font-size: 10px;
-                    font-weight: 500;
-                    letter-spacing: 0.12em;
-                    text-transform: uppercase;
-                    color: #92826b;
-                }
-
-                .sl-input {
-                    font-family: 'DM Sans', sans-serif;
-                    font-size: 0.85rem;
-                    font-weight: 300;
-                    color: #1a1208;
-                    background: #faf8f4;
-                    border: 1px solid #e8dfd0;
-                    border-radius: 11px;
-                    padding: 11px 14px;
-                    outline: none;
-                    width: 100%;
-                    box-sizing: border-box;
-                    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
-                }
-
-                .sl-input::placeholder { color: #b8a898; }
-
-                .sl-input:focus {
-                    border-color: #d97706;
-                    background: #fff;
-                    box-shadow: 0 0 0 3px rgba(217,119,6,0.08);
-                }
-
-                .sl-pw-wrap { position: relative; }
-
-                .sl-pw-toggle {
-                    position: absolute;
-                    right: 13px; top: 50%;
-                    transform: translateY(-50%);
-                    font-size: 10px;
-                    font-weight: 500;
-                    letter-spacing: 0.06em;
-                    text-transform: uppercase;
-                    color: #92826b;
-                    background: none;
-                    border: none;
-                    cursor: pointer;
-                    padding: 2px 6px;
-                    border-radius: 5px;
-                    transition: color 0.16s;
-                }
-
-                .sl-pw-toggle:hover { color: #b45309; }
-
-                .sl-forgot {
-                    display: flex;
-                    justify-content: flex-end;
-                    margin-top: 6px;
-                }
-
-                .sl-forgot-btn {
-                    font-size: 0.75rem;
-                    font-weight: 400;
-                    color: #92826b;
-                    background: none;
-                    border: none;
-                    cursor: pointer;
-                    padding: 0;
-                    transition: color 0.16s;
-                }
-
-                .sl-forgot-btn:hover { color: #b45309; }
-
-                .sl-submit {
-                    width: 100%;
-                    font-family: 'DM Sans', sans-serif;
-                    font-size: 0.88rem;
-                    font-weight: 500;
-                    color: #fef3c7;
-                    background: #1a1208;
-                    border: none;
-                    border-radius: 11px;
-                    padding: 13px;
-                    cursor: pointer;
-                    margin-top: 18px;
-                    transition: background 0.2s, transform 0.15s;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 8px;
-                }
-
-                .sl-submit:hover:not(:disabled) { background: #2d1f0d; transform: translateY(-1px); }
-                .sl-submit:disabled { opacity: 0.6; cursor: not-allowed; }
-
-                .sl-info-note {
-                    margin-top: 18px;
-                    background: #faf8f4;
-                    border: 1px solid #f0e8d8;
-                    border-radius: 10px;
-                    padding: 11px 14px;
-                    display: flex;
-                    align-items: flex-start;
-                    gap: 8px;
-                    font-size: 0.75rem;
-                    font-weight: 300;
-                    color: #92826b;
-                    line-height: 1.6;
-                }
-
-                .sl-footer-note {
-                    margin-top: 14px;
-                    text-align: center;
-                    font-size: 0.7rem;
-                    font-weight: 300;
-                    color: #b8a898;
-                }
-
-                /* ── Forgot Modal ── */
-                .sl-modal-backdrop {
-                    position: fixed;
-                    inset: 0;
-                    background: rgba(26,18,8,0.55);
-                    backdrop-filter: blur(4px);
-                    -webkit-backdrop-filter: blur(4px);
-                    z-index: 9999;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    padding: 24px;
-                    animation: slModalFade 0.18s ease;
-                }
-
-                @keyframes slModalFade {
-                    from { opacity: 0; }
-                    to   { opacity: 1; }
-                }
-
-                .sl-modal {
-                    width: 100%;
-                    max-width: 400px;
-                    background: #fff;
-                    border: 1px solid #e8dfd0;
-                    border-radius: 20px;
-                    overflow: hidden;
-                    animation: slModalSlide 0.2s ease;
-                }
-
-                @keyframes slModalSlide {
-                    from { opacity: 0; transform: translateY(-12px); }
-                    to   { opacity: 1; transform: translateY(0); }
-                }
-
-                .sl-modal-header {
-                    background: #1a1208;
-                    padding: 24px 28px 20px;
-                    position: relative;
-                    overflow: hidden;
-                }
-
-                .sl-modal-header::before {
-                    content: '';
-                    position: absolute;
-                    bottom: -10px; right: -10px;
-                    width: 80px; height: 80px;
-                    background-image: radial-gradient(circle, rgba(252,211,77,0.12) 1.5px, transparent 1.5px);
-                    background-size: 10px 10px;
-                    pointer-events: none;
-                }
-
-                .sl-modal-header-label {
-                    font-size: 9px;
-                    font-weight: 500;
-                    letter-spacing: 0.16em;
-                    text-transform: uppercase;
-                    color: #fcd34d;
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
-                    margin-bottom: 6px;
-                }
-
-                .sl-modal-header-label::before {
-                    content: '';
-                    display: inline-block;
-                    width: 12px; height: 1.5px;
-                    background: #fcd34d;
-                }
-
-                .sl-modal-title {
-                    font-family: 'Playfair Display', serif;
-                    font-size: 1rem;
-                    font-weight: 700;
-                    color: #fef3c7;
-                    position: relative;
-                    z-index: 1;
-                }
-
-                .sl-modal-sub {
-                    font-size: 0.75rem;
-                    font-weight: 300;
-                    color: rgba(254,243,199,0.4);
-                    margin-top: 4px;
-                    line-height: 1.6;
-                    position: relative;
-                    z-index: 1;
-                }
-
-                .sl-modal-body { padding: 24px 28px 28px; }
-
-                .sl-modal-alert {
-                    border-radius: 9px;
-                    padding: 10px 13px;
-                    font-size: 0.78rem;
-                    font-weight: 300;
-                    line-height: 1.6;
-                    margin-bottom: 14px;
-                    display: flex;
-                    gap: 8px;
-                    align-items: flex-start;
-                }
-
-                .sl-modal-alert-success {
-                    background: #f0fdf4;
-                    border: 1px solid #bbf7d0;
-                    color: #15803d;
-                }
-
-                .sl-modal-alert-error {
-                    background: #fef2f2;
-                    border: 1px solid #fecaca;
-                    color: #dc2626;
-                }
-
-                .sl-modal-actions {
-                    display: flex;
-                    gap: 8px;
-                    margin-top: 16px;
-                }
-
-                .sl-modal-cancel {
-                    flex: 1;
-                    font-family: 'DM Sans', sans-serif;
-                    font-size: 0.85rem;
-                    font-weight: 400;
-                    color: #6b5e4b;
-                    background: #faf8f4;
-                    border: 1px solid #e8dfd0;
-                    border-radius: 10px;
-                    padding: 11px;
-                    cursor: pointer;
-                    transition: background 0.18s;
-                }
-
-                .sl-modal-cancel:hover { background: #f0e8d8; }
-
-                .sl-modal-send {
-                    flex: 2;
-                    font-family: 'DM Sans', sans-serif;
-                    font-size: 0.85rem;
-                    font-weight: 500;
-                    color: #fef3c7;
-                    background: #1a1208;
-                    border: none;
-                    border-radius: 10px;
-                    padding: 11px;
-                    cursor: pointer;
-                    transition: background 0.18s;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 6px;
-                }
-
-                .sl-modal-send:hover:not(:disabled) { background: #2d1f0d; }
-                .sl-modal-send:disabled { opacity: 0.6; cursor: not-allowed; }
-
-                /* ── Responsive ── */
-                @media (max-width: 768px) {
-                    .sl-root { grid-template-columns: 1fr; }
-                    .sl-left { display: none; }
-                    .sl-right { min-height: 100vh; padding: 32px 20px; }
-                }
+                .sl-input::placeholder { color: color-mix(in srgb,var(--color-text-muted) 50%,transparent); }
             `}</style>
 
-            <div className="sl-root">
+            <div className="min-h-screen grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr]"
+                style={{ fontFamily: "'DM Sans', sans-serif", background: "var(--color-bg)" }}>
 
-                {/* Left panel */}
-                <div className="sl-left">
-                    <div className="sl-left-glow" aria-hidden="true" />
-                    <div className="sl-left-glow-2" aria-hidden="true" />
-                    <div className="sl-left-dots" aria-hidden="true" />
-                    <div className="sl-left-watermark" aria-hidden="true">SCA</div>
+                {/* ═══════════ LEFT PANEL ═══════════ */}
+                <div className="hidden md:flex flex-col justify-between relative overflow-hidden px-14 py-14 min-h-screen"
+                    style={{ background: "var(--color-bg-sidebar)" }}>
 
-                    <div className="sl-left-top">
-                        <div className="sl-left-badge">
-                            <span className="sl-left-badge-dot" aria-hidden="true" />
+                    {/* Decorative */}
+                    <div aria-hidden className="absolute -top-24 -right-24 w-[420px] h-[420px] rounded-full pointer-events-none"
+                        style={{ background: "radial-gradient(circle,color-mix(in srgb,var(--color-primary) 20%,transparent) 0%,transparent 65%)" }} />
+                    <div aria-hidden className="absolute -bottom-20 -left-20 w-[300px] h-[300px] rounded-full pointer-events-none"
+                        style={{ background: "radial-gradient(circle,color-mix(in srgb,var(--color-warning) 8%,transparent) 0%,transparent 65%)" }} />
+                    <div aria-hidden className="absolute bottom-12 right-12 w-40 h-40 pointer-events-none"
+                        style={{
+                            backgroundImage: "radial-gradient(circle,color-mix(in srgb,var(--color-warning) 12%,transparent) 1.5px,transparent 1.5px)",
+                            backgroundSize:  "12px 12px",
+                        }} />
+                    <div aria-hidden className="absolute -bottom-4 -left-3 font-serif font-black italic select-none pointer-events-none leading-none"
+                        style={{ fontSize: 170, color: "transparent", WebkitTextStroke: "1px color-mix(in srgb,var(--color-warning) 4%,transparent)" }}>
+                        SCA
+                    </div>
+
+                    {/* TOP */}
+                    <div className="relative z-10">
+                        {/* Badge */}
+                        <div className="inline-flex items-center gap-2 text-[9px] font-medium tracking-[0.18em] uppercase rounded-full px-4 py-[5px] mb-7"
+                            style={{ background: "var(--color-warning)", color: "var(--color-bg-sidebar)" }}>
+                            <span className="sl-badge-dot w-1.5 h-1.5 rounded-full flex-shrink-0"
+                                style={{ background: "var(--color-bg-sidebar)" }} aria-hidden />
                             Student Portal
                         </div>
-                        <div className="sl-left-name">Shivshakti<br />Computer Academy</div>
-                        <div className="sl-left-sub">Student Learning Portal</div>
 
-                        <div className="sl-features">
-                            {FEATURES.map((f) => (
-                                <div key={f} className="sl-feature">
-                                    <div className="sl-feature-check" aria-hidden="true">✓</div>
-                                    <div className="sl-feature-text">{f}</div>
+                        <div className="font-serif text-[1.55rem] font-bold leading-[1.15] mb-2"
+                            style={{ color: "var(--color-text-inverse)" }}>
+                            Shivshakti<br />Computer Academy
+                        </div>
+                        <div className="text-[0.8rem] font-light tracking-[0.07em] mb-7"
+                            style={{ color: "color-mix(in srgb,var(--color-text-inverse) 35%,transparent)" }}>
+                            Student Learning Portal
+                        </div>
+
+                        {/* Floating course chips */}
+                        <div className="mb-7">
+                            <div className="text-[8px] font-medium tracking-[0.2em] uppercase mb-2.5"
+                                style={{ color: "color-mix(in srgb,var(--color-warning) 65%,transparent)" }}>
+                                Available Courses
+                            </div>
+                            <div className="flex flex-wrap gap-1.5">
+                                {COURSE_CHIPS.map((c, i) => (
+                                    <span key={c}
+                                        className={`sl-chip-${i % 6} inline-flex items-center text-[10px] font-medium px-2.5 py-[4px] rounded-full`}
+                                        style={{
+                                            background: "color-mix(in srgb,var(--color-primary) 12%,transparent)",
+                                            border:     "1px solid color-mix(in srgb,var(--color-primary) 22%,transparent)",
+                                            color:      "color-mix(in srgb,var(--color-text-inverse) 55%,transparent)",
+                                        }}>
+                                        {c}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Feature list */}
+                        <div className="flex flex-col rounded-[18px] overflow-hidden"
+                            style={{ border: "1px solid color-mix(in srgb,var(--color-warning) 9%,transparent)" }}>
+                            {FEATURES.map((f, i) => (
+                                <div key={f.text}
+                                    className="group relative flex items-center gap-3 px-5 py-3.5 transition-colors duration-200 cursor-default"
+                                    style={{ borderBottom: i < FEATURES.length - 1 ? "1px solid color-mix(in srgb,var(--color-warning) 7%,transparent)" : "none" }}
+                                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "color-mix(in srgb,var(--color-warning) 5%,transparent)"}
+                                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}>
+                                    <span aria-hidden className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full origin-top scale-y-0 group-hover:scale-y-100 transition-transform duration-200 ease-out"
+                                        style={{ background: "var(--color-warning)" }} />
+                                    <span className="text-[0.82rem] flex-shrink-0" aria-hidden>{f.icon}</span>
+                                    <span className="text-[0.8rem] font-light leading-[1.4]"
+                                        style={{ color: "color-mix(in srgb,var(--color-text-inverse) 50%,transparent)" }}>
+                                        {f.text}
+                                    </span>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    <div className="sl-left-bottom">
-                        <div className="sl-left-copy">© 2026 Shivshakti Computer Academy</div>
+                    <div className="relative z-10 text-[0.68rem] font-light tracking-[0.04em]"
+                        style={{ color: "color-mix(in srgb,var(--color-text-inverse) 18%,transparent)" }}>
+                        © 2026 Shivshakti Computer Academy · All rights reserved
                     </div>
                 </div>
 
-                {/* Right panel */}
-                <div className="sl-right">
-                    <div className="sl-card">
-                        <div className="sl-card-header">
-                            <div className="sl-card-eyebrow">Student Portal</div>
-                            <div className="sl-card-title">Sign In</div>
-                            <div className="sl-card-sub">Access your learning dashboard</div>
+                {/* ═══════════ RIGHT PANEL ═══════════ */}
+                <div className="flex items-center justify-center px-6 py-12 min-h-screen"
+                    style={{ background: "var(--color-bg)" }}>
+                    <div className="w-full max-w-[400px]">
+
+                        <div className="rounded-[22px] overflow-hidden"
+                            style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", boxShadow: "0 4px 32px color-mix(in srgb,var(--color-primary) 5%,transparent)" }}>
+
+                            {/* Accent bar */}
+                            <div className="h-1 w-full"
+                                style={{ background: `linear-gradient(90deg, var(--color-primary), color-mix(in srgb,var(--color-primary) 50%,var(--color-accent)))` }} />
+
+                            {/* Header */}
+                            <div className="text-center px-8 pt-6 pb-5"
+                                style={{ borderBottom: "1px solid var(--color-border)" }}>
+                                <div className="w-12 h-12 rounded-2xl mx-auto mb-3.5 flex items-center justify-center text-xl"
+                                    style={{
+                                        background: "color-mix(in srgb,var(--color-primary) 10%,var(--color-bg))",
+                                        border:     "1px solid color-mix(in srgb,var(--color-primary) 20%,transparent)",
+                                    }}
+                                    aria-hidden>🎓</div>
+                                <div className="flex items-center justify-center gap-2 mb-2 text-[9px] font-medium tracking-[0.2em] uppercase"
+                                    style={{ color: "var(--color-primary)" }}>
+                                    <span aria-hidden style={{ display:"inline-block", width:16, height:1, background:"var(--color-primary)", flexShrink:0 }} />
+                                    Student Portal
+                                    <span aria-hidden style={{ display:"inline-block", width:16, height:1, background:"var(--color-primary)", flexShrink:0 }} />
+                                </div>
+                                <div className="font-serif text-[1.3rem] font-bold leading-[1.2]"
+                                    style={{ color: "var(--color-text)" }}>
+                                    Sign In
+                                </div>
+                                <div className="text-[0.76rem] font-light mt-1"
+                                    style={{ color: "var(--color-text-muted)" }}>
+                                    Access your learning dashboard
+                                </div>
+                            </div>
+
+                            {/* Body */}
+                            <div className="px-8 py-6">
+                                {error && (
+                                    <div role="alert"
+                                        className="flex items-start gap-2 rounded-[10px] px-3.5 py-2.5 mb-4 text-[0.78rem] font-light leading-[1.6]"
+                                        style={{
+                                            background: "color-mix(in srgb,var(--color-error) 8%,var(--color-bg))",
+                                            border:     "1px solid color-mix(in srgb,var(--color-error) 28%,transparent)",
+                                            color:      "var(--color-error)",
+                                        }}>
+                                        <span aria-hidden className="flex-shrink-0 mt-px">✕</span>
+                                        <span>{error}</span>
+                                    </div>
+                                )}
+
+                                <form onSubmit={handleLogin} className="flex flex-col gap-4">
+
+                                    {/* Identifier */}
+                                    <div className="flex flex-col gap-1.5">
+                                        <label htmlFor="sl-id"
+                                            className="text-[10px] font-semibold tracking-[0.14em] uppercase"
+                                            style={{ color: "var(--color-text-muted)" }}>
+                                            Email or Student ID
+                                        </label>
+                                        <input id="sl-id" type="text" required autoComplete="username"
+                                            placeholder="Email or student ID (e.g. STU-001)"
+                                            value={identifier} onChange={e => setIdentifier(e.target.value)}
+                                            className="sl-input w-full rounded-[11px] px-4 py-[11px] text-[0.84rem] font-light outline-none transition-all duration-200"
+                                            style={{ fontFamily:"'DM Sans',sans-serif", background:"var(--color-bg)", border:"1px solid var(--color-border)", color:"var(--color-text)", boxSizing:"border-box" }}
+                                            onFocus={onFocus} onBlur={onBlur} />
+                                    </div>
+
+                                    {/* Password */}
+                                    <div className="flex flex-col gap-1.5">
+                                        <label htmlFor="sl-password"
+                                            className="text-[10px] font-semibold tracking-[0.14em] uppercase"
+                                            style={{ color: "var(--color-text-muted)" }}>
+                                            Password
+                                        </label>
+                                        <div className="relative">
+                                            <input id="sl-password"
+                                                type={showPassword ? "text" : "password"}
+                                                required autoComplete="current-password"
+                                                placeholder="Enter your password"
+                                                value={password} onChange={e => setPassword(e.target.value)}
+                                                className="sl-input w-full rounded-[11px] px-4 py-[11px] text-[0.84rem] font-light outline-none transition-all duration-200"
+                                                style={{ fontFamily:"'DM Sans',sans-serif", background:"var(--color-bg)", border:"1px solid var(--color-border)", color:"var(--color-text)", boxSizing:"border-box", paddingRight:56 }}
+                                                onFocus={onFocus} onBlur={onBlur} />
+                                            <button type="button"
+                                                onClick={() => setShowPassword(p => !p)}
+                                                aria-label={showPassword ? "Hide password" : "Show password"}
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-semibold tracking-[0.1em] uppercase px-2 py-0.5 rounded-md transition-colors duration-150 cursor-pointer"
+                                                style={{ background:"none", border:"none", color:"var(--color-text-muted)" }}
+                                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--color-primary)"}
+                                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--color-text-muted)"}>
+                                                {showPassword ? "Hide" : "Show"}
+                                            </button>
+                                        </div>
+                                        <div className="flex justify-end">
+                                            <button type="button"
+                                                onClick={() => { setForgotMsg(null); setForgotEmail(""); setShowForgotModal(true); }}
+                                                className="text-[0.73rem] font-normal transition-colors duration-150 cursor-pointer"
+                                                style={{ background:"none", border:"none", color:"var(--color-text-muted)" }}
+                                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--color-primary)"}
+                                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--color-text-muted)"}>
+                                                Forgot password?
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Submit */}
+                                    <button type="submit" disabled={loading}
+                                        className="sl-submit w-full flex items-center justify-center gap-2 rounded-[11px] py-[13px] text-[0.87rem] font-semibold tracking-wide transition-all duration-200 disabled:opacity-55 disabled:cursor-not-allowed hover:-translate-y-px cursor-pointer"
+                                        style={{
+                                            fontFamily:"'DM Sans',sans-serif",
+                                            background:"var(--color-primary)", color:"#fff", border:"none",
+                                            boxShadow:"0 4px 18px color-mix(in srgb,var(--color-primary) 32%,transparent)",
+                                        }}>
+                                        {loading
+                                            ? <><span className="inline-block w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />Signing in…</>
+                                            : <>Sign In <span aria-hidden>→</span></>}
+                                    </button>
+                                </form>
+
+                                {/* Info note */}
+                                <div className="flex items-start gap-2.5 rounded-[11px] px-3.5 py-3 mt-5 text-[0.74rem] font-light leading-[1.65]"
+                                    style={{ background:"var(--color-bg)", border:"1px solid var(--color-border)", color:"var(--color-text-muted)" }}>
+                                    <span aria-hidden className="flex-shrink-0 mt-px">🎓</span>
+                                    <span>Use the credentials provided by the academy at the time of <strong style={{ color:"var(--color-text)", fontWeight:500 }}>enrollment</strong>.</span>
+                                </div>
+
+                                <p className="mt-3 text-center text-[0.69rem] font-light"
+                                    style={{ color: "color-mix(in srgb,var(--color-text-muted) 55%,transparent)" }}>
+                                    By signing in you agree to our Terms &amp; Privacy Policy.
+                                </p>
+                            </div>
                         </div>
 
-                        <div className="sl-card-body">
-                            {error && (
-                                <div className="sl-error" role="alert">
-                                    <span aria-hidden="true">✕</span>
-                                    <span>{error}</span>
-                                </div>
-                            )}
-
-                            <form onSubmit={handleLogin}>
-                                <div className="sl-field">
-                                    <label className="sl-label" htmlFor="sl-identifier">
-                                        Email or Student ID
-                                    </label>
-                                    <input
-                                        id="sl-identifier"
-                                        type="text"
-                                        required
-                                        autoComplete="username"
-                                        placeholder="Email or student ID"
-                                        value={identifier}
-                                        onChange={(e) => setIdentifier(e.target.value)}
-                                        className="sl-input"
-                                    />
-                                </div>
-
-                                <div className="sl-field">
-                                    <label className="sl-label" htmlFor="sl-password">Password</label>
-                                    <div className="sl-pw-wrap">
-                                        <input
-                                            id="sl-password"
-                                            type={showPassword ? "text" : "password"}
-                                            required
-                                            autoComplete="current-password"
-                                            placeholder="Enter your password"
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                            className="sl-input"
-                                            style={{ paddingRight: "54px" }}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowPassword(!showPassword)}
-                                            className="sl-pw-toggle"
-                                            aria-label={showPassword ? "Hide password" : "Show password"}
-                                        >
-                                            {showPassword ? "Hide" : "Show"}
-                                        </button>
-                                    </div>
-                                    <div className="sl-forgot">
-                                        <button
-                                            type="button"
-                                            onClick={() => { setForgotMsg(null); setForgotEmail(""); setShowForgotModal(true); }}
-                                            className="sl-forgot-btn"
-                                        >
-                                            Forgot password?
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <button type="submit" disabled={loading} className="sl-submit">
-                                    {loading ? "Signing in..." : <>Sign In <span aria-hidden="true">→</span></>}
-                                </button>
-                            </form>
-
-                            <div className="sl-info-note">
-                                <span aria-hidden="true">🎓</span>
-                                <span>Use the credentials provided by the academy at the time of enrollment.</span>
-                            </div>
-
-                            <div className="sl-footer-note">
-                                By signing in, you agree to our Terms &amp; Privacy Policy.
-                            </div>
+                        <div className="mt-5 text-center">
+                            <Link href="/"
+                                className="inline-flex items-center gap-1.5 text-[0.76rem] font-light no-underline transition-colors duration-150"
+                                style={{ color:"var(--color-text-muted)" }}
+                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--color-primary)"}
+                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--color-text-muted)"}>
+                                <span aria-hidden>←</span> Back to Home
+                            </Link>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Forgot password modal */}
+            {/* ═══════════ FORGOT PASSWORD MODAL ═══════════ */}
             {showForgotModal && (
-                <div
-                    className="sl-modal-backdrop"
-                    onClick={(e) => { if (e.target === e.currentTarget) setShowForgotModal(false); }}
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label="Reset password"
-                >
-                    <div className="sl-modal">
-                        <div className="sl-modal-header">
-                            <div className="sl-modal-header-label">Account Recovery</div>
-                            <div className="sl-modal-title">Reset Student Password</div>
-                            <div className="sl-modal-sub">
-                                Enter your registered email. A temporary password will be sent to you.
+                <div className="sl-modal-bd fixed inset-0 z-[9999] flex items-center justify-center px-6"
+                    style={{ background: "color-mix(in srgb,var(--color-bg-sidebar) 72%,transparent)", backdropFilter: "blur(5px)" }}
+                    onClick={e => { if (e.target === e.currentTarget) setShowForgotModal(false); }}
+                    role="dialog" aria-modal aria-label="Reset password">
+
+                    <div className="sl-modal w-full max-w-[390px] rounded-[20px] overflow-hidden"
+                        style={{ background:"var(--color-bg-card)", border:"1px solid var(--color-border)", boxShadow:"0 24px 64px rgba(0,0,0,.18)" }}>
+
+                        {/* Modal header */}
+                        <div className="relative overflow-hidden px-7 pt-6 pb-5"
+                            style={{ background:"var(--color-bg-sidebar)", borderBottom:"1px solid color-mix(in srgb,var(--color-warning) 10%,transparent)" }}>
+                            <div aria-hidden className="absolute -bottom-3 -right-3 w-24 h-24 pointer-events-none"
+                                style={{
+                                    backgroundImage: "radial-gradient(circle,color-mix(in srgb,var(--color-warning) 14%,transparent) 1.5px,transparent 1.5px)",
+                                    backgroundSize:  "10px 10px",
+                                }} />
+                            <div aria-hidden className="absolute top-0 left-0 right-0 h-0.5"
+                                style={{ background: "linear-gradient(90deg,transparent,var(--color-warning),transparent)" }} />
+                            <div className="flex items-center gap-1.5 mb-2 text-[9px] font-medium tracking-[0.18em] uppercase"
+                                style={{ color:"var(--color-warning)" }}>
+                                <span aria-hidden style={{ display:"inline-block", width:12, height:1.5, background:"var(--color-warning)", flexShrink:0 }} />
+                                Account Recovery
+                            </div>
+                            <div className="font-serif text-[1.05rem] font-bold relative z-10"
+                                style={{ color:"var(--color-text-inverse)" }}>
+                                Reset Your Password
+                            </div>
+                            <div className="text-[0.74rem] font-light mt-1 leading-[1.65] relative z-10"
+                                style={{ color:"color-mix(in srgb,var(--color-text-inverse) 38%,transparent)" }}>
+                                Enter your registered email. We'll send a temporary password.
                             </div>
                         </div>
 
-                        <div className="sl-modal-body">
+                        {/* Modal body */}
+                        <div className="px-7 py-6">
                             {forgotMsg && (
-                                <div className={`sl-modal-alert ${forgotMsg.type === "success" ? "sl-modal-alert-success" : "sl-modal-alert-error"}`} role="alert">
-                                    <span aria-hidden="true">{forgotMsg.type === "success" ? "✓" : "✕"}</span>
+                                <div role="alert"
+                                    className="flex items-start gap-2 rounded-[10px] px-3.5 py-2.5 mb-4 text-[0.78rem] font-light leading-[1.6]"
+                                    style={{
+                                        background: forgotMsg.type === "success"
+                                            ? "color-mix(in srgb,var(--color-success) 8%,var(--color-bg))"
+                                            : "color-mix(in srgb,var(--color-error) 8%,var(--color-bg))",
+                                        border: forgotMsg.type === "success"
+                                            ? "1px solid color-mix(in srgb,var(--color-success) 28%,transparent)"
+                                            : "1px solid color-mix(in srgb,var(--color-error) 28%,transparent)",
+                                        color: forgotMsg.type === "success" ? "var(--color-success)" : "var(--color-error)",
+                                    }}>
+                                    <span aria-hidden className="flex-shrink-0 mt-px">{forgotMsg.type === "success" ? "✓" : "✕"}</span>
                                     <span>{forgotMsg.text}</span>
                                 </div>
                             )}
 
-                            <div className="sl-field">
-                                <label className="sl-label" htmlFor="sl-forgot-email">Registered Email</label>
-                                <input
-                                    id="sl-forgot-email"
-                                    type="email"
+                            <div className="flex flex-col gap-1.5 mb-5">
+                                <label htmlFor="sl-forgot-email"
+                                    className="text-[10px] font-semibold tracking-[0.14em] uppercase"
+                                    style={{ color:"var(--color-text-muted)" }}>
+                                    Registered Email
+                                </label>
+                                <input id="sl-forgot-email" type="email"
                                     value={forgotEmail}
-                                    onChange={(e) => setForgotEmail(e.target.value)}
+                                    onChange={e => setForgotEmail(e.target.value)}
                                     placeholder="your@email.com"
-                                    className="sl-input"
-                                    onKeyDown={(e) => e.key === "Enter" && handleForgotSubmit()}
-                                />
+                                    className="sl-input w-full rounded-[11px] px-4 py-[11px] text-[0.84rem] font-light outline-none transition-all duration-200"
+                                    style={{ fontFamily:"'DM Sans',sans-serif", background:"var(--color-bg)", border:"1px solid var(--color-border)", color:"var(--color-text)", boxSizing:"border-box" }}
+                                    onFocus={onFocus} onBlur={onBlur}
+                                    onKeyDown={e => e.key === "Enter" && handleForgotSubmit()} />
                             </div>
 
-                            <div className="sl-modal-actions">
-                                <button
-                                    type="button"
+                            <div className="flex gap-2">
+                                <button type="button"
                                     onClick={() => setShowForgotModal(false)}
-                                    className="sl-modal-cancel"
-                                >
+                                    className="flex-1 rounded-[10px] py-[11px] text-[0.84rem] font-normal transition-colors duration-150 cursor-pointer"
+                                    style={{ fontFamily:"'DM Sans',sans-serif", background:"var(--color-bg)", border:"1px solid var(--color-border)", color:"var(--color-text-muted)" }}
+                                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "color-mix(in srgb,var(--color-border) 60%,var(--color-bg))"}
+                                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "var(--color-bg)"}>
                                     Cancel
                                 </button>
-                                <button
-                                    type="button"
-                                    disabled={forgotLoading}
+                                <button type="button" disabled={forgotLoading}
                                     onClick={handleForgotSubmit}
-                                    className="sl-modal-send"
-                                >
-                                    {forgotLoading ? "Sending..." : <>Send Reset Link <span aria-hidden="true">→</span></>}
+                                    className="flex-[2] flex items-center justify-center gap-1.5 rounded-[10px] py-[11px] text-[0.84rem] font-semibold transition-all duration-150 disabled:opacity-55 disabled:cursor-not-allowed cursor-pointer"
+                                    style={{ fontFamily:"'DM Sans',sans-serif", background:"var(--color-primary)", color:"#fff", border:"none" }}>
+                                    {forgotLoading
+                                        ? <><span className="inline-block w-3 h-3 rounded-full border-2 border-white/30 border-t-white animate-spin" />Sending…</>
+                                        : <>Send Reset Link <span aria-hidden>→</span></>}
                                 </button>
                             </div>
                         </div>
