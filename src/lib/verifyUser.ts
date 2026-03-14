@@ -1,5 +1,5 @@
-import { cookies } from "next/headers";
-import { jwtVerify } from "jose"; // ✅ jose का इस्तेमाल करें, यह Middleware के साथ परफेक्ट काम करता है
+import { cookies, headers } from "next/headers";
+import { jwtVerify } from "jose";
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
 
@@ -8,51 +8,47 @@ const accessSecret = new TextEncoder().encode(process.env.JWT_SECRET!);
 export async function verifyUser() {
     try {
         const cookieStore = await cookies();
-        
-        // 1. Check if accessToken exists
-        const token = cookieStore.get("accessToken")?.value;
+        const headerList = await headers();
 
+        // 1. टोकन प्राप्त करने के दो तरीके:
+        // पहला: सामान्य कुकी से
+        // दूसरा: x-access-token हेडर से (जो हमने middleware में रिन्यूअल के समय सेट किया था)
+        let token = cookieStore.get("accessToken")?.value || headerList.get("x-access-token");
+
+        // ✅ बिल्ड टाइम या बिना टोकन वाले रिक्वेस्ट के लिए Error थ्रो करने के बजाय null भेजें
+        // इससे Prerender Error (AUTH_FAILED) नहीं आएगा।
         if (!token) {
-            // अगर यहाँ NO_TOKEN आ रहा है, तो इसका मतलब Middleware ने रिन्यूअल के बाद 
-            // टोकन को Headers में इंजेक्ट नहीं किया है।
-            console.error("Auth Error: No access token found in cookies");
-            throw new Error("NO_TOKEN");
+            return null;
         }
 
-        // 2. Verify using jose (same as middleware)
+        // 2. JWT Verify करें
         let payload;
         try {
             const verified = await jwtVerify(token, accessSecret);
             payload = verified.payload;
         } catch (jwtError) {
             console.error("JWT Verification failed:", jwtError);
-            throw new Error("TOKEN_INVALID");
+            return null; // टोकन गलत या एक्सपायर होने पर null
         }
 
         // 3. Database connection
         await connectDB();
 
-        // 4. Fetch User
-        // Note: jose में 'id' सीधा payload में होता है (जैसा आपने SignJWT में सेट किया था)
+        // 4. User Fetch करें
         const user = await User.findById(payload.id)
             .select("_id role email isFirstLogin")
             .lean();
 
         if (!user) {
-            throw new Error("USER_NOT_FOUND");
+            return null;
         }
 
-        // Return standard user object
+        // 5. Plain Object में कन्वर्ट करें (Next.js Client Components में भेजने के लिए ज़रूरी)
         return JSON.parse(JSON.stringify(user));
 
-    } catch (error: any) {
-        // Error logging for debugging in Vercel
-        console.error("VerifyUser Catch Block:", error.message);
-        
-        // Rethrow original error or a generic one
-        if (error.message === "NO_TOKEN" || error.message === "USER_NOT_FOUND") {
-            throw error;
-        }
-        throw new Error("AUTH_FAILED");
+    } catch (error) {
+        // किसी भी गंभीर एरर की स्थिति में null रिटर्न करें ताकि बिल्ड न रुके
+        console.error("VerifyUser Internal Error:", error);
+        return null;
     }
 }
