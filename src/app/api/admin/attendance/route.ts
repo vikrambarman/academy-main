@@ -5,6 +5,7 @@ import { connectDB } from "@/lib/db";
 import { verifyUser } from "@/lib/verifyUser";
 import Attendance from "@/models/Attendance";
 import Enrollment from "@/models/Enrollment";
+import "@/models/Course";
 import "@/models/Student";
 
 /**
