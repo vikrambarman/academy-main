@@ -1,39 +1,43 @@
-import { cookies } from "next/headers";
+// lib/verifyUser.ts
+import { cookies, headers } from "next/headers";
+import { jwtVerify } from "jose";
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
-import { verifyAccessToken } from "@/lib/auth";
+
+const accessSecret = new TextEncoder().encode(process.env.JWT_SECRET!);
 
 export async function verifyUser() {
-
     const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+    const headerStore = await headers();
+
+    // Middleware silently renews the token and passes it via this header.
+    // On the first request after expiry the cookie hasn't updated yet, so
+    // we prefer the header value when it exists.
+    const token =
+        headerStore.get("x-access-token") ??
+        cookieStore.get("accessToken")?.value;
 
     if (!token) {
-        return null;
+        throw new Error("NO_TOKEN");
     }
 
-    const decoded = await verifyAccessToken(token);
-
-    if (!decoded) {
-        return null;
-    }
-
+    let payload;
     try {
-
-        await connectDB();
-
-        const user = await User.findById(decoded.id)
-            .select("_id role email isFirstLogin")
-            .lean();
-
-        if (!user) return null;
-
-        return JSON.parse(JSON.stringify(user));
-
-    } catch (err) {
-
-        console.error("verifyUser DB error:", err);
-        return null;
-
+        const verified = await jwtVerify(token, accessSecret);
+        payload = verified.payload;
+    } catch {
+        throw new Error("TOKEN_INVALID");
     }
+
+    await connectDB();
+
+    const user = await User.findById(payload.id)
+        .select("_id role email isFirstLogin")
+        .lean();
+
+    if (!user) {
+        throw new Error("USER_NOT_FOUND");
+    }
+
+    return JSON.parse(JSON.stringify(user));
 }
