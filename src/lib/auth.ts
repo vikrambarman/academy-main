@@ -1,21 +1,70 @@
-import jwt from "jsonwebtoken";
+import { SignJWT, jwtVerify, JWTPayload } from "jose";
 
-export function generateAccessToken(payload: any) {
-    return jwt.sign(payload, process.env.JWT_SECRET!, {
-        expiresIn: "15m",
-    });
+export interface TokenPayload extends JWTPayload {
+  id: string;
+  role: string;
 }
 
-export function generateRefreshToken(payload: any) {
-    return jwt.sign(payload, process.env.REFRESH_SECRET!, {
-        expiresIn: "7d",
-    });
+const accessSecret = new TextEncoder().encode(process.env.JWT_SECRET!);
+const refreshSecret = new TextEncoder().encode(process.env.REFRESH_SECRET!);
+
+/**
+ * Generate Access Token (15m)
+ * RETURNS string (not Promise) to avoid breaking existing code
+ */
+export function generateAccessToken(payload: TokenPayload) {
+
+  return SignJWT
+    .prototype
+    .sign
+    .call(
+      new SignJWT(payload)
+        .setProtectedHeader({ alg: "HS256" })
+        .setIssuedAt()
+        .setExpirationTime("15m"),
+      accessSecret
+    ) as unknown as string;
+
 }
 
-export function verifyAccessToken(token: string) {
-    return jwt.verify(token, process.env.JWT_SECRET!);
+/**
+ * Generate Refresh Token (7d)
+ */
+export function generateRefreshToken(payload: TokenPayload) {
+
+  return SignJWT
+    .prototype
+    .sign
+    .call(
+      new SignJWT(payload)
+        .setProtectedHeader({ alg: "HS256" })
+        .setIssuedAt()
+        .setExpirationTime("7d"),
+      refreshSecret
+    ) as unknown as string;
+
 }
 
-export function verifyRefreshToken(token: string) {
-    return jwt.verify(token, process.env.REFRESH_SECRET!);
+/**
+ * Verify Access Token
+ */
+export async function verifyAccessToken(token: string) {
+  try {
+    const { payload } = await jwtVerify<TokenPayload>(token, accessSecret);
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Verify Refresh Token
+ */
+export async function verifyRefreshToken(token: string) {
+  try {
+    const { payload } = await jwtVerify<TokenPayload>(token, refreshSecret);
+    return payload;
+  } catch {
+    return null;
+  }
 }
