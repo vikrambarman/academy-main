@@ -5,13 +5,13 @@ import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, Bell } from "lucide-react";
 
 export default function EditNotice() {
-    const router    = useRouter();
-    const { id }    = useParams() as { id: string };
-    const [form,    setForm]    = useState<any>(null);
+    const router = useRouter();
+    const { id } = useParams() as { id: string };
+    const [form, setForm] = useState<any>(null);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        fetch("/api/admin/notices", { credentials:"include" })
+        fetch("/api/admin/notices", { credentials: "include" })
             .then(r => r.json())
             .then(data => {
                 const notice = data.data?.find((n: any) => n._id === id);
@@ -24,8 +24,8 @@ export default function EditNotice() {
         try {
             setLoading(true);
             await fetch(`/api/admin/notices/${id}`, {
-                method:"PATCH", credentials:"include",
-                headers:{"Content-Type":"application/json"},
+                method: "PATCH", credentials: "include",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(form),
             });
             router.push("/dashboard/admin/notices");
@@ -34,13 +34,14 @@ export default function EditNotice() {
 
     if (!form) return (
         <>
+            // Loading state style
             <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap');
-                .ne-loader { font-family:'Plus Jakarta Sans',sans-serif; display:flex; align-items:center; gap:10px; color:#475569; font-size:13px; padding:40px 0; }
-                .ne-spinner { width:18px; height:18px; border:2px solid #2a2a2a; border-top-color:#f59e0b; border-radius:50%; animation:neSpin .7s linear infinite; }
+                .ne-loader { font-family:'Plus Jakarta Sans',sans-serif; display:flex; align-items:center; gap:10px; color:var(--cp-muted); font-size:13px; padding:40px 0; }
+                .ne-spinner { width:18px; height:18px; border:2px solid var(--cp-border); border-top-color:var(--cp-accent); border-radius:50%; animation:neSpin .7s linear infinite; }
                 @keyframes neSpin { to { transform:rotate(360deg); } }
             `}</style>
-            <div className="ne-loader"><div className="ne-spinner"/> Loading notice…</div>
+            <div className="ne-loader"><div className="ne-spinner" /> Loading notice…</div>
         </>
     );
 
@@ -50,7 +51,7 @@ export default function EditNotice() {
             <div className="ne-root">
                 <div className="ne-header">
                     <button className="ne-back-btn" onClick={() => router.back()}>
-                        <ArrowLeft size={13}/> Back
+                        <ArrowLeft size={13} /> Back
                     </button>
                     <div>
                         <h1 className="ne-title">Edit Notice</h1>
@@ -60,7 +61,7 @@ export default function EditNotice() {
 
                 <div className="ne-card">
                     <div className="ne-card-head">
-                        <Bell size={13} style={{ color:"#f59e0b" }}/>
+                        <Bell size={13} style={{ color:"var(--cp-accent)" }}/>
                         <span>Notice Details</span>
                         <span className={`ne-status-badge ${form.isPublished ? "published" : "draft"}`}>
                             {form.isPublished ? "Published" : "Draft"}
@@ -79,8 +80,8 @@ export default function EditNotice() {
 
                         <div className="ne-field">
                             <label className="ne-label">Category</label>
-                            <select className="ne-select" value={form.category||"General"} onChange={e => setForm({ ...form, category: e.target.value })}>
-                                {["General","Academic","Exam","Holiday","Event","Important"].map(c => (
+                            <select className="ne-select" value={form.category || "General"} onChange={e => setForm({ ...form, category: e.target.value })}>
+                                {["General", "Academic", "Exam", "Holiday", "Event", "Important"].map(c => (
                                     <option key={c} value={c}>{c}</option>
                                 ))}
                             </select>
@@ -89,7 +90,7 @@ export default function EditNotice() {
                         <div className="ne-field">
                             <label className="ne-label">Excerpt</label>
                             <textarea
-                                className="ne-textarea" style={{ minHeight:70 }}
+                                className="ne-textarea" style={{ minHeight: 70 }}
                                 value={form.excerpt || ""}
                                 onChange={e => setForm({ ...form, excerpt: e.target.value })}
                             />
@@ -98,7 +99,7 @@ export default function EditNotice() {
                         <div className="ne-field">
                             <label className="ne-label">Content</label>
                             <textarea
-                                className="ne-textarea" style={{ minHeight:200 }}
+                                className="ne-textarea" style={{ minHeight: 200 }}
                                 value={form.content || ""}
                                 onChange={e => setForm({ ...form, content: e.target.value })}
                             />
@@ -106,7 +107,7 @@ export default function EditNotice() {
 
                         <label className="ne-checkbox-wrap" onClick={() => setForm({ ...form, isPublished: !form.isPublished })}>
                             <div className={`ne-checkbox ${form.isPublished ? "checked" : ""}`}>
-                                {form.isPublished && <span style={{ fontSize:10, color:"#1a1208", fontWeight:800 }}>✓</span>}
+                                {form.isPublished && <span style={{ fontSize: 10, color: "#1a1208", fontWeight: 800 }}>✓</span>}
                             </div>
                             <span className="ne-checkbox-label">Published</span>
                         </label>

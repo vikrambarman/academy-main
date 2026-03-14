@@ -45,7 +45,7 @@ export default function CreateNotice() {
 
                 <div className="nc-card">
                     <div className="nc-card-head">
-                        <Bell size={13} style={{ color:"#f59e0b" }}/>
+                        <Bell size={13} style={{ color:"var(--cp-accent)" }}/>
                         <span>Notice Details</span>
                     </div>
                     <form className="nc-form" onSubmit={handleSubmit}>
