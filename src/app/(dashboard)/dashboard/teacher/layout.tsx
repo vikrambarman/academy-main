@@ -10,27 +10,27 @@ import {
 import { PortalThemeToggle } from "@/components/ThemeToggle";
 
 const NAV = [
-    { href:"/dashboard/teacher",            label:"Dashboard",  icon:LayoutDashboard },
-    { href:"/dashboard/teacher/attendance", label:"Attendance", icon:CalendarCheck   },
-    { href:"/dashboard/teacher/timetable",  label:"Timetable",  icon:Clock           },
-    { href:"/dashboard/teacher/notes",      label:"Notes",      icon:BookOpen        },
+    { href: "/dashboard/teacher", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/dashboard/teacher/attendance", label: "Attendance", icon: CalendarCheck },
+    { href: "/dashboard/teacher/timetable", label: "Timetable", icon: Clock },
+    { href: "/dashboard/teacher/notes", label: "Notes", icon: BookOpen },
 ];
 
 export default function TeacherLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    const router   = useRouter();
-    const [open,    setOpen]    = useState(false);
+    const router = useRouter();
+    const [open, setOpen] = useState(false);
     const [teacher, setTeacher] = useState<{ name: string; employeeId: string } | null>(null);
 
     useEffect(() => {
         fetchWithAuth("/api/teacher/me")
             .then(r => r.json())
             .then(d => setTeacher(d.teacher))
-            .catch(() => {});
+            .catch(() => { });
     }, []);
 
     const handleLogout = async () => {
-        await fetch("/api/auth/logout", { method:"POST" });
+        await fetch("/api/auth/logout", { method: "POST" });
         router.push("/teacher/login");
     };
 
@@ -45,7 +45,6 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
                 {/* Sidebar */}
                 <aside className={`lay-sidebar ${open ? "open" : ""}`}>
                     <div className="lay-sidebar-inner">
-
                         <div className="lay-brand">
                             <div className="lay-brand-icon"><GraduationCap size={18} /></div>
                             <div>
@@ -87,13 +86,10 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
                 {/* Main */}
                 <div className="lay-main">
                     <header className="lay-topbar">
-                        <button className="lay-menu-btn" onClick={() => setOpen(s => !s)}>
-                            {open ? <X size={17} /> : <Menu size={17} />}
-                        </button>
                         <span className="lay-topbar-title">
                             {NAV.find(n => active(n.href))?.label ?? "Teacher Portal"}
                         </span>
-                        <div style={{ marginLeft:"auto" }}>
+                        <div style={{ marginLeft: "auto" }}>
                             <PortalThemeToggle rootClass="lay-root" storageKey="teacher-portal-theme" />
                         </div>
                     </header>
@@ -253,7 +249,9 @@ const css = `
     display: flex; flex-direction: column; min-height: 100vh;
 }
 .lay-topbar {
-    display: none; align-items: center; gap: 12px;
+    display: flex;
+    align-items: center; 
+    gap: 12px;
     padding: 13px 18px;
     background: var(--tp-surface);
     border-bottom: 1px solid var(--tp-border);
