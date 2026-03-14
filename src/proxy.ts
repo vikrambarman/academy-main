@@ -31,6 +31,7 @@ export async function proxy(request: NextRequest) {
                 return NextResponse.redirect(new URL("/change-password?forced=true", request.url));
             }
 
+            // Role checks
             if (pathname.startsWith("/dashboard/admin") && role !== "admin") return redirectToLogin(pathname, request.url);
             if (pathname.startsWith("/dashboard/teacher") && role !== "teacher") return redirectToLogin(pathname, request.url);
             if (pathname.startsWith("/dashboard/student") && role !== "student") return redirectToLogin(pathname, request.url);
@@ -38,11 +39,11 @@ export async function proxy(request: NextRequest) {
             return NextResponse.next();
 
         } catch {
-            // Access token expire/invalid — refresh try karo (neeche)
+            // Token expire ho chuka hai, niche jayenge refresh karne
         }
     }
 
-    // ── 2. Access token nahi/expire — refresh token se silently renew karo ──
+    // ── 2. Access token expire — Silently renew using refresh token ──
     if (refreshToken) {
         try {
             const { payload } = await jwtVerify(refreshToken, refreshSecret);
@@ -50,7 +51,7 @@ export async function proxy(request: NextRequest) {
             const role = payload.role as string;
             const isFirstLogin = (payload.isFirstLogin ?? false) as boolean;
 
-            // Naya access token banao (middleware mein sirf jose use hoti hai, jsonwebtoken nahi)
+            // Naya access token generate karo
             const newAccessToken = await new SignJWT({
                 id: payload.id,
                 role,
@@ -60,37 +61,42 @@ export async function proxy(request: NextRequest) {
                 .setExpirationTime("15m")
                 .sign(accessSecret);
 
-            // Force password change check
+            // Response set karo
+            let response: NextResponse;
+
             if (isFirstLogin && !pathname.startsWith("/change-password")) {
-                const res = NextResponse.redirect(new URL("/change-password?forced=true", request.url));
-                res.cookies.set("accessToken", newAccessToken, {
-                    httpOnly: true, secure: false, sameSite: "lax", path: "/", maxAge: 60 * 15,
-                });
-                return res;
+                response = NextResponse.redirect(new URL("/change-password?forced=true", request.url));
+            } else {
+                // Role mismatch check before proceeding
+                if (pathname.startsWith("/dashboard/admin") && role !== "admin") return redirectToLogin(pathname, request.url);
+                if (pathname.startsWith("/dashboard/teacher") && role !== "teacher") return redirectToLogin(pathname, request.url);
+                if (pathname.startsWith("/dashboard/student") && role !== "student") return redirectToLogin(pathname, request.url);
+                
+                response = NextResponse.next();
             }
 
-            // Role mismatch check
-            if (pathname.startsWith("/dashboard/admin") && role !== "admin") return redirectToLogin(pathname, request.url);
-            if (pathname.startsWith("/dashboard/teacher") && role !== "teacher") return redirectToLogin(pathname, request.url);
-            if (pathname.startsWith("/dashboard/student") && role !== "student") return redirectToLogin(pathname, request.url);
-
-            // ✅ Silently naya access token cookie mein set karo — user ko pata nahi chalega
-            const res = NextResponse.next();
-            res.cookies.set("accessToken", newAccessToken, {
-                httpOnly: true, secure: false, sameSite: "lax", path: "/", maxAge: 60 * 15,
+            // ✅ CRITICAL FIX 1: Browser ki cookie update karo (for next request)
+            response.cookies.set("accessToken", newAccessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "lax",
+                path: "/",
+                maxAge: 60 * 15,
             });
-            return res;
+
+            // ✅ CRITICAL FIX 2: Request header update karo (for current request/verifyUser)
+            // Isse current server session ko naya token mil jayega
+            response.headers.set("x-access-token", newAccessToken); 
+            request.cookies.set("accessToken", newAccessToken); // Internal request object update
+
+            return response;
 
         } catch {
-            // Refresh token bhi expire — ab login pe bhejo
+            // Refresh token invalid/expire
             return redirectToLogin(pathname, request.url);
         }
     }
 
-    // ── 3. Dono token nahi ──
+    // ── 3. No tokens at all ──
     return redirectToLogin(pathname, request.url);
 }
-
-export const config = {
-    matcher: ["/dashboard/:path*"],
-};
