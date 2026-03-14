@@ -9,6 +9,7 @@ import Note from "@/models/Note";
 import Student from "@/models/Student";
 import Enrollment from "@/models/Enrollment";
 import { Types } from "mongoose";
+import "@/models/Course";
 
 interface PopulatedCourse {
     _id: Types.ObjectId;

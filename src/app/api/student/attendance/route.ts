@@ -6,6 +6,7 @@ import { verifyUser } from "@/lib/verifyUser";
 import Attendance from "@/models/Attendance";
 import Student from "@/models/Student";
 import Enrollment from "@/models/Enrollment";
+import "@/models/Course";
 
 export async function GET(request: NextRequest) {
     try {
