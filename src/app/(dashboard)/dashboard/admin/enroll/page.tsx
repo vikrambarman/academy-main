@@ -114,45 +114,45 @@ export default function EnrollStudentPage() {
     );
 }
 
+// enStyles replace karo:
 const enStyles = `
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap');
-    .en-root   { font-family:'Plus Jakarta Sans',sans-serif; color:#f1f5f9; display:flex; flex-direction:column; gap:20px; max-width:540px; }
-    .en-header { display:flex; flex-direction:column; gap:3px; }
-    .en-title  { font-family:'DM Serif Display',serif; font-size:1.6rem; color:#f1f5f9; font-weight:400; }
-    .en-sub    { font-size:12px; color:#475569; }
+    .en-root   { font-family:'Plus Jakarta Sans',sans-serif; color:var(--cp-text); display:flex; flex-direction:column; gap:20px; max-width:540px; }
+    .en-title  { font-family:'DM Serif Display',serif; font-size:1.6rem; color:var(--cp-text); font-weight:400; }
+    .en-sub    { font-size:12px; color:var(--cp-muted); }
 
-    .en-card      { background:#1a1a1a; border:1px solid #2a2a2a; border-radius:12px; overflow:hidden; }
-    .en-card-head { display:flex; align-items:center; gap:7px; padding:13px 18px; border-bottom:1px solid #222; background:#1f1f1f; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#94a3b8; }
+    .en-card      { background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:12px; overflow:hidden; }
+    .en-card-head { display:flex; align-items:center; gap:7px; padding:13px 18px; border-bottom:1px solid var(--cp-border); background:var(--cp-surface2); font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--cp-subtext); }
     .en-body      { padding:20px; display:flex; flex-direction:column; gap:14px; }
 
     .en-field { display:flex; flex-direction:column; gap:5px; }
-    .en-label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#475569; }
+    .en-label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--cp-muted); }
 
     .en-input, .en-select {
         font-family:'Plus Jakarta Sans',sans-serif; padding:10px 12px; font-size:13px;
-        background:#111; border:1px solid #2a2a2a; border-radius:8px;
-        color:#f1f5f9; outline:none; transition:border-color .15s; width:100%;
+        background:var(--cp-bg); border:1px solid var(--cp-border); border-radius:8px;
+        color:var(--cp-text); outline:none; transition:border-color .15s; width:100%;
     }
-    .en-input:focus,.en-select:focus { border-color:#f59e0b; box-shadow:0 0 0 3px rgba(245,158,11,.07); }
-    .en-input::placeholder { color:#334155; }
-    .en-select option { background:#1a1a1a; }
+    .en-input:focus,.en-select:focus { border-color:var(--cp-accent); box-shadow:0 0 0 3px var(--cp-accent-glow); }
+    .en-input::placeholder { color:var(--cp-border2); }
+    .en-select option { background:var(--cp-surface); }
 
     .en-student-preview {
         display:flex; align-items:center; gap:12px;
-        padding:12px 14px; background:#111; border:1px solid #2a2a2a; border-radius:9px;
+        padding:12px 14px; background:var(--cp-bg); border:1px solid var(--cp-border); border-radius:9px;
         animation:enFade .2s ease;
     }
     @keyframes enFade { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
-    .en-preview-avatar { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#f59e0b,#fbbf24); color:#1a1208; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; flex-shrink:0; }
-    .en-preview-name   { font-size:13px; font-weight:700; color:#f1f5f9; }
-    .en-preview-meta   { font-size:11px; color:#64748b; margin-top:1px; }
-    .en-preview-courses{ font-size:10px; color:#475569; margin-top:3px; }
+    .en-preview-avatar { width:36px; height:36px; border-radius:50%; background:var(--cp-accent); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; flex-shrink:0; }
+    .en-preview-name   { font-size:13px; font-weight:700; color:var(--cp-text); }
+    .en-preview-meta   { font-size:11px; color:var(--cp-muted); margin-top:1px; }
+    .en-preview-courses{ font-size:10px; color:var(--cp-muted); margin-top:3px; }
 
     .en-msg { display:flex; align-items:center; gap:8px; padding:10px 14px; border-radius:9px; font-size:12px; font-weight:600; }
-    .en-msg.success { background:rgba(34,197,94,.08); color:#22c55e; border:1px solid rgba(34,197,94,.2); }
-    .en-msg.error   { background:rgba(239,68,68,.08); color:#ef4444; border:1px solid rgba(239,68,68,.2); }
+    .en-msg.success { background:rgba(34,197,94,0.08); color:var(--cp-success); border:1px solid rgba(34,197,94,0.2); }
+    .en-msg.error   { background:rgba(239,68,68,0.08); color:var(--cp-danger);  border:1px solid rgba(239,68,68,0.2); }
 
-    .en-submit-btn { padding:11px; border-radius:9px; border:none; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:700; background:linear-gradient(135deg,#f59e0b,#fbbf24); color:#1a1208; transition:opacity .15s; }
+    .en-submit-btn { padding:11px; border-radius:9px; border:none; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:700; background:var(--cp-accent); color:#fff; transition:opacity .15s; }
     .en-submit-btn:hover { opacity:.9; }
     .en-submit-btn:disabled { opacity:.5; cursor:not-allowed; }
 `;

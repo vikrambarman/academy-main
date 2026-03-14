@@ -121,45 +121,46 @@ export default function CreateNotice() {
     );
 }
 
+
 const ncStyles = `
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Serif+Display@display=swap');
-    .nc-root { font-family:'Plus Jakarta Sans',sans-serif; color:#f1f5f9; display:flex; flex-direction:column; gap:20px; max-width:720px; }
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap');
+    .nc-root { font-family:'Plus Jakarta Sans',sans-serif; color:var(--cp-text); display:flex; flex-direction:column; gap:20px; max-width:720px; }
 
     .nc-header { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
-    .nc-back-btn { display:inline-flex; align-items:center; gap:5px; padding:7px 13px; border-radius:8px; border:1px solid #2a2a2a; background:#1a1a1a; color:#94a3b8; font-size:12px; font-weight:500; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all .14s; }
-    .nc-back-btn:hover { border-color:#f59e0b; color:#f59e0b; }
-    .nc-title { font-family:'DM Serif Display',serif; font-size:1.5rem; color:#f1f5f9; font-weight:400; }
-    .nc-sub   { font-size:12px; color:#475569; margin-top:3px; }
+    .nc-back-btn { display:inline-flex; align-items:center; gap:5px; padding:7px 13px; border-radius:8px; border:1px solid var(--cp-border); background:var(--cp-surface); color:var(--cp-subtext); font-size:12px; font-weight:500; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all .14s; }
+    .nc-back-btn:hover { border-color:var(--cp-accent); color:var(--cp-accent); }
+    .nc-title { font-family:'DM Serif Display',serif; font-size:1.5rem; color:var(--cp-text); font-weight:400; }
+    .nc-sub   { font-size:12px; color:var(--cp-muted); margin-top:3px; }
 
-    .nc-card { background:#1a1a1a; border:1px solid #2a2a2a; border-radius:12px; overflow:hidden; }
-    .nc-card-head { display:flex; align-items:center; gap:7px; padding:13px 18px; border-bottom:1px solid #222; background:#1f1f1f; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#94a3b8; }
+    .nc-card { background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:12px; overflow:hidden; }
+    .nc-card-head { display:flex; align-items:center; gap:7px; padding:13px 18px; border-bottom:1px solid var(--cp-border); background:var(--cp-surface2); font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--cp-subtext); }
     .nc-form { padding:20px; display:flex; flex-direction:column; gap:14px; }
 
     .nc-field { display:flex; flex-direction:column; gap:5px; }
-    .nc-label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#475569; }
-    .nc-req   { color:#ef4444; }
-    .nc-hint  { font-size:10px; color:#334155; margin-top:2px; }
+    .nc-label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--cp-muted); }
+    .nc-req   { color:var(--cp-danger); }
+    .nc-hint  { font-size:10px; color:var(--cp-border2); margin-top:2px; }
 
     .nc-input, .nc-select, .nc-textarea {
         font-family:'Plus Jakarta Sans',sans-serif; width:100%;
         padding:10px 12px; font-size:13px;
-        background:#111; border:1px solid #2a2a2a; border-radius:8px;
-        color:#f1f5f9; outline:none; transition:border-color .15s;
+        background:var(--cp-bg); border:1px solid var(--cp-border); border-radius:8px;
+        color:var(--cp-text); outline:none; transition:border-color .15s;
     }
-    .nc-input:focus, .nc-select:focus, .nc-textarea:focus { border-color:#f59e0b; box-shadow:0 0 0 3px rgba(245,158,11,.07); }
-    .nc-input::placeholder, .nc-textarea::placeholder { color:#334155; }
+    .nc-input:focus, .nc-select:focus, .nc-textarea:focus { border-color:var(--cp-accent); box-shadow:0 0 0 3px var(--cp-accent-glow); }
+    .nc-input::placeholder, .nc-textarea::placeholder { color:var(--cp-border2); }
     .nc-textarea { resize:vertical; }
-    .nc-select option { background:#1a1a1a; }
+    .nc-select option { background:var(--cp-surface); }
 
     .nc-checkbox-wrap { display:flex; align-items:center; gap:9px; cursor:pointer; }
-    .nc-checkbox { width:18px; height:18px; border-radius:5px; border:1.5px solid #2a2a2a; background:#111; display:flex; align-items:center; justify-content:center; transition:all .14s; flex-shrink:0; }
-    .nc-checkbox.checked { background:#f59e0b; border-color:#f59e0b; }
-    .nc-checkbox-label { font-size:13px; color:#94a3b8; font-weight:500; }
+    .nc-checkbox { width:18px; height:18px; border-radius:5px; border:1.5px solid var(--cp-border); background:var(--cp-bg); display:flex; align-items:center; justify-content:center; transition:all .14s; flex-shrink:0; }
+    .nc-checkbox.checked { background:var(--cp-accent); border-color:var(--cp-accent); }
+    .nc-checkbox-label { font-size:13px; color:var(--cp-subtext); font-weight:500; }
 
     .nc-form-footer { display:flex; justify-content:flex-end; gap:8px; padding-top:4px; }
-    .nc-submit-btn { padding:10px 24px; border-radius:9px; border:none; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:700; background:linear-gradient(135deg,#f59e0b,#fbbf24); color:#1a1208; transition:opacity .15s; }
+    .nc-submit-btn { padding:10px 24px; border-radius:9px; border:none; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:700; background:var(--cp-accent); color:#fff; transition:opacity .15s; }
     .nc-submit-btn:hover { opacity:.88; }
     .nc-submit-btn:disabled { opacity:.5; cursor:not-allowed; }
-    .nc-ghost-btn { padding:10px 18px; border-radius:9px; border:1px solid #2a2a2a; background:transparent; color:#64748b; font-size:12px; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all .14s; }
-    .nc-ghost-btn:hover { border-color:#475569; color:#94a3b8; }
+    .nc-ghost-btn { padding:10px 18px; border-radius:9px; border:1px solid var(--cp-border); background:transparent; color:var(--cp-muted); font-size:12px; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all .14s; }
+    .nc-ghost-btn:hover { border-color:var(--cp-border2); color:var(--cp-subtext); }
 `;

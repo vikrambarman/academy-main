@@ -124,47 +124,49 @@ export default function EditNotice() {
     );
 }
 
+// neStyles
 const neStyles = `
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Serif+Display@display=swap');
-    .ne-root { font-family:'Plus Jakarta Sans',sans-serif; color:#f1f5f9; display:flex; flex-direction:column; gap:20px; max-width:720px; }
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap');
+    .ne-root { font-family:'Plus Jakarta Sans',sans-serif; color:var(--cp-text); display:flex; flex-direction:column; gap:20px; max-width:720px; }
 
     .ne-header { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
-    .ne-back-btn { display:inline-flex; align-items:center; gap:5px; padding:7px 13px; border-radius:8px; border:1px solid #2a2a2a; background:#1a1a1a; color:#94a3b8; font-size:12px; font-weight:500; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all .14s; }
-    .ne-back-btn:hover { border-color:#f59e0b; color:#f59e0b; }
-    .ne-title { font-family:'DM Serif Display',serif; font-size:1.5rem; color:#f1f5f9; font-weight:400; }
-    .ne-sub   { font-size:12px; color:#475569; margin-top:3px; }
+    .ne-back-btn { display:inline-flex; align-items:center; gap:5px; padding:7px 13px; border-radius:8px; border:1px solid var(--cp-border); background:var(--cp-surface); color:var(--cp-subtext); font-size:12px; font-weight:500; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all .14s; }
+    .ne-back-btn:hover { border-color:var(--cp-accent); color:var(--cp-accent); }
+    .ne-title { font-family:'DM Serif Display',serif; font-size:1.5rem; color:var(--cp-text); font-weight:400; }
+    .ne-sub   { font-size:12px; color:var(--cp-muted); margin-top:3px; }
 
-    .ne-card { background:#1a1a1a; border:1px solid #2a2a2a; border-radius:12px; overflow:hidden; }
-    .ne-card-head { display:flex; align-items:center; gap:7px; padding:13px 18px; border-bottom:1px solid #222; background:#1f1f1f; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#94a3b8; }
+    .ne-card { background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:12px; overflow:hidden; }
+    .ne-card-head { display:flex; align-items:center; gap:7px; padding:13px 18px; border-bottom:1px solid var(--cp-border); background:var(--cp-surface2); font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--cp-subtext); }
     .ne-form { padding:20px; display:flex; flex-direction:column; gap:14px; }
 
     .ne-status-badge { margin-left:auto; font-size:10px; font-weight:700; padding:3px 10px; border-radius:100px; }
-    .ne-status-badge.published { background:rgba(34,197,94,.1); color:#22c55e; border:1px solid rgba(34,197,94,.2); }
-    .ne-status-badge.draft     { background:rgba(245,158,11,.1); color:#f59e0b; border:1px solid rgba(245,158,11,.2); }
+    .ne-status-badge.published { background:rgba(34,197,94,0.1); color:var(--cp-success); border:1px solid rgba(34,197,94,0.2); }
+    .ne-status-badge.draft     { background:rgba(245,158,11,0.1); color:var(--cp-warning); border:1px solid rgba(245,158,11,0.2); }
 
     .ne-field { display:flex; flex-direction:column; gap:5px; }
-    .ne-label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#475569; }
+    .ne-label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--cp-muted); }
 
     .ne-input, .ne-select, .ne-textarea {
         font-family:'Plus Jakarta Sans',sans-serif; width:100%;
         padding:10px 12px; font-size:13px;
-        background:#111; border:1px solid #2a2a2a; border-radius:8px;
-        color:#f1f5f9; outline:none; transition:border-color .15s;
+        background:var(--cp-bg); border:1px solid var(--cp-border); border-radius:8px;
+        color:var(--cp-text); outline:none; transition:border-color .15s;
     }
-    .ne-input:focus, .ne-select:focus, .ne-textarea:focus { border-color:#f59e0b; box-shadow:0 0 0 3px rgba(245,158,11,.07); }
-    .ne-input::placeholder, .ne-textarea::placeholder { color:#334155; }
+    .ne-input:focus, .ne-select:focus, .ne-textarea:focus { border-color:var(--cp-accent); box-shadow:0 0 0 3px var(--cp-accent-glow); }
+    .ne-input::placeholder, .ne-textarea::placeholder { color:var(--cp-border2); }
     .ne-textarea { resize:vertical; }
-    .ne-select option { background:#1a1a1a; }
+    .ne-select option { background:var(--cp-surface); }
 
     .ne-checkbox-wrap { display:flex; align-items:center; gap:9px; cursor:pointer; }
-    .ne-checkbox { width:18px; height:18px; border-radius:5px; border:1.5px solid #2a2a2a; background:#111; display:flex; align-items:center; justify-content:center; transition:all .14s; flex-shrink:0; }
-    .ne-checkbox.checked { background:#f59e0b; border-color:#f59e0b; }
-    .ne-checkbox-label { font-size:13px; color:#94a3b8; font-weight:500; }
+    .ne-checkbox { width:18px; height:18px; border-radius:5px; border:1.5px solid var(--cp-border); background:var(--cp-bg); display:flex; align-items:center; justify-content:center; transition:all .14s; flex-shrink:0; }
+    .ne-checkbox.checked { background:var(--cp-accent); border-color:var(--cp-accent); }
+    .ne-checkbox-label { font-size:13px; color:var(--cp-subtext); font-weight:500; }
 
     .ne-form-footer { display:flex; justify-content:flex-end; gap:8px; padding-top:4px; }
-    .ne-submit-btn { padding:10px 24px; border-radius:9px; border:none; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:700; background:linear-gradient(135deg,#f59e0b,#fbbf24); color:#1a1208; transition:opacity .15s; }
+    .ne-submit-btn { padding:10px 24px; border-radius:9px; border:none; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:700; background:var(--cp-accent); color:#fff; transition:opacity .15s; }
     .ne-submit-btn:hover { opacity:.88; }
     .ne-submit-btn:disabled { opacity:.5; cursor:not-allowed; }
-    .ne-ghost-btn { padding:10px 18px; border-radius:9px; border:1px solid #2a2a2a; background:transparent; color:#64748b; font-size:12px; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all .14s; }
-    .ne-ghost-btn:hover { border-color:#475569; color:#94a3b8; }
+    .ne-ghost-btn { padding:10px 18px; border-radius:9px; border:1px solid var(--cp-border); background:transparent; color:var(--cp-muted); font-size:12px; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all .14s; }
+    .ne-ghost-btn:hover { border-color:var(--cp-border2); color:var(--cp-subtext); }
 `;
+
