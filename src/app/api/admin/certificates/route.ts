@@ -9,6 +9,8 @@ import { connectDB } from "@/lib/db";
 import Certificate from "@/models/Certificate";
 import Enrollment from "@/models/Enrollment";
 import { verifyUser } from "@/lib/verifyUser";
+import "@/models/Student";
+import "@/models/Course";
 
 /* -------------------- GET -------------------- */
 export async function GET() {

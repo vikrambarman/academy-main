@@ -4,7 +4,8 @@ import { connectDB } from "@/lib/db";
 import { verifyUser } from "@/lib/verifyUser";
 import Timetable from "@/models/Timetable";
 import Student from "@/models/Student";
-import User from "@/models/User";
+import "@/models/User";
+import "@/models/Course";
 import { sendTimetableEmail } from "@/lib/mail";
 
 // GET /api/admin/timetable?enrollmentId=xxx  OR  ?courseId=xxx

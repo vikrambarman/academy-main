@@ -5,6 +5,7 @@ import { connectDB } from "@/lib/db";
 import { verifyUser } from "@/lib/verifyUser";
 import Attendance from "@/models/Attendance";
 import Enrollment from "@/models/Enrollment";
+import "@/models/Student";
 
 /**
  * GET /api/admin/attendance?courseId=xxx&date=2026-03-10

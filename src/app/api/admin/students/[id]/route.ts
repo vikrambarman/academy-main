@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Student from "@/models/Student";
 import Enrollment from "@/models/Enrollment";
+import "@/models/User";
+import "@/models/Course";
 
 export async function GET(
     req: NextRequest,
