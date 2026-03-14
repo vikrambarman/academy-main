@@ -16,25 +16,34 @@ export default function Navbar() {
     const [scrolled, setScrolled]               = useState(false);
     const [noticeCount, setNoticeCount]         = useState(0);
     const [mounted, setMounted]                 = useState(false);
+    
     const megaRef = useRef<HTMLDivElement>(null);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => setMounted(true), []);
+
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 20);
         window.addEventListener("scroll", onScroll);
         return () => window.removeEventListener("scroll", onScroll);
     }, []);
-    useEffect(() => {
-        const onClickOutside = (e: MouseEvent) => {
-            if (megaRef.current && !megaRef.current.contains(e.target as Node))
-                setActiveDesktop(null);
-        };
-        document.addEventListener("mousedown", onClickOutside);
-        return () => document.removeEventListener("mousedown", onClickOutside);
-    }, []);
+
+    // Desktop Menu Mouse Handlers
+    const handleMouseEnter = (key: string) => {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        setActiveDesktop(key);
+    };
+
+    const handleMouseLeave = () => {
+        timeoutRef.current = setTimeout(() => {
+            setActiveDesktop(null);
+        }, 150);
+    };
+
     useEffect(() => {
         document.body.style.overflow = mobileOpen ? "hidden" : "auto";
     }, [mobileOpen]);
+
     useEffect(() => {
         fetch("/api/public")
             .then(r => r.json())
@@ -58,9 +67,6 @@ export default function Navbar() {
         { href:"/student/login",      label:"Student Login"      },
         { href:"/admin/login",        label:"Admin Login"        },
     ];
-
-    // Shared nav link style helper
-    const navLinkBase: React.CSSProperties = { color:"var(--color-text-muted)" };
 
     return (
         <>
@@ -111,10 +117,10 @@ export default function Navbar() {
                         : "color-mix(in srgb, var(--color-bg) 92%, transparent)",
                     backdropFilter: "blur(16px)",
                     WebkitBackdropFilter: "blur(16px)",
-                    boxShadow: scrolled
-                        ? "0 1px 0 var(--color-border), 0 4px 24px color-mix(in srgb,var(--color-primary) 8%,transparent)"
-                        : "none",
-                    borderBottom: scrolled ? "none" : "1px solid color-mix(in srgb,var(--color-border) 60%,transparent)",
+                    // boxShadow: scrolled
+                    //     ? "0 1px 0 var(--color-border), 0 4px 24px color-mix(in srgb,var(--color-primary) 8%,transparent)"
+                    //     : "none",
+                    // borderBottom: scrolled ? "none" : "1px solid color-mix(in srgb,var(--color-border) 60%,transparent)",
                 }}
             >
                 <div className="max-w-[1100px] mx-auto px-6 h-16 flex items-center justify-between gap-6">
@@ -145,11 +151,11 @@ export default function Navbar() {
                     </Link>
 
                     {/* Desktop nav */}
-                    <nav aria-label="Main navigation" className="hidden lg:block">
-                        <ul className="flex items-center gap-1 list-none m-0 p-0">
+                    <nav aria-label="Main navigation" className="hidden lg:block h-full">
+                        <ul className="flex items-center gap-1 list-none m-0 p-0 h-full">
 
                             {[{ href:"/", label:"Home" }, { href:"/courses", label:"Courses" }].map(l => (
-                                <li key={l.href}>
+                                <li key={l.href} className="flex items-center h-full">
                                     <Link href={l.href}
                                         className="nb-nav-link flex items-center gap-1 text-[0.85rem] font-normal no-underline px-3 py-1.5 rounded-lg whitespace-nowrap">
                                         {l.label}
@@ -158,9 +164,12 @@ export default function Navbar() {
                             ))}
 
                             {(["academy", "resources"] as const).map(key => (
-                                <li key={key}>
+                                <li key={key} 
+                                    className="relative flex items-center h-full"
+                                    onMouseEnter={() => handleMouseEnter(key)}
+                                    onMouseLeave={handleMouseLeave}
+                                >
                                     <button
-                                        onClick={() => setActiveDesktop(activeDesktop === key ? null : key)}
                                         aria-expanded={activeDesktop === key}
                                         className="nb-nav-btn flex items-center gap-1 text-[0.85rem] font-normal capitalize px-3 py-1.5 rounded-lg border-none bg-transparent cursor-pointer whitespace-nowrap"
                                     >
@@ -179,7 +188,7 @@ export default function Navbar() {
                                 </li>
                             ))}
 
-                            <li>
+                            <li className="flex items-center h-full">
                                 <Link href="/contact"
                                     className="nb-nav-link flex items-center gap-1 text-[0.85rem] font-normal no-underline px-3 py-1.5 rounded-lg">
                                     Contact
@@ -213,8 +222,13 @@ export default function Navbar() {
                     </div>
                 </div>
 
-                {/* MegaMenu */}
-                <div ref={megaRef} className="hidden lg:block relative">
+                {/* MegaMenu Container */}
+                <div 
+                    ref={megaRef} 
+                    className="hidden lg:block relative"
+                    onMouseEnter={() => { if (timeoutRef.current) clearTimeout(timeoutRef.current); }}
+                    onMouseLeave={handleMouseLeave}
+                >
                     <MegaMenu active={activeDesktop} closeMenu={() => setActiveDesktop(null)} />
                 </div>
             </header>
