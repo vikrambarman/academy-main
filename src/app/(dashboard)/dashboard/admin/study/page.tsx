@@ -77,7 +77,7 @@ export default function TeacherNotesPage() {
 
     // Courses load karo
     useEffect(() => {
-        fetch("/api/teacher/notes")
+        fetch("/api/admin/notes/study")
             .then(r => r.json())
             .then(d => setCourses(d.courses || []))
             .catch(console.error)
@@ -91,7 +91,7 @@ export default function TeacherNotesPage() {
         setNoteContent("");
         setModules([]);
         try {
-            const res = await fetch(`/api/teacher/notes?courseSlug=${slug}`);
+            const res = await fetch(`/api/admin/notes/study?courseSlug=${slug}`);
             const d = await res.json();
             if (d.success) {
                 setModules(d.modules || []);
@@ -122,7 +122,7 @@ export default function TeacherNotesPage() {
         setNoteContent(""); setNoteTitle(""); setNoteMeta(null);
         if (window.innerWidth < 769) setSidebarOpen(false);
         try {
-            const res = await fetch(`/api/teacher/notes/${note._id}`);
+            const res = await fetch(`/api/admin/notes/study/${note._id}`);
             const d = await res.json();
             if (res.ok) {
                 setNoteContent(d.content || "");

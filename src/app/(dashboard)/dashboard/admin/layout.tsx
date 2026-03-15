@@ -32,6 +32,7 @@ const menuSections = [
             { name: "Enquiries", href: "/dashboard/admin/enquiries", icon: BarChart3 },
             { name: "Contacts", href: "/dashboard/admin/contacts", icon: Users },
             { name: "Notes", href: "/dashboard/admin/notes", icon: Notebook },
+            { name: "Study Notes", href: "/dashboard/admin/study", icon: BookOpen },
             { name: "Attendance", href: "/dashboard/admin/attendance", icon: CalendarDays },
             { name: "Timetable", href: "/dashboard/admin/timetable", icon: Clock },
         ],

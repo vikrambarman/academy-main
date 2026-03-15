@@ -13,7 +13,7 @@ import Course from "@/models/Course";
 export async function GET(request: NextRequest) {
     try {
         const user = await verifyUser();
-        if (!user || (user as any).role !== "teacher") {
+        if (!user || (user as any).role !== "admin") {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
         });
 
     } catch (error) {
-        console.error("GET /api/teacher/notes error:", error);
+        console.error("GET /api/admin/notes/study error:", error);
         return NextResponse.json({ error: "Server error" }, { status: 500 });
     }
 }

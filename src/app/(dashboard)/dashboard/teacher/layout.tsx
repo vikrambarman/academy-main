@@ -13,7 +13,7 @@ const NAV = [
     { href: "/dashboard/teacher", label: "Dashboard", icon: LayoutDashboard },
     { href: "/dashboard/teacher/attendance", label: "Attendance", icon: CalendarCheck },
     { href: "/dashboard/teacher/timetable", label: "Timetable", icon: Clock },
-    { href: "/dashboard/teacher/notes", label: "Notes", icon: BookOpen },
+    { href: "/dashboard/teacher/notes", label: "Study Notes", icon: BookOpen },
 ];
 
 export default function TeacherLayout({ children }: { children: React.ReactNode }) {
