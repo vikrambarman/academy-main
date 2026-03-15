@@ -81,7 +81,7 @@ export default function StudentNotesPage() {
     const [openModules,    setOpenModules]    = useState<Set<string>>(new Set());
     const [progress,       setProgress]       = useState<ProgressMap>({});
     const [searchQuery,    setSearchQuery]    = useState("");
-    const [sidebarOpen,    setSidebarOpen]    = useState(true);   // mobile sidebar state
+    const [sidebarOpen,    setSidebarOpen]    = useState(false);   // mobile sidebar state
     const articleRef = useRef<HTMLElement>(null);
 
     const totalNotes   = data.reduce((s, c) => s + c.modules.reduce((ms, m) => ms + m.notes.length, 0), 0);
@@ -98,6 +98,7 @@ export default function StudentNotesPage() {
                 if (d.data?.length) {
                     const firstKey = `${d.data[0].courseSlug}-${d.data[0].modules[0]?.moduleSlug}`;
                     setOpenModules(new Set([firstKey]));
+                    setSidebarOpen(true); // ← data aane ke baad sidebar open karo
                 }
             })
             .catch(console.error)
@@ -119,7 +120,7 @@ export default function StudentNotesPage() {
         }
         setSelectedNote(note); setContentLoading(true);
         setNoteContent(""); setNoteTitle(""); setNoteMeta(null);
-        setSidebarOpen(false); // close sidebar on mobile after selection
+        if (window.innerWidth < 769) setSidebarOpen(false);
         try {
             const res = await fetchWithAuth(`/api/student/notes/${note._id}`);
             const d   = await res.json();
@@ -248,7 +249,11 @@ export default function StudentNotesPage() {
                 }
 
                 /* Desktop collapse */
-                .snp-sidebar.collapsed { width: 0; border-right: none; }
+                .snp-sidebar.collapsed {
+                    width: 0 !important;
+                    border-right: none;
+                    overflow: hidden;
+                }
 
                 /* Mobile: slide-in drawer */
                 @media (max-width: 768px) {
@@ -420,7 +425,7 @@ export default function StudentNotesPage() {
                 )}
 
                 {/* ══ SIDEBAR ══ */}
-                <aside className={`snp-sidebar snp-no-print ${sidebarOpen ? "mobile-open" : ""}`}>
+                <aside className={`snp-sidebar snp-no-print ${sidebarOpen ? "mobile-open" : "collapsed"}`}>
 
                     <div className="snp-sb-head">
                         <div className="snp-sb-top">
