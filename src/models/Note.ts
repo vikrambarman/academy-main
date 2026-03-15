@@ -8,32 +8,52 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface INote extends Document {
-    title:       string;
-    courseSlug:  string;
-    moduleSlug:  string;
-    moduleName:  string;
-    topicSlug:   string;
-    topicName:   string;
-    content:     string;    // ← NEW: markdown content MongoDB mein
-    filePath?:   string;    // ← CHANGED: optional (purane records ke liye)
-    order:       number;
+    title: string;
+    courseSlug: string;
+    moduleSlug: string;
+    moduleName: string;
+    topicSlug: string;
+    topicName: string;
+    content: string;    // ← NEW: markdown content MongoDB mein
+    filePath?: string;    // ← CHANGED: optional (purane records ke liye)
+    order: number;
     isPublished: boolean;
-    createdBy:   mongoose.Types.ObjectId;
+    createdBy: mongoose.Types.ObjectId;
+    sharedWithCourses: string[];
+    sharedWithStudents: mongoose.Types.ObjectId[];
+    sharedModuleNames: Map<string, string>;
 }
 
 const noteSchema = new Schema<INote>(
     {
-        title:      { type: String, required: true, trim: true },
+        title: { type: String, required: true, trim: true },
         courseSlug: { type: String, required: true, lowercase: true, trim: true, index: true },
         moduleSlug: { type: String, required: true, lowercase: true, trim: true },
         moduleName: { type: String, required: true, trim: true },
-        topicSlug:  { type: String, required: true, lowercase: true, trim: true },
-        topicName:  { type: String, required: true, trim: true },
-        content:    { type: String, default: "" },      // ← NEW
-        filePath:   { type: String, trim: true },       // ← optional ab
-        order:      { type: Number, default: 0 },
-        isPublished:{ type: Boolean, default: false },
-        createdBy:  { type: Schema.Types.ObjectId, ref: "User", required: true },
+        topicSlug: { type: String, required: true, lowercase: true, trim: true },
+        topicName: { type: String, required: true, trim: true },
+        content: { type: String, default: "" },      // ← NEW
+        filePath: { type: String, trim: true },       // ← optional ab
+        order: { type: Number, default: 0 },
+        isPublished: { type: Boolean, default: false },
+        createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
+
+        // ─── NEW: Sharing fields ───────────────────────
+        sharedWithCourses: {
+            type: [String],   // courseSlug array
+            default: [],
+            index: true,
+        },
+        sharedWithStudents: {
+            type: [Schema.Types.ObjectId],  // Student._id array
+            ref: "Student",
+            default: [],
+        },
+        sharedModuleNames: {
+            type: Map,
+            of: String,
+            default: {},
+        },
     },
     { timestamps: true }
 );

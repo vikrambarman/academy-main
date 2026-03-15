@@ -1,10 +1,5 @@
 /**
  * FILE: src/app/api/admin/notes/route.ts
- * GET  → course ke saare notes list
- * POST → naya note create (MongoDB only — Vercel safe)
- *
- * NOTE: fs (file system) remove kar diya — Vercel pe kaam nahi karta.
- *       Content ab MongoDB ke `content` field mein store hoga.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -14,9 +9,7 @@ import Note from "@/models/Note";
 import Course from "@/models/Course";
 import { slugify } from "@/lib/slugify";
 
-/**
- * GET /api/admin/notes?courseSlug=dca
- */
+// GET /api/admin/notes?courseSlug=dca
 export async function GET(request: NextRequest) {
     try {
         const user = await verifyUser();
@@ -29,13 +22,35 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const courseSlug = searchParams.get("courseSlug");
 
-        const query = courseSlug ? { courseSlug } : {};
+        let notes: any[] = [];
 
-        // List view mein content nahi chahiye (heavy) — sirf metadata
-        const notes = await Note.find(query)
-            .select("-content")
-            .sort({ courseSlug: 1, moduleSlug: 1, order: 1 })
-            .lean();
+        if (courseSlug) {
+            // Primary notes + shared notes dono fetch karo
+            notes = await Note.find({
+                $or: [
+                    { courseSlug },
+                    { sharedWithCourses: courseSlug },
+                ],
+            })
+                .select("-content")
+                .populate("sharedWithStudents", "name studentId")  // ← populate karo
+                .sort({ moduleSlug: 1, order: 1 })
+                .lean();
+
+            // Shared notes ko mark karo
+            notes = notes.map(note => ({
+                ...note,
+                isSharedNote: note.courseSlug !== courseSlug,
+                displayModuleName: note.courseSlug !== courseSlug
+                    ? (note.sharedModuleNames?.[courseSlug] || note.moduleName)
+                    : note.moduleName,
+            }));
+        } else {
+            notes = await Note.find({})
+                .select("-content")
+                .sort({ courseSlug: 1, moduleSlug: 1, order: 1 })
+                .lean();
+        }
 
         return NextResponse.json({ success: true, notes });
 
@@ -45,10 +60,7 @@ export async function GET(request: NextRequest) {
     }
 }
 
-/**
- * POST /api/admin/notes
- * Body: { courseSlug, moduleName, topicName, content, isPublished, order }
- */
+// POST /api/admin/notes
 export async function POST(request: NextRequest) {
     try {
         const user = await verifyUser();
@@ -63,16 +75,16 @@ export async function POST(request: NextRequest) {
             courseSlug,
             moduleName,
             topicName,
-            content    = "",
+            content = "",
             isPublished = false,
-            order       = 0,
+            order = 0,
         }: {
-            courseSlug:   string;
-            moduleName:   string;
-            topicName:    string;
-            content?:     string;
+            courseSlug: string;
+            moduleName: string;
+            topicName: string;
+            content?: string;
             isPublished?: boolean;
-            order?:       number;
+            order?: number;
         } = body;
 
         if (!courseSlug || !moduleName || !topicName) {
@@ -87,20 +99,17 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Course nahi mila" }, { status: 404 });
         }
 
-        const moduleSlug = slugify(moduleName);
-        const topicSlug  = slugify(topicName);
-
         const note = await Note.create({
-            title:      topicName,
+            title: topicName,
             courseSlug,
-            moduleSlug,
+            moduleSlug: slugify(moduleName),
             moduleName,
-            topicSlug,
+            topicSlug: slugify(topicName),
             topicName,
-            content,                              // ← MongoDB mein save
+            content,
             order,
             isPublished,
-            createdBy: (user as any)._id ?? undefined,
+            createdBy: (user as any)._id,
         });
 
         return NextResponse.json({ success: true, note }, { status: 201 });

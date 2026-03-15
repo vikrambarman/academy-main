@@ -1,6 +1,6 @@
 /**
  * FILE: src/app/api/admin/notes/[id]/route.ts
- * GET    → single note (with content)
+ * GET    → single note with content (admin)
  * PUT    → update note
  * DELETE → delete note
  */
@@ -11,7 +11,7 @@ import { verifyUser } from "@/lib/verifyUser";
 import Note from "@/models/Note";
 import { slugify } from "@/lib/slugify";
 
-// ─── GET /api/admin/notes/[id] ───────────────────────────────────────────────
+// GET /api/admin/notes/[id]
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -33,16 +33,16 @@ export async function GET(
         return NextResponse.json({
             success: true,
             note: {
-                _id:         note._id,
-                title:       note.title,
-                courseSlug:  note.courseSlug,
-                moduleSlug:  note.moduleSlug,
-                moduleName:  note.moduleName,
-                topicSlug:   note.topicSlug,
-                topicName:   note.topicName,
+                _id: note._id,
+                title: note.title,
+                courseSlug: note.courseSlug,
+                moduleSlug: note.moduleSlug,
+                moduleName: note.moduleName,
+                topicSlug: note.topicSlug,
+                topicName: note.topicName,
                 isPublished: note.isPublished,
-                order:       note.order,
-                updatedAt:   note.updatedAt,
+                order: note.order,
+                updatedAt: note.updatedAt,
             },
             content: note.content || "",
         });
@@ -53,7 +53,7 @@ export async function GET(
     }
 }
 
-// ─── PUT /api/admin/notes/[id] ───────────────────────────────────────────────
+// PUT /api/admin/notes/[id]
 export async function PUT(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -68,29 +68,22 @@ export async function PUT(
         await connectDB();
 
         const body = await request.json();
-        const {
-            moduleName,
-            topicName,
-            content,
-            isPublished,
-            order,
-        } = body;
+        const { moduleName, topicName, content, isPublished, order } = body;
 
-        // Jo fields aaye sirf wahi update karo
         const updateData: Record<string, any> = {};
 
-        if (moduleName  !== undefined) {
-            updateData.moduleName  = moduleName;
-            updateData.moduleSlug  = slugify(moduleName);
+        if (moduleName !== undefined) {
+            updateData.moduleName = moduleName;
+            updateData.moduleSlug = slugify(moduleName);
         }
-        if (topicName   !== undefined) {
-            updateData.topicName   = topicName;
-            updateData.topicSlug   = slugify(topicName);
-            updateData.title       = topicName;   // title = topicName
+        if (topicName !== undefined) {
+            updateData.topicName = topicName;
+            updateData.topicSlug = slugify(topicName);
+            updateData.title = topicName;
         }
-        if (content     !== undefined) updateData.content     = content;
+        if (content !== undefined) updateData.content = content;
         if (isPublished !== undefined) updateData.isPublished = isPublished;
-        if (order       !== undefined) updateData.order       = order;
+        if (order !== undefined) updateData.order = order;
 
         const updated = await Note.findByIdAndUpdate(
             id,
@@ -116,7 +109,7 @@ export async function PUT(
     }
 }
 
-// ─── DELETE /api/admin/notes/[id] ────────────────────────────────────────────
+// DELETE /api/admin/notes/[id]
 export async function DELETE(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }

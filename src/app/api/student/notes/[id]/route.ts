@@ -1,5 +1,6 @@
 /**
  * FILE: src/app/api/student/notes/[id]/route.ts
+ * GET → single note content (student)
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -34,7 +35,6 @@ export async function GET(
         }
 
         const { id } = await params;
-
         await connectDB();
 
         const note = await Note.findById(id).lean() as any;
@@ -47,26 +47,39 @@ export async function GET(
             return NextResponse.json({ error: "Student nahi mila" }, { status: 404 });
         }
 
-        // Enrollment check
+        const studentObjectId = (student as any)._id;
+
         const enrollments = await Enrollment.find({
-            student: (student as any)._id,
+            student: studentObjectId,
             isActive: true,
         })
             .populate("course", "slug")
             .lean() as unknown as PopulatedEnrollment[];
 
-        const isEnrolled = enrollments.some(
-            (e) => e.course?.slug === note.courseSlug
+        const enrolledSlugs: string[] = enrollments
+            .filter(e => e.course?.slug)
+            .map(e => e.course!.slug);
+
+        // ── Backward compatible access check ──────────────────────────────────
+        // Purane students: sirf courseSlug check (pehli condition)
+        // Naye shared notes: baaki do conditions
+        const isPrimaryEnrolled = enrolledSlugs.includes(note.courseSlug);
+
+        const isSharedCourseAccessible = (note.sharedWithCourses || []).some(
+            (slug: string) => enrolledSlugs.includes(slug)
         );
 
-        if (!isEnrolled) {
+        const isDirectStudentShare = (note.sharedWithStudents || []).some(
+            (sid: any) => sid.toString() === studentObjectId.toString()
+        );
+
+        if (!isPrimaryEnrolled && !isSharedCourseAccessible && !isDirectStudentShare) {
             return NextResponse.json(
-                { error: "Is course ke notes access karne ka permission nahi hai" },
+                { error: "Is note ko access karne ka permission nahi hai" },
                 { status: 403 }
             );
         }
 
-        // ✅ Content seedha MongoDB se lo — fs ki zaroorat nahi
         return NextResponse.json({
             success: true,
             note: {

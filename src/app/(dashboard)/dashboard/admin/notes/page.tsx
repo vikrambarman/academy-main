@@ -2,13 +2,22 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
-import { Plus, ArrowLeft, Edit2, Trash2, Eye, EyeOff, BookOpen, FileText } from "lucide-react";
+import { Plus, ArrowLeft, Edit2, Trash2, Eye, EyeOff, BookOpen, FileText, Share2, User, X, Loader } from "lucide-react";
+import ShareNoteModal from "@/components/ShareNoteModal";
 
+interface SharedStudent {
+    _id: string;
+    name: string;
+    studentId: string;
+}
 interface Note {
     _id: string; title: string; courseSlug: string;
     moduleName: string; moduleSlug: string;
     topicName: string; topicSlug: string;
     isPublished: boolean; order: number; updatedAt: string;
+    isSharedNote?: boolean;        // ← ADD
+    displayModuleName?: string;    // ← ADD
+    sharedWithStudents?: SharedStudent[];   // ← ADD
 }
 interface Course {
     _id: string; name: string; slug: string;
@@ -17,25 +26,27 @@ interface Course {
 type Mode = "list" | "create" | "edit";
 
 export default function AdminNotesPage() {
-    const [courses,        setCourses]        = useState<Course[]>([]);
+    const [courses, setCourses] = useState<Course[]>([]);
     const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-    const [notes,          setNotes]          = useState<Note[]>([]);
-    const [mode,           setMode]           = useState<Mode>("list");
-    const [editingNote,    setEditingNote]    = useState<Note | null>(null);
-    const [loading,        setLoading]        = useState(false);
-    const [saving,         setSaving]         = useState(false);
-    const [toast,          setToast]          = useState<{ msg: string; type: "success"|"error" } | null>(null);
-    const [form, setForm] = useState({ moduleName:"", topicName:"", content:"", isPublished:false, order:0 });
+    const [notes, setNotes] = useState<Note[]>([]);
+    const [mode, setMode] = useState<Mode>("list");
+    const [editingNote, setEditingNote] = useState<Note | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+    const [form, setForm] = useState({ moduleName: "", topicName: "", content: "", isPublished: false, order: 0 });
+    const [sharingNote, setSharingNote] = useState<Note | null>(null);
+    const [studentShareModal, setStudentShareModal] = useState<Note | null>(null);
 
     useEffect(() => {
         if (toast) { const t = setTimeout(() => setToast(null), 3000); return () => clearTimeout(t); }
     }, [toast]);
 
-    const showToast = (msg: string, type: "success"|"error") => setToast({ msg, type });
+    const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
 
     useEffect(() => {
-        fetchWithAuth("/api/admin/courses").then(r=>r.json())
-            .then(d => setCourses(Array.isArray(d) ? d : (d.courses||[])))
+        fetchWithAuth("/api/admin/courses").then(r => r.json())
+            .then(d => setCourses(Array.isArray(d) ? d : (d.courses || [])))
             .catch(console.error);
     }, []);
 
@@ -49,13 +60,13 @@ export default function AdminNotesPage() {
     }, []);
 
     const handleCourseSelect = (slug: string) => {
-        const course = courses.find(c => c.slug===slug) || null;
+        const course = courses.find(c => c.slug === slug) || null;
         setSelectedCourse(course); setMode("list"); setEditingNote(null);
         if (course) fetchNotes(course.slug);
     };
 
     const openCreate = () => {
-        setForm({ moduleName:"", topicName:"", content:"", isPublished:false, order:0 });
+        setForm({ moduleName: "", topicName: "", content: "", isPublished: false, order: 0 });
         setEditingNote(null); setMode("create");
     };
 
@@ -63,59 +74,81 @@ export default function AdminNotesPage() {
         setLoading(true);
         try {
             const res = await fetchWithAuth(`/api/admin/notes/${note._id}`);
-            const d   = await res.json();
-            setForm({ moduleName:d.note.moduleName, topicName:d.note.topicName, content:d.content||"", isPublished:d.note.isPublished, order:d.note.order });
+            const d = await res.json();
+            setForm({ moduleName: d.note.moduleName, topicName: d.note.topicName, content: d.content || "", isPublished: d.note.isPublished, order: d.note.order });
             setEditingNote(note); setMode("edit");
-        } catch { showToast("Note load nahi hua","error"); }
+        } catch { showToast("Note load nahi hua", "error"); }
         finally { setLoading(false); }
     };
 
     const handleSave = async () => {
         if (!selectedCourse) return;
-        if (!form.moduleName.trim()||!form.topicName.trim()) { showToast("Module aur Topic name required","error"); return; }
+        if (!form.moduleName.trim() || !form.topicName.trim()) { showToast("Module aur Topic name required", "error"); return; }
         setSaving(true);
         console.log("Sending:", { courseSlug: selectedCourse.slug, ...form });
         try {
-            if (mode==="create") {
-                const res = await fetchWithAuth("/api/admin/notes", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ courseSlug:selectedCourse.slug, ...form }) });
+            if (mode === "create") {
+                const res = await fetchWithAuth("/api/admin/notes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ courseSlug: selectedCourse.slug, ...form }) });
                 const d = await res.json(); if (!res.ok) throw new Error(d.error);
-                showToast("Note create ho gaya ✓","success");
-            } else if (mode==="edit" && editingNote) {
-                const res = await fetchWithAuth(`/api/admin/notes/${editingNote._id}`, { method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify(form) });
+                showToast("Note create ho gaya ✓", "success");
+            } else if (mode === "edit" && editingNote) {
+                const res = await fetchWithAuth(`/api/admin/notes/${editingNote._id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
                 const d = await res.json(); if (!res.ok) throw new Error(d.error);
-                showToast("Note update ho gaya ✓","success");
+                showToast("Note update ho gaya ✓", "success");
             }
             fetchNotes(selectedCourse.slug); setMode("list");
-        } catch (err: any) { showToast(err.message||"Save nahi hua","error"); }
+        } catch (err: any) { showToast(err.message || "Save nahi hua", "error"); }
         finally { setSaving(false); }
     };
 
     const handleDelete = async (note: Note) => {
         if (!confirm(`"${note.title}" delete karna chahte ho?`)) return;
         try {
-            const res = await fetchWithAuth(`/api/admin/notes/${note._id}`, { method:"DELETE" });
+            const res = await fetchWithAuth(`/api/admin/notes/${note._id}`, { method: "DELETE" });
             if (!res.ok) throw new Error();
-            showToast("Note delete ho gaya","success");
-            setNotes(prev => prev.filter(n => n._id!==note._id));
-        } catch { showToast("Delete nahi hua","error"); }
+            showToast("Note delete ho gaya", "success");
+            setNotes(prev => prev.filter(n => n._id !== note._id));
+        } catch { showToast("Delete nahi hua", "error"); }
+    };
+
+    const handleRemoveShare = async (note: Note) => {
+        if (!selectedCourse) return;
+        if (!confirm(`"${note.title}" ko is course se remove karna chahte ho?\n(Original note delete nahi hoga)`)) return;
+        try {
+            const res = await fetchWithAuth(`/api/admin/notes/${note._id}/share`, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    type: "course",
+                    courseSlug: selectedCourse.slug,
+                }),
+            });
+            if (!res.ok) throw new Error();
+            showToast("Shared note remove ho gaya", "success");
+            // List se hatao
+            setNotes(prev => prev.filter(n => n._id !== note._id || !n.isSharedNote));
+        } catch {
+            showToast("Remove nahi hua", "error");
+        }
     };
 
     const handleTogglePublish = async (note: Note) => {
         try {
-            const res = await fetchWithAuth(`/api/admin/notes/${note._id}`, { method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ isPublished:!note.isPublished }) });
+            const res = await fetchWithAuth(`/api/admin/notes/${note._id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isPublished: !note.isPublished }) });
             if (!res.ok) throw new Error();
-            setNotes(prev => prev.map(n => n._id===note._id ? {...n, isPublished:!n.isPublished} : n));
-            showToast(note.isPublished ? "Unpublished" : "Published ✓","success");
-        } catch { showToast("Update nahi hua","error"); }
+            setNotes(prev => prev.map(n => n._id === note._id ? { ...n, isPublished: !n.isPublished } : n));
+            showToast(note.isPublished ? "Unpublished" : "Published ✓", "success");
+        } catch { showToast("Update nahi hua", "error"); }
     };
 
     const groupedNotes = notes.reduce<Record<string, Note[]>>((acc, note) => {
-        if (!acc[note.moduleName]) acc[note.moduleName] = [];
-        acc[note.moduleName].push(note);
+        const key = note.displayModuleName || note.moduleName;
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(note);
         return acc;
     }, {});
 
-    const published = notes.filter(n=>n.isPublished).length;
+    const published = notes.filter(n => n.isPublished).length;
 
     return (
         <>
@@ -139,12 +172,12 @@ export default function AdminNotesPage() {
                 {/* Course selector */}
                 <div className="adm-card">
                     <div className="adm-card-head">
-                        <BookOpen size={13} style={{ color:"var(--cp-accent)" }}/>
+                        <BookOpen size={13} style={{ color: "var(--cp-accent)" }} />
                         <span>Select Course</span>
                     </div>
-                    <div style={{ padding:"16px 18px" }}>
-                        <select className="adm-select" style={{ maxWidth:360 }}
-                            value={selectedCourse?.slug||""}
+                    <div style={{ padding: "16px 18px" }}>
+                        <select className="adm-select" style={{ maxWidth: 360 }}
+                            value={selectedCourse?.slug || ""}
                             onChange={e => handleCourseSelect(e.target.value)}>
                             <option value="">-- Course chunno --</option>
                             {courses.map(c => <option key={c._id} value={c.slug}>{c.name}</option>)}
@@ -156,28 +189,28 @@ export default function AdminNotesPage() {
                     <>
                         {/* Toolbar */}
                         <div className="adm-toolbar">
-                            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                 <span className="adm-course-name">{selectedCourse.name}</span>
                                 <span className="adm-stat-badge">{notes.length} notes</span>
                                 <span className="adm-stat-badge green">{published} published</span>
                             </div>
-                            {mode==="list" ? (
+                            {mode === "list" ? (
                                 <button className="adm-add-btn" onClick={openCreate}>
-                                    <Plus size={13}/> New Note
+                                    <Plus size={13} /> New Note
                                 </button>
                             ) : (
                                 <button className="adm-back-btn" onClick={() => setMode("list")}>
-                                    <ArrowLeft size={12}/> Back
+                                    <ArrowLeft size={12} /> Back
                                 </button>
                             )}
                         </div>
 
                         {/* Create / Edit Form */}
-                        {(mode==="create"||mode==="edit") && (
+                        {(mode === "create" || mode === "edit") && (
                             <div className="adm-card">
                                 <div className="adm-card-head">
-                                    <FileText size={13} style={{ color:"var(--cp-accent)" }}/>
-                                    <span>{mode==="create" ? "Create New Note" : "Edit Note"}</span>
+                                    <FileText size={13} style={{ color: "var(--cp-accent)" }} />
+                                    <span>{mode === "create" ? "Create New Note" : "Edit Note"}</span>
                                 </div>
                                 <div className="adm-form-body">
                                     <div className="adm-form-grid">
@@ -187,10 +220,10 @@ export default function AdminNotesPage() {
                                                 list="adm-module-list" className="adm-input"
                                                 placeholder="e.g. MS Office, Tally Prime"
                                                 value={form.moduleName}
-                                                onChange={e => setForm(f=>({...f, moduleName:e.target.value}))}
+                                                onChange={e => setForm(f => ({ ...f, moduleName: e.target.value }))}
                                             />
                                             <datalist id="adm-module-list">
-                                                {selectedCourse.syllabus?.map((s,i) => <option key={i} value={s.module}/>)}
+                                                {selectedCourse.syllabus?.map((s, i) => <option key={i} value={s.module} />)}
                                             </datalist>
                                         </div>
                                         <div className="adm-field">
@@ -199,22 +232,22 @@ export default function AdminNotesPage() {
                                                 list="adm-topic-list" className="adm-input"
                                                 placeholder="e.g. Introduction to MS Word"
                                                 value={form.topicName}
-                                                onChange={e => setForm(f=>({...f, topicName:e.target.value}))}
+                                                onChange={e => setForm(f => ({ ...f, topicName: e.target.value }))}
                                             />
                                             <datalist id="adm-topic-list">
-                                                {selectedCourse.syllabus?.find(s=>s.module===form.moduleName)?.topics.map((t,i) => <option key={i} value={t}/>)}
+                                                {selectedCourse.syllabus?.find(s => s.module === form.moduleName)?.topics.map((t, i) => <option key={i} value={t} />)}
                                             </datalist>
                                         </div>
                                         <div className="adm-field">
                                             <label className="adm-label">Order</label>
                                             <input className="adm-input" type="number" min={0}
                                                 value={form.order}
-                                                onChange={e => setForm(f=>({...f, order:Number(e.target.value)}))}/>
+                                                onChange={e => setForm(f => ({ ...f, order: Number(e.target.value) }))} />
                                         </div>
-                                        <div className="adm-field" style={{ justifyContent:"flex-end" }}>
-                                            <label className="adm-checkbox-wrap" onClick={() => setForm(f=>({...f, isPublished:!f.isPublished}))}>
-                                                <div className={`adm-checkbox ${form.isPublished?"checked":""}`}>
-                                                    {form.isPublished && <span style={{ fontSize:9,color:"#1a1208",fontWeight:800 }}>✓</span>}
+                                        <div className="adm-field" style={{ justifyContent: "flex-end" }}>
+                                            <label className="adm-checkbox-wrap" onClick={() => setForm(f => ({ ...f, isPublished: !f.isPublished }))}>
+                                                <div className={`adm-checkbox ${form.isPublished ? "checked" : ""}`}>
+                                                    {form.isPublished && <span style={{ fontSize: 9, color: "#1a1208", fontWeight: 800 }}>✓</span>}
                                                 </div>
                                                 <span className="adm-checkbox-label">Publish immediately</span>
                                             </label>
@@ -223,21 +256,21 @@ export default function AdminNotesPage() {
 
                                     <div className="adm-field">
                                         <label className="adm-label">Content (Markdown)</label>
-                                        <p style={{ fontSize:10,color:"#334155",marginBottom:6 }}>
+                                        <p style={{ fontSize: 10, color: "#334155", marginBottom: 6 }}>
                                             # Heading, **bold**, `code`, ```code block``` supported
                                         </p>
                                         <textarea
                                             className="adm-textarea adm-mono" rows={22}
                                             value={form.content}
-                                            onChange={e => setForm(f=>({...f, content:e.target.value}))}
+                                            onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
                                             placeholder={`# Topic Title\n\n## Introduction\n\nYahan apna content likho...\n\n## Points\n\n- Point 1\n- Point 2`}
                                             spellCheck={false}
                                         />
                                     </div>
 
-                                    <div style={{ display:"flex", gap:8 }}>
+                                    <div style={{ display: "flex", gap: 8 }}>
                                         <button className="adm-submit-btn" onClick={handleSave} disabled={saving}>
-                                            {saving ? "Saving..." : mode==="create" ? "Create Note" : "Update Note"}
+                                            {saving ? "Saving..." : mode === "create" ? "Create Note" : "Update Note"}
                                         </button>
                                         <button className="adm-ghost-btn" onClick={() => setMode("list")}>Cancel</button>
                                     </div>
@@ -246,45 +279,107 @@ export default function AdminNotesPage() {
                         )}
 
                         {/* Notes list */}
-                        {mode==="list" && (
+                        {mode === "list" && (
                             loading ? (
-                                <div className="adm-loading"><div className="adm-spinner"/> Loading notes…</div>
-                            ) : notes.length===0 ? (
+                                <div className="adm-loading"><div className="adm-spinner" /> Loading notes…</div>
+                            ) : notes.length === 0 ? (
                                 <div className="adm-empty">
-                                    <div style={{ fontSize:28,marginBottom:8 }}>📝</div>
-                                    <div style={{ fontSize:13,color:"#64748b",marginBottom:12 }}>Is course mein abhi koi note nahi hai</div>
-                                    <button className="adm-add-btn" onClick={openCreate}><Plus size={12}/> Pehla note create karo</button>
+                                    <div style={{ fontSize: 28, marginBottom: 8 }}>📝</div>
+                                    <div style={{ fontSize: 13, color: "#64748b", marginBottom: 12 }}>Is course mein abhi koi note nahi hai</div>
+                                    <button className="adm-add-btn" onClick={openCreate}><Plus size={12} /> Pehla note create karo</button>
                                 </div>
                             ) : (
-                                <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                                     {Object.entries(groupedNotes).map(([moduleName, moduleNotes]) => (
                                         <div key={moduleName} className="adm-card">
                                             <div className="adm-module-head">
-                                                <BookOpen size={13} style={{ color:"var(--cp-accent)" }}/>
+                                                <BookOpen size={13} style={{ color: "var(--cp-accent)" }} />
                                                 <span>{moduleName}</span>
-                                                <span className="adm-stat-badge" style={{ marginLeft:"auto" }}>{moduleNotes.length} notes</span>
+                                                <span className="adm-stat-badge" style={{ marginLeft: "auto" }}>{moduleNotes.length} notes</span>
                                             </div>
                                             <div>
                                                 {moduleNotes.map(note => (
                                                     <div key={note._id} className="adm-note-row">
-                                                        <div style={{ display:"flex", alignItems:"center", gap:10, flex:1, minWidth:0 }}>
+                                                        <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
                                                             <span className="adm-note-order">#{note.order}</span>
                                                             <span className="adm-note-title">{note.title}</span>
-                                                            <span className={`adm-pub-badge ${note.isPublished?"pub":"draft"}`}>
+                                                            <span className={`adm-pub-badge ${note.isPublished ? "pub" : "draft"}`}>
                                                                 {note.isPublished ? "Published" : "Draft"}
                                                             </span>
+                                                            {/* Shared badge */}
+                                                            {note.isSharedNote && (
+                                                                <span className="adm-pub-badge" style={{
+                                                                    background: "rgba(99,102,241,0.08)",
+                                                                    color: "#6366f1",
+                                                                    border: "1px solid rgba(99,102,241,0.2)",
+                                                                }}>
+                                                                    Shared
+                                                                </span>
+                                                            )}
                                                         </div>
-                                                        <div style={{ display:"flex", gap:5, flexShrink:0 }}>
-                                                            <button className={`adm-icon-btn ${note.isPublished?"muted":"success"}`}
-                                                                onClick={() => handleTogglePublish(note)}
-                                                                title={note.isPublished?"Unpublish":"Publish"}>
-                                                                {note.isPublished ? <EyeOff size={11}/> : <Eye size={11}/>}
-                                                            </button>
-                                                            <button className="adm-icon-btn amber" onClick={() => openEdit(note)} title="Edit">
-                                                                <Edit2 size={11}/>
-                                                            </button>
-                                                            <button className="adm-icon-btn danger" onClick={() => handleDelete(note)} title="Delete">
-                                                                <Trash2 size={11}/>
+                                                        <div style={{ display: "flex", gap: 5, flexShrink: 0 }}>
+                                                            {/* Publish/Unpublish — sirf original pe */}
+                                                            {!note.isSharedNote && (
+                                                                <button
+                                                                    className={`adm-icon-btn ${note.isPublished ? "muted" : "success"}`}
+                                                                    onClick={() => handleTogglePublish(note)}
+                                                                    title={note.isPublished ? "Unpublish" : "Publish"}
+                                                                >
+                                                                    {note.isPublished ? <EyeOff size={11} /> : <Eye size={11} />}
+                                                                </button>
+                                                            )}
+
+                                                            {/* Share button — sirf original pe */}
+                                                            {!note.isSharedNote && (
+                                                                <button
+                                                                    className="adm-icon-btn"
+                                                                    style={{ background: "rgba(99,102,241,0.08)", color: "#6366f1", borderColor: "rgba(99,102,241,0.2)" }}
+                                                                    onClick={() => setSharingNote(note)}
+                                                                    title="Share"
+                                                                >
+                                                                    <Share2 size={11} />
+                                                                </button>
+                                                            )}
+
+                                                            {/* Sirf original notes pe — kitne students ko share hua */}
+                                                            {!note.isSharedNote && (note.sharedWithStudents?.length ?? 0) > 0 && (
+                                                                <button
+                                                                    className="adm-icon-btn"
+                                                                    style={{
+                                                                        background: "rgba(20,184,166,0.08)",
+                                                                        color: "#0d9488",
+                                                                        borderColor: "rgba(20,184,166,0.2)",
+                                                                        width: "auto",
+                                                                        padding: "0 8px",
+                                                                        gap: 4,
+                                                                        fontSize: 10,
+                                                                        fontWeight: 700,
+                                                                    }}
+                                                                    onClick={() => setStudentShareModal(note)}
+                                                                    title="Shared students dekho"
+                                                                >
+                                                                    <User size={10} />
+                                                                    {note.sharedWithStudents!.length}
+                                                                </button>
+                                                            )}
+
+                                                            {/* Edit — sirf original pe */}
+                                                            {!note.isSharedNote && (
+                                                                <button className="adm-icon-btn amber" onClick={() => openEdit(note)} title="Edit">
+                                                                    <Edit2 size={11} />
+                                                                </button>
+                                                            )}
+
+                                                            {/* Delete — original aur shared dono pe, but behavior alag */}
+                                                            <button
+                                                                className="adm-icon-btn danger"
+                                                                onClick={() => note.isSharedNote
+                                                                    ? handleRemoveShare(note)
+                                                                    : handleDelete(note)
+                                                                }
+                                                                title={note.isSharedNote ? "Share hatao" : "Delete"}
+                                                            >
+                                                                <Trash2 size={11} />
                                                             </button>
                                                         </div>
                                                     </div>
@@ -298,6 +393,56 @@ export default function AdminNotesPage() {
                     </>
                 )}
             </div>
+            {sharingNote && (
+                <ShareNoteModal
+                    note={sharingNote}
+                    courses={courses}
+                    onClose={() => setSharingNote(null)}
+                    showToast={showToast}
+                />
+            )}
+
+            {studentShareModal && (
+                <StudentShareInfoModal
+                    note={studentShareModal}
+                    onClose={() => setStudentShareModal(null)}
+                    onRemove={async (studentId) => {
+                        try {
+                            const res = await fetchWithAuth(
+                                `/api/admin/notes/${studentShareModal._id}/share`,
+                                {
+                                    method: "DELETE",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ type: "student", studentId }),
+                                }
+                            );
+                            if (!res.ok) throw new Error();
+                            showToast("Student share hata diya", "success");
+                            // Local state update
+                            setNotes(prev => prev.map(n =>
+                                n._id === studentShareModal._id
+                                    ? {
+                                        ...n,
+                                        sharedWithStudents: n.sharedWithStudents?.filter(
+                                            s => s._id !== studentId
+                                        ),
+                                    }
+                                    : n
+                            ));
+                            // Modal update
+                            setStudentShareModal(prev => prev ? {
+                                ...prev,
+                                sharedWithStudents: prev.sharedWithStudents?.filter(
+                                    s => s._id !== studentId
+                                ),
+                            } : null);
+                        } catch {
+                            showToast("Remove nahi hua", "error");
+                        }
+                    }}
+                    showToast={showToast}
+                />
+            )}
         </>
     );
 }
@@ -379,3 +524,264 @@ const admStyles = `
     @keyframes admSpin { to { transform:rotate(360deg); } }
     .adm-empty { background:var(--cp-surface); border:1px dashed var(--cp-border); border-radius:12px; padding:48px; text-align:center; }
 `;
+
+
+function StudentShareInfoModal({
+    note,
+    onClose,
+    onRemove,
+    showToast,
+}: {
+    note: Note;
+    onClose: () => void;
+    onRemove: (studentId: string) => Promise<void>;
+    showToast: (msg: string, type: "success" | "error") => void;
+}) {
+    const [removing, setRemoving] = useState<string | null>(null);
+
+    const handleRemove = async (studentId: string) => {
+        if (!confirm("Is student ka share hatana chahte ho?")) return;
+        setRemoving(studentId);
+        await onRemove(studentId);
+        setRemoving(null);
+    };
+
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+        window.addEventListener("keydown", handler);
+        return () => window.removeEventListener("keydown", handler);
+    }, [onClose]);
+
+    const students = note.sharedWithStudents || [];
+
+    return (
+        <>
+            <div
+                style={{
+                    position: "fixed", inset: 0,
+                    background: "rgba(0,0,0,0.5)",
+                    zIndex: 998,
+                    backdropFilter: "blur(3px)",
+                }}
+                onClick={onClose}
+            />
+            <div style={{
+                position: "fixed", top: "50%", left: "50%",
+                transform: "translate(-50%,-50%)",
+                zIndex: 999,
+                width: 400,
+                maxWidth: "92vw",
+                maxHeight: "80vh",
+                background: "var(--cp-surface)",
+                border: "1px solid var(--cp-border)",
+                borderRadius: 16,
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
+                boxShadow: "0 32px 80px rgba(0,0,0,0.4)",
+                fontFamily: "'Plus Jakarta Sans',sans-serif",
+            }}>
+
+                {/* Header */}
+                <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 10,
+                    padding: "14px 16px",
+                    background: "var(--cp-surface2)",
+                    borderBottom: "1px solid var(--cp-border)",
+                    flexShrink: 0,
+                }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                        <div style={{
+                            width: 30, height: 30, borderRadius: 8,
+                            background: "rgba(20,184,166,0.1)",
+                            color: "#0d9488",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            border: "1px solid rgba(20,184,166,0.2)",
+                            flexShrink: 0,
+                        }}>
+                            <User size={13} />
+                        </div>
+                        <div style={{ minWidth: 0 }}>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--cp-text)" }}>
+                                Shared Students
+                            </div>
+                            <div style={{
+                                fontSize: 10,
+                                color: "var(--cp-muted)",
+                                marginTop: 1,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                            }}>
+                                {note.moduleName} → {note.title}
+                            </div>
+                        </div>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        style={{
+                            width: 28, height: 28, borderRadius: 7,
+                            border: "1px solid var(--cp-border)",
+                            background: "transparent",
+                            color: "var(--cp-muted)",
+                            cursor: "pointer",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                        }}
+                    >
+                        <X size={14} />
+                    </button>
+                </div>
+
+                {/* Count badge */}
+                <div style={{
+                    padding: "8px 16px",
+                    background: "rgba(20,184,166,0.04)",
+                    borderBottom: "1px solid var(--cp-border)",
+                    fontSize: 11,
+                    color: "var(--cp-muted)",
+                    flexShrink: 0,
+                }}>
+                    <span style={{
+                        fontWeight: 700,
+                        color: "#0d9488",
+                        background: "rgba(20,184,166,0.1)",
+                        border: "1px solid rgba(20,184,166,0.2)",
+                        padding: "2px 8px",
+                        borderRadius: 100,
+                        marginRight: 6,
+                        fontSize: 11,
+                    }}>
+                        {students.length} student{students.length !== 1 ? "s" : ""}
+                    </span>
+                    ko ye note directly share kiya gaya hai
+                </div>
+
+                {/* Student list */}
+                <div style={{
+                    flex: 1,
+                    overflowY: "auto",
+                    scrollbarWidth: "thin",
+                }}>
+                    {students.length === 0 ? (
+                        <div style={{
+                            padding: 48,
+                            textAlign: "center",
+                            color: "var(--cp-muted)",
+                            fontSize: 12,
+                        }}>
+                            Koi student share nahi hai
+                        </div>
+                    ) : students.map(s => (
+                        <div key={s._id} style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 10,
+                            padding: "11px 16px",
+                            borderBottom: "1px solid var(--cp-border)",
+                            transition: "background .12s",
+                        }}>
+                            {/* Avatar */}
+                            <div style={{
+                                width: 36, height: 36,
+                                borderRadius: "50%",
+                                background: "rgba(20,184,166,0.1)",
+                                border: "1px solid rgba(20,184,166,0.2)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                color: "#0d9488",
+                                fontSize: 13,
+                                fontWeight: 700,
+                                flexShrink: 0,
+                            }}>
+                                {s.name.charAt(0).toUpperCase()}
+                            </div>
+
+                            {/* Info */}
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{
+                                    fontSize: 13,
+                                    fontWeight: 600,
+                                    color: "var(--cp-text)",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap",
+                                }}>
+                                    {s.name}
+                                </div>
+                                <div style={{
+                                    fontSize: 10,
+                                    color: "var(--cp-muted)",
+                                    marginTop: 2,
+                                    fontFamily: "'JetBrains Mono',monospace",
+                                }}>
+                                    {s.studentId}
+                                </div>
+                            </div>
+
+                            {/* Remove button */}
+                            <button
+                                onClick={() => handleRemove(s._id)}
+                                disabled={removing === s._id}
+                                title="Share hatao"
+                                style={{
+                                    width: 28, height: 28,
+                                    borderRadius: 7,
+                                    border: "1px solid rgba(239,68,68,0.2)",
+                                    background: "rgba(239,68,68,0.06)",
+                                    color: "var(--cp-danger)",
+                                    cursor: removing === s._id ? "not-allowed" : "pointer",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    opacity: removing === s._id ? 0.5 : 1,
+                                    transition: "all .13s",
+                                    flexShrink: 0,
+                                }}
+                            >
+                                {removing === s._id
+                                    ? <Loader size={10} style={{ animation: "admSpin .7s linear infinite" }} />
+                                    : <Trash2 size={11} />
+                                }
+                            </button>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Footer */}
+                <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "12px 16px",
+                    borderTop: "1px solid var(--cp-border)",
+                    background: "var(--cp-surface2)",
+                    flexShrink: 0,
+                }}>
+                    <span style={{ fontSize: 10, color: "var(--cp-muted)" }}>
+                        Remove karne se student ka access hat jaayega
+                    </span>
+                    <button
+                        onClick={onClose}
+                        style={{
+                            padding: "7px 18px",
+                            borderRadius: 8,
+                            border: "1px solid var(--cp-border)",
+                            background: "var(--cp-surface)",
+                            color: "var(--cp-subtext)",
+                            fontFamily: "'Plus Jakarta Sans',sans-serif",
+                            fontSize: 12,
+                            fontWeight: 600,
+                            cursor: "pointer",
+                        }}
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
+        </>
+    );
+}

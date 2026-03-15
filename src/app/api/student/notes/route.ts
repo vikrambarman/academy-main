@@ -1,17 +1,17 @@
 /**
  * FILE: src/app/api/student/notes/route.ts
+ * GET → student ke accessible notes (enrolled + shared)
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { verifyUser } from "@/lib/verifyUser";
-import Note, { INote } from "@/models/Note";
+import Note from "@/models/Note";
 import Student from "@/models/Student";
 import Enrollment from "@/models/Enrollment";
 import { Types } from "mongoose";
 import "@/models/Course";
 
-// Populated enrollment type
 interface PopulatedCourse {
     _id: Types.ObjectId;
     name: string;
@@ -34,21 +34,19 @@ export async function GET(request: NextRequest) {
 
         await connectDB();
 
-        // Student record dhundo
         const student = await Student.findOne({ user: (user as any)._id }).lean();
         if (!student) {
             return NextResponse.json({ error: "Student nahi mila" }, { status: 404 });
         }
 
-        // Student ke active enrollments
+        const studentObjectId = (student as any)._id;
+
         const enrollments = await Enrollment.find({
-            student: (student as any)._id,
+            student: studentObjectId,
             isActive: true,
         })
             .populate("course", "name slug")
             .lean() as unknown as PopulatedEnrollment[];
-
-        // console.log("[student/notes] enrollments count:", enrollments.length);
 
         if (!enrollments.length) {
             return NextResponse.json({
@@ -58,42 +56,37 @@ export async function GET(request: NextRequest) {
             });
         }
 
-        // Enrolled course slugs
         const enrolledCourseSlugs: string[] = enrollments
-            .filter((e) => e.course !== null && typeof e.course.slug === "string")
-            .map((e) => e.course!.slug);
-
-        // console.log("[student/notes] enrolledCourseSlugs:", enrolledCourseSlugs);
+            .filter(e => e.course !== null && typeof e.course.slug === "string")
+            .map(e => e.course!.slug);
 
         if (!enrolledCourseSlugs.length) {
             return NextResponse.json({ success: true, data: [] });
         }
 
-        // ⚠️ isPublished filter HATAYA — debug ke liye
-        // Pehle dekho koi bhi note mil raha hai ya nahi
-        const allNotes = await Note.find({
-            courseSlug: { $in: enrolledCourseSlugs },
+        // ── New query: enrolled course + shared course + direct student share ──
+        // Backward compatible — purane notes jo sirf courseSlug se linked hain
+        // woh pehli condition se hi mil jaate hain
+        const notes = await Note.find({
+            isPublished: true,
+            $or: [
+                { courseSlug: { $in: enrolledCourseSlugs } },   // original logic
+                { sharedWithCourses: { $in: enrolledCourseSlugs } },   // shared course
+                { sharedWithStudents: studentObjectId },                // direct share
+            ],
         }).lean();
-
-        // console.log("[student/notes] ALL notes (without isPublished filter):", allNotes.length);
-        // console.log("[student/notes] note courseslugs in DB:", allNotes.map((n: any) => n.courseSlug));
-        // console.log("[student/notes] published notes:", allNotes.filter((n: any) => n.isPublished).length);
-
-        // Ab sirf published wale lo
-        const notes = allNotes.filter((n: any) => n.isPublished);
 
         // Course name lookup
         const courseMap: Record<string, string> = {};
-        enrollments.forEach((e) => {
-            if (e.course?.slug) {
-                courseMap[e.course.slug] = e.course.name;
-            }
+        enrollments.forEach(e => {
+            if (e.course?.slug) courseMap[e.course.slug] = e.course.name;
         });
 
-        // Group: course → module → notes[]
+        // Group: courseSlug → moduleSlug → notes[]
         const grouped: Record<string, {
             courseName: string;
             courseSlug: string;
+            isShared: boolean;
             modules: Record<string, {
                 moduleName: string;
                 moduleSlug: string;
@@ -103,6 +96,7 @@ export async function GET(request: NextRequest) {
                     topicSlug: string;
                     order: number;
                     updatedAt: Date;
+                    isDirectShare: boolean;
                 }[];
             }>;
         }> = {};
@@ -110,17 +104,39 @@ export async function GET(request: NextRequest) {
         for (const note of notes as any[]) {
             const { courseSlug, moduleSlug, moduleName } = note;
 
+            const isEnrolledCourse = enrolledCourseSlugs.includes(courseSlug);
+
+            const isSharedCourse = !isEnrolledCourse && (note.sharedWithCourses || []).some(
+                (s: string) => enrolledCourseSlugs.includes(s)
+            );
+
+            const isDirectShare = (note.sharedWithStudents || []).some(
+                (sid: any) => sid.toString() === studentObjectId.toString()
+            );
+
+            const courseName =
+                courseMap[courseSlug] ||
+                (isSharedCourse ? `${courseSlug} (Shared)` : courseSlug);
+
             if (!grouped[courseSlug]) {
                 grouped[courseSlug] = {
-                    courseName: courseMap[courseSlug] || courseSlug,
+                    courseName,
                     courseSlug,
+                    isShared: isSharedCourse || (isDirectShare && !isEnrolledCourse),
                     modules: {},
                 };
             }
 
             if (!grouped[courseSlug].modules[moduleSlug]) {
                 grouped[courseSlug].modules[moduleSlug] = {
-                    moduleName,
+                    moduleName: (isSharedCourse || isDirectShare)
+                        ? (note.sharedModuleNames?.[
+                            // Jo enrolled course match karta hai uska module name lo
+                            enrolledCourseSlugs.find(s =>
+                                (note.sharedWithCourses || []).includes(s)
+                            ) || courseSlug
+                        ] || moduleName)
+                        : moduleName,
                     moduleSlug,
                     notes: [],
                 };
@@ -132,12 +148,16 @@ export async function GET(request: NextRequest) {
                 topicSlug: note.topicSlug,
                 order: note.order,
                 updatedAt: note.updatedAt,
+                isDirectShare: isDirectShare && !isEnrolledCourse,
             });
         }
 
-        const data = Object.values(grouped).map((course) => ({
+        const data = Object.values(grouped).map(course => ({
             ...course,
-            modules: Object.values(course.modules),
+            modules: Object.values(course.modules).map(mod => ({
+                ...mod,
+                notes: mod.notes.sort((a, b) => a.order - b.order),
+            })),
         }));
 
         return NextResponse.json({ success: true, data });
