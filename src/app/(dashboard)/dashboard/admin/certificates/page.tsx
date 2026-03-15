@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import {
     Search, ChevronLeft, ChevronRight, Award,
-    ExternalLink, Plus, X, Edit2, CheckCircle2, XCircle, Clock
+    ExternalLink, Plus, X, Edit2, CheckCircle2, XCircle, Clock,
+    Trash2
 } from "lucide-react";
 
 type CertStatus = "issued" | "pending" | "revoked";
@@ -24,62 +25,62 @@ interface Certificate {
 }
 
 const AUTH_META: Record<string, { color: string; bg: string; border: string }> = {
-    "Drishti":    { color:"#60a5fa", bg:"rgba(96,165,250,.1)",  border:"rgba(96,165,250,.25)"  },
-    "GSDM":       { color:"#22c55e", bg:"rgba(34,197,94,.1)",   border:"rgba(34,197,94,.25)"   },
-    "NSDC":       { color:"#f59e0b", bg:"rgba(245,158,11,.1)",  border:"rgba(245,158,11,.25)"  },
-    "DigiLocker": { color:"#a78bfa", bg:"rgba(167,139,250,.1)", border:"rgba(167,139,250,.25)" },
-    "Other":      { color:"#94a3b8", bg:"rgba(100,116,139,.1)", border:"rgba(100,116,139,.25)" },
+    "Drishti": { color: "#60a5fa", bg: "rgba(96,165,250,.1)", border: "rgba(96,165,250,.25)" },
+    "GSDM": { color: "#22c55e", bg: "rgba(34,197,94,.1)", border: "rgba(34,197,94,.25)" },
+    "NSDC": { color: "#f59e0b", bg: "rgba(245,158,11,.1)", border: "rgba(245,158,11,.25)" },
+    "DigiLocker": { color: "#a78bfa", bg: "rgba(167,139,250,.1)", border: "rgba(167,139,250,.25)" },
+    "Other": { color: "#94a3b8", bg: "rgba(100,116,139,.1)", border: "rgba(100,116,139,.25)" },
 };
 
-const STATUS_META: Record<CertStatus,{ label:string; color:string; bg:string }> = {
-    issued:  { label:"Issued",  color:"#22c55e", bg:"rgba(34,197,94,.1)"   },
-    pending: { label:"Pending", color:"#f59e0b", bg:"rgba(245,158,11,.1)"  },
-    revoked: { label:"Revoked", color:"#ef4444", bg:"rgba(239,68,68,.1)"   },
+const STATUS_META: Record<CertStatus, { label: string; color: string; bg: string }> = {
+    issued: { label: "Issued", color: "#22c55e", bg: "rgba(34,197,94,.1)" },
+    pending: { label: "Pending", color: "#f59e0b", bg: "rgba(245,158,11,.1)" },
+    revoked: { label: "Revoked", color: "#ef4444", bg: "rgba(239,68,68,.1)" },
 };
 
-const AUTHORITIES = ["Drishti Computer Education","Gramin Skill Development Mission","NSDC","DigiLocker","Other"];
+const AUTHORITIES = ["Drishti Computer Education", "Gramin Skill Development Mission", "NSDC", "DigiLocker", "Other"];
 
 export default function AdminCertificatesPage() {
-    const [certs,      setCerts]      = useState<Certificate[]>([]);
-    const [students,   setStudents]   = useState<any[]>([]);
-    const [search,     setSearch]     = useState("");
+    const [certs, setCerts] = useState<Certificate[]>([]);
+    const [students, setStudents] = useState<any[]>([]);
+    const [search, setSearch] = useState("");
     const [filterAuth, setFilterAuth] = useState("all");
     const [filterStat, setFilterStat] = useState("all");
-    const [page,       setPage]       = useState(1);
-    const [modalOpen,  setModalOpen]  = useState(false);
-    const [editCert,   setEditCert]   = useState<Certificate|null>(null);
-    const [toast,      setToast]      = useState<{msg:string;type:"success"|"error"}|null>(null);
-    const [saving,     setSaving]     = useState(false);
+    const [page, setPage] = useState(1);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [editCert, setEditCert] = useState<Certificate | null>(null);
+    const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+    const [saving, setSaving] = useState(false);
     const LIMIT = 15;
 
     const EMPTY_FORM = {
-        studentId:"", enrollmentId:"", courseId:"",
-        certificateNo:"", authority:"Drishti", issueDate:"",
-        expiryDate:"", verifyUrl:"", status:"issued" as CertStatus, remarks:""
+        studentId: "", enrollmentId: "", courseId: "",
+        certificateNo: "", authority: "Drishti", issueDate: "",
+        expiryDate: "", verifyUrl: "", status: "issued" as CertStatus, remarks: ""
     };
     const [form, setForm] = useState(EMPTY_FORM);
 
-    const showToast = (msg:string, type:"success"|"error") => {
-        setToast({msg,type}); setTimeout(()=>setToast(null),3000);
+    const showToast = (msg: string, type: "success" | "error") => {
+        setToast({ msg, type }); setTimeout(() => setToast(null), 3000);
     };
 
     const load = async () => {
         try {
             const res = await fetchWithAuth("/api/admin/certificates");
-            const d   = await res.json();
-            setCerts(d.certificates||[]);
-        } catch { showToast("Load failed","error"); }
+            const d = await res.json();
+            setCerts(d.certificates || []);
+        } catch { showToast("Load failed", "error"); }
     };
 
     useEffect(() => {
         load();
-        fetchWithAuth("/api/admin/students").then(r=>r.json()).then(setStudents);
+        fetchWithAuth("/api/admin/students").then(r => r.json()).then(setStudents);
     }, []);
 
     const handleStudentSelect = (sid: string) => {
-        const s   = students.find(s=>s._id===sid);
+        const s = students.find(s => s._id === sid);
         const enr = s?.enrollments?.[0];
-        setForm(f=>({ ...f, studentId:sid, enrollmentId:enr?._id||"", courseId:enr?.course?._id||"" }));
+        setForm(f => ({ ...f, studentId: sid, enrollmentId: enr?._id || "", courseId: enr?.course?._id || "" }));
     };
 
     const openCreate = () => {
@@ -91,70 +92,85 @@ export default function AdminCertificatesPage() {
     const openEdit = (c: Certificate) => {
         setEditCert(c);
         setForm({
-            studentId:     c.student?._id||"",
-            enrollmentId:  c.enrollment?._id||"",
-            courseId:      c.course?._id||"",
-            certificateNo: c.certificateNo||"",
-            authority:     c.authority||"Drishti",
-            issueDate:     c.issueDate?.split("T")[0]||"",
-            expiryDate:    c.expiryDate?.split("T")[0]||"",
-            verifyUrl:     c.verifyUrl||"",
-            status:        c.status||"issued",
-            remarks:       c.remarks||"",
+            studentId: c.student?._id || "",
+            enrollmentId: c.enrollment?._id || "",
+            courseId: c.course?._id || "",
+            certificateNo: c.certificateNo || "",
+            authority: c.authority || "Drishti",
+            issueDate: c.issueDate?.split("T")[0] || "",
+            expiryDate: c.expiryDate?.split("T")[0] || "",
+            verifyUrl: c.verifyUrl || "",
+            status: c.status || "issued",
+            remarks: c.remarks || "",
         });
         setModalOpen(true);
     };
 
     const handleSave = async () => {
-        if (!form.studentId||!form.enrollmentId) {
-            showToast("Student aur enrollment required","error"); return;
+        if (!form.studentId || !form.enrollmentId) {
+            showToast("Student aur enrollment required", "error"); return;
         }
         if (!form.certificateNo.trim()) {
-            showToast("Certificate number required","error"); return;
+            showToast("Certificate number required", "error"); return;
         }
         setSaving(true);
         try {
             if (editCert) {
                 const res = await fetchWithAuth(`/api/admin/certificates/${editCert._id}`, {
                     method: "PATCH",
-                    headers: {"Content-Type":"application/json"},
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(form),
                 });
                 const d = await res.json();
-                if (!res.ok) throw new Error(d.error||d.message);
-                showToast("Certificate update ho gaya ✓","success");
+                if (!res.ok) throw new Error(d.error || d.message);
+                showToast("Certificate update ho gaya ✓", "success");
             } else {
                 const res = await fetchWithAuth("/api/admin/certificates", {
                     method: "POST",
-                    headers: {"Content-Type":"application/json"},
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(form),
                 });
                 const d = await res.json();
-                if (!res.ok) throw new Error(d.error||d.message);
-                showToast("Certificate record add ho gaya ✓","success");
+                if (!res.ok) throw new Error(d.error || d.message);
+                showToast("Certificate record add ho gaya ✓", "success");
             }
             setModalOpen(false);
             load();
-        } catch(e:any) { showToast(e.message||"Error","error"); }
+        } catch (e: any) { showToast(e.message || "Error", "error"); }
         finally { setSaving(false); }
+    };
+
+    const handleDelete = async (c: Certificate) => {
+        if (!confirm(`"${c.certificateNo}" — ${c.student?.name} ka certificate delete karna chahte ho?\n\nYe enrollment ka status bhi reset ho jaayega.`)) return;
+        try {
+            const res = await fetchWithAuth(`/api/admin/certificates/${c._id}`, {
+                method: "DELETE",
+            });
+            const d = await res.json();
+            if (!res.ok) throw new Error(d.message || "Delete nahi hua");
+            showToast("Certificate delete ho gaya ✓", "success");
+            setCerts(prev => prev.filter(cert => cert._id !== c._id));
+        } catch (e: any) {
+            showToast(e.message || "Delete nahi hua", "error");
+        }
     };
 
     // Filters
     const filtered = certs.filter(c => {
         const matchSearch = c.student?.name?.toLowerCase().includes(search.toLowerCase()) ||
-                            c.student?.studentId?.toLowerCase().includes(search.toLowerCase()) ||
-                            c.certificateNo?.toLowerCase().includes(search.toLowerCase());
-        const matchAuth   = filterAuth==="all" || c.authority===filterAuth;
-        const matchStat   = filterStat==="all" || c.status===filterStat;
+            c.student?.studentId?.toLowerCase().includes(search.toLowerCase()) ||
+            c.certificateNo?.toLowerCase().includes(search.toLowerCase());
+        const matchAuth = filterAuth === "all" || c.authority === filterAuth;
+        const matchStat = filterStat === "all" || c.status === filterStat;
         return matchSearch && matchAuth && matchStat;
     });
-    const totalPages = Math.ceil(filtered.length/LIMIT)||1;
-    const paginated  = filtered.slice((page-1)*LIMIT, page*LIMIT);
+    const totalPages = Math.ceil(filtered.length / LIMIT) || 1;
+    const paginated = filtered.slice((page - 1) * LIMIT, page * LIMIT);
 
     const counts = {
-        issued:  certs.filter(c=>c.status==="issued").length,
-        pending: certs.filter(c=>c.status==="pending").length,
-        revoked: certs.filter(c=>c.status==="revoked").length,
+        issued: certs.filter(c => c.status === "issued").length,
+        pending: certs.filter(c => c.status === "pending").length,
+        revoked: certs.filter(c => c.status === "revoked").length,
     };
 
     return (
@@ -170,7 +186,7 @@ export default function AdminCertificatesPage() {
                         <p className="acert-sub">Franchise-issued certificates ka record manage karo</p>
                     </div>
                     <button className="acert-add-btn" onClick={openCreate}>
-                        <Plus size={13}/> Add Record
+                        <Plus size={13} /> Add Record
                     </button>
                 </div>
 
@@ -197,17 +213,17 @@ export default function AdminCertificatesPage() {
                 {/* Filters */}
                 <div className="acert-filters">
                     <div className="acert-search-wrap">
-                        <Search size={13} className="acert-search-icon"/>
+                        <Search size={13} className="acert-search-icon" />
                         <input className="acert-search" placeholder="Name, ID ya certificate no..."
-                            value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}}/>
+                            value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
                     </div>
                     <select className="acert-filter-select" value={filterAuth}
-                        onChange={e=>{setFilterAuth(e.target.value);setPage(1);}}>
+                        onChange={e => { setFilterAuth(e.target.value); setPage(1); }}>
                         <option value="all">All Authorities</option>
-                        {AUTHORITIES.map(a=><option key={a} value={a}>{a}</option>)}
+                        {AUTHORITIES.map(a => <option key={a} value={a}>{a}</option>)}
                     </select>
                     <select className="acert-filter-select" value={filterStat}
-                        onChange={e=>{setFilterStat(e.target.value);setPage(1);}}>
+                        onChange={e => { setFilterStat(e.target.value); setPage(1); }}>
                         <option value="all">All Status</option>
                         <option value="issued">Issued</option>
                         <option value="pending">Pending</option>
@@ -231,9 +247,9 @@ export default function AdminCertificatesPage() {
                             </tr>
                         </thead>
                         <tbody className="acert-tbody">
-                            {paginated.length===0 ? (
+                            {paginated.length === 0 ? (
                                 <tr><td colSpan={8} className="acert-empty-row">
-                                    <Award size={22} style={{opacity:.3,marginBottom:8}}/>
+                                    <Award size={22} style={{ opacity: .3, marginBottom: 8 }} />
                                     <div>No certificates found</div>
                                 </td></tr>
                             ) : paginated.map(c => {
@@ -254,18 +270,18 @@ export default function AdminCertificatesPage() {
                                         <td><span className="acert-certno">{c.certificateNo}</span></td>
                                         <td>
                                             <span className="acert-auth-badge"
-                                                style={{color:auth.color,background:auth.bg,borderColor:auth.border}}>
+                                                style={{ color: auth.color, background: auth.bg, borderColor: auth.border }}>
                                                 {c.authority}
                                             </span>
                                         </td>
                                         <td>
                                             <span className="acert-date">
-                                                {c.issueDate ? new Date(c.issueDate).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"}) : "—"}
+                                                {c.issueDate ? new Date(c.issueDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}
                                             </span>
                                         </td>
                                         <td>
                                             <span className="acert-status-badge"
-                                                style={{color:stat.color,background:stat.bg}}>
+                                                style={{ color: stat.color, background: stat.bg }}>
                                                 {stat.label}
                                             </span>
                                         </td>
@@ -273,14 +289,19 @@ export default function AdminCertificatesPage() {
                                             {c.verifyUrl ? (
                                                 <a href={c.verifyUrl} target="_blank" rel="noreferrer"
                                                     className="acert-verify-link">
-                                                    <ExternalLink size={11}/> Verify
+                                                    <ExternalLink size={11} /> Verify
                                                 </a>
                                             ) : <span className="acert-na">—</span>}
                                         </td>
                                         <td>
-                                            <button className="acert-icon-btn amber" onClick={()=>openEdit(c)}>
-                                                <Edit2 size={11}/>
-                                            </button>
+                                            <div style={{ display: "flex", gap: 5 }}>
+                                                <button className="acert-icon-btn amber" onClick={() => openEdit(c)}>
+                                                    <Edit2 size={11} />
+                                                </button>
+                                                <button className="acert-icon-btn danger" onClick={() => handleDelete(c)}>
+                                                    <Trash2 size={11} />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 );
@@ -289,14 +310,14 @@ export default function AdminCertificatesPage() {
                     </table>
                 </div>
 
-                {totalPages>1 && (
+                {totalPages > 1 && (
                     <div className="acert-pag">
-                        <button className="acert-pag-btn" disabled={page===1} onClick={()=>setPage(p=>p-1)}>
-                            <ChevronLeft size={13}/> Prev
+                        <button className="acert-pag-btn" disabled={page === 1} onClick={() => setPage(p => p - 1)}>
+                            <ChevronLeft size={13} /> Prev
                         </button>
                         <span className="acert-pag-info">Page {page} of {totalPages}</span>
-                        <button className="acert-pag-btn" disabled={page===totalPages} onClick={()=>setPage(p=>p+1)}>
-                            Next <ChevronRight size={13}/>
+                        <button className="acert-pag-btn" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>
+                            Next <ChevronRight size={13} />
                         </button>
                     </div>
                 )}
@@ -304,14 +325,14 @@ export default function AdminCertificatesPage() {
 
             {/* Modal */}
             {modalOpen && (
-                <div className="acert-overlay" onClick={e=>e.target===e.currentTarget&&setModalOpen(false)}>
+                <div className="acert-overlay" onClick={e => e.target === e.currentTarget && setModalOpen(false)}>
                     <div className="acert-modal">
                         <div className="acert-modal-head">
                             <span className="acert-modal-title">
                                 {editCert ? "Edit Certificate Record" : "Add Certificate Record"}
                             </span>
-                            <button className="acert-modal-close" onClick={()=>setModalOpen(false)}>
-                                <X size={13}/>
+                            <button className="acert-modal-close" onClick={() => setModalOpen(false)}>
+                                <X size={13} />
                             </button>
                         </div>
                         <div className="acert-modal-body">
@@ -321,9 +342,9 @@ export default function AdminCertificatesPage() {
                                     <div className="acert-field">
                                         <label className="acert-label">Student</label>
                                         <select className="acert-select" value={form.studentId}
-                                            onChange={e=>handleStudentSelect(e.target.value)}>
+                                            onChange={e => handleStudentSelect(e.target.value)}>
                                             <option value="">-- Student chunno --</option>
-                                            {students.map(s=>(
+                                            {students.map(s => (
                                                 <option key={s._id} value={s._id}>
                                                     {s.name} ({s.studentId})
                                                 </option>
@@ -334,13 +355,13 @@ export default function AdminCertificatesPage() {
                                         <div className="acert-field">
                                             <label className="acert-label">Course / Enrollment</label>
                                             <select className="acert-select" value={form.enrollmentId}
-                                                onChange={e=>{
-                                                    const s=students.find(s=>s._id===form.studentId);
-                                                    const enr=s?.enrollments?.find((en:any)=>en._id===e.target.value);
-                                                    setForm(f=>({...f,enrollmentId:e.target.value,courseId:enr?.course?._id||""}));
+                                                onChange={e => {
+                                                    const s = students.find(s => s._id === form.studentId);
+                                                    const enr = s?.enrollments?.find((en: any) => en._id === e.target.value);
+                                                    setForm(f => ({ ...f, enrollmentId: e.target.value, courseId: enr?.course?._id || "" }));
                                                 }}>
                                                 <option value="">-- Course chunno --</option>
-                                                {students.find(s=>s._id===form.studentId)?.enrollments?.map((e:any)=>(
+                                                {students.find(s => s._id === form.studentId)?.enrollments?.map((e: any) => (
                                                     <option key={e._id} value={e._id}>{e.course?.name}</option>
                                                 ))}
                                             </select>
@@ -354,24 +375,24 @@ export default function AdminCertificatesPage() {
                                     <label className="acert-label">Certificate No. *</label>
                                     <input className="acert-input" placeholder="e.g. DCE/2024/001"
                                         value={form.certificateNo}
-                                        onChange={e=>setForm(f=>({...f,certificateNo:e.target.value}))}/>
+                                        onChange={e => setForm(f => ({ ...f, certificateNo: e.target.value }))} />
                                 </div>
                                 <div className="acert-field">
                                     <label className="acert-label">Authority</label>
                                     <select className="acert-select" value={form.authority}
-                                        onChange={e=>setForm(f=>({...f,authority:e.target.value}))}>
-                                        {AUTHORITIES.map(a=><option key={a} value={a}>{a}</option>)}
+                                        onChange={e => setForm(f => ({ ...f, authority: e.target.value }))}>
+                                        {AUTHORITIES.map(a => <option key={a} value={a}>{a}</option>)}
                                     </select>
                                 </div>
                                 <div className="acert-field">
                                     <label className="acert-label">Issue Date</label>
                                     <input className="acert-input" type="date" value={form.issueDate}
-                                        onChange={e=>setForm(f=>({...f,issueDate:e.target.value}))}/>
+                                        onChange={e => setForm(f => ({ ...f, issueDate: e.target.value }))} />
                                 </div>
                                 <div className="acert-field">
                                     <label className="acert-label">Expiry Date</label>
                                     <input className="acert-input" type="date" value={form.expiryDate}
-                                        onChange={e=>setForm(f=>({...f,expiryDate:e.target.value}))}/>
+                                        onChange={e => setForm(f => ({ ...f, expiryDate: e.target.value }))} />
                                 </div>
                             </div>
 
@@ -379,19 +400,19 @@ export default function AdminCertificatesPage() {
                                 <label className="acert-label">Verify URL</label>
                                 <input className="acert-input" placeholder="https://drishticce.com/verify/..."
                                     value={form.verifyUrl}
-                                    onChange={e=>setForm(f=>({...f,verifyUrl:e.target.value}))}/>
+                                    onChange={e => setForm(f => ({ ...f, verifyUrl: e.target.value }))} />
                             </div>
 
                             <div className="acert-field">
                                 <label className="acert-label">Status</label>
                                 <div className="acert-status-radios">
-                                    {(["issued","pending","revoked"] as CertStatus[]).map(s=>{
+                                    {(["issued", "pending", "revoked"] as CertStatus[]).map(s => {
                                         const sm = STATUS_META[s];
                                         return (
                                             <div key={s}
-                                                className={`acert-radio-btn ${form.status===s?"active":""}`}
-                                                style={form.status===s?{borderColor:sm.color,background:sm.bg,color:sm.color}:{}}
-                                                onClick={()=>setForm(f=>({...f,status:s}))}>
+                                                className={`acert-radio-btn ${form.status === s ? "active" : ""}`}
+                                                style={form.status === s ? { borderColor: sm.color, background: sm.bg, color: sm.color } : {}}
+                                                onClick={() => setForm(f => ({ ...f, status: s }))}>
                                                 {sm.label}
                                             </div>
                                         );
@@ -403,13 +424,13 @@ export default function AdminCertificatesPage() {
                                 <label className="acert-label">Remarks</label>
                                 <input className="acert-input" placeholder="Optional note"
                                     value={form.remarks}
-                                    onChange={e=>setForm(f=>({...f,remarks:e.target.value}))}/>
+                                    onChange={e => setForm(f => ({ ...f, remarks: e.target.value }))} />
                             </div>
 
                             <div className="acert-modal-footer">
-                                <button className="acert-ghost-btn" onClick={()=>setModalOpen(false)}>Cancel</button>
+                                <button className="acert-ghost-btn" onClick={() => setModalOpen(false)}>Cancel</button>
                                 <button className="acert-amber-btn" onClick={handleSave} disabled={saving}>
-                                    {saving?"Saving...":editCert?"Update Record":"Add Record"}
+                                    {saving ? "Saving..." : editCert ? "Update Record" : "Add Record"}
                                 </button>
                             </div>
                         </div>
@@ -479,6 +500,8 @@ const acertStyles = `
     .acert-icon-btn { width:27px; height:27px; border-radius:7px; border:1px solid; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .13s; }
     .acert-icon-btn.amber { background:var(--cp-accent-glow); color:var(--cp-accent); border-color:color-mix(in srgb,var(--cp-accent) 25%,transparent); }
     .acert-icon-btn.amber:hover { background:color-mix(in srgb,var(--cp-accent) 20%,transparent); }
+    .acert-icon-btn.danger { background:rgba(239,68,68,0.08); color:var(--cp-danger); border-color:rgba(239,68,68,0.2); }
+    .acert-icon-btn.danger:hover { background:rgba(239,68,68,0.18); }
 
     .acert-empty-row { text-align:center; padding:48px 0 !important; color:var(--cp-muted); font-size:13px; }
 

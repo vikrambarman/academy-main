@@ -99,3 +99,48 @@ export async function PATCH(
         return NextResponse.json({ message: "Server error" }, { status: 500 });
     }
 }
+
+
+export async function DELETE(
+    req: NextRequest,
+    context: { params: Promise<{ id: string }> }
+) {
+    try {
+        await connectDB();
+
+        const user: any = await verifyUser();
+        if (user.role !== "admin") {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+        }
+
+        const { id } = await context.params;
+
+        // Certificate dhundo pehle — enrollment ID chahiye
+        const certificate = await Certificate.findById(id);
+        if (!certificate) {
+            return NextResponse.json(
+                { message: "Certificate nahi mila" },
+                { status: 404 }
+            );
+        }
+
+        // ── Enrollment ka certificateStatus reset karo ──────────────────────
+        await Enrollment.findByIdAndUpdate(certificate.enrollment, {
+            certificateStatus: "Not Applied",
+        });
+
+        // ── Certificate delete karo ─────────────────────────────────────────
+        await Certificate.findByIdAndDelete(id);
+
+        return NextResponse.json({
+            message: "Certificate delete ho gaya aur enrollment reset ho gaya",
+        });
+
+    } catch (error: any) {
+        if (error.message === "NO_TOKEN" || error.message === "TOKEN_EXPIRED") {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+        }
+        console.error("CERTIFICATE DELETE ERROR:", error);
+        return NextResponse.json({ message: "Server error" }, { status: 500 });
+    }
+}
