@@ -37,7 +37,7 @@ const STATUS_META: Record<CertStatus,{ label:string; color:string; bg:string }> 
     revoked: { label:"Revoked", color:"#ef4444", bg:"rgba(239,68,68,.1)"   },
 };
 
-const AUTHORITIES = ["Drishti","GSDM","NSDC","DigiLocker","Other"];
+const AUTHORITIES = ["Drishti Computer Education","Gramin Skill Development Mission","NSDC","DigiLocker","Other"];
 
 export default function AdminCertificatesPage() {
     const [certs,      setCerts]      = useState<Certificate[]>([]);

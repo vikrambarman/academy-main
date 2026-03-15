@@ -11,9 +11,14 @@ import {
 
 interface Payment { amount: number; date: string; receiptNo: string; remark?: string; }
 interface Course { _id: string; name: string; authority?: string; verification?: string; }
+interface CertRecord {
+    status: "issued" | "pending" | "revoked";
+    verifyUrl?: string;
+}
 interface Enrollment {
     _id: string; feesTotal: number; feesPaid: number;
     certificateStatus: string; payments: Payment[]; course: Course;
+    certificate?: CertRecord | null;  // ← ADD
 }
 interface DashboardData {
     student: {
@@ -385,8 +390,12 @@ export default function StudentDashboard() {
                                                     <div className="sd-cert-label">Certificate Status</div>
                                                     <CertBadge status={e.certificateStatus} />
                                                 </div>
-                                                {e.course?.verification && (
-                                                    <a href={e.course.verification} target="_blank" rel="noopener noreferrer" className="sd-verify-link">
+                                                {(e.certificate?.verifyUrl || e.course?.verification) && (
+                                                    <a href={e.certificate?.verifyUrl || e.course?.verification}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="sd-verify-link"
+                                                    >
                                                         Verify Certificate <ExternalLink size={11} />
                                                     </a>
                                                 )}

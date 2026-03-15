@@ -3,55 +3,32 @@ import { connectDB } from "@/lib/db";
 import { verifyUser } from "@/lib/verifyUser";
 
 import Student from "@/models/Student";
-import Enrollment from "@/models/Enrollment";
+import Certificate from "@/models/Certificate";
 import "@/models/Course";
+import Enrollment from "@/models/Enrollment";
 
 export async function GET() {
-
     try {
-
         await connectDB();
 
         const user: any = await verifyUser();
 
-        /* ================= AUTH CHECK ================= */
-
         if (!user || user.role !== "student") {
-
-            return NextResponse.json(
-                { message: "Unauthorized" },
-                { status: 403 }
-            );
-
+            return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
         }
 
-        /* ================= FIND STUDENT ================= */
-
-        const student = await Student.findOne({
-            user: user._id,
-        }).lean();
+        const student = await Student.findOne({ user: user._id }).lean();
 
         if (!student) {
-
-            return NextResponse.json(
-                { message: "Student not found" },
-                { status: 404 }
-            );
-
+            return NextResponse.json({ message: "Student not found" }, { status: 404 });
         }
 
         if (!student.isActive) {
-
-            return NextResponse.json(
-                { message: "Account deactivated" },
-                { status: 403 }
-            );
-
+            return NextResponse.json({ message: "Account deactivated" }, { status: 403 });
         }
 
-        /* ================= FETCH ENROLLMENTS ================= */
-
-        const enrollments = await Enrollment.find({ student: student._id })
+        // Enrollments fetch karo
+        const enrollments = await Enrollment.find({ student: (student as any)._id })
             .populate({
                 path: "course",
                 select: "name slug duration authority certificate verification externalPortalUrl externalLoginRequired",
@@ -59,38 +36,44 @@ export async function GET() {
             .select("feesTotal feesPaid certificateStatus payments admissionDate course")
             .lean();
 
-        /* ================= RESPONSE ================= */
+        // ── Certificates fetch karo is student ke liye ──────────────────────
+        const certificates = await Certificate.find({
+            student: (student as any)._id,
+        })
+            .select("enrollment certificateNo authority issueDate expiryDate verifyUrl status remarks")
+            .lean();
+
+        // enrollmentId → certificate map banao
+        const certMap: Record<string, any> = {};
+        for (const cert of certificates) {
+            certMap[(cert as any).enrollment.toString()] = cert;
+        }
+
+        // Har enrollment mein uska certificate attach karo
+        const enrichedEnrollments = enrollments.map((e: any) => ({
+            ...e,
+            certificate: certMap[e._id.toString()] || null,
+        }));
 
         return NextResponse.json({
-
             student: {
-                studentId: student.studentId,
-                name: student.name,
-                email: student.email,
-                phone: student.phone,
-                address: student.address,
-                qualification: student.qualification,
-                courseStatus: student.courseStatus,
-                profileImage: student.profileImage,
+                studentId: (student as any).studentId,
+                name: (student as any).name,
+                email: (student as any).email,
+                phone: (student as any).phone,
+                address: (student as any).address,
+                qualification: (student as any).qualification,
+                courseStatus: (student as any).courseStatus,
+                profileImage: (student as any).profileImage,
             },
-
-            enrollments,
-
+            enrollments: enrichedEnrollments,
         });
 
     } catch (error) {
-
         console.error("STUDENT PROFILE ERROR:", error);
-
-        return NextResponse.json(
-            { message: "Server error" },
-            { status: 500 }
-        );
-
+        return NextResponse.json({ message: "Server error" }, { status: 500 });
     }
-
 }
-
 
 export async function PATCH(req: Request) {
 
