@@ -43,9 +43,9 @@ export async function POST(req: NextRequest) {
         const existing = await User.findOne({ email });
         if (existing) return NextResponse.json({ message: "Yeh email already registered hai" }, { status: 400 });
 
-        // Generate employeeId: TCH-001, TCH-002 ...
+        // Generate employeeId: SCA-TCH-001, SCA-TCH-002 ...
         const count     = await Teacher.countDocuments();
-        const employeeId = `TCH-${String(count + 1).padStart(3, "0")}`;
+        const employeeId = `SCA-TCH-${String(count + 1).padStart(3, "0")}`;
 
         // academyId same as employeeId for teachers
         const hashedPassword = await bcrypt.hash(password, 10);

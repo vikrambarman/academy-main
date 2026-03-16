@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
-import Teacher from "@/models/Teacher";
+import "@/models/Teacher";
 import { generateAccessToken, generateRefreshToken } from "@/lib/auth";
 
 export async function POST(req: Request) {
