@@ -166,7 +166,7 @@ const fmtDate = (d: string) =>
 /* ══════════════════════════════════════════════════
    PDF RECEIPT  (browser print → Save as PDF)
 ══════════════════════════════════════════════════ */
-function downloadReceipt(t: Transaction, academyName = "Academy") {
+function downloadReceipt(t: Transaction, academyName = "Shivshakti Computer Academy") {
     const html = `<!DOCTYPE html>
 <html>
 <head>
