@@ -13,13 +13,15 @@ import { verifyUser } from "@/lib/verifyUser";
 
 export async function GET() {
     try {
+        await connectDB();
         const user: any = await verifyUser();
         if (user.role !== "admin")
             return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
-        
+
         const franchises = await Franchise.find().sort({ createdAt: 1 });
         return NextResponse.json(franchises);
-    } catch {
+    } catch (error) {
+        console.error("GET ERROR:", error);
         return NextResponse.json({ message: "Failed to fetch" }, { status: 500 });
     }
 }

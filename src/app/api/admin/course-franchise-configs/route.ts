@@ -13,10 +13,11 @@ import { verifyUser } from "@/lib/verifyUser";
 
 export async function GET(req: Request) {
     try {
+        await connectDB();
         const user: any = await verifyUser();
         if (user.role !== "admin")
             return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
-        
+
         const { searchParams } = new URL(req.url);
         const courseId = searchParams.get("courseId");
 
@@ -31,7 +32,8 @@ export async function GET(req: Request) {
             .sort({ createdAt: 1 });
 
         return NextResponse.json(configs);
-    } catch {
+    } catch (error) {
+        console.error("GET ERROR:", error);
         return NextResponse.json({ message: "Failed to fetch" }, { status: 500 });
     }
 }

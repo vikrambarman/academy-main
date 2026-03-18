@@ -7,6 +7,7 @@ import { verifyUser } from "@/lib/verifyUser";
 
 // GET /api/admin/enrollments?courseId=xxx
 export async function GET(req: NextRequest) {
+    await connectDB();
     const user: any = await verifyUser();
     if (user.role !== "admin")
         return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
@@ -26,6 +27,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+    await connectDB()
 
     const user: any = await verifyUser();
     if (user.role !== "admin")
