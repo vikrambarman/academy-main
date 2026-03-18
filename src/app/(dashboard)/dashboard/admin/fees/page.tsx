@@ -4,16 +4,20 @@ import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import {
     Search, ChevronLeft, ChevronRight, IndianRupee,
-    ChevronDown, ChevronUp, Plus, Edit2, X, CheckCircle2, AlertCircle
+    ChevronDown, ChevronUp, Plus, Edit2, X, Shield
 } from "lucide-react";
 
 interface Payment {
     _id: string; amount: number; date: string;
     remark?: string; receiptNo?: string;
 }
+interface FranchiseData { _id: string; name: string; code: string; isOwn: boolean; }
 interface Enrollment {
     _id: string; feesTotal: number; feesPaid: number;
-    course: { name: string }; payments: Payment[];
+    course: { name: string };
+    payments: Payment[];
+    franchise?: FranchiseData | null;
+    certType?: { name: string } | null;
 }
 interface StudentFee {
     _id: string; studentId: string; name: string;
@@ -26,21 +30,22 @@ export default function AdminFeesPage() {
     const [search,      setSearch]      = useState("");
     const [page,        setPage]        = useState(1);
     const [expanded,    setExpanded]    = useState<Set<string>>(new Set());
-    const [payForms,    setPayForms]    = useState<Record<string, { amount:string; date:string; remark:string }>>({});
-    const [editPayment, setEditPayment] = useState<Payment & { enrollmentId:string } | null>(null);
-    const [editForm,    setEditForm]    = useState({ amount:"", date:"", remark:"" });
-    const [toast,       setToast]       = useState<{ msg:string; type:"success"|"error" }|null>(null);
+    const [payForms,    setPayForms]    = useState<Record<string, { amount: string; date: string; remark: string }>>({});
+    const [editPayment, setEditPayment] = useState<Payment & { enrollmentId: string } | null>(null);
+    const [editForm,    setEditForm]    = useState({ amount: "", date: "", remark: "" });
+    const [toast,       setToast]       = useState<{ msg: string; type: "success" | "error" } | null>(null);
     const [saving,      setSaving]      = useState(false);
     const LIMIT = 15;
 
-    const showToast = (msg: string, type: "success"|"error") => {
+    const showToast = (msg: string, type: "success" | "error") => {
         setToast({ msg, type });
         setTimeout(() => setToast(null), 3000);
     };
 
     const load = async () => {
         const res = await fetchWithAuth("/api/admin/students");
-        setStudents(await res.json());
+        const d   = await res.json();
+        setStudents(Array.isArray(d) ? d : []);
     };
 
     useEffect(() => { load(); }, []);
@@ -64,7 +69,7 @@ export default function AdminFeesPage() {
             });
             const d = await res.json();
             if (!res.ok) throw new Error(d.message);
-            setPayForms(p => ({ ...p, [eid]: { amount:"", date:"", remark:"" } }));
+            setPayForms(p => ({ ...p, [eid]: { amount: "", date: "", remark: "" } }));
             showToast("Payment add ho gaya ✓", "success");
             load();
         } catch (e: any) { showToast(e.message || "Error", "error"); }
@@ -100,24 +105,19 @@ export default function AdminFeesPage() {
         s.phone?.includes(search)
     );
     const totalPages = Math.ceil(filtered.length / LIMIT) || 1;
-    const paginated  = filtered.slice((page-1)*LIMIT, page*LIMIT);
+    const paginated  = filtered.slice((page - 1) * LIMIT, page * LIMIT);
 
-    // Summary stats
-    const totalExpected  = students.reduce((s, st) => s + st.enrollments?.reduce((a, e) => a + (e.feesTotal||0), 0), 0);
-    const totalCollected = students.reduce((s, st) => s + st.enrollments?.reduce((a, e) => a + (e.feesPaid||0), 0), 0);
+    const totalExpected  = students.reduce((s, st) => s + (st.enrollments?.reduce((a, e) => a + (e.feesTotal || 0), 0) ?? 0), 0);
+    const totalCollected = students.reduce((s, st) => s + (st.enrollments?.reduce((a, e) => a + (e.feesPaid  || 0), 0) ?? 0), 0);
     const totalPending   = totalExpected - totalCollected;
-
     const fmt = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
     return (
         <>
             <style>{afStyles}</style>
-
             {toast && <div className={`af-toast ${toast.type}`}>{toast.msg}</div>}
 
             <div className="af-root">
-
-                {/* Header */}
                 <div className="af-header">
                     <div>
                         <h1 className="af-title">Fee Management</h1>
@@ -125,24 +125,12 @@ export default function AdminFeesPage() {
                     </div>
                 </div>
 
-                {/* Summary KPIs */}
+                {/* KPIs */}
                 <div className="af-kpi-row">
-                    <div className="af-kpi amber">
-                        <div className="af-kpi-label">Total Expected</div>
-                        <div className="af-kpi-val">{fmt(totalExpected)}</div>
-                    </div>
-                    <div className="af-kpi green">
-                        <div className="af-kpi-label">Collected</div>
-                        <div className="af-kpi-val">{fmt(totalCollected)}</div>
-                    </div>
-                    <div className="af-kpi red">
-                        <div className="af-kpi-label">Pending</div>
-                        <div className="af-kpi-val">{fmt(totalPending)}</div>
-                    </div>
-                    <div className="af-kpi muted">
-                        <div className="af-kpi-label">Students</div>
-                        <div className="af-kpi-val">{students.length}</div>
-                    </div>
+                    <div className="af-kpi amber"><div className="af-kpi-label">Total Expected</div><div className="af-kpi-val">{fmt(totalExpected)}</div></div>
+                    <div className="af-kpi green"><div className="af-kpi-label">Collected</div><div className="af-kpi-val">{fmt(totalCollected)}</div></div>
+                    <div className="af-kpi red"><div className="af-kpi-label">Pending</div><div className="af-kpi-val">{fmt(totalPending)}</div></div>
+                    <div className="af-kpi muted"><div className="af-kpi-label">Students</div><div className="af-kpi-val">{students.length}</div></div>
                 </div>
 
                 {/* Search */}
@@ -152,21 +140,19 @@ export default function AdminFeesPage() {
                         value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
                 </div>
 
-                {/* Student fee list */}
-                <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                {/* Student list */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {paginated.length === 0 ? (
                         <div className="af-empty">No students found</div>
                     ) : paginated.map(student => {
-                        const totalFees = student.enrollments?.reduce((a,e) => a+(e.feesTotal||0), 0) || 0;
-                        const totalPaid = student.enrollments?.reduce((a,e) => a+(e.feesPaid||0), 0) || 0;
+                        const totalFees = student.enrollments?.reduce((a, e) => a + (e.feesTotal || 0), 0) || 0;
+                        const totalPaid = student.enrollments?.reduce((a, e) => a + (e.feesPaid  || 0), 0) || 0;
                         const due       = totalFees - totalPaid;
-                        const pct       = totalFees > 0 ? Math.round((totalPaid/totalFees)*100) : 0;
+                        const pct       = totalFees > 0 ? Math.round((totalPaid / totalFees) * 100) : 0;
                         const isOpen    = expanded.has(student._id);
 
                         return (
                             <div key={student._id} className="af-student-card">
-
-                                {/* Row header — click to expand */}
                                 <div className="af-student-row" onClick={() => toggleExpand(student._id)}>
                                     <div className="af-student-left">
                                         <div className="af-avatar">{student.name?.charAt(0).toUpperCase()}</div>
@@ -183,40 +169,63 @@ export default function AdminFeesPage() {
                                             {due > 0 && <span className="af-fee-due">Due {fmt(due)}</span>}
                                         </div>
                                         <div className="af-mini-bar">
-                                            <div className="af-mini-fill" style={{ width:`${pct}%` }}/>
+                                            <div className="af-mini-fill" style={{ width: `${pct}%` }} />
                                         </div>
-                                        <span className="af-pct" style={{ color: pct===100?"#22c55e":pct>50?"#f59e0b":"#ef4444" }}>
+                                        <span className="af-pct" style={{ color: pct === 100 ? "#22c55e" : pct > 50 ? "#f59e0b" : "#ef4444" }}>
                                             {pct}%
                                         </span>
-                                        {isOpen ? <ChevronUp size={14} style={{ color:"#475569" }}/> : <ChevronDown size={14} style={{ color:"#475569" }}/>}
+                                        {isOpen ? <ChevronUp size={14} style={{ color: "#475569" }} /> : <ChevronDown size={14} style={{ color: "#475569" }} />}
                                     </div>
                                 </div>
 
-                                {/* Expanded: enrollments */}
                                 {isOpen && (
                                     <div className="af-enrollments">
                                         {student.enrollments?.map(enr => {
-                                            const ePct  = enr.feesTotal > 0 ? Math.round((enr.feesPaid/enr.feesTotal)*100) : 0;
-                                            const eDue  = (enr.feesTotal||0) - (enr.feesPaid||0);
-                                            const pf    = payForms[enr._id] || { amount:"", date:"", remark:"" };
+                                            const ePct = enr.feesTotal > 0 ? Math.round((enr.feesPaid / enr.feesTotal) * 100) : 0;
+                                            const eDue = (enr.feesTotal || 0) - (enr.feesPaid || 0);
+                                            const pf   = payForms[enr._id] || { amount: "", date: "", remark: "" };
+                                            const franchiseColor = enr.franchise?.isOwn ? "#F59E0B" : "var(--cp-accent)";
 
                                             return (
                                                 <div key={enr._id} className="af-enrollment-block">
-
-                                                    {/* Course header */}
+                                                    {/* Course header with franchise badge */}
                                                     <div className="af-course-head">
-                                                        <span className="af-course-name">{enr.course?.name}</span>
+                                                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                                                            <span className="af-course-name">{enr.course?.name}</span>
+                                                            {/* Franchise badge — new enrollments only */}
+                                                            {enr.franchise && (
+                                                                <span style={{
+                                                                    display: "inline-flex", alignItems: "center", gap: 4,
+                                                                    fontSize: 9, fontWeight: 800,
+                                                                    padding: "2px 8px", borderRadius: 100,
+                                                                    background: enr.franchise.isOwn
+                                                                        ? "rgba(245,158,11,0.12)"
+                                                                        : "rgba(26,86,219,0.1)",
+                                                                    color: franchiseColor,
+                                                                    border: `1px solid ${enr.franchise.isOwn
+                                                                        ? "rgba(245,158,11,0.25)"
+                                                                        : "rgba(26,86,219,0.2)"}`,
+                                                                }}>
+                                                                    <Shield size={8} /> {enr.franchise.code}
+                                                                </span>
+                                                            )}
+                                                            {enr.certType && (
+                                                                <span style={{ fontSize: 10, color: "var(--cp-muted)" }}>
+                                                                    · {enr.certType.name}
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                         <span className="af-enr-stats">
-                                                            <span style={{ color:"#22c55e" }}>{fmt(enr.feesPaid)}</span>
-                                                            <span style={{ color:"#475569" }}> / {fmt(enr.feesTotal)}</span>
-                                                            {eDue > 0 && <span style={{ color:"#ef4444", marginLeft:8 }}>Due {fmt(eDue)}</span>}
+                                                            <span style={{ color: "#22c55e" }}>{fmt(enr.feesPaid)}</span>
+                                                            <span style={{ color: "#475569" }}> / {fmt(enr.feesTotal)}</span>
+                                                            {eDue > 0 && <span style={{ color: "#ef4444", marginLeft: 8 }}>Due {fmt(eDue)}</span>}
                                                         </span>
                                                     </div>
 
                                                     {/* Progress */}
                                                     <div className="af-prog-wrap">
                                                         <div className="af-prog-track">
-                                                            <div className="af-prog-fill" style={{ width:`${ePct}%` }}/>
+                                                            <div className="af-prog-fill" style={{ width: `${ePct}%` }} />
                                                         </div>
                                                         <span className="af-prog-pct">{ePct}%</span>
                                                     </div>
@@ -229,31 +238,31 @@ export default function AdminFeesPage() {
                                                                     <div className="af-pay-left">
                                                                         <span className="af-pay-amt">{fmt(p.amount)}</span>
                                                                         <span className="af-pay-date">
-                                                                            {new Date(p.date).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})}
+                                                                            {new Date(p.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                                                                         </span>
                                                                         {p.remark && <span className="af-pay-remark">{p.remark}</span>}
                                                                         {p.receiptNo && <span className="af-pay-receipt">#{p.receiptNo}</span>}
                                                                     </div>
                                                                     <button className="af-icon-btn amber" onClick={() => openEditPayment(p, enr._id)}>
-                                                                        <Edit2 size={11}/>
+                                                                        <Edit2 size={11} />
                                                                     </button>
                                                                 </div>
                                                             ))}
                                                         </div>
                                                     )}
 
-                                                    {/* Add payment form */}
+                                                    {/* Add payment */}
                                                     <div className="af-add-pay-form">
                                                         <div className="af-add-pay-label">Add Installment</div>
                                                         <div className="af-add-pay-row">
                                                             <input className="af-input" type="number" placeholder="Amount (₹)"
-                                                                value={pf.amount} onChange={e => handlePayChange(enr._id,"amount",e.target.value)}/>
+                                                                value={pf.amount} onChange={e => handlePayChange(enr._id, "amount", e.target.value)} />
                                                             <input className="af-input" type="date"
-                                                                value={pf.date} onChange={e => handlePayChange(enr._id,"date",e.target.value)}/>
+                                                                value={pf.date} onChange={e => handlePayChange(enr._id, "date", e.target.value)} />
                                                             <input className="af-input" placeholder="Remark (optional)"
-                                                                value={pf.remark} onChange={e => handlePayChange(enr._id,"remark",e.target.value)}/>
+                                                                value={pf.remark} onChange={e => handlePayChange(enr._id, "remark", e.target.value)} />
                                                             <button className="af-green-btn" onClick={() => addPayment(enr._id)} disabled={saving}>
-                                                                <Plus size={12}/> Add
+                                                                <Plus size={12} /> Add
                                                             </button>
                                                         </div>
                                                     </div>
@@ -267,15 +276,14 @@ export default function AdminFeesPage() {
                     })}
                 </div>
 
-                {/* Pagination */}
                 {totalPages > 1 && (
                     <div className="af-pag">
-                        <button className="af-pag-btn" disabled={page===1} onClick={()=>setPage(p=>p-1)}>
-                            <ChevronLeft size={13}/> Prev
+                        <button className="af-pag-btn" disabled={page === 1} onClick={() => setPage(p => p - 1)}>
+                            <ChevronLeft size={13} /> Prev
                         </button>
                         <span className="af-pag-info">Page {page} of {totalPages}</span>
-                        <button className="af-pag-btn" disabled={page===totalPages} onClick={()=>setPage(p=>p+1)}>
-                            Next <ChevronRight size={13}/>
+                        <button className="af-pag-btn" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>
+                            Next <ChevronRight size={13} />
                         </button>
                     </div>
                 )}
@@ -283,29 +291,32 @@ export default function AdminFeesPage() {
 
             {/* Edit Payment Modal */}
             {editPayment && (
-                <div className="af-overlay" onClick={e => e.target===e.currentTarget && setEditPayment(null)}>
+                <div className="af-overlay" onClick={e => e.target === e.currentTarget && setEditPayment(null)}>
                     <div className="af-modal">
                         <div className="af-modal-head">
                             <span className="af-modal-title">Edit Payment</span>
-                            <button className="af-modal-close" onClick={() => setEditPayment(null)}><X size={13}/></button>
+                            <button className="af-modal-close" onClick={() => setEditPayment(null)}><X size={13} /></button>
                         </div>
                         <div className="af-modal-body">
                             <div className="af-field">
                                 <label className="af-label">Amount (₹)</label>
-                                <input className="af-input" type="number" value={editForm.amount} onChange={e=>setEditForm(f=>({...f,amount:e.target.value}))}/>
+                                <input className="af-input" type="number" value={editForm.amount}
+                                    onChange={e => setEditForm(f => ({ ...f, amount: e.target.value }))} />
                             </div>
                             <div className="af-field">
                                 <label className="af-label">Date</label>
-                                <input className="af-input" type="date" value={editForm.date} onChange={e=>setEditForm(f=>({...f,date:e.target.value}))}/>
+                                <input className="af-input" type="date" value={editForm.date}
+                                    onChange={e => setEditForm(f => ({ ...f, date: e.target.value }))} />
                             </div>
                             <div className="af-field">
                                 <label className="af-label">Remark</label>
-                                <input className="af-input" placeholder="Optional" value={editForm.remark} onChange={e=>setEditForm(f=>({...f,remark:e.target.value}))}/>
+                                <input className="af-input" placeholder="Optional" value={editForm.remark}
+                                    onChange={e => setEditForm(f => ({ ...f, remark: e.target.value }))} />
                             </div>
                             <div className="af-modal-footer">
-                                <button className="af-ghost-btn" onClick={()=>setEditPayment(null)}>Cancel</button>
+                                <button className="af-ghost-btn" onClick={() => setEditPayment(null)}>Cancel</button>
                                 <button className="af-amber-btn" onClick={saveEditPayment} disabled={saving}>
-                                    {saving?"Saving...":"Save Changes"}
+                                    {saving ? "Saving..." : "Save Changes"}
                                 </button>
                             </div>
                         </div>
@@ -316,18 +327,14 @@ export default function AdminFeesPage() {
     );
 }
 
-// afStyles replace karo:
 const afStyles = `
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap');
-
     .af-root  { font-family:'Plus Jakarta Sans',sans-serif; color:var(--cp-text); display:flex; flex-direction:column; gap:16px; }
     .af-toast { position:fixed; top:16px; right:16px; z-index:999; padding:10px 18px; border-radius:9px; font-size:12px; font-weight:700; font-family:'Plus Jakarta Sans',sans-serif; box-shadow:0 8px 24px rgba(0,0,0,.4); }
     .af-toast.success { background:rgba(34,197,94,0.12); color:var(--cp-success); border:1px solid rgba(34,197,94,0.3); }
-    .af-toast.error   { background:rgba(239,68,68,0.12); color:var(--cp-danger);  border:1px solid rgba(239,68,68,0.3); }
-
-    .af-title  { font-family:'DM Serif Display',serif; font-size:1.6rem; color:var(--cp-text); font-weight:400; }
-    .af-sub    { font-size:12px; color:var(--cp-muted); margin-top:3px; }
-
+    .af-toast.error   { background:rgba(239,68,68,0.12);  color:var(--cp-danger);  border:1px solid rgba(239,68,68,0.3); }
+    .af-title { font-family:'DM Serif Display',serif; font-size:1.6rem; color:var(--cp-text); font-weight:400; }
+    .af-sub   { font-size:12px; color:var(--cp-muted); margin-top:3px; }
     .af-kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
     @media(max-width:700px){ .af-kpi-row { grid-template-columns:repeat(2,1fr); } }
     .af-kpi { background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:10px; padding:14px 16px; }
@@ -337,22 +344,18 @@ const afStyles = `
     .af-kpi.muted { border-left:3px solid var(--cp-muted); }
     .af-kpi-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--cp-muted); margin-bottom:6px; }
     .af-kpi-val   { font-family:'DM Serif Display',serif; font-size:1.3rem; color:var(--cp-text); }
-
     .af-search-wrap { position:relative; max-width:320px; }
     .af-search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--cp-muted); pointer-events:none; }
-    .af-search { font-family:'Plus Jakarta Sans',sans-serif; width:100%; padding:9px 12px 9px 32px; background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:9px; color:var(--cp-text); font-size:13px; outline:none; transition:border-color .15s; }
+    .af-search { font-family:'Plus Jakarta Sans',sans-serif; width:100%; padding:9px 12px 9px 32px; background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:9px; color:var(--cp-text); font-size:13px; outline:none; }
     .af-search:focus { border-color:var(--cp-accent); }
     .af-search::placeholder { color:var(--cp-muted); }
-
     .af-student-card { background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:12px; overflow:hidden; }
-    .af-student-row { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; cursor:pointer; transition:background .13s; gap:12px; flex-wrap:wrap; }
+    .af-student-row  { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; cursor:pointer; transition:background .13s; gap:12px; flex-wrap:wrap; }
     .af-student-row:hover { background:var(--cp-accent-glow); }
-
-    .af-student-left { display:flex; align-items:center; gap:12px; }
-    .af-avatar { width:36px; height:36px; border-radius:50%; flex-shrink:0; background:var(--cp-accent); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; }
-    .af-student-name { font-size:13px; font-weight:700; color:var(--cp-text); }
-    .af-student-meta { font-size:11px; color:var(--cp-muted); margin-top:1px; }
-
+    .af-student-left  { display:flex; align-items:center; gap:12px; }
+    .af-avatar        { width:36px; height:36px; border-radius:50%; flex-shrink:0; background:var(--cp-accent); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; }
+    .af-student-name  { font-size:13px; font-weight:700; color:var(--cp-text); }
+    .af-student-meta  { font-size:11px; color:var(--cp-muted); margin-top:1px; }
     .af-student-right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
     .af-fee-summary { display:flex; align-items:center; gap:4px; font-size:12px; }
     .af-fee-paid  { font-weight:700; color:var(--cp-success); }
@@ -362,20 +365,16 @@ const afStyles = `
     .af-mini-bar  { width:70px; height:4px; background:var(--cp-border); border-radius:100px; overflow:hidden; }
     .af-mini-fill { height:100%; background:linear-gradient(90deg, var(--cp-accent), var(--cp-success)); border-radius:100px; transition:width .4s ease; }
     .af-pct { font-size:11px; font-weight:700; }
-
     .af-enrollments { border-top:1px solid var(--cp-border); }
     .af-enrollment-block { padding:16px 18px; border-bottom:1px solid var(--cp-border); }
     .af-enrollment-block:last-child { border-bottom:none; }
-
-    .af-course-head  { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; flex-wrap:wrap; gap:6px; }
-    .af-course-name  { font-size:12px; font-weight:700; color:var(--cp-subtext); text-transform:uppercase; letter-spacing:.06em; }
-    .af-enr-stats    { font-size:12px; }
-
+    .af-course-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; flex-wrap:wrap; gap:6px; }
+    .af-course-name { font-size:12px; font-weight:700; color:var(--cp-subtext); text-transform:uppercase; letter-spacing:.06em; }
+    .af-enr-stats { font-size:12px; }
     .af-prog-wrap  { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
     .af-prog-track { flex:1; height:5px; background:var(--cp-border); border-radius:100px; overflow:hidden; }
     .af-prog-fill  { height:100%; background:linear-gradient(90deg, var(--cp-accent), var(--cp-success)); border-radius:100px; transition:width .4s; }
     .af-prog-pct   { font-size:10px; font-weight:700; color:var(--cp-muted); flex-shrink:0; }
-
     .af-payment-list { background:var(--cp-bg); border:1px solid var(--cp-border); border-radius:8px; overflow:hidden; margin-bottom:12px; }
     .af-payment-row  { display:flex; align-items:center; justify-content:space-between; padding:9px 12px; border-bottom:1px solid var(--cp-border); transition:background .12s; }
     .af-payment-row:last-child { border-bottom:none; }
@@ -385,37 +384,28 @@ const afStyles = `
     .af-pay-date    { font-size:11px; color:var(--cp-muted); }
     .af-pay-remark  { font-size:11px; color:var(--cp-subtext); }
     .af-pay-receipt { font-size:10px; color:var(--cp-border2); font-family:monospace; }
-
     .af-add-pay-form  { background:var(--cp-bg); border:1px solid var(--cp-border); border-radius:8px; padding:12px; }
     .af-add-pay-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--cp-border2); margin-bottom:8px; }
     .af-add-pay-row   { display:flex; flex-wrap:wrap; gap:8px; align-items:flex-end; }
     .af-add-pay-row .af-input { flex:1; min-width:120px; }
-
     .af-field { display:flex; flex-direction:column; gap:5px; }
     .af-label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--cp-muted); }
     .af-input { font-family:'Plus Jakarta Sans',sans-serif; padding:8px 11px; font-size:12px; background:var(--cp-bg); border:1px solid var(--cp-border); border-radius:8px; color:var(--cp-text); outline:none; transition:border-color .15s; width:100%; }
     .af-input:focus { border-color:var(--cp-accent); }
     .af-input::placeholder { color:var(--cp-border2); }
-
-    .af-green-btn { display:inline-flex; align-items:center; gap:5px; padding:8px 14px; border-radius:8px; border:1px solid rgba(34,197,94,0.3); background:rgba(34,197,94,0.1); color:var(--cp-success); font-size:12px; font-weight:700; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; white-space:nowrap; transition:all .14s; }
-    .af-green-btn:hover { background:rgba(34,197,94,0.2); }
+    .af-green-btn { display:inline-flex; align-items:center; gap:5px; padding:8px 14px; border-radius:8px; border:1px solid rgba(34,197,94,0.3); background:rgba(34,197,94,0.1); color:var(--cp-success); font-size:12px; font-weight:700; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; white-space:nowrap; }
     .af-green-btn:disabled { opacity:.5; cursor:not-allowed; }
-    .af-amber-btn { padding:9px 18px; border-radius:8px; border:none; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; font-size:12px; font-weight:700; background:var(--cp-accent); color:#fff; transition:opacity .15s; }
+    .af-amber-btn { padding:9px 18px; border-radius:8px; border:none; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; font-size:12px; font-weight:700; background:var(--cp-accent); color:#fff; }
     .af-amber-btn:disabled { opacity:.5; cursor:not-allowed; }
     .af-ghost-btn { padding:9px 16px; border-radius:8px; border:1px solid var(--cp-border); background:transparent; color:var(--cp-muted); font-size:12px; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; }
-    .af-ghost-btn:hover { border-color:var(--cp-border2); color:var(--cp-subtext); }
     .af-icon-btn { width:26px; height:26px; border-radius:7px; border:1px solid; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .13s; flex-shrink:0; }
     .af-icon-btn.amber { background:var(--cp-accent-glow); color:var(--cp-accent); border-color:color-mix(in srgb,var(--cp-accent) 25%,transparent); }
-    .af-icon-btn.amber:hover { background:color-mix(in srgb,var(--cp-accent) 20%,transparent); }
-
     .af-pag     { display:flex; align-items:center; justify-content:center; gap:10px; }
-    .af-pag-btn { display:flex; align-items:center; gap:4px; padding:6px 14px; border-radius:8px; border:1px solid var(--cp-border); background:var(--cp-surface); color:var(--cp-subtext); font-size:12px; font-weight:500; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all .14s; }
+    .af-pag-btn { display:flex; align-items:center; gap:4px; padding:6px 14px; border-radius:8px; border:1px solid var(--cp-border); background:var(--cp-surface); color:var(--cp-subtext); font-size:12px; font-weight:500; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; }
     .af-pag-btn:hover:not(:disabled) { border-color:var(--cp-accent); color:var(--cp-accent); }
     .af-pag-btn:disabled { opacity:.35; cursor:not-allowed; }
     .af-pag-info { font-size:12px; color:var(--cp-muted); }
-
     .af-empty { background:var(--cp-surface); border:1px dashed var(--cp-border); border-radius:12px; padding:40px; text-align:center; font-size:13px; color:var(--cp-muted); }
-
     .af-overlay { position:fixed; inset:0; background:rgba(0,0,0,.72); backdrop-filter:blur(4px); z-index:60; display:flex; align-items:center; justify-content:center; padding:20px; }
     .af-modal   { background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:14px; width:100%; max-width:400px; box-shadow:0 24px 60px rgba(0,0,0,.5); animation:afIn .18s ease; }
     @keyframes afIn { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }

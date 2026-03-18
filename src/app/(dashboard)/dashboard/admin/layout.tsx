@@ -7,7 +7,7 @@ import {
     LayoutDashboard, Users, BookOpen, BarChart3,
     FileText, Settings, LogOut, Menu, Notebook,
     IndianRupee, Award, CalendarDays, Clock,
-    ChevronRight, Bell,
+    ChevronRight, Bell, Shield, Settings2
 } from "lucide-react";
 import AuthGuard from "@/components/AuthGaurd";
 import { PortalThemeToggle } from "@/components/ThemeToggle";
@@ -22,19 +22,27 @@ const menuSections = [
     {
         title: "MANAGEMENT",
         items: [
-            { name: "Students", href: "/dashboard/admin/students", icon: Users },
-            { name: "Teachers", href: "/dashboard/admin/teachers", icon: Users },
-            { name: "Courses", href: "/dashboard/admin/courses", icon: BookOpen },
-            { name: "Enrollments", href: "/dashboard/admin/enroll", icon: Users },
-            { name: "Fees", href: "/dashboard/admin/fees", icon: IndianRupee },
-            { name: "Certificates", href: "/dashboard/admin/certificates", icon: Award },
-            { name: "Notices", href: "/dashboard/admin/notices", icon: Bell },
-            { name: "Enquiries", href: "/dashboard/admin/enquiries", icon: BarChart3 },
-            { name: "Contacts", href: "/dashboard/admin/contacts", icon: Users },
-            { name: "Notes", href: "/dashboard/admin/notes", icon: Notebook },
-            { name: "Study Notes", href: "/dashboard/admin/study", icon: BookOpen },
-            { name: "Attendance", href: "/dashboard/admin/attendance", icon: CalendarDays },
-            { name: "Timetable", href: "/dashboard/admin/timetable", icon: Clock },
+            { name: "Students",     href: "/dashboard/admin/students",     icon: Users        },
+            { name: "Teachers",     href: "/dashboard/admin/teachers",     icon: Users        },
+            { name: "Courses",      href: "/dashboard/admin/courses",      icon: BookOpen     },
+            { name: "Enrollments",  href: "/dashboard/admin/enroll",       icon: Users        },
+            { name: "Fees",         href: "/dashboard/admin/fees",         icon: IndianRupee  },
+            { name: "Certificates", href: "/dashboard/admin/certificates", icon: Award        },
+            { name: "Notices",      href: "/dashboard/admin/notices",      icon: Bell         },
+            { name: "Enquiries",    href: "/dashboard/admin/enquiries",    icon: BarChart3    },
+            { name: "Contacts",     href: "/dashboard/admin/contacts",     icon: Users        },
+            { name: "Notes",        href: "/dashboard/admin/notes",        icon: Notebook     },
+            { name: "Study Notes",  href: "/dashboard/admin/study",        icon: BookOpen     },
+            { name: "Attendance",   href: "/dashboard/admin/attendance",   icon: CalendarDays },
+            { name: "Timetable",    href: "/dashboard/admin/timetable",    icon: Clock        },
+        ],
+    },
+    {
+        // NEW SECTION
+        title: "FRANCHISE",
+        items: [
+            { name: "Franchises",    href: "/dashboard/admin/franchises",    icon: Shield    },
+            { name: "Course Config", href: "/dashboard/admin/course-configs", icon: Settings2 },
         ],
     },
     {

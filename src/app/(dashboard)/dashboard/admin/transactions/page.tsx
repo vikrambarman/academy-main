@@ -5,125 +5,8 @@ import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import {
     Search, ChevronLeft, ChevronRight, IndianRupee,
     Download, RefreshCw, FileText, X, Filter, TrendingUp,
-    Users, Calendar, Receipt
+    Users, Calendar, Receipt, Shield
 } from "lucide-react";
-
-/* ══════════════════════════════════════════════════
-   STYLES  (defined first so JSX can reference txStyles)
-══════════════════════════════════════════════════ */
-const txStyles = `
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap');
-
-.tx-root  { font-family:'Plus Jakarta Sans',sans-serif; color:var(--cp-text); display:flex; flex-direction:column; gap:16px; }
-.tx-toast { position:fixed; top:16px; right:16px; z-index:999; padding:10px 18px; border-radius:9px; font-size:12px; font-weight:700; font-family:'Plus Jakarta Sans',sans-serif; box-shadow:0 8px 24px rgba(0,0,0,.4); }
-.tx-toast.success { background:rgba(34,197,94,0.12);  color:var(--cp-success); border:1px solid rgba(34,197,94,.3); }
-.tx-toast.error   { background:rgba(239,68,68,0.12);  color:var(--cp-danger);  border:1px solid rgba(239,68,68,.3); }
-
-.tx-header { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px; }
-.tx-title  { font-family:'DM Serif Display',serif; font-size:1.6rem; color:var(--cp-text); font-weight:400; }
-.tx-sub    { font-size:12px; color:var(--cp-muted); margin-top:3px; }
-
-.tx-ghost-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:9px; border:1px solid var(--cp-border); background:var(--cp-surface); color:var(--cp-subtext); font-size:12px; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all .14s; position:relative; }
-.tx-ghost-btn:hover { border-color:var(--cp-accent); color:var(--cp-accent); }
-.tx-filter-dot { position:absolute; top:6px; right:6px; width:6px; height:6px; border-radius:50%; background:var(--cp-accent); }
-.tx-amber-btn  { display:inline-flex; align-items:center; gap:7px; padding:9px 18px; border-radius:8px; border:none; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; font-size:12px; font-weight:700; background:var(--cp-accent); color:#fff; }
-.tx-amber-btn:hover { opacity:.9; }
-.tx-clear-btn  { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; border-radius:7px; border:1px solid rgba(239,68,68,.25); background:rgba(239,68,68,.07); color:var(--cp-danger); font-size:11px; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all .14s; margin-top:4px; }
-.tx-clear-btn:hover { background:rgba(239,68,68,.15); }
-
-.tx-kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
-@media(max-width:700px){ .tx-kpi-row { grid-template-columns:repeat(2,1fr); } }
-.tx-kpi { background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:10px; padding:14px 16px; display:flex; align-items:center; gap:12px; }
-.tx-kpi.green  { border-left:3px solid var(--cp-success); }
-.tx-kpi.amber  { border-left:3px solid var(--cp-warning); }
-.tx-kpi.blue   { border-left:3px solid #60a5fa; }
-.tx-kpi.purple { border-left:3px solid #a78bfa; }
-.tx-kpi-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-.tx-kpi.green  .tx-kpi-icon { background:rgba(34,197,94,.1);   color:var(--cp-success); }
-.tx-kpi.amber  .tx-kpi-icon { background:rgba(245,158,11,.1);  color:var(--cp-warning); }
-.tx-kpi.blue   .tx-kpi-icon { background:rgba(96,165,250,.1);  color:#60a5fa; }
-.tx-kpi.purple .tx-kpi-icon { background:rgba(167,139,250,.1); color:#a78bfa; }
-.tx-kpi-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--cp-muted); margin-bottom:4px; }
-.tx-kpi-val   { font-family:'DM Serif Display',serif; font-size:1.25rem; color:var(--cp-text); }
-
-.tx-filter-panel { background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:12px; padding:16px; }
-.tx-filter-grid  { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:10px; }
-.tx-filter-field { display:flex; flex-direction:column; gap:5px; }
-.tx-filter-label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--cp-muted); }
-.tx-input { font-family:'Plus Jakarta Sans',sans-serif; padding:8px 11px; font-size:12px; background:var(--cp-bg); border:1px solid var(--cp-border); border-radius:8px; color:var(--cp-text); outline:none; transition:border-color .15s; width:100%; }
-.tx-input:focus { border-color:var(--cp-accent); box-shadow:0 0 0 3px var(--cp-accent-glow); }
-.tx-input::placeholder { color:var(--cp-border2); }
-.tx-input option { background:var(--cp-surface); }
-.tx-search-wrap { position:relative; }
-.tx-search-icon { position:absolute; left:9px; top:50%; transform:translateY(-50%); color:var(--cp-muted); pointer-events:none; }
-
-.tx-result-bar { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--cp-muted); padding:8px 14px; background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:9px; }
-.tx-result-sep { color:var(--cp-border2); }
-
-.tx-table-wrap { background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:12px; overflow:hidden; overflow-x:auto; }
-.tx-table      { width:100%; border-collapse:collapse; font-size:12.5px; min-width:760px; }
-.tx-thead tr   { background:var(--cp-surface2); }
-.tx-thead th   { padding:11px 14px; text-align:left; font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--cp-muted); white-space:nowrap; }
-.tx-tbody .tx-row { border-top:1px solid var(--cp-border); transition:background .12s; }
-.tx-tbody .tx-row:hover { background:var(--cp-accent-glow2); }
-.tx-tbody td   { padding:11px 14px; vertical-align:middle; }
-
-.tx-receipt-no   { font-family:monospace; font-size:11px; color:var(--cp-accent); }
-.tx-student-cell { display:flex; align-items:center; gap:9px; }
-.tx-avatar       { width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,var(--cp-accent),#3B82F6); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; flex-shrink:0; }
-.tx-student-name { font-size:12.5px; font-weight:600; color:var(--cp-text); }
-.tx-student-id   { font-size:10px; color:var(--cp-muted); }
-.tx-course       { font-size:12px; color:var(--cp-subtext); }
-.tx-date-cell    { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--cp-muted); }
-.tx-amount       { font-weight:700; color:var(--cp-success); font-size:13px; }
-.tx-balance-cell { display:flex; flex-direction:column; gap:4px; min-width:80px; }
-.tx-pending      { font-size:11px; color:var(--cp-danger); font-weight:600; }
-.tx-clear        { font-size:11px; color:var(--cp-success); font-weight:700; }
-.tx-progress-bar { height:3px; background:var(--cp-border); border-radius:100px; overflow:hidden; }
-.tx-progress-fill{ height:100%; border-radius:100px; transition:width .3s; }
-.tx-status-badge { font-size:10px; font-weight:700; padding:3px 9px; border-radius:100px; }
-.tx-action-btn   { width:28px; height:28px; border-radius:7px; border:1px solid var(--cp-accent-glow); background:var(--cp-accent-glow2); color:var(--cp-accent); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .13s; }
-.tx-action-btn:hover { background:var(--cp-accent-glow); }
-
-.tx-empty   { text-align:center; padding:48px 0 !important; color:var(--cp-muted); font-size:13px; }
-.tx-loading { display:flex; align-items:center; gap:10px; padding:40px; justify-content:center; color:var(--cp-muted); font-size:13px; }
-.tx-spinner { width:18px; height:18px; border:2px solid var(--cp-border); border-top-color:var(--cp-accent); border-radius:50%; animation:txSpin .7s linear infinite; }
-@keyframes txSpin { to{ transform:rotate(360deg) } }
-
-.tx-pag      { display:flex; align-items:center; justify-content:center; gap:10px; }
-.tx-pag-btn  { display:flex; align-items:center; gap:4px; padding:6px 14px; border-radius:8px; border:1px solid var(--cp-border); background:var(--cp-surface); color:var(--cp-subtext); font-size:12px; font-weight:500; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all .14s; }
-.tx-pag-btn:hover:not(:disabled) { border-color:var(--cp-accent); color:var(--cp-accent); }
-.tx-pag-btn:disabled { opacity:.35; cursor:not-allowed; }
-.tx-pag-info { font-size:12px; color:var(--cp-muted); }
-
-.tx-overlay  { position:fixed; inset:0; background:rgba(0,0,0,.72); backdrop-filter:blur(4px); z-index:60; display:flex; align-items:center; justify-content:center; padding:20px; }
-.tx-modal    { background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:14px; width:100%; max-width:460px; max-height:90vh; overflow-y:auto; box-shadow:0 24px 60px rgba(0,0,0,.6); animation:txIn .18s ease; scrollbar-width:thin; scrollbar-color:var(--cp-border) transparent; }
-@keyframes txIn { from{opacity:0;transform:scale(.96)} to{opacity:1;transform:scale(1)} }
-.tx-modal-head  { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--cp-border); position:sticky; top:0; background:var(--cp-surface); z-index:2; }
-.tx-modal-title { font-family:'DM Serif Display',serif; font-size:1rem; color:var(--cp-text); }
-.tx-modal-close { width:26px; height:26px; border-radius:7px; border:1px solid var(--cp-border); background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--cp-muted); }
-.tx-modal-close:hover { background:var(--cp-surface2); color:var(--cp-text); }
-.tx-modal-body   { padding:18px; display:flex; flex-direction:column; gap:14px; }
-.tx-modal-footer { display:flex; justify-content:flex-end; gap:8px; }
-
-.tx-receipt-card   { background:var(--cp-surface2); border:1px solid var(--cp-border); border-radius:12px; overflow:hidden; }
-.tx-receipt-top    { display:flex; align-items:flex-start; justify-content:space-between; padding:18px; border-bottom:1px solid var(--cp-border); }
-.tx-receipt-no-big { font-family:monospace; font-size:12px; color:var(--cp-accent); margin-bottom:6px; }
-.tx-receipt-amount { font-family:'DM Serif Display',serif; font-size:1.8rem; color:var(--cp-text); }
-.tx-receipt-badge  { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; padding:4px 10px; border-radius:100px; background:var(--cp-accent-glow); color:var(--cp-accent); border:1px solid var(--cp-accent-glow); white-space:nowrap; margin-top:4px; }
-.tx-receipt-grid   { display:grid; grid-template-columns:1fr 1fr; }
-.tx-receipt-cell   { padding:12px 18px; border-right:1px solid var(--cp-border); border-bottom:1px solid var(--cp-border); }
-.tx-receipt-cell:nth-child(2n)        { border-right:none; }
-.tx-receipt-cell:nth-last-child(-n+2) { border-bottom:none; }
-.tx-rc-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--cp-muted); margin-bottom:3px; }
-.tx-rc-val   { font-size:12px; font-weight:600; color:var(--cp-text); }
-.tx-receipt-fees   { padding:14px 18px; border-top:1px solid var(--cp-border); display:flex; flex-direction:column; gap:6px; }
-.tx-fee-row        { display:flex; justify-content:space-between; font-size:12px; color:var(--cp-muted); }
-.tx-fee-row.green     { color:var(--cp-success); }
-.tx-fee-row.red       { color:var(--cp-danger); }
-.tx-fee-row.highlight { border-top:1px solid var(--cp-border); margin-top:4px; padding-top:10px; font-weight:700; font-size:13px; color:var(--cp-accent); }
-.tx-receipt-remark    { padding:10px 18px; background:var(--cp-accent-glow2); border-top:1px solid var(--cp-border); font-size:11px; color:var(--cp-subtext); }
-`;
 
 /* ══════════════════════════════════════════════════
    TYPES
@@ -143,15 +26,16 @@ interface Transaction {
     feesTotal: number;
     feesPaid: number;
     feesPending: number;
+    // New franchise fields (null for old transactions)
+    franchiseCode?: string | null;
+    franchiseName?: string | null;
+    franchiseIsOwn?: boolean;
 }
 
 interface Summary {
-    filteredCount: number;
-    filteredAmount: number;
-    allCount: number;
-    allAmount: number;
-    monthAmount: number;
-    uniquePayers: number;
+    filteredCount: number; filteredAmount: number;
+    allCount: number; allAmount: number;
+    monthAmount: number; uniquePayers: number;
 }
 
 interface Course { _id: string; name: string; }
@@ -164,9 +48,13 @@ const fmtDate = (d: string) =>
     new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 
 /* ══════════════════════════════════════════════════
-   PDF RECEIPT  (browser print → Save as PDF)
+   PDF RECEIPT
 ══════════════════════════════════════════════════ */
 function downloadReceipt(t: Transaction, academyName = "Shivshakti Computer Academy") {
+    const franchiseLine = t.franchiseName
+        ? `<div class="info-cell"><div class="info-label">Franchise / Program</div><div class="info-val">${t.franchiseName}${t.franchiseCode ? ` (${t.franchiseCode})` : ""}</div></div>`
+        : "";
+
     const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -188,6 +76,7 @@ function downloadReceipt(t: Transaction, academyName = "Shivshakti Computer Acad
   .info-cell:nth-last-child(-n+2){border-bottom:none}
   .info-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#94a3b8;margin-bottom:4px}
   .info-val{font-size:13px;font-weight:600;color:#0f172a}
+  .franchise-badge{display:inline-block;font-size:10px;font-weight:800;padding:2px 8px;border-radius:4px;background:#1A56DB;color:#fff;margin-top:3px}
   .fee-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:18px;margin-bottom:24px}
   .fee-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px;color:#475569}
   .fee-row.paid-total{color:#16a34a}
@@ -211,6 +100,7 @@ function downloadReceipt(t: Transaction, academyName = "Shivshakti Computer Acad
     <div class="info-cell"><div class="info-label">Student ID</div><div class="info-val">${t.studentId}</div></div>
     <div class="info-cell"><div class="info-label">Course</div><div class="info-val">${t.courseName}</div></div>
     <div class="info-cell"><div class="info-label">Payment Date</div><div class="info-val">${fmtDate(t.date)}</div></div>
+    ${franchiseLine}
   </div>
   <div class="fee-box">
     <div class="fee-row"><span>Total Course Fees</span><span>${fmt(t.feesTotal)}</span></div>
@@ -285,8 +175,8 @@ export default function AdminTransactionsPage() {
 
     useEffect(() => {
         fetchWithAuth("/api/admin/courses")
-            .then((r) => r.json())
-            .then((d) => setCourses(Array.isArray(d) ? d : []))
+            .then(r => r.json())
+            .then(d => setCourses(Array.isArray(d) ? d : []))
             .catch(() => {});
     }, []);
 
@@ -297,7 +187,6 @@ export default function AdminTransactionsPage() {
     return (
         <>
             <style>{txStyles}</style>
-
             {toast && <div className={`tx-toast ${toast.type}`}>{toast.msg}</div>}
 
             <div className="tx-root">
@@ -310,8 +199,7 @@ export default function AdminTransactionsPage() {
                     </div>
                     <div style={{ display: "flex", gap: 8 }}>
                         <button className="tx-ghost-btn" onClick={() => setShowFilter(f => !f)}>
-                            <Filter size={13} />
-                            Filters
+                            <Filter size={13} /> Filters
                             {hasFilters && <span className="tx-filter-dot" />}
                         </button>
                         <button className="tx-ghost-btn" onClick={load}>
@@ -360,39 +248,33 @@ export default function AdminTransactionsPage() {
                                 <label className="tx-filter-label">Search</label>
                                 <div className="tx-search-wrap">
                                     <Search size={12} className="tx-search-icon" />
-                                    <input
-                                        className="tx-input"
-                                        style={{ paddingLeft: 30 }}
+                                    <input className="tx-input" style={{ paddingLeft: 30 }}
                                         placeholder="Name, ID, receipt no..."
-                                        value={search}
-                                        onChange={(e) => setSearch(e.target.value)}
-                                    />
+                                        value={search} onChange={e => setSearch(e.target.value)} />
                                 </div>
                             </div>
                             <div className="tx-filter-field">
                                 <label className="tx-filter-label">Course</label>
                                 <select className="tx-input" value={course}
-                                    onChange={(e) => setCourse(e.target.value)}>
+                                    onChange={e => setCourse(e.target.value)}>
                                     <option value="">All Courses</option>
-                                    {courses.map((c) => (
-                                        <option key={c._id} value={c._id}>{c.name}</option>
-                                    ))}
+                                    {courses.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
                                 </select>
                             </div>
                             <div className="tx-filter-field">
                                 <label className="tx-filter-label">From Date</label>
                                 <input className="tx-input" type="date" value={dateFrom}
-                                    onChange={(e) => setDateFrom(e.target.value)} />
+                                    onChange={e => setDateFrom(e.target.value)} />
                             </div>
                             <div className="tx-filter-field">
                                 <label className="tx-filter-label">To Date</label>
                                 <input className="tx-input" type="date" value={dateTo}
-                                    onChange={(e) => setDateTo(e.target.value)} />
+                                    onChange={e => setDateTo(e.target.value)} />
                             </div>
                             <div className="tx-filter-field">
                                 <label className="tx-filter-label">Payment Status</label>
                                 <select className="tx-input" value={status}
-                                    onChange={(e) => setStatus(e.target.value)}>
+                                    onChange={e => setStatus(e.target.value)}>
                                     <option value="all">All</option>
                                     <option value="paid">Fully Paid</option>
                                     <option value="partial">Partially Paid</option>
@@ -451,24 +333,21 @@ export default function AdminTransactionsPage() {
                                             <div>Koi transaction nahi mila</div>
                                         </td>
                                     </tr>
-                                ) : paginated.map((t) => {
+                                ) : paginated.map(t => {
                                     const pctPaid     = t.feesTotal > 0 ? Math.round((t.feesPaid / t.feesTotal) * 100) : 100;
                                     const isPaid      = t.feesPending === 0;
                                     const isPartial   = t.feesPaid > 0 && t.feesPending > 0;
                                     const statusLabel = isPaid ? "Paid" : isPartial ? "Partial" : "Unpaid";
                                     const statusColor = isPaid ? "#22c55e" : isPartial ? "#f59e0b" : "#ef4444";
                                     const statusBg    = isPaid ? "rgba(34,197,94,.1)" : isPartial ? "rgba(245,158,11,.1)" : "rgba(239,68,68,.1)";
+                                    const franchiseColor = t.franchiseIsOwn ? "#F59E0B" : "var(--cp-accent)";
 
                                     return (
                                         <tr key={t._id} className="tx-row">
-                                            <td>
-                                                <span className="tx-receipt-no">{t.receiptNo}</span>
-                                            </td>
+                                            <td><span className="tx-receipt-no">{t.receiptNo}</span></td>
                                             <td>
                                                 <div className="tx-student-cell">
-                                                    <div className="tx-avatar">
-                                                        {t.studentName.charAt(0).toUpperCase()}
-                                                    </div>
+                                                    <div className="tx-avatar">{t.studentName.charAt(0).toUpperCase()}</div>
                                                     <div>
                                                         <div className="tx-student-name">{t.studentName}</div>
                                                         <div className="tx-student-id">{t.studentId}</div>
@@ -476,7 +355,24 @@ export default function AdminTransactionsPage() {
                                                 </div>
                                             </td>
                                             <td>
-                                                <span className="tx-course">{t.courseName}</span>
+                                                {/* Course + franchise badge */}
+                                                <div>
+                                                    <span className="tx-course">{t.courseName}</span>
+                                                    {t.franchiseCode && (
+                                                        <div style={{ marginTop: 3 }}>
+                                                            <span style={{
+                                                                display: "inline-flex", alignItems: "center", gap: 3,
+                                                                fontSize: 9, fontWeight: 800,
+                                                                padding: "1px 7px", borderRadius: 4,
+                                                                background: t.franchiseIsOwn ? "rgba(245,158,11,0.12)" : "rgba(26,86,219,0.1)",
+                                                                color: franchiseColor,
+                                                                border: `1px solid ${t.franchiseIsOwn ? "rgba(245,158,11,0.25)" : "rgba(26,86,219,0.2)"}`,
+                                                            }}>
+                                                                <Shield size={7} /> {t.franchiseCode}
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td>
                                                 <div className="tx-date-cell">
@@ -484,9 +380,7 @@ export default function AdminTransactionsPage() {
                                                     <span>{fmtDate(t.date)}</span>
                                                 </div>
                                             </td>
-                                            <td>
-                                                <span className="tx-amount">{fmt(t.amount)}</span>
-                                            </td>
+                                            <td><span className="tx-amount">{fmt(t.amount)}</span></td>
                                             <td>
                                                 <div className="tx-balance-cell">
                                                     <span className={t.feesPending > 0 ? "tx-pending" : "tx-clear"}>
@@ -505,8 +399,7 @@ export default function AdminTransactionsPage() {
                                                 </span>
                                             </td>
                                             <td>
-                                                <button className="tx-action-btn"
-                                                    title="Receipt download"
+                                                <button className="tx-action-btn" title="Receipt download"
                                                     onClick={() => setPreview(t)}>
                                                     <Download size={12} />
                                                 </button>
@@ -536,13 +429,11 @@ export default function AdminTransactionsPage() {
                         </button>
                     </div>
                 )}
-
             </div>
 
             {/* Receipt Preview Modal */}
             {preview && (
-                <div className="tx-overlay"
-                    onClick={(e) => e.target === e.currentTarget && setPreview(null)}>
+                <div className="tx-overlay" onClick={e => e.target === e.currentTarget && setPreview(null)}>
                     <div className="tx-modal">
                         <div className="tx-modal-head">
                             <span className="tx-modal-title">Receipt Preview</span>
@@ -551,7 +442,6 @@ export default function AdminTransactionsPage() {
                             </button>
                         </div>
                         <div className="tx-modal-body">
-
                             <div className="tx-receipt-card">
                                 <div className="tx-receipt-top">
                                     <div>
@@ -571,40 +461,45 @@ export default function AdminTransactionsPage() {
                                     </div>
                                     <div className="tx-receipt-cell">
                                         <div className="tx-rc-label">Course</div>
-                                        <div className="tx-rc-val">{preview.courseName}</div>
+                                        <div className="tx-rc-val">
+                                            {preview.courseName}
+                                            {/* Franchise badge in receipt modal */}
+                                            {preview.franchiseCode && (
+                                                <span style={{
+                                                    display: "inline-block", marginLeft: 6,
+                                                    fontSize: 9, fontWeight: 800,
+                                                    padding: "1px 6px", borderRadius: 4,
+                                                    background: preview.franchiseIsOwn ? "#F59E0B" : "var(--cp-accent)",
+                                                    color: "#fff",
+                                                }}>
+                                                    {preview.franchiseCode}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                     <div className="tx-receipt-cell">
                                         <div className="tx-rc-label">Date</div>
                                         <div className="tx-rc-val">{fmtDate(preview.date)}</div>
                                     </div>
+                                    {preview.franchiseName && (
+                                        <div className="tx-receipt-cell" style={{ gridColumn: "1/-1" }}>
+                                            <div className="tx-rc-label">Program / Franchise</div>
+                                            <div className="tx-rc-val">{preview.franchiseName}</div>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="tx-receipt-fees">
-                                    <div className="tx-fee-row">
-                                        <span>Total Fees</span>
-                                        <span>{fmt(preview.feesTotal)}</span>
-                                    </div>
-                                    <div className="tx-fee-row green">
-                                        <span>Paid</span>
-                                        <span>{fmt(preview.feesPaid)}</span>
-                                    </div>
-                                    <div className="tx-fee-row red">
-                                        <span>Pending</span>
-                                        <span>{fmt(preview.feesPending)}</span>
-                                    </div>
-                                    <div className="tx-fee-row highlight">
-                                        <span>This Payment</span>
-                                        <span>{fmt(preview.amount)}</span>
-                                    </div>
+                                    <div className="tx-fee-row"><span>Total Fees</span><span>{fmt(preview.feesTotal)}</span></div>
+                                    <div className="tx-fee-row green"><span>Paid</span><span>{fmt(preview.feesPaid)}</span></div>
+                                    <div className="tx-fee-row red"><span>Pending</span><span>{fmt(preview.feesPending)}</span></div>
+                                    <div className="tx-fee-row highlight"><span>This Payment</span><span>{fmt(preview.amount)}</span></div>
                                 </div>
                                 {preview.remark && (
                                     <div className="tx-receipt-remark">📝 {preview.remark}</div>
                                 )}
                             </div>
-
                             <div className="tx-modal-footer">
-                                <button className="tx-ghost-btn" onClick={() => setPreview(null)}>
-                                    Cancel
-                                </button>
+                                <button className="tx-ghost-btn" onClick={() => setPreview(null)}>Cancel</button>
                                 <button className="tx-amber-btn" onClick={() => downloadReceipt(preview)}>
                                     <Download size={13} /> Download / Print PDF
                                 </button>
@@ -616,3 +511,103 @@ export default function AdminTransactionsPage() {
         </>
     );
 }
+
+const txStyles = `
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap');
+.tx-root  { font-family:'Plus Jakarta Sans',sans-serif; color:var(--cp-text); display:flex; flex-direction:column; gap:16px; }
+.tx-toast { position:fixed; top:16px; right:16px; z-index:999; padding:10px 18px; border-radius:9px; font-size:12px; font-weight:700; font-family:'Plus Jakarta Sans',sans-serif; box-shadow:0 8px 24px rgba(0,0,0,.4); }
+.tx-toast.success { background:rgba(34,197,94,0.12);  color:var(--cp-success); border:1px solid rgba(34,197,94,.3); }
+.tx-toast.error   { background:rgba(239,68,68,0.12);  color:var(--cp-danger);  border:1px solid rgba(239,68,68,.3); }
+.tx-header { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+.tx-title  { font-family:'DM Serif Display',serif; font-size:1.6rem; color:var(--cp-text); font-weight:400; }
+.tx-sub    { font-size:12px; color:var(--cp-muted); margin-top:3px; }
+.tx-ghost-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:9px; border:1px solid var(--cp-border); background:var(--cp-surface); color:var(--cp-subtext); font-size:12px; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all .14s; position:relative; }
+.tx-ghost-btn:hover { border-color:var(--cp-accent); color:var(--cp-accent); }
+.tx-filter-dot { position:absolute; top:6px; right:6px; width:6px; height:6px; border-radius:50%; background:var(--cp-accent); }
+.tx-amber-btn  { display:inline-flex; align-items:center; gap:7px; padding:9px 18px; border-radius:8px; border:none; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; font-size:12px; font-weight:700; background:var(--cp-accent); color:#fff; }
+.tx-amber-btn:hover { opacity:.9; }
+.tx-clear-btn  { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; border-radius:7px; border:1px solid rgba(239,68,68,.25); background:rgba(239,68,68,.07); color:var(--cp-danger); font-size:11px; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; margin-top:4px; }
+.tx-kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+@media(max-width:700px){ .tx-kpi-row { grid-template-columns:repeat(2,1fr); } }
+.tx-kpi { background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:10px; padding:14px 16px; display:flex; align-items:center; gap:12px; }
+.tx-kpi.green  { border-left:3px solid var(--cp-success); }
+.tx-kpi.amber  { border-left:3px solid var(--cp-warning); }
+.tx-kpi.blue   { border-left:3px solid #60a5fa; }
+.tx-kpi.purple { border-left:3px solid #a78bfa; }
+.tx-kpi-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.tx-kpi.green  .tx-kpi-icon { background:rgba(34,197,94,.1);   color:var(--cp-success); }
+.tx-kpi.amber  .tx-kpi-icon { background:rgba(245,158,11,.1);  color:var(--cp-warning); }
+.tx-kpi.blue   .tx-kpi-icon { background:rgba(96,165,250,.1);  color:#60a5fa; }
+.tx-kpi.purple .tx-kpi-icon { background:rgba(167,139,250,.1); color:#a78bfa; }
+.tx-kpi-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--cp-muted); margin-bottom:4px; }
+.tx-kpi-val   { font-family:'DM Serif Display',serif; font-size:1.25rem; color:var(--cp-text); }
+.tx-filter-panel { background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:12px; padding:16px; }
+.tx-filter-grid  { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:10px; }
+.tx-filter-field { display:flex; flex-direction:column; gap:5px; }
+.tx-filter-label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--cp-muted); }
+.tx-input { font-family:'Plus Jakarta Sans',sans-serif; padding:8px 11px; font-size:12px; background:var(--cp-bg); border:1px solid var(--cp-border); border-radius:8px; color:var(--cp-text); outline:none; transition:border-color .15s; width:100%; }
+.tx-input:focus { border-color:var(--cp-accent); }
+.tx-input::placeholder { color:var(--cp-border2); }
+.tx-search-wrap { position:relative; }
+.tx-search-icon { position:absolute; left:9px; top:50%; transform:translateY(-50%); color:var(--cp-muted); pointer-events:none; }
+.tx-result-bar { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--cp-muted); padding:8px 14px; background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:9px; }
+.tx-result-sep { color:var(--cp-border2); }
+.tx-table-wrap { background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:12px; overflow:hidden; overflow-x:auto; }
+.tx-table      { width:100%; border-collapse:collapse; font-size:12.5px; min-width:760px; }
+.tx-thead tr   { background:var(--cp-surface2); }
+.tx-thead th   { padding:11px 14px; text-align:left; font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--cp-muted); white-space:nowrap; }
+.tx-tbody .tx-row { border-top:1px solid var(--cp-border); transition:background .12s; }
+.tx-tbody .tx-row:hover { background:var(--cp-accent-glow2); }
+.tx-tbody td   { padding:11px 14px; vertical-align:middle; }
+.tx-receipt-no   { font-family:monospace; font-size:11px; color:var(--cp-accent); }
+.tx-student-cell { display:flex; align-items:center; gap:9px; }
+.tx-avatar       { width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,var(--cp-accent),#3B82F6); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; flex-shrink:0; }
+.tx-student-name { font-size:12.5px; font-weight:600; color:var(--cp-text); }
+.tx-student-id   { font-size:10px; color:var(--cp-muted); }
+.tx-course       { font-size:12px; color:var(--cp-subtext); }
+.tx-date-cell    { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--cp-muted); }
+.tx-amount       { font-weight:700; color:var(--cp-success); font-size:13px; }
+.tx-balance-cell { display:flex; flex-direction:column; gap:4px; min-width:80px; }
+.tx-pending      { font-size:11px; color:var(--cp-danger); font-weight:600; }
+.tx-clear        { font-size:11px; color:var(--cp-success); font-weight:700; }
+.tx-progress-bar { height:3px; background:var(--cp-border); border-radius:100px; overflow:hidden; }
+.tx-progress-fill{ height:100%; border-radius:100px; transition:width .3s; }
+.tx-status-badge { font-size:10px; font-weight:700; padding:3px 9px; border-radius:100px; }
+.tx-action-btn   { width:28px; height:28px; border-radius:7px; border:1px solid var(--cp-accent-glow); background:var(--cp-accent-glow2); color:var(--cp-accent); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .13s; }
+.tx-action-btn:hover { background:var(--cp-accent-glow); }
+.tx-empty   { text-align:center; padding:48px 0 !important; color:var(--cp-muted); font-size:13px; }
+.tx-loading { display:flex; align-items:center; gap:10px; padding:40px; justify-content:center; color:var(--cp-muted); font-size:13px; }
+.tx-spinner { width:18px; height:18px; border:2px solid var(--cp-border); border-top-color:var(--cp-accent); border-radius:50%; animation:txSpin .7s linear infinite; }
+@keyframes txSpin { to{ transform:rotate(360deg) } }
+.tx-pag      { display:flex; align-items:center; justify-content:center; gap:10px; }
+.tx-pag-btn  { display:flex; align-items:center; gap:4px; padding:6px 14px; border-radius:8px; border:1px solid var(--cp-border); background:var(--cp-surface); color:var(--cp-subtext); font-size:12px; font-weight:500; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all .14s; }
+.tx-pag-btn:hover:not(:disabled) { border-color:var(--cp-accent); color:var(--cp-accent); }
+.tx-pag-btn:disabled { opacity:.35; cursor:not-allowed; }
+.tx-pag-info { font-size:12px; color:var(--cp-muted); }
+.tx-overlay  { position:fixed; inset:0; background:rgba(0,0,0,.72); backdrop-filter:blur(4px); z-index:60; display:flex; align-items:center; justify-content:center; padding:20px; }
+.tx-modal    { background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:14px; width:100%; max-width:460px; max-height:90vh; overflow-y:auto; box-shadow:0 24px 60px rgba(0,0,0,.6); animation:txIn .18s ease; scrollbar-width:thin; }
+@keyframes txIn { from{opacity:0;transform:scale(.96)} to{opacity:1;transform:scale(1)} }
+.tx-modal-head  { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--cp-border); position:sticky; top:0; background:var(--cp-surface); z-index:2; }
+.tx-modal-title { font-family:'DM Serif Display',serif; font-size:1rem; color:var(--cp-text); }
+.tx-modal-close { width:26px; height:26px; border-radius:7px; border:1px solid var(--cp-border); background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--cp-muted); }
+.tx-modal-close:hover { background:var(--cp-surface2); color:var(--cp-text); }
+.tx-modal-body   { padding:18px; display:flex; flex-direction:column; gap:14px; }
+.tx-modal-footer { display:flex; justify-content:flex-end; gap:8px; }
+.tx-receipt-card   { background:var(--cp-surface2); border:1px solid var(--cp-border); border-radius:12px; overflow:hidden; }
+.tx-receipt-top    { display:flex; align-items:flex-start; justify-content:space-between; padding:18px; border-bottom:1px solid var(--cp-border); }
+.tx-receipt-no-big { font-family:monospace; font-size:12px; color:var(--cp-accent); margin-bottom:6px; }
+.tx-receipt-amount { font-family:'DM Serif Display',serif; font-size:1.8rem; color:var(--cp-text); }
+.tx-receipt-badge  { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; padding:4px 10px; border-radius:100px; background:var(--cp-accent-glow); color:var(--cp-accent); border:1px solid var(--cp-accent-glow); white-space:nowrap; margin-top:4px; }
+.tx-receipt-grid   { display:grid; grid-template-columns:1fr 1fr; }
+.tx-receipt-cell   { padding:12px 18px; border-right:1px solid var(--cp-border); border-bottom:1px solid var(--cp-border); }
+.tx-receipt-cell:nth-child(2n)        { border-right:none; }
+.tx-receipt-cell:nth-last-child(-n+2) { border-bottom:none; }
+.tx-rc-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--cp-muted); margin-bottom:3px; }
+.tx-rc-val   { font-size:12px; font-weight:600; color:var(--cp-text); }
+.tx-receipt-fees   { padding:14px 18px; border-top:1px solid var(--cp-border); display:flex; flex-direction:column; gap:6px; }
+.tx-fee-row        { display:flex; justify-content:space-between; font-size:12px; color:var(--cp-muted); }
+.tx-fee-row.green     { color:var(--cp-success); }
+.tx-fee-row.red       { color:var(--cp-danger); }
+.tx-fee-row.highlight { border-top:1px solid var(--cp-border); margin-top:4px; padding-top:10px; font-weight:700; font-size:13px; color:var(--cp-accent); }
+.tx-receipt-remark    { padding:10px 18px; background:var(--cp-accent-glow2); border-top:1px solid var(--cp-border); font-size:11px; color:var(--cp-subtext); }
+`;

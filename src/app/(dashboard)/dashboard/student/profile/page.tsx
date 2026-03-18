@@ -6,24 +6,33 @@ import {
     User, Mail, Phone, MapPin, GraduationCap, Hash,
     BookOpen, Clock, Award, IndianRupee, Pencil, Check,
     X, Camera, AlertCircle, CheckCircle2, TrendingUp,
-    Shield, Calendar
+    Shield, Calendar, BadgeCheck
 } from "lucide-react";
 
 interface Course { name?: string; duration?: string; authority?: string; }
-interface CertRecord {
-    status: "issued" | "pending" | "revoked";
+interface CertRecord { status: "issued" | "pending" | "revoked"; }
+interface FranchiseData {
+    _id: string; name: string; code: string;
+    registeredBodies: string[]; isOwn: boolean;
 }
-
+interface CertTypeData {
+    _id: string; name: string; code: string;
+    issuingBody: string; verificationMethod: string;
+    verificationUrl?: string;
+}
 interface Enrollment {
     _id: string; course?: Course;
     feesTotal: number; feesPaid: number;
     certificateStatus: string;
-    certificate?: CertRecord | null;  // ← ADD
+    certificate?: CertRecord | null;
+    franchise?: FranchiseData | null;
+    certType?: CertTypeData | null;
+    externalStudentId?: string | null;
 }
 interface StudentProfileData {
     student: {
         studentId: string; name: string; email?: string; phone?: string;
-        address?: string; qualification?: string;
+        address?: string; qualification?: string; fatherName?: string;
         courseStatus?: "active" | "completed" | "dropped";
         profileImage?: string;
     };
@@ -32,9 +41,9 @@ interface StudentProfileData {
 
 function StatusBadge({ status }: { status: string }) {
     const map: Record<string, { bg: string; color: string; dot: string; label: string }> = {
-        active: { bg: "var(--sp-active-bg)", color: "var(--sp-active-fg)", dot: "var(--sp-accent)", label: "Active" },
-        completed: { bg: "rgba(34,197,94,0.12)", color: "var(--sp-success)", dot: "var(--sp-success)", label: "Completed" },
-        dropped: { bg: "rgba(245,158,11,0.12)", color: "var(--sp-warn)", dot: "var(--sp-warn)", label: "Discontinued" },
+        active:    { bg: "var(--sp-active-bg)",         color: "var(--sp-active-fg)", dot: "var(--sp-accent)",   label: "Active"       },
+        completed: { bg: "rgba(34,197,94,0.12)",         color: "var(--sp-success)",   dot: "var(--sp-success)", label: "Completed"    },
+        dropped:   { bg: "rgba(245,158,11,0.12)",        color: "var(--sp-warn)",      dot: "var(--sp-warn)",    label: "Discontinued" },
     };
     const s = map[status] ?? map.active;
     return (
@@ -47,24 +56,34 @@ function StatusBadge({ status }: { status: string }) {
 
 function CertBadge({ status }: { status: string }) {
     const s = status?.toLowerCase();
-    if (s === "issued") return <span style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(34,197,94,0.12)", color: "var(--sp-success)", fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: 100 }}><CheckCircle2 size={11} /> Issued</span>;
-    if (s === "pending") return <span style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(245,158,11,0.12)", color: "var(--sp-warn)", fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: 100 }}><Clock size={11} /> Pending</span>;
-    return <span style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "var(--sp-hover)", color: "var(--sp-muted)", fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: 100 }}><Award size={11} /> {status}</span>;
+    if (s === "certificate generated") return (
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(34,197,94,0.12)", color: "var(--sp-success)", fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: 100 }}>
+            <CheckCircle2 size={11} /> Issued
+        </span>
+    );
+    if (s === "not applied") return (
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "var(--sp-hover)", color: "var(--sp-muted)", fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: 100 }}>
+            <Award size={11} /> Not Applied
+        </span>
+    );
+    return (
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(245,158,11,0.12)", color: "var(--sp-warn)", fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: 100 }}>
+            <Clock size={11} /> {status}
+        </span>
+    );
 }
 
 export default function StudentProfile() {
-    const [data, setData] = useState<StudentProfileData | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
+    const [data,     setData]     = useState<StudentProfileData | null>(null);
+    const [loading,  setLoading]  = useState(true);
+    const [error,    setError]    = useState<string | null>(null);
     const [editMode, setEditMode] = useState(false);
-    const [saving, setSaving] = useState(false);
-    const [saveMsg, setSaveMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
-    const [form, setForm] = useState({ phone: "", qualification: "", address: "" });
-
-    const [preview, setPreview] = useState<string | null>(null);
-    const [imgFile, setImgFile] = useState<File | null>(null);
-    const [uploading, setUploading] = useState(false);
+    const [saving,   setSaving]   = useState(false);
+    const [saveMsg,  setSaveMsg]  = useState<{ type: "ok" | "err"; text: string } | null>(null);
+    const [form,     setForm]     = useState({ phone: "", qualification: "", address: "" });
+    const [preview,  setPreview]  = useState<string | null>(null);
+    const [imgFile,  setImgFile]  = useState<File | null>(null);
+    const [uploading,setUploading]= useState(false);
     const fileRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -72,8 +91,29 @@ export default function StudentProfile() {
             .then(async res => {
                 const json = await res.json();
                 if (!res.ok) throw new Error(json.message || "Failed to load");
-                setData(json);
-                setForm({ phone: json.student.phone ?? "", qualification: json.student.qualification ?? "", address: json.student.address ?? "" });
+
+                // Handle both API response shapes:
+                // Shape A (new): { student: {...}, enrollments: [...] }
+                // Shape B (old): { name, studentId, enrollments: [...] }
+                let normalized: StudentProfileData;
+                if (json?.student) {
+                    normalized = {
+                        student:     json.student,
+                        enrollments: Array.isArray(json.enrollments) ? json.enrollments : [],
+                    };
+                } else {
+                    normalized = {
+                        student:     json,
+                        enrollments: Array.isArray(json.enrollments) ? json.enrollments : [],
+                    };
+                }
+
+                setData(normalized);
+                setForm({
+                    phone:         normalized.student.phone         ?? "",
+                    qualification: normalized.student.qualification ?? "",
+                    address:       normalized.student.address       ?? "",
+                });
             })
             .catch(e => setError(e.message))
             .finally(() => setLoading(false));
@@ -92,21 +132,28 @@ export default function StudentProfile() {
         try {
             const fd = new FormData();
             fd.append("file", imgFile);
-            const res = await fetchWithAuth("/api/student/upload-profile", { method: "POST", body: fd });
+            const res  = await fetchWithAuth("/api/student/upload-profile", { method: "POST", body: fd });
             const json = await res.json();
             if (!res.ok) throw new Error(json.message);
             setData(prev => prev ? { ...prev, student: { ...prev.student, profileImage: json.image } } : prev);
             setImgFile(null); setPreview(null);
-        } catch { }
+        } catch {}
         finally { setUploading(false); }
     };
 
-    const cancelImage = () => { setImgFile(null); setPreview(null); if (fileRef.current) fileRef.current.value = ""; };
+    const cancelImage = () => {
+        setImgFile(null); setPreview(null);
+        if (fileRef.current) fileRef.current.value = "";
+    };
 
     const saveProfile = async () => {
         setSaving(true); setSaveMsg(null);
         try {
-            const res = await fetchWithAuth("/api/student/profile", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+            const res  = await fetchWithAuth("/api/student/profile", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(form),
+            });
             const json = await res.json();
             if (!res.ok) throw new Error(json.message);
             setData(prev => prev ? { ...prev, student: { ...prev.student, ...form } } : prev);
@@ -138,144 +185,26 @@ export default function StudentProfile() {
     if (!data) return null;
 
     const { student, enrollments } = data;
-    const status = student.courseStatus ?? "active";
+    const status    = student.courseStatus ?? "active";
     const totalFees = enrollments.reduce((s, e) => s + (e.feesTotal ?? 0), 0);
-    const totalPaid = enrollments.reduce((s, e) => s + (e.feesPaid ?? 0), 0);
-    const totalDue = totalFees - totalPaid;
+    const totalPaid = enrollments.reduce((s, e) => s + (e.feesPaid  ?? 0), 0);
+    const totalDue  = totalFees - totalPaid;
     const certIssued = enrollments.filter(e =>
         e.certificate?.status === "issued" ||
         e.certificateStatus?.toLowerCase() === "certificate generated"
     ).length;
 
     const infoRows = [
-        { icon: Hash, label: "Student ID", value: student.studentId, editable: false },
-        { icon: Mail, label: "Email", value: student.email || "—", editable: false },
-        { icon: Phone, label: "Phone", value: student.phone || "—", editable: true, field: "phone" },
+        { icon: Hash,        label: "Student ID",    value: student.studentId,        editable: false },
+        { icon: Mail,        label: "Email",         value: student.email         || "—", editable: false },
+        { icon: Phone,       label: "Phone",         value: student.phone         || "—", editable: true, field: "phone" },
         { icon: GraduationCap, label: "Qualification", value: student.qualification || "—", editable: true, field: "qualification" },
-        { icon: MapPin, label: "Address", value: student.address || "—", editable: true, field: "address", multiline: true },
+        { icon: MapPin,      label: "Address",       value: student.address       || "—", editable: true, field: "address", multiline: true },
     ];
 
     return (
         <>
-            <style>{`
-                .spr-root * { box-sizing:border-box; }
-                .spr-root { font-family:'Plus Jakarta Sans',sans-serif; color:var(--sp-text); }
-
-                .spr-page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; flex-wrap:wrap; gap:10px; }
-                .spr-page-title  { font-family:'DM Serif Display',serif; font-size:1.4rem; color:var(--sp-text); }
-
-                .spr-toast     { display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:500; padding:8px 14px; border-radius:10px; }
-                .spr-toast-ok  { background:rgba(34,197,94,0.1);  border:1px solid rgba(34,197,94,0.25);  color:var(--sp-success); }
-                .spr-toast-err { background:rgba(239,68,68,0.1);  border:1px solid rgba(239,68,68,0.25);  color:var(--sp-danger);  }
-
-                .spr-banner         { display:flex; align-items:flex-start; gap:12px; border-radius:12px; padding:13px 16px; font-size:13px; font-weight:500; line-height:1.6; margin-bottom:18px; }
-                .spr-banner-success { background:rgba(34,197,94,0.08);  border:1px solid rgba(34,197,94,0.22);  color:var(--sp-success); }
-                .spr-banner-warn    { background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.22); color:var(--sp-warn);    }
-
-                /* Card */
-                .spr-card      { background:var(--sp-surface); border:1px solid var(--sp-border); border-radius:16px; overflow:hidden; margin-bottom:16px; }
-                .spr-card-head { padding:16px 20px; border-bottom:1px solid var(--sp-border); display:flex; align-items:center; justify-content:space-between; gap:10px; }
-                .spr-card-title { display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; color:var(--sp-muted); letter-spacing:0.08em; text-transform:uppercase; }
-                .spr-card-title-icon { width:28px; height:28px; border-radius:8px; background:var(--sp-hover); display:flex; align-items:center; justify-content:center; color:var(--sp-accent); }
-                .spr-card-body { padding:20px; }
-
-                /* Hero */
-                .spr-hero {
-                    background:linear-gradient(135deg, var(--sp-accent) 0%, var(--sp-accent2) 100%);
-                    border-radius:16px; padding:24px; display:flex; align-items:center;
-                    gap:20px; flex-wrap:wrap; margin-bottom:16px; position:relative; overflow:hidden;
-                }
-                .spr-hero::before { content:''; position:absolute; right:-30px; top:-30px; width:180px; height:180px; background:rgba(255,255,255,0.06); border-radius:50%; }
-                .spr-hero::after  { content:''; position:absolute; right:80px; bottom:-50px; width:140px; height:140px; background:rgba(255,255,255,0.04); border-radius:50%; }
-
-                .spr-avatar-wrap    { position:relative; width:76px; height:76px; flex-shrink:0; z-index:1; }
-                .spr-avatar-img     { width:76px; height:76px; border-radius:50%; object-fit:cover; border:3px solid rgba(255,255,255,0.3); }
-                .spr-avatar-initial { width:76px; height:76px; border-radius:50%; background:rgba(255,255,255,0.15); border:3px solid rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; font-family:'DM Serif Display',serif; font-size:2rem; color:#fff; }
-                .spr-avatar-cam     { position:absolute; bottom:0; right:0; width:24px; height:24px; border-radius:50%; background:#fff; border:2px solid var(--sp-accent); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--sp-accent); transition:background 0.15s; }
-                .spr-avatar-cam:hover { background:var(--sp-hover); }
-
-                .spr-hero-info  { flex:1; z-index:1; }
-                .spr-hero-name  { font-family:'DM Serif Display',serif; font-size:1.4rem; color:#fff; margin-bottom:5px; }
-                .spr-hero-id    { font-size:11px; color:rgba(255,255,255,0.5); margin-bottom:10px; }
-                .spr-hero-meta  { display:flex; gap:8px; flex-wrap:wrap; }
-                .spr-hero-stats { display:flex; gap:16px; z-index:1; flex-wrap:wrap; }
-                .spr-hero-stat  { text-align:center; }
-                .spr-hero-stat-val   { font-family:'DM Serif Display',serif; font-size:1.3rem; color:#fff; line-height:1; }
-                .spr-hero-stat-label { font-size:9px; color:rgba(255,255,255,0.45); letter-spacing:0.08em; text-transform:uppercase; margin-top:3px; }
-
-                /* Image upload strip */
-                .spr-img-strip { display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:12px 16px; background:var(--sp-hover); border:1px solid var(--sp-border); border-radius:10px; margin-bottom:16px; font-size:12px; color:var(--sp-accent); }
-                .spr-img-thumb { width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid var(--sp-border2); }
-
-                .spr-btn-sm        { font-family:'Plus Jakarta Sans',sans-serif; font-size:12px; font-weight:600; padding:7px 14px; border-radius:8px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; transition:opacity 0.15s; }
-                .spr-btn-sm:disabled { opacity:0.6; cursor:not-allowed; }
-                .spr-btn-blue      { background:var(--sp-accent); color:#fff; }
-                .spr-btn-blue:hover:not(:disabled) { opacity:0.88; }
-                .spr-btn-ghost     { background:transparent; color:var(--sp-muted); border:1px solid var(--sp-border) !important; }
-                .spr-btn-ghost:hover { background:var(--sp-hover); }
-
-                /* Stats row */
-                .spr-stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px; }
-                .spr-mini-stat { background:var(--sp-surface); border:1px solid var(--sp-border); border-radius:13px; padding:14px 16px; position:relative; overflow:hidden; }
-                .spr-mini-stat::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:13px 13px 0 0; }
-                .spr-mini-stat.blue::before  { background:linear-gradient(90deg,var(--sp-accent),var(--sp-accent2)); }
-                .spr-mini-stat.green::before { background:linear-gradient(90deg,#059669,#34d399); }
-                .spr-mini-stat.red::before   { background:linear-gradient(90deg,#dc2626,#f87171); }
-                .spr-mini-stat-icon { width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; margin-bottom:10px; }
-                .spr-mini-stat-icon.blue  { background:var(--sp-active-bg); color:var(--sp-accent2); }
-                .spr-mini-stat-icon.green { background:rgba(34,197,94,0.12);  color:var(--sp-success); }
-                .spr-mini-stat-icon.red   { background:rgba(239,68,68,0.12);  color:var(--sp-danger);  }
-                .spr-mini-stat-label { font-size:9px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--sp-muted); margin-bottom:4px; }
-                .spr-mini-stat-val   { font-family:'DM Serif Display',serif; font-size:1.25rem; color:var(--sp-text); }
-                .spr-mini-stat-val.green { color:var(--sp-success); }
-                .spr-mini-stat-val.red   { color:var(--sp-danger);  }
-
-                /* Info rows */
-                .spr-info-grid { display:flex; flex-direction:column; gap:0; }
-                .spr-info-row  { display:flex; align-items:flex-start; gap:14px; padding:13px 0; border-bottom:1px solid var(--sp-border); }
-                .spr-info-row:last-child { border-bottom:none; }
-                .spr-info-icon    { width:32px; height:32px; border-radius:9px; background:var(--sp-hover); border:1px solid var(--sp-border); display:flex; align-items:center; justify-content:center; color:var(--sp-accent); flex-shrink:0; margin-top:1px; }
-                .spr-info-content { flex:1; min-width:0; }
-                .spr-info-label   { font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--sp-muted); margin-bottom:3px; }
-                .spr-info-value   { font-size:13px; font-weight:500; color:var(--sp-text); line-height:1.5; word-break:break-word; }
-                .spr-info-value.muted { color:var(--sp-muted); font-weight:400; }
-
-                .spr-edit-input { font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; color:var(--sp-text); background:var(--sp-bg); border:1px solid var(--sp-border2); border-radius:9px; padding:9px 12px; width:100%; outline:none; transition:border-color 0.18s,box-shadow 0.18s; resize:vertical; }
-                .spr-edit-input:focus { border-color:var(--sp-accent); box-shadow:0 0 0 3px var(--sp-accent-glow); }
-
-                .spr-edit-bar { display:flex; gap:8px; padding:14px 20px; border-top:1px solid var(--sp-border); background:var(--sp-hover); }
-
-                /* Courses grid */
-                .spr-courses-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
-                .spr-course-card  { background:var(--sp-surface); border:1px solid var(--sp-border); border-radius:14px; overflow:hidden; transition:box-shadow 0.18s; }
-                .spr-course-card:hover { box-shadow:0 4px 20px rgba(26,86,219,0.12); }
-                .spr-course-top   { background:var(--sp-hover); padding:16px 16px 12px; border-bottom:1px solid var(--sp-border); }
-                .spr-course-name  { font-size:13px; font-weight:700; color:var(--sp-text); margin-bottom:4px; }
-                .spr-course-meta  { font-size:11px; color:var(--sp-muted); display:flex; gap:10px; flex-wrap:wrap; }
-                .spr-course-meta-item { display:flex; align-items:center; gap:4px; }
-                .spr-course-body  { padding:14px 16px; }
-                .spr-course-fee-row   { display:flex; justify-content:space-between; align-items:center; font-size:12px; margin-bottom:8px; }
-                .spr-course-fee-label { color:var(--sp-muted); font-weight:500; }
-                .spr-course-fee-val   { font-weight:700; color:var(--sp-text); }
-                .spr-course-fee-val.green { color:var(--sp-success); }
-                .spr-course-fee-val.red   { color:var(--sp-danger);  }
-                .spr-course-progress-track { height:5px; background:var(--sp-border); border-radius:10px; overflow:hidden; margin-bottom:12px; }
-                .spr-course-progress-fill  { height:100%; background:linear-gradient(90deg,var(--sp-accent),var(--sp-accent2)); border-radius:10px; transition:width 0.8s cubic-bezier(.4,0,.2,1); }
-                .spr-course-footer { display:flex; align-items:center; justify-content:space-between; }
-
-                /* Empty */
-                .spr-empty      { background:var(--sp-surface); border:1px solid var(--sp-border); border-radius:14px; padding:36px 24px; text-align:center; }
-                .spr-empty-icon { width:44px; height:44px; background:var(--sp-hover); border-radius:12px; display:flex; align-items:center; justify-content:center; margin:0 auto 12px; color:var(--sp-accent); }
-                .spr-empty-text { font-size:13px; color:var(--sp-muted); }
-
-                @media (max-width:640px) {
-                    .spr-stats-row { grid-template-columns:1fr 1fr; }
-                    .spr-hero      { flex-direction:column; }
-                    .spr-hero-stats { justify-content:flex-start; }
-                    .spr-courses-grid { grid-template-columns:1fr; }
-                }
-            `}</style>
-
+            <style>{sprStyles}</style>
             <div className="spr-root">
 
                 {/* Page header */}
@@ -417,14 +346,17 @@ export default function StudentProfile() {
                             <button className="spr-btn-sm spr-btn-blue" onClick={saveProfile} disabled={saving}>
                                 <Check size={12} /> {saving ? "Saving…" : "Save Changes"}
                             </button>
-                            <button className="spr-btn-sm spr-btn-ghost" onClick={() => { setEditMode(false); setForm({ phone: student.phone ?? "", qualification: student.qualification ?? "", address: student.address ?? "" }); }}>
+                            <button className="spr-btn-sm spr-btn-ghost" onClick={() => {
+                                setEditMode(false);
+                                setForm({ phone: student.phone ?? "", qualification: student.qualification ?? "", address: student.address ?? "" });
+                            }}>
                                 <X size={12} /> Cancel
                             </button>
                         </div>
                     )}
                 </div>
 
-                {/* Academic info card */}
+                {/* Academic overview card */}
                 <div className="spr-card">
                     <div className="spr-card-head">
                         <div className="spr-card-title">
@@ -435,10 +367,10 @@ export default function StudentProfile() {
                     <div className="spr-card-body">
                         <div className="spr-info-grid">
                             {[
-                                { icon: BookOpen, label: "Total Courses", value: `${enrollments.length} Course${enrollments.length !== 1 ? "s" : ""}` },
-                                { icon: Award, label: "Certificates", value: certIssued > 0 ? `${certIssued} Issued` : "None issued yet" },
-                                { icon: Calendar, label: "Account Status", value: status.charAt(0).toUpperCase() + status.slice(1) },
-                                { icon: IndianRupee, label: "Total Fees", value: `₹${totalFees.toLocaleString("en-IN")}` },
+                                { icon: BookOpen,    label: "Total Courses",  value: `${enrollments.length} Course${enrollments.length !== 1 ? "s" : ""}` },
+                                { icon: Award,       label: "Certificates",   value: certIssued > 0 ? `${certIssued} Issued` : "None issued yet" },
+                                { icon: Calendar,    label: "Account Status", value: status.charAt(0).toUpperCase() + status.slice(1) },
+                                { icon: IndianRupee, label: "Total Fees",     value: `₹${totalFees.toLocaleString("en-IN")}` },
                             ].map(r => {
                                 const Icon = r.icon;
                                 return (
@@ -462,7 +394,9 @@ export default function StudentProfile() {
                             <div className="spr-card-title-icon"><GraduationCap size={14} /></div>
                             My Courses
                         </div>
-                        <span style={{ fontSize: 11, color: "var(--sp-muted)", fontWeight: 500 }}>{enrollments.length} enrolled</span>
+                        <span style={{ fontSize: 11, color: "var(--sp-muted)", fontWeight: 500 }}>
+                            {enrollments.length} enrolled
+                        </span>
                     </div>
                     <div className="spr-card-body">
                         {enrollments.length === 0 ? (
@@ -473,27 +407,89 @@ export default function StudentProfile() {
                         ) : (
                             <div className="spr-courses-grid">
                                 {enrollments.map(e => {
-                                    const total = e.feesTotal ?? 0;
-                                    const paid = e.feesPaid ?? 0;
-                                    const due = total - paid;
+                                    const total    = e.feesTotal ?? 0;
+                                    const paid     = e.feesPaid  ?? 0;
+                                    const due      = total - paid;
                                     const progress = total > 0 ? (paid / total) * 100 : 0;
+
+                                    // Authority: franchise name if available, else course.authority
+                                    const authorityDisplay = e.franchise?.name || e.course?.authority;
+
                                     return (
                                         <div key={e._id} className="spr-course-card">
                                             <div className="spr-course-top">
                                                 <div className="spr-course-name">{e.course?.name || "N/A"}</div>
+
+                                                {/* Franchise badge OR legacy authority */}
                                                 <div className="spr-course-meta">
-                                                    {e.course?.duration && <span className="spr-course-meta-item"><Clock size={10} />{e.course.duration}</span>}
-                                                    {e.course?.authority && <span className="spr-course-meta-item"><Shield size={10} />{e.course.authority}</span>}
+                                                    {e.course?.duration && (
+                                                        <span className="spr-course-meta-item">
+                                                            <Clock size={10} />{e.course.duration}
+                                                        </span>
+                                                    )}
+                                                    {e.franchise ? (
+                                                        <span className="spr-course-meta-item" style={{
+                                                            color: e.franchise.isOwn ? "var(--sp-warn)" : "var(--sp-accent2)",
+                                                            fontWeight: 600,
+                                                        }}>
+                                                            <Shield size={10} /> {e.franchise.code}
+                                                        </span>
+                                                    ) : authorityDisplay ? (
+                                                        <span className="spr-course-meta-item">
+                                                            <Shield size={10} />{authorityDisplay}
+                                                        </span>
+                                                    ) : null}
                                                 </div>
+
+                                                {/* Registered bodies (new enrollments only) */}
+                                                {e.franchise && (e.franchise.registeredBodies?.length ?? 0) > 0 && (
+                                                    <div style={{ display: "flex", flexWrap: "wrap", gap: 3, marginTop: 6 }}>
+                                                        {e.franchise.registeredBodies.slice(0, 3).map(b => (
+                                                            <span key={b} style={{
+                                                                display: "inline-flex", alignItems: "center", gap: 3,
+                                                                fontSize: 9, fontWeight: 700, padding: "1px 6px",
+                                                                borderRadius: 100,
+                                                                background: "rgba(34,197,94,0.1)",
+                                                                color: "var(--sp-success)",
+                                                                border: "1px solid rgba(34,197,94,0.2)",
+                                                            }}>
+                                                                <BadgeCheck size={8} /> {b}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {/* Cert type (new enrollments only) */}
+                                                {e.certType && (
+                                                    <div style={{ fontSize: 10, color: "var(--sp-muted)", marginTop: 5, display: "flex", alignItems: "center", gap: 4 }}>
+                                                        <Award size={9} /> {e.certType.name}
+                                                    </div>
+                                                )}
                                             </div>
+
                                             <div className="spr-course-body">
-                                                <div className="spr-course-fee-row"><span className="spr-course-fee-label">Total</span><span className="spr-course-fee-val">₹{total.toLocaleString("en-IN")}</span></div>
-                                                <div className="spr-course-fee-row"><span className="spr-course-fee-label">Paid</span><span className="spr-course-fee-val green">₹{paid.toLocaleString("en-IN")}</span></div>
-                                                <div className="spr-course-fee-row" style={{ marginBottom: 10 }}><span className="spr-course-fee-label">Due</span><span className={`spr-course-fee-val ${due > 0 ? "red" : "green"}`}>₹{due.toLocaleString("en-IN")}</span></div>
-                                                <div className="spr-course-progress-track"><div className="spr-course-progress-fill" style={{ width: `${progress}%` }} /></div>
+                                                <div className="spr-course-fee-row">
+                                                    <span className="spr-course-fee-label">Total</span>
+                                                    <span className="spr-course-fee-val">₹{total.toLocaleString("en-IN")}</span>
+                                                </div>
+                                                <div className="spr-course-fee-row">
+                                                    <span className="spr-course-fee-label">Paid</span>
+                                                    <span className="spr-course-fee-val green">₹{paid.toLocaleString("en-IN")}</span>
+                                                </div>
+                                                <div className="spr-course-fee-row" style={{ marginBottom: 10 }}>
+                                                    <span className="spr-course-fee-label">Due</span>
+                                                    <span className={`spr-course-fee-val ${due > 0 ? "red" : "green"}`}>
+                                                        ₹{due.toLocaleString("en-IN")}
+                                                    </span>
+                                                </div>
+                                                <div className="spr-course-progress-track">
+                                                    <div className="spr-course-progress-fill" style={{ width: `${progress}%` }} />
+                                                </div>
                                                 <div className="spr-course-footer">
                                                     <CertBadge status={e.certificateStatus} />
-                                                    <span style={{ fontSize: 10, color: "var(--sp-muted)", fontWeight: 600 }}>{progress.toFixed(0)}% paid</span>
+                                                    <span style={{ fontSize: 10, color: "var(--sp-muted)", fontWeight: 600 }}>
+                                                        {progress.toFixed(0)}% paid
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
@@ -507,3 +503,94 @@ export default function StudentProfile() {
         </>
     );
 }
+
+const sprStyles = `
+    .spr-root * { box-sizing:border-box; }
+    .spr-root { font-family:'Plus Jakarta Sans',sans-serif; color:var(--sp-text); }
+    .spr-page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; flex-wrap:wrap; gap:10px; }
+    .spr-page-title  { font-family:'DM Serif Display',serif; font-size:1.4rem; color:var(--sp-text); }
+    .spr-toast     { display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:500; padding:8px 14px; border-radius:10px; }
+    .spr-toast-ok  { background:rgba(34,197,94,0.1);  border:1px solid rgba(34,197,94,0.25);  color:var(--sp-success); }
+    .spr-toast-err { background:rgba(239,68,68,0.1);  border:1px solid rgba(239,68,68,0.25);  color:var(--sp-danger);  }
+    .spr-banner         { display:flex; align-items:flex-start; gap:12px; border-radius:12px; padding:13px 16px; font-size:13px; font-weight:500; line-height:1.6; margin-bottom:18px; }
+    .spr-banner-success { background:rgba(34,197,94,0.08);  border:1px solid rgba(34,197,94,0.22);  color:var(--sp-success); }
+    .spr-banner-warn    { background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.22); color:var(--sp-warn);    }
+    .spr-card      { background:var(--sp-surface); border:1px solid var(--sp-border); border-radius:16px; overflow:hidden; margin-bottom:16px; }
+    .spr-card-head { padding:16px 20px; border-bottom:1px solid var(--sp-border); display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .spr-card-title { display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; color:var(--sp-muted); letter-spacing:0.08em; text-transform:uppercase; }
+    .spr-card-title-icon { width:28px; height:28px; border-radius:8px; background:var(--sp-hover); display:flex; align-items:center; justify-content:center; color:var(--sp-accent); }
+    .spr-card-body { padding:20px; }
+    .spr-hero { background:linear-gradient(135deg, var(--sp-accent) 0%, var(--sp-accent2) 100%); border-radius:16px; padding:24px; display:flex; align-items:center; gap:20px; flex-wrap:wrap; margin-bottom:16px; position:relative; overflow:hidden; }
+    .spr-hero::before { content:''; position:absolute; right:-30px; top:-30px; width:180px; height:180px; background:rgba(255,255,255,0.06); border-radius:50%; }
+    .spr-hero::after  { content:''; position:absolute; right:80px; bottom:-50px; width:140px; height:140px; background:rgba(255,255,255,0.04); border-radius:50%; }
+    .spr-avatar-wrap    { position:relative; width:76px; height:76px; flex-shrink:0; z-index:1; }
+    .spr-avatar-img     { width:76px; height:76px; border-radius:50%; object-fit:cover; border:3px solid rgba(255,255,255,0.3); }
+    .spr-avatar-initial { width:76px; height:76px; border-radius:50%; background:rgba(255,255,255,0.15); border:3px solid rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; font-family:'DM Serif Display',serif; font-size:2rem; color:#fff; }
+    .spr-avatar-cam     { position:absolute; bottom:0; right:0; width:24px; height:24px; border-radius:50%; background:#fff; border:2px solid var(--sp-accent); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--sp-accent); }
+    .spr-hero-info  { flex:1; z-index:1; }
+    .spr-hero-name  { font-family:'DM Serif Display',serif; font-size:1.4rem; color:#fff; margin-bottom:5px; }
+    .spr-hero-id    { font-size:11px; color:rgba(255,255,255,0.5); margin-bottom:10px; }
+    .spr-hero-meta  { display:flex; gap:8px; flex-wrap:wrap; }
+    .spr-hero-stats { display:flex; gap:16px; z-index:1; flex-wrap:wrap; }
+    .spr-hero-stat  { text-align:center; }
+    .spr-hero-stat-val   { font-family:'DM Serif Display',serif; font-size:1.3rem; color:#fff; line-height:1; }
+    .spr-hero-stat-label { font-size:9px; color:rgba(255,255,255,0.45); letter-spacing:0.08em; text-transform:uppercase; margin-top:3px; }
+    .spr-img-strip { display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:12px 16px; background:var(--sp-hover); border:1px solid var(--sp-border); border-radius:10px; margin-bottom:16px; font-size:12px; color:var(--sp-accent); }
+    .spr-img-thumb { width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid var(--sp-border2); }
+    .spr-btn-sm        { font-family:'Plus Jakarta Sans',sans-serif; font-size:12px; font-weight:600; padding:7px 14px; border-radius:8px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; transition:opacity 0.15s; }
+    .spr-btn-sm:disabled { opacity:0.6; cursor:not-allowed; }
+    .spr-btn-blue  { background:var(--sp-accent); color:#fff; }
+    .spr-btn-blue:hover:not(:disabled) { opacity:0.88; }
+    .spr-btn-ghost { background:transparent; color:var(--sp-muted); border:1px solid var(--sp-border) !important; }
+    .spr-btn-ghost:hover { background:var(--sp-hover); }
+    .spr-stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px; }
+    .spr-mini-stat { background:var(--sp-surface); border:1px solid var(--sp-border); border-radius:13px; padding:14px 16px; position:relative; overflow:hidden; }
+    .spr-mini-stat::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:13px 13px 0 0; }
+    .spr-mini-stat.blue::before  { background:linear-gradient(90deg,var(--sp-accent),var(--sp-accent2)); }
+    .spr-mini-stat.green::before { background:linear-gradient(90deg,#059669,#34d399); }
+    .spr-mini-stat.red::before   { background:linear-gradient(90deg,#dc2626,#f87171); }
+    .spr-mini-stat-icon { width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; margin-bottom:10px; }
+    .spr-mini-stat-icon.blue  { background:var(--sp-active-bg); color:var(--sp-accent2); }
+    .spr-mini-stat-icon.green { background:rgba(34,197,94,0.12);  color:var(--sp-success); }
+    .spr-mini-stat-icon.red   { background:rgba(239,68,68,0.12);  color:var(--sp-danger);  }
+    .spr-mini-stat-label { font-size:9px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--sp-muted); margin-bottom:4px; }
+    .spr-mini-stat-val   { font-family:'DM Serif Display',serif; font-size:1.25rem; color:var(--sp-text); }
+    .spr-mini-stat-val.green { color:var(--sp-success); }
+    .spr-mini-stat-val.red   { color:var(--sp-danger);  }
+    .spr-info-grid { display:flex; flex-direction:column; gap:0; }
+    .spr-info-row  { display:flex; align-items:flex-start; gap:14px; padding:13px 0; border-bottom:1px solid var(--sp-border); }
+    .spr-info-row:last-child { border-bottom:none; }
+    .spr-info-icon    { width:32px; height:32px; border-radius:9px; background:var(--sp-hover); border:1px solid var(--sp-border); display:flex; align-items:center; justify-content:center; color:var(--sp-accent); flex-shrink:0; margin-top:1px; }
+    .spr-info-content { flex:1; min-width:0; }
+    .spr-info-label   { font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--sp-muted); margin-bottom:3px; }
+    .spr-info-value   { font-size:13px; font-weight:500; color:var(--sp-text); line-height:1.5; word-break:break-word; }
+    .spr-info-value.muted { color:var(--sp-muted); font-weight:400; }
+    .spr-edit-input { font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; color:var(--sp-text); background:var(--sp-bg); border:1px solid var(--sp-border2); border-radius:9px; padding:9px 12px; width:100%; outline:none; transition:border-color 0.18s; resize:vertical; }
+    .spr-edit-input:focus { border-color:var(--sp-accent); }
+    .spr-edit-bar { display:flex; gap:8px; padding:14px 20px; border-top:1px solid var(--sp-border); background:var(--sp-hover); }
+    .spr-courses-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
+    .spr-course-card  { background:var(--sp-surface); border:1px solid var(--sp-border); border-radius:14px; overflow:hidden; transition:box-shadow 0.18s; }
+    .spr-course-card:hover { box-shadow:0 4px 20px rgba(26,86,219,0.12); }
+    .spr-course-top   { background:var(--sp-hover); padding:16px 16px 12px; border-bottom:1px solid var(--sp-border); }
+    .spr-course-name  { font-size:13px; font-weight:700; color:var(--sp-text); margin-bottom:4px; }
+    .spr-course-meta  { font-size:11px; color:var(--sp-muted); display:flex; gap:10px; flex-wrap:wrap; }
+    .spr-course-meta-item { display:flex; align-items:center; gap:4px; }
+    .spr-course-body  { padding:14px 16px; }
+    .spr-course-fee-row   { display:flex; justify-content:space-between; align-items:center; font-size:12px; margin-bottom:8px; }
+    .spr-course-fee-label { color:var(--sp-muted); font-weight:500; }
+    .spr-course-fee-val   { font-weight:700; color:var(--sp-text); }
+    .spr-course-fee-val.green { color:var(--sp-success); }
+    .spr-course-fee-val.red   { color:var(--sp-danger);  }
+    .spr-course-progress-track { height:5px; background:var(--sp-border); border-radius:10px; overflow:hidden; margin-bottom:12px; }
+    .spr-course-progress-fill  { height:100%; background:linear-gradient(90deg,var(--sp-accent),var(--sp-accent2)); border-radius:10px; transition:width 0.8s cubic-bezier(.4,0,.2,1); }
+    .spr-course-footer { display:flex; align-items:center; justify-content:space-between; }
+    .spr-empty      { background:var(--sp-surface); border:1px solid var(--sp-border); border-radius:14px; padding:36px 24px; text-align:center; }
+    .spr-empty-icon { width:44px; height:44px; background:var(--sp-hover); border-radius:12px; display:flex; align-items:center; justify-content:center; margin:0 auto 12px; color:var(--sp-accent); }
+    .spr-empty-text { font-size:13px; color:var(--sp-muted); }
+    @media (max-width:640px) {
+        .spr-stats-row { grid-template-columns:1fr 1fr; }
+        .spr-hero      { flex-direction:column; }
+        .spr-hero-stats { justify-content:flex-start; }
+        .spr-courses-grid { grid-template-columns:1fr; }
+    }
+`;

@@ -4,43 +4,35 @@ import Student from "@/models/Student";
 import Enrollment from "@/models/Enrollment";
 import "@/models/User";
 import "@/models/Course";
-
+import "@/models/Franchise";        // NEW
+import "@/models/CertificateType";  // NEW
+ 
 export async function GET(
     req: NextRequest,
     context: { params: Promise<{ id: string }> }
 ) {
-
     await connectDB();
-
+ 
     const { id } = await context.params;
-
-    const student = await Student.findById(id)
-        .populate("user");
-
+ 
+    const student = await Student.findById(id).populate("user");
+ 
     if (!student) {
-        return NextResponse.json(
-            { message: "Student not found" },
-            { status: 404 }
-        );
+        return NextResponse.json({ message: "Student not found" }, { status: 404 });
     }
-
-    /* ================= GET ENROLLMENTS ================= */
-
+ 
     const enrollments = await Enrollment.find({
         student: student._id,
-        isActive: true
+        isActive: true,
     })
         .populate("course")
+        .populate("franchise")      // NEW — franchise info for admin detail page
+        .populate("certType")       // NEW — cert type info for admin detail page
         .sort({ createdAt: -1 });
-
+ 
     const obj = student.toObject();
-    return NextResponse.json({
-        ...obj,
-        enrollments
-    });
-
+    return NextResponse.json({ ...obj, enrollments });
 }
-
 
 export async function PATCH(
     req: NextRequest,

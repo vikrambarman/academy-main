@@ -1,11 +1,23 @@
 import mongoose, { Schema, Document } from "mongoose";
 
+/**
+ * CHANGES from original:
+ * 1. authority: enum hataya → free String (future franchises support)
+ * 2. franchise: optional ref added (null for old records — backward compat)
+ * 3. certType: optional ref added (null for old records — backward compat)
+ *
+ * Purane records safe hain — koi migration nahi chahiye
+ */
 export interface ICertificate extends Document {
     student: mongoose.Types.ObjectId;
     enrollment: mongoose.Types.ObjectId;
     course: mongoose.Types.ObjectId;
     certificateNo: string;
     authority: string;
+    // NEW optional fields
+    franchise?: mongoose.Types.ObjectId | null;
+    certType?: mongoose.Types.ObjectId | null;
+    // Existing
     issueDate?: Date;
     expiryDate?: Date;
     verifyUrl?: string;
@@ -36,10 +48,22 @@ const certificateSchema = new Schema<ICertificate>(
             unique: true,
             trim: true,
         },
+        // CHANGED: enum removed → free text (supports any franchise)
         authority: {
             type: String,
-            enum: ["Drishti", "GSDM", "NSDC", "DigiLocker", "Other"],
-            default: "Drishti",
+            trim: true,
+            default: "Drishti Computer Education",
+        },
+        // NEW: optional franchise + certType links
+        franchise: {
+            type: Schema.Types.ObjectId,
+            ref: "Franchise",
+            default: null,
+        },
+        certType: {
+            type: Schema.Types.ObjectId,
+            ref: "CertificateType",
+            default: null,
         },
         issueDate: { type: Date },
         expiryDate: { type: Date },
