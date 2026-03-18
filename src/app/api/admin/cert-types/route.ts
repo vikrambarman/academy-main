@@ -9,6 +9,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import CertificateType from "@/models/CertificateType";
 import { verifyUser } from "@/lib/verifyUser";
+import "@/models/Franchise";
 
 export async function GET(req: Request) {
     try {

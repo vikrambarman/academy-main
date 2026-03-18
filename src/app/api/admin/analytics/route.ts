@@ -9,7 +9,7 @@ import { connectDB } from "@/lib/db";
 import Student from "@/models/Student";
 import Enrollment from "@/models/Enrollment";
 import Course from "@/models/Course";
-import Franchise from "@/models/Franchise";
+import "@/models/Franchise";
 import { verifyUser } from "@/lib/verifyUser";
 import "@/models/CertificateType";
 
