@@ -11,6 +11,7 @@ import { connectDB } from "@/lib/db";
 import CourseFranchiseConfig from "@/models/CourseFranchiseConfig";
 import { verifyUser } from "@/lib/verifyUser";
 import "@/models/Franchise";
+import "@/models/CertificateType";
 
 export async function GET(req: Request) {
     try {
