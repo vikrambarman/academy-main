@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Enrollment from "@/models/Enrollment";
-import "@/models/Course"; 
+import "@/models/Course";
 import "@/models/Student";
+import { verifyUser } from "@/lib/verifyUser";
 
 // GET /api/admin/enrollments?courseId=xxx
 export async function GET(req: NextRequest) {
-    await connectDB();
+    const user: any = await verifyUser();
+    if (user.role !== "admin")
+        return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
 
     const { searchParams } = new URL(req.url);
     const courseId = searchParams.get("courseId");
@@ -24,7 +27,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
 
-    await connectDB();
+    const user: any = await verifyUser();
+    if (user.role !== "admin")
+        return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
 
     const body = await req.json();
 

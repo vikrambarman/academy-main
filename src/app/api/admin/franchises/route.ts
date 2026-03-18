@@ -13,7 +13,10 @@ import { verifyUser } from "@/lib/verifyUser";
 
 export async function GET() {
     try {
-        await connectDB();
+        const user: any = await verifyUser();
+        if (user.role !== "admin")
+            return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+        
         const franchises = await Franchise.find().sort({ createdAt: 1 });
         return NextResponse.json(franchises);
     } catch {

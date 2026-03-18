@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Enrollment from "@/models/Enrollment";
+import { verifyUser } from "@/lib/verifyUser";
 
 export async function PATCH(
     req: NextRequest,
     context: { params: Promise<{ id: string }> }
 ) {
-    await connectDB();
+    const user: any = await verifyUser();
+    if (user.role !== "admin")
+        return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+    
     const { id } = await context.params;
     const body = await req.json();
 
