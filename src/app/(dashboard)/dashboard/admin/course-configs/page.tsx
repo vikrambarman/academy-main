@@ -40,16 +40,27 @@ export default function AdminCourseConfigPage() {
     const showToast = (msg: string, ok = true) => { setToast({ msg, ok }); setTimeout(() => setToast(null), 3000); };
 
     const load = async () => {
+        // Each API call isolated — one failure won't break others
+        const safeJson = async (url: string) => {
+            try {
+                const r = await fetchWithAuth(url);
+                if (!r.ok) return [];
+                const d = await r.json();
+                return Array.isArray(d) ? d : [];
+            } catch { return []; }
+        };
+
         const [cr, fr, ct, cfg] = await Promise.all([
-            fetchWithAuth("/api/admin/courses").then(r => r.json()),
-            fetchWithAuth("/api/admin/franchises").then(r => r.json()),
-            fetchWithAuth("/api/admin/cert-types").then(r => r.json()),
-            fetchWithAuth("/api/admin/course-franchise-configs").then(r => r.json()),
+            safeJson("/api/admin/courses"),
+            safeJson("/api/admin/franchises"),
+            safeJson("/api/admin/cert-types"),
+            safeJson("/api/admin/course-franchise-configs"),
         ]);
-        setCourses(Array.isArray(cr) ? cr.filter((c: Course) => c.isActive) : []);
-        setFranchises(Array.isArray(fr) ? fr.filter((f: Franchise) => true) : []);
-        setCertTypes(Array.isArray(ct) ? ct : []);
-        setConfigs(Array.isArray(cfg) ? cfg : []);
+
+        setCourses(cr.filter((c: Course) => c.isActive));
+        setFranchises(fr);
+        setCertTypes(ct);
+        setConfigs(cfg);
     };
 
     useEffect(() => { load(); }, []);
