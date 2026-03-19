@@ -1,12 +1,14 @@
-// src/app/dashboard/admin/teachers/page.tsx
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import {
     Plus, X, Edit2, Trash2, ToggleLeft, ToggleRight,
-    CheckCircle, AlertCircle, Eye, EyeOff, Key, UserCog, Phone, Mail, User
+    CheckCircle, AlertCircle, Eye, EyeOff, Key,
+    UserCog, Phone, Mail, User, RefreshCw,
 } from "lucide-react";
+
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 interface Teacher {
     _id: string;
@@ -19,31 +21,103 @@ interface Teacher {
 
 type ModalMode = "create" | "edit" | "reset-password";
 
+// ── Skeleton ──────────────────────────────────────────────────────────────────
+
+function TeachersSkeleton() {
+    return (
+        <div className="tp-root">
+            {/* Header */}
+            <div className="tp-header">
+                <div>
+                    <div className="tp-skeleton" style={{ width: 140, height: 28, borderRadius: 6 }} />
+                    <div className="tp-skeleton" style={{ width: 220, height: 12, borderRadius: 4, marginTop: 8 }} />
+                </div>
+                <div className="tp-skeleton" style={{ width: 130, height: 38, borderRadius: 9 }} />
+            </div>
+
+            {/* KPI row */}
+            <div className="tp-kpi-row">
+                {[1, 2, 3].map(i => (
+                    <div key={i} className="tp-kpi" style={{ borderLeftColor: "var(--cp-border)" }}>
+                        <div className="tp-skeleton" style={{ width: 50, height: 10, borderRadius: 4 }} />
+                        <div className="tp-skeleton" style={{ width: 30, height: 24, borderRadius: 5, marginTop: 8 }} />
+                    </div>
+                ))}
+            </div>
+
+            {/* Table */}
+            <div className="tp-table-wrap">
+                <div className="tp-thead">
+                    {["Teacher", "Employee ID", "Email", "Status", ""].map((h, i) => (
+                        <span key={i}>{h}</span>
+                    ))}
+                </div>
+                {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="tp-row">
+                        <div className="tp-cell tp-cell--name">
+                            <div className="tp-skeleton" style={{ width: 32, height: 32, borderRadius: "50%" }} />
+                            <div>
+                                <div className="tp-skeleton" style={{ width: 120, height: 13, borderRadius: 4 }} />
+                                <div className="tp-skeleton" style={{ width: 80, height: 10, borderRadius: 4, marginTop: 5 }} />
+                            </div>
+                        </div>
+                        <div className="tp-cell">
+                            <div className="tp-skeleton" style={{ width: 90, height: 22, borderRadius: 100 }} />
+                        </div>
+                        <div className="tp-cell tp-cell--email">
+                            <div className="tp-skeleton" style={{ width: 160, height: 12, borderRadius: 4 }} />
+                        </div>
+                        <div className="tp-cell">
+                            <div className="tp-skeleton" style={{ width: 60, height: 22, borderRadius: 100 }} />
+                        </div>
+                        <div className="tp-cell tp-cell--actions" style={{ justifyContent: "flex-end", gap: 6 }}>
+                            {[1, 2, 3, 4].map(j => (
+                                <div key={j} className="tp-skeleton" style={{ width: 28, height: 28, borderRadius: 7 }} />
+                            ))}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+// ── Main Component ────────────────────────────────────────────────────────────
+
 export default function AdminTeachersPage() {
-    const [teachers, setTeachers] = useState<Teacher[]>([]);
-    const [modal,    setModal]    = useState<ModalMode | null>(null);
-    const [selected, setSelected] = useState<Teacher | null>(null);
-    const [toast,    setToast]    = useState<{ type: "success" | "error"; msg: string } | null>(null);
-    const [saving,   setSaving]   = useState(false);
-    const [showPwd,  setShowPwd]  = useState(false);
+    const [teachers,     setTeachers]     = useState<Teacher[]>([]);
+    const [pageLoading,  setPageLoading]  = useState(true);
+    const [modal,        setModal]        = useState<ModalMode | null>(null);
+    const [selected,     setSelected]     = useState<Teacher | null>(null);
+    const [toast,        setToast]        = useState<{ type: "success" | "error"; msg: string } | null>(null);
+    const [saving,       setSaving]       = useState(false);
+    const [showPwd,      setShowPwd]      = useState(false);
 
     const [form, setForm] = useState({
         name: "", email: "", phone: "", password: "", confirmPassword: "",
     });
 
     const showToast = (type: "success" | "error", msg: string) => {
-        setToast({ type, msg }); setTimeout(() => setToast(null), 3500);
+        setToast({ type, msg });
+        setTimeout(() => setToast(null), 3500);
     };
 
     const load = useCallback(async () => {
-        const res = await fetchWithAuth("/api/admin/teachers");
-        const d   = await res.json();
-        setTeachers(d.teachers || []);
+        setPageLoading(true);
+        try {
+            const res = await fetchWithAuth("/api/admin/teachers");
+            const d   = await res.json();
+            setTeachers(d.teachers || []);
+        } catch {
+            showToast("error", "Teachers load nahi hue");
+        } finally {
+            setPageLoading(false);
+        }
     }, []);
 
     useEffect(() => { load(); }, [load]);
 
-    /* ── open modals ── */
+    // ── Modal helpers ──
     const openCreate = () => {
         setSelected(null);
         setForm({ name: "", email: "", phone: "", password: "", confirmPassword: "" });
@@ -65,7 +139,9 @@ export default function AdminTeachersPage() {
         setModal("reset-password");
     };
 
-    /* ── save ── */
+    const closeModal = () => setModal(null);
+
+    // ── Save ──
     const handleSave = async () => {
         setSaving(true);
         try {
@@ -97,7 +173,8 @@ export default function AdminTeachersPage() {
 
             } else if (modal === "reset-password") {
                 if (!form.password) return showToast("error", "Naya password daalo");
-                if (form.password !== form.confirmPassword) return showToast("error", "Passwords match nahi kar rahe");
+                if (form.password !== form.confirmPassword)
+                    return showToast("error", "Passwords match nahi kar rahe");
                 const res = await fetchWithAuth("/api/admin/teachers", {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
@@ -123,23 +200,27 @@ export default function AdminTeachersPage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ teacherId: t._id, isActive: !t.isActive }),
         });
-        if (res.ok) { showToast("success", `Teacher ${!t.isActive ? "activate" : "deactivate"} ho gaya`); load(); }
+        if (res.ok) {
+            showToast("success", `Teacher ${!t.isActive ? "activate" : "deactivate"} ho gaya`);
+            load();
+        }
     };
 
     const handleDelete = async (id: string) => {
         if (!confirm("Is teacher ko permanently delete karna chahte ho?")) return;
         const res = await fetchWithAuth(`/api/admin/teachers?id=${id}`, { method: "DELETE" });
         if (res.ok) { showToast("success", "Teacher delete ho gaya"); load(); }
+        else        { const d = await res.json(); showToast("error", d.message || "Delete failed"); }
     };
 
-    const closeModal = () => setModal(null);
-
-    /* ── modal title / icon ── */
     const modalMeta = {
-        "create":         { title: "New Teacher",     icon: <Plus size={14}/> },
-        "edit":           { title: "Edit Teacher",    icon: <UserCog size={14}/> },
-        "reset-password": { title: "Reset Password",  icon: <Key size={14}/> },
+        "create":         { title: "New Teacher",    icon: <Plus size={14} />    },
+        "edit":           { title: "Edit Teacher",   icon: <UserCog size={14} /> },
+        "reset-password": { title: "Reset Password", icon: <Key size={14} />     },
     };
+
+    // ── Render ──
+    if (pageLoading) return <><style>{css}</style><TeachersSkeleton /></>;
 
     return (
         <>
@@ -147,7 +228,7 @@ export default function AdminTeachersPage() {
 
             {toast && (
                 <div className={`tp-toast tp-toast--${toast.type}`}>
-                    {toast.type === "success" ? <CheckCircle size={14}/> : <AlertCircle size={14}/>}
+                    {toast.type === "success" ? <CheckCircle size={14} /> : <AlertCircle size={14} />}
                     {toast.msg}
                 </div>
             )}
@@ -160,17 +241,22 @@ export default function AdminTeachersPage() {
                         <h1 className="tp-title">Teachers</h1>
                         <p className="tp-sub">Academy ke sabhi teachers manage karo</p>
                     </div>
-                    <button className="tp-add-btn" onClick={openCreate}>
-                        <Plus size={13}/> Add Teacher
-                    </button>
+                    <div style={{ display: "flex", gap: 8 }}>
+                        <button className="tp-refresh-btn" onClick={load} title="Refresh">
+                            <RefreshCw size={13} />
+                        </button>
+                        <button className="tp-add-btn" onClick={openCreate}>
+                            <Plus size={13} /> Add Teacher
+                        </button>
+                    </div>
                 </div>
 
                 {/* KPIs */}
                 <div className="tp-kpi-row">
                     {[
-                        { label: "Total",    val: teachers.length,                        color: "#334155" },
-                        { label: "Active",   val: teachers.filter(t => t.isActive).length, color: "#22c55e" },
-                        { label: "Inactive", val: teachers.filter(t => !t.isActive).length,color: "#ef4444" },
+                        { label: "Total",    val: teachers.length,                         color: "var(--cp-border2)"  },
+                        { label: "Active",   val: teachers.filter(t => t.isActive).length,  color: "var(--cp-success)"  },
+                        { label: "Inactive", val: teachers.filter(t => !t.isActive).length, color: "var(--cp-danger)"   },
                     ].map(k => (
                         <div key={k.label} className="tp-kpi" style={{ borderLeftColor: k.color }}>
                             <div className="tp-kpi-label">{k.label}</div>
@@ -213,28 +299,23 @@ export default function AdminTeachersPage() {
                                     )}
                                 </div>
                                 <div className="tp-cell tp-cell--actions">
-                                    {/* Edit details */}
                                     <button className="tp-icon-btn tp-icon-btn--teal" title="Edit Details"
                                         onClick={() => openEdit(t)}>
-                                        <Edit2 size={12}/>
+                                        <Edit2 size={12} />
                                     </button>
-                                    {/* Reset password */}
                                     <button className="tp-icon-btn tp-icon-btn--amber" title="Reset Password"
                                         onClick={() => openResetPassword(t)}>
-                                        <Key size={12}/>
+                                        <Key size={12} />
                                     </button>
-                                    {/* Toggle active */}
                                     <button className="tp-icon-btn" title={t.isActive ? "Deactivate" : "Activate"}
                                         onClick={() => toggleActive(t)}>
                                         {t.isActive
-                                            ? <ToggleRight size={15} color="#22c55e"/>
-                                            : <ToggleLeft  size={15} color="#64748b"/>
-                                        }
+                                            ? <ToggleRight size={15} color="var(--cp-success)" />
+                                            : <ToggleLeft  size={15} color="var(--cp-muted)"   />}
                                     </button>
-                                    {/* Delete */}
                                     <button className="tp-icon-btn tp-icon-btn--red" title="Delete"
                                         onClick={() => handleDelete(t._id)}>
-                                        <Trash2 size={12}/>
+                                        <Trash2 size={12} />
                                     </button>
                                 </div>
                             </div>
@@ -243,55 +324,54 @@ export default function AdminTeachersPage() {
                 )}
             </div>
 
-            {/* ── Modal ── */}
+            {/* Modal */}
             {modal && (
                 <div className="tp-overlay" onClick={e => e.target === e.currentTarget && closeModal()}>
                     <div className="tp-modal">
-
                         <div className="tp-modal-head">
                             <div className="tp-modal-title-wrap">
                                 <span className="tp-modal-icon">{modalMeta[modal].icon}</span>
                                 <span className="tp-modal-title">{modalMeta[modal].title}</span>
                             </div>
-                            <button className="tp-modal-close" onClick={closeModal}><X size={13}/></button>
+                            <button className="tp-modal-close" onClick={closeModal}><X size={13} /></button>
                         </div>
 
                         <div className="tp-modal-body">
 
-                            {/* CREATE fields */}
+                            {/* CREATE */}
                             {modal === "create" && (
                                 <>
                                     <div className="tp-field">
-                                        <label className="tp-label"><User size={10}/> Full Name *</label>
+                                        <label className="tp-label"><User size={10} /> Full Name *</label>
                                         <input className="tp-input" placeholder="Ramesh Kumar"
-                                            value={form.name} onChange={e => setForm(f => ({...f, name: e.target.value}))}/>
+                                            value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
                                     </div>
                                     <div className="tp-field">
-                                        <label className="tp-label"><Mail size={10}/> Email *</label>
+                                        <label className="tp-label"><Mail size={10} /> Email *</label>
                                         <input className="tp-input" type="email" placeholder="teacher@email.com"
-                                            value={form.email} onChange={e => setForm(f => ({...f, email: e.target.value}))}/>
+                                            value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
                                     </div>
                                     <div className="tp-field">
-                                        <label className="tp-label"><Phone size={10}/> Phone (optional)</label>
+                                        <label className="tp-label"><Phone size={10} /> Phone (optional)</label>
                                         <input className="tp-input" placeholder="98xxxxxxxx"
-                                            value={form.phone} onChange={e => setForm(f => ({...f, phone: e.target.value}))}/>
+                                            value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
                                     </div>
                                     <div className="tp-pwd-row">
                                         <div className="tp-field">
-                                            <label className="tp-label"><Key size={10}/> Password *</label>
+                                            <label className="tp-label"><Key size={10} /> Password *</label>
                                             <div className="tp-pwd-wrap">
                                                 <input className="tp-input" type={showPwd ? "text" : "password"} placeholder="••••••••"
-                                                    value={form.password} onChange={e => setForm(f => ({...f, password: e.target.value}))}/>
+                                                    value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} />
                                                 <button type="button" className="tp-eye" onClick={() => setShowPwd(p => !p)}>
-                                                    {showPwd ? <EyeOff size={13}/> : <Eye size={13}/>}
+                                                    {showPwd ? <EyeOff size={13} /> : <Eye size={13} />}
                                                 </button>
                                             </div>
                                         </div>
                                         <div className="tp-field">
-                                            <label className="tp-label"><Key size={10}/> Confirm Password *</label>
+                                            <label className="tp-label"><Key size={10} /> Confirm Password *</label>
                                             <div className="tp-pwd-wrap">
                                                 <input className="tp-input" type={showPwd ? "text" : "password"} placeholder="••••••••"
-                                                    value={form.confirmPassword} onChange={e => setForm(f => ({...f, confirmPassword: e.target.value}))}/>
+                                                    value={form.confirmPassword} onChange={e => setForm(f => ({ ...f, confirmPassword: e.target.value }))} />
                                             </div>
                                         </div>
                                     </div>
@@ -301,7 +381,7 @@ export default function AdminTeachersPage() {
                                 </>
                             )}
 
-                            {/* EDIT fields */}
+                            {/* EDIT */}
                             {modal === "edit" && (
                                 <>
                                     <div className="tp-edit-info">
@@ -312,14 +392,14 @@ export default function AdminTeachersPage() {
                                         </div>
                                     </div>
                                     <div className="tp-field">
-                                        <label className="tp-label"><User size={10}/> Full Name *</label>
-                                        <input className="tp-input" placeholder="Ramesh Kumar"
-                                            value={form.name} onChange={e => setForm(f => ({...f, name: e.target.value}))}/>
+                                        <label className="tp-label"><User size={10} /> Full Name *</label>
+                                        <input className="tp-input" value={form.name}
+                                            onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
                                     </div>
                                     <div className="tp-field">
-                                        <label className="tp-label"><Phone size={10}/> Phone</label>
-                                        <input className="tp-input" placeholder="98xxxxxxxx"
-                                            value={form.phone} onChange={e => setForm(f => ({...f, phone: e.target.value}))}/>
+                                        <label className="tp-label"><Phone size={10} /> Phone</label>
+                                        <input className="tp-input" placeholder="98xxxxxxxx" value={form.phone}
+                                            onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
                                     </div>
                                     <div className="tp-edit-note">
                                         💡 Email aur Employee ID change nahi hoti. Password reset ke liye alag option use karo.
@@ -327,7 +407,7 @@ export default function AdminTeachersPage() {
                                 </>
                             )}
 
-                            {/* RESET PASSWORD fields */}
+                            {/* RESET PASSWORD */}
                             {modal === "reset-password" && (
                                 <>
                                     <div className="tp-edit-info">
@@ -338,20 +418,20 @@ export default function AdminTeachersPage() {
                                         </div>
                                     </div>
                                     <div className="tp-field">
-                                        <label className="tp-label"><Key size={10}/> Naya Password *</label>
+                                        <label className="tp-label"><Key size={10} /> Naya Password *</label>
                                         <div className="tp-pwd-wrap">
                                             <input className="tp-input" type={showPwd ? "text" : "password"} placeholder="••••••••"
-                                                value={form.password} onChange={e => setForm(f => ({...f, password: e.target.value}))}/>
+                                                value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} />
                                             <button type="button" className="tp-eye" onClick={() => setShowPwd(p => !p)}>
-                                                {showPwd ? <EyeOff size={13}/> : <Eye size={13}/>}
+                                                {showPwd ? <EyeOff size={13} /> : <Eye size={13} />}
                                             </button>
                                         </div>
                                     </div>
                                     <div className="tp-field">
-                                        <label className="tp-label"><Key size={10}/> Confirm Password *</label>
+                                        <label className="tp-label"><Key size={10} /> Confirm Password *</label>
                                         <div className="tp-pwd-wrap">
                                             <input className="tp-input" type={showPwd ? "text" : "password"} placeholder="••••••••"
-                                                value={form.confirmPassword} onChange={e => setForm(f => ({...f, confirmPassword: e.target.value}))}/>
+                                                value={form.confirmPassword} onChange={e => setForm(f => ({ ...f, confirmPassword: e.target.value }))} />
                                         </div>
                                     </div>
                                     {form.password && form.confirmPassword && form.password !== form.confirmPassword && (
@@ -367,7 +447,13 @@ export default function AdminTeachersPage() {
                         <div className="tp-modal-footer">
                             <button className="tp-ghost-btn" onClick={closeModal}>Cancel</button>
                             <button className="tp-primary-btn" onClick={handleSave} disabled={saving}>
-                                {saving ? "Saving..." : modal === "create" ? "Create Teacher" : modal === "edit" ? "Save Changes" : "Reset Password"}
+                                {saving
+                                    ? "Saving..."
+                                    : modal === "create"
+                                    ? "Create Teacher"
+                                    : modal === "edit"
+                                    ? "Save Changes"
+                                    : "Reset Password"}
                             </button>
                         </div>
                     </div>
@@ -377,68 +463,74 @@ export default function AdminTeachersPage() {
     );
 }
 
-// css const replace karo:
+// ── Styles — all colors via var(--cp-*) ──────────────────────────────────────
+
 const css = `
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Serif+Display&display=swap');
 *, *::before, *::after { box-sizing: border-box; }
 
 .tp-root { font-family:'Plus Jakarta Sans',sans-serif; color:var(--cp-text); display:flex; flex-direction:column; gap:18px; max-width:900px; margin:0 auto; padding-bottom:48px; }
 
-.tp-toast { position:fixed; top:20px; right:24px; z-index:9999; display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; padding:11px 18px; border-radius:12px; box-shadow:0 8px 28px rgba(0,0,0,.35); animation:tpIn .22s ease; }
+/* Toast */
+.tp-toast { position:fixed; top:20px; right:24px; z-index:9999; display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; padding:11px 18px; border-radius:12px; box-shadow:0 8px 28px rgba(0,0,0,.3); animation:tpIn .22s ease; }
 .tp-toast--success { background:rgba(34,197,94,0.12); color:var(--cp-success); border:1px solid rgba(34,197,94,0.3); }
 .tp-toast--error   { background:rgba(239,68,68,0.12); color:var(--cp-danger);  border:1px solid rgba(239,68,68,0.3); }
 @keyframes tpIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
 
+/* Header */
 .tp-header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; }
 .tp-title  { font-family:'DM Serif Display',serif; font-size:1.7rem; color:var(--cp-text); font-weight:400; margin:0 0 3px; }
 .tp-sub    { font-size:12px; color:var(--cp-muted); margin:0; }
-.tp-add-btn { display:flex; align-items:center; gap:7px; padding:9px 18px; border-radius:9px; border:none; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:700; background:var(--cp-accent); color:#fff; transition:opacity .15s; }
+.tp-add-btn     { display:flex; align-items:center; gap:7px; padding:9px 18px; border-radius:9px; border:none; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:700; background:var(--cp-accent); color:#fff; transition:opacity .15s; }
 .tp-add-btn:hover { opacity:.88; }
+.tp-refresh-btn { display:flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:9px; border:1px solid var(--cp-border); background:var(--cp-surface); color:var(--cp-muted); cursor:pointer; transition:all .14s; }
+.tp-refresh-btn:hover { border-color:var(--cp-accent); color:var(--cp-accent); }
 
+/* KPIs */
 .tp-kpi-row { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
 .tp-kpi { background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:10px; padding:14px 16px; border-left:3px solid; }
 .tp-kpi-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--cp-muted); margin-bottom:6px; }
-.tp-kpi-val { font-family:'DM Serif Display',serif; font-size:1.4rem; }
+.tp-kpi-val   { font-family:'DM Serif Display',serif; font-size:1.4rem; color:var(--cp-text); }
 
-.tp-table-wrap { background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:12px; overflow:hidden; }
-.tp-thead { display:grid; grid-template-columns:1.8fr 1fr 1.6fr 1.2fr 130px; gap:8px; padding:10px 18px; background:var(--cp-surface2); font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--cp-muted); }
-.tp-row   { display:grid; grid-template-columns:1.8fr 1fr 1.6fr 1.2fr 130px; gap:8px; padding:13px 18px; border-top:1px solid var(--cp-border); align-items:center; transition:background .12s; }
+/* Table */
+.tp-table-wrap { background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:12px; overflow:hidden; overflow-x:auto; }
+.tp-thead { display:grid; grid-template-columns:1.8fr 1fr 1.6fr 1.2fr 130px; gap:8px; padding:10px 18px; background:var(--cp-surface2); font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--cp-muted); min-width:680px; }
+.tp-row   { display:grid; grid-template-columns:1.8fr 1fr 1.6fr 1.2fr 130px; gap:8px; padding:13px 18px; border-top:1px solid var(--cp-border); align-items:center; transition:background .12s; min-width:680px; }
 .tp-row:hover { background:var(--cp-accent-glow); }
 .tp-cell  { font-size:12px; color:var(--cp-subtext); display:flex; align-items:center; gap:8px; }
 .tp-cell--name    { gap:10px; }
-.tp-cell--email   { font-size:11px; word-break:break-all; }
+.tp-cell--email   { font-size:11px; word-break:break-all; color:var(--cp-muted); }
 .tp-cell--actions { gap:5px; justify-content:flex-end; }
 
 .tp-avatar { width:32px; height:32px; border-radius:50%; background:var(--cp-accent-glow); color:var(--cp-accent); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; flex-shrink:0; }
 .tp-name   { font-size:13px; font-weight:700; color:var(--cp-text); }
 .tp-phone  { font-size:10px; color:var(--cp-muted); margin-top:1px; }
-.tp-id-badge { font-size:10px; font-weight:700; padding:3px 9px; border-radius:100px; background:var(--cp-accent-glow); color:var(--cp-accent); border:1px solid color-mix(in srgb,var(--cp-accent) 25%,transparent); }
-.tp-status { font-size:10px; font-weight:700; padding:2px 9px; border-radius:100px; }
+.tp-id-badge    { font-size:10px; font-weight:700; padding:3px 9px; border-radius:100px; background:var(--cp-accent-glow); color:var(--cp-accent); border:1px solid color-mix(in srgb,var(--cp-accent) 25%,transparent); white-space:nowrap; }
+.tp-status      { font-size:10px; font-weight:700; padding:2px 9px; border-radius:100px; white-space:nowrap; }
 .tp-status.active   { background:rgba(34,197,94,0.1);   color:var(--cp-success); border:1px solid rgba(34,197,94,0.2);  }
 .tp-status.inactive { background:rgba(100,116,139,0.1); color:var(--cp-muted);   border:1px solid rgba(100,116,139,0.2); }
 .tp-first-badge { font-size:9px; font-weight:700; padding:2px 7px; border-radius:100px; background:rgba(245,158,11,0.1); color:var(--cp-warning); border:1px solid rgba(245,158,11,0.2); white-space:nowrap; }
 
 .tp-icon-btn { width:28px; height:28px; border-radius:7px; border:1px solid var(--cp-border); background:transparent; color:var(--cp-muted); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .13s; }
-.tp-icon-btn:hover        { background:var(--cp-surface2); color:var(--cp-subtext); }
-.tp-icon-btn--teal        { color:var(--cp-accent); border-color:color-mix(in srgb,var(--cp-accent) 25%,transparent); }
+.tp-icon-btn:hover        { background:var(--cp-surface2); }
+.tp-icon-btn--teal        { color:var(--cp-accent);   border-color:color-mix(in srgb,var(--cp-accent) 25%,transparent); }
 .tp-icon-btn--teal:hover  { background:var(--cp-accent-glow); }
-.tp-icon-btn--amber       { color:var(--cp-warning); border-color:rgba(245,158,11,0.2); }
+.tp-icon-btn--amber       { color:var(--cp-warning);  border-color:rgba(245,158,11,0.2); }
 .tp-icon-btn--amber:hover { background:rgba(245,158,11,0.08); }
-.tp-icon-btn--red         { color:var(--cp-danger); border-color:rgba(239,68,68,0.2); }
+.tp-icon-btn--red         { color:var(--cp-danger);   border-color:rgba(239,68,68,0.2); }
 .tp-icon-btn--red:hover   { background:rgba(239,68,68,0.08); }
 
 .tp-empty { background:var(--cp-surface); border:1px dashed var(--cp-border); border-radius:12px; padding:48px; text-align:center; color:var(--cp-muted); font-size:13px; }
 
+/* Modal */
 .tp-overlay { position:fixed; inset:0; background:rgba(0,0,0,.72); backdrop-filter:blur(4px); z-index:60; display:flex; align-items:center; justify-content:center; padding:20px; }
 .tp-modal   { background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:16px; width:100%; max-width:460px; box-shadow:0 24px 60px rgba(0,0,0,.5); animation:tpIn .18s ease; }
-
 .tp-modal-head { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--cp-border); }
 .tp-modal-title-wrap { display:flex; align-items:center; gap:9px; }
 .tp-modal-icon  { width:28px; height:28px; border-radius:8px; background:var(--cp-accent-glow); border:1px solid color-mix(in srgb,var(--cp-accent) 25%,transparent); color:var(--cp-accent); display:flex; align-items:center; justify-content:center; }
 .tp-modal-title { font-family:'DM Serif Display',serif; font-size:1.05rem; color:var(--cp-text); }
 .tp-modal-close { width:26px; height:26px; border-radius:7px; border:1px solid var(--cp-border); background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--cp-muted); transition:all .13s; }
 .tp-modal-close:hover { background:var(--cp-surface2); color:var(--cp-text); }
-
 .tp-modal-body   { padding:20px; display:flex; flex-direction:column; gap:13px; }
 .tp-modal-footer { display:flex; justify-content:flex-end; gap:8px; padding:14px 20px; border-top:1px solid var(--cp-border); }
 
@@ -446,28 +538,33 @@ const css = `
 .tp-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--cp-muted); display:flex; align-items:center; gap:4px; }
 .tp-input { background:var(--cp-bg); border:1px solid var(--cp-border); border-radius:9px; padding:10px 12px; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; color:var(--cp-text); outline:none; transition:border-color .13s; width:100%; }
 .tp-input:focus { border-color:var(--cp-accent); }
+.tp-input::placeholder { color:var(--cp-muted); }
+.tp-input option { background:var(--cp-surface); }
 
 .tp-pwd-row  { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 .tp-pwd-wrap { position:relative; }
 .tp-pwd-wrap .tp-input { padding-right:38px; }
 .tp-eye { position:absolute; right:10px; top:50%; transform:translateY(-50%); background:transparent; border:none; color:var(--cp-muted); cursor:pointer; display:flex; align-items:center; padding:2px; border-radius:5px; transition:color .13s; }
 .tp-eye:hover { color:var(--cp-accent); }
-
 .tp-pwd-mismatch { font-size:12px; color:var(--cp-warning); background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.15); border-radius:8px; padding:8px 12px; }
 
-.tp-edit-info  { display:flex; align-items:center; gap:12px; background:var(--cp-bg); border:1px solid var(--cp-border); border-radius:10px; padding:12px 14px; }
+.tp-edit-info  { display:flex; align-items:center; gap:12px; background:var(--cp-surface2); border:1px solid var(--cp-border); border-radius:10px; padding:12px 14px; }
 .tp-edit-av    { width:36px; height:36px; border-radius:50%; background:var(--cp-accent-glow); color:var(--cp-accent); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; flex-shrink:0; }
 .tp-edit-id    { font-size:13px; font-weight:700; color:var(--cp-text); }
 .tp-edit-email { font-size:11px; color:var(--cp-muted); margin-top:2px; }
-.tp-edit-note  { font-size:12px; color:var(--cp-muted); background:var(--cp-bg); border:1px solid var(--cp-border); border-radius:8px; padding:9px 12px; line-height:1.6; }
+.tp-edit-note  { font-size:12px; color:var(--cp-muted); background:var(--cp-surface2); border:1px solid var(--cp-border); border-radius:8px; padding:9px 12px; line-height:1.6; }
 
 .tp-ghost-btn   { padding:9px 16px; border-radius:8px; border:1px solid var(--cp-border); background:transparent; color:var(--cp-muted); font-size:12px; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all .13s; }
 .tp-ghost-btn:hover { border-color:var(--cp-border2); color:var(--cp-subtext); }
 .tp-primary-btn { padding:9px 18px; border-radius:8px; border:none; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; font-size:12px; font-weight:700; background:var(--cp-accent); color:#fff; transition:opacity .14s; }
 .tp-primary-btn:disabled { opacity:.5; cursor:not-allowed; }
 
+/* Skeleton */
+.tp-skeleton { background:linear-gradient(90deg,var(--cp-surface) 25%,var(--cp-surface2) 50%,var(--cp-surface) 75%); background-size:200% 100%; animation:tpShimmer 1.4s infinite; }
+@keyframes tpShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
 @media(max-width:700px) {
-    .tp-thead, .tp-row { grid-template-columns:1fr 1fr; }
+    .tp-thead, .tp-row { grid-template-columns:1fr 1fr; min-width:unset; }
     .tp-cell--email { display:none; }
     .tp-pwd-row { grid-template-columns:1fr; }
 }

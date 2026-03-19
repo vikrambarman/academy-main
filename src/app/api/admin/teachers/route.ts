@@ -1,17 +1,41 @@
-// src/app/api/admin/teachers/route.ts
-import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/db";
-import { verifyUser } from "@/lib/verifyUser";
-import Teacher from "@/models/Teacher";
-import User from "@/models/User";
-import bcrypt from "bcryptjs";
+/**
+ * GET    /api/admin/teachers  — Sabhi teachers list
+ * POST   /api/admin/teachers  — Naya teacher create
+ * PATCH  /api/admin/teachers  — Update name/phone/password/isActive
+ * DELETE /api/admin/teachers  — Teacher delete
+ */
 
-// GET — list all teachers
+import { NextRequest, NextResponse } from "next/server";
+import bcrypt                        from "bcryptjs";
+
+import { connectDB }  from "@/lib/db";
+import { verifyUser } from "@/lib/verifyUser";
+import Teacher        from "@/models/Teacher";
+import User           from "@/models/User";
+
+// ── Auth helper ───────────────────────────────────────────────────────────────
+
+async function requireAdmin() {
+    const user: any = await verifyUser();
+    if (!user || user.role !== "admin") throw new Error("UNAUTHORIZED");
+    return user;
+}
+
+// ── Error helper ──────────────────────────────────────────────────────────────
+
+function handleError(error: any, context: string) {
+    if (["UNAUTHORIZED", "NO_TOKEN", "TOKEN_EXPIRED"].includes(error.message))
+        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    console.error(`[${context}]`, error.message || error);
+    return NextResponse.json({ message: "Server error" }, { status: 500 });
+}
+
+// ── GET ───────────────────────────────────────────────────────────────────────
+
 export async function GET() {
     try {
         await connectDB();
-        const user: any = await verifyUser();
-        if (user.role !== "admin") return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+        await requireAdmin();
 
         const teachers = await Teacher.find()
             .populate("user", "email academyId isActive isFirstLogin")
@@ -19,44 +43,46 @@ export async function GET() {
             .lean();
 
         return NextResponse.json({ teachers });
-    } catch (e) {
-        console.error(e);
-        return NextResponse.json({ message: "Server error" }, { status: 500 });
+
+    } catch (error: any) {
+        return handleError(error, "GET /api/admin/teachers");
     }
 }
 
-// POST — create teacher
-// Body: { name, email, phone?, password }
+// ── POST ──────────────────────────────────────────────────────────────────────
+
 export async function POST(req: NextRequest) {
     try {
         await connectDB();
-        const user: any = await verifyUser();
-        if (user.role !== "admin") return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+        await requireAdmin();
 
         const { name, email, phone, password } = await req.json();
 
-        if (!name || !email || !password) {
-            return NextResponse.json({ message: "Name, email aur password required hain" }, { status: 400 });
-        }
+        // ── Validate required fields ──
+        if (!name?.trim() || !email?.trim() || !password)
+            return NextResponse.json(
+                { message: "Name, email aur password required hain" },
+                { status: 400 }
+            );
 
-        // Check duplicate email
-        const existing = await User.findOne({ email });
-        if (existing) return NextResponse.json({ message: "Yeh email already registered hai" }, { status: 400 });
+        // ── Email uniqueness check ──
+        const existing = await User.findOne({ email: email.toLowerCase().trim() }).lean();
+        if (existing)
+            return NextResponse.json({ message: "Yeh email already registered hai" }, { status: 400 });
 
-        // Generate employeeId: SCA-TCH-001, SCA-TCH-002 ...
-        const count     = await Teacher.countDocuments();
+        // ── Generate employeeId: SCA-TCH-001, SCA-TCH-002… ──
+        const count      = await Teacher.countDocuments();
         const employeeId = `SCA-TCH-${String(count + 1).padStart(3, "0")}`;
 
-        // academyId same as employeeId for teachers
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const newUser = await User.create({
-            academyId:   employeeId,
+            academyId:    employeeId,
             name,
-            email,
-            password:    hashedPassword,
-            role:        "teacher",
-            isActive:    true,
+            email:        email.toLowerCase().trim(),
+            password:     hashedPassword,
+            role:         "teacher",
+            isActive:     true,
             isFirstLogin: true,
         });
 
@@ -67,49 +93,48 @@ export async function POST(req: NextRequest) {
             phone,
         });
 
-        return NextResponse.json({
-            message: "Teacher create ho gaya",
-            teacher: { ...teacher.toObject(), email, employeeId },
-        }, { status: 201 });
+        return NextResponse.json(
+            { message: "Teacher create ho gaya", teacher: { ...teacher.toObject(), email, employeeId } },
+            { status: 201 }
+        );
 
-    } catch (e) {
-        console.error(e);
-        return NextResponse.json({ message: "Server error" }, { status: 500 });
+    } catch (error: any) {
+        return handleError(error, "POST /api/admin/teachers");
     }
 }
 
-// PATCH — update teacher (reset password / toggle active)
-// Body: { teacherId, password? } OR { teacherId, isActive }
+// ── PATCH ─────────────────────────────────────────────────────────────────────
+
 export async function PATCH(req: NextRequest) {
     try {
         await connectDB();
-        const user: any = await verifyUser();
-        if (user.role !== "admin") return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+        await requireAdmin();
 
-        const { teacherId, password, isActive, name, phone } = await req.json();
-        if (!teacherId) return NextResponse.json({ message: "teacherId required" }, { status: 400 });
+        const { teacherId, name, phone, password, isActive } = await req.json();
+
+        if (!teacherId)
+            return NextResponse.json({ message: "teacherId required" }, { status: 400 });
 
         const teacher = await Teacher.findById(teacherId).populate("user");
-        if (!teacher) return NextResponse.json({ message: "Teacher nahi mila" }, { status: 404 });
+        if (!teacher)
+            return NextResponse.json({ message: "Teacher nahi mila" }, { status: 404 });
 
         const linkedUser = teacher.user as any;
 
-        // Update name & phone
+        // ── Name + phone update ──
         if (name !== undefined) {
-            teacher.name     = name;
-            linkedUser.name  = name;
+            teacher.name    = name;
+            linkedUser.name = name;
         }
-        if (phone !== undefined) {
-            teacher.phone = phone;
-        }
+        if (phone !== undefined) teacher.phone = phone;
 
-        // Reset password
+        // ── Password reset ──
         if (password !== undefined) {
             linkedUser.password     = await bcrypt.hash(password, 10);
             linkedUser.isFirstLogin = true;
         }
 
-        // Toggle active
+        // ── Toggle active ──
         if (isActive !== undefined) {
             teacher.isActive    = isActive;
             linkedUser.isActive = isActive;
@@ -120,33 +145,35 @@ export async function PATCH(req: NextRequest) {
 
         return NextResponse.json({ message: "Teacher update ho gaya" });
 
-    } catch (e) {
-        console.error(e);
-        return NextResponse.json({ message: "Server error" }, { status: 500 });
+    } catch (error: any) {
+        return handleError(error, "PATCH /api/admin/teachers");
     }
 }
 
-// DELETE — remove teacher
+// ── DELETE ────────────────────────────────────────────────────────────────────
+
 export async function DELETE(req: NextRequest) {
     try {
         await connectDB();
-        const user: any = await verifyUser();
-        if (user.role !== "admin") return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+        await requireAdmin();
 
         const { searchParams } = new URL(req.url);
         const teacherId = searchParams.get("id");
-        if (!teacherId) return NextResponse.json({ message: "id required" }, { status: 400 });
 
-        const teacher = await Teacher.findById(teacherId);
-        if (!teacher) return NextResponse.json({ message: "Teacher nahi mila" }, { status: 404 });
+        if (!teacherId)
+            return NextResponse.json({ message: "id required" }, { status: 400 });
 
-        await User.findByIdAndDelete(teacher.user);
+        const teacher = await Teacher.findById(teacherId).lean();
+        if (!teacher)
+            return NextResponse.json({ message: "Teacher nahi mila" }, { status: 404 });
+
+        // Delete linked user account + teacher record
+        await User.findByIdAndDelete((teacher as any).user);
         await Teacher.findByIdAndDelete(teacherId);
 
         return NextResponse.json({ message: "Teacher delete ho gaya" });
 
-    } catch (e) {
-        console.error(e);
-        return NextResponse.json({ message: "Server error" }, { status: 500 });
+    } catch (error: any) {
+        return handleError(error, "DELETE /api/admin/teachers");
     }
 }
