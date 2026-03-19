@@ -1,7 +1,7 @@
 /**
- * FILE: src/app/api/teacher/notes/route.ts
- * GET → Teacher/Admin ke liye sabhi courses ke notes
- *       (published + draft dono, enrollment restriction nahi)
+ * GET /api/admin/notes/study
+ * - No params  → Active courses list
+ * - ?courseSlug → Modules + notes (published + draft dono)
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -10,20 +10,29 @@ import { verifyUser } from "@/lib/verifyUser";
 import Note from "@/models/Note";
 import Course from "@/models/Course";
 
-export async function GET(request: NextRequest) {
+async function requireAdmin() {
+    const user: any = await verifyUser();
+    if (!user || user.role !== "admin") throw new Error("UNAUTHORIZED");
+    return user;
+}
+
+function handleError(error: any, context: string) {
+    if (["UNAUTHORIZED", "NO_TOKEN", "TOKEN_EXPIRED"].includes(error.message))
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    console.error(`[${context}]`, error.message || error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+}
+
+export async function GET(req: NextRequest) {
     try {
-        const user = await verifyUser();
-        if (!user || (user as any).role !== "admin") {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
         await connectDB();
+        await requireAdmin();
 
-        const { searchParams } = new URL(request.url);
+        const { searchParams } = new URL(req.url);
         const courseSlug = searchParams.get("courseSlug");
 
+        // ── No params: return courses list ──
         if (!courseSlug) {
-            // Sirf courses list return karo
             const courses = await Course.find({ isActive: true })
                 .select("name slug")
                 .sort({ name: 1 })
@@ -31,30 +40,25 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ success: true, courses });
         }
 
-        // Course verify karo
-        const course = await Course.findOne({ slug: courseSlug }).lean() as any;
-        if (!course) {
+        // ── Course verify ──
+        const course = await Course.findOne({ slug: courseSlug })
+            .select("name slug")
+            .lean() as any;
+        if (!course)
             return NextResponse.json({ error: "Course nahi mila" }, { status: 404 });
-        }
 
-        // Published + Draft dono fetch karo (no isPublished filter)
+        // ── Notes fetch — published + draft dono ──
         const notes = await Note.find({ courseSlug })
             .select("-content")
             .sort({ moduleSlug: 1, order: 1 })
-            .lean();
+            .lean() as any[];
 
-        // Group: moduleSlug → notes[]
-        const moduleMap: Record<string, {
-            moduleName: string;
-            moduleSlug: string;
-            notes: any[];
-        }> = {};
-
-        for (const note of notes as any[]) {
+        // ── Group by module ──
+        const moduleMap: Record<string, { moduleName: string; moduleSlug: string; notes: any[] }> = {};
+        for (const note of notes) {
             const { moduleSlug, moduleName } = note;
-            if (!moduleMap[moduleSlug]) {
+            if (!moduleMap[moduleSlug])
                 moduleMap[moduleSlug] = { moduleName, moduleSlug, notes: [] };
-            }
             moduleMap[moduleSlug].notes.push({
                 _id: note._id,
                 title: note.title,
@@ -72,8 +76,5 @@ export async function GET(request: NextRequest) {
             total: notes.length,
         });
 
-    } catch (error) {
-        console.error("GET /api/admin/notes/study error:", error);
-        return NextResponse.json({ error: "Server error" }, { status: 500 });
-    }
+    } catch (e: any) { return handleError(e, "GET /api/admin/notes/study"); }
 }

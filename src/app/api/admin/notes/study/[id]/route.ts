@@ -1,48 +1,52 @@
 /**
- * FILE: src/app/api/teacher/notes/[id]/route.ts
- * GET → Single note content (teacher/admin)
- *       Draft notes bhi accessible hain
+ * GET /api/admin/notes/study/[id]
+ * Draft notes bhi accessible — no isPublished filter
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/db";
+import { connectDB }  from "@/lib/db";
 import { verifyUser } from "@/lib/verifyUser";
-import Note from "@/models/Note";
+import Note           from "@/models/Note";
+
+async function requireAdmin() {
+    const user: any = await verifyUser();
+    if (!user || user.role !== "admin") throw new Error("UNAUTHORIZED");
+    return user;
+}
+
+function handleError(error: any, context: string) {
+    if (["UNAUTHORIZED", "NO_TOKEN", "TOKEN_EXPIRED"].includes(error.message))
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    console.error(`[${context}]`, error.message || error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+}
 
 export async function GET(
-    request: NextRequest,
+    req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const user = await verifyUser();
-        if (!user || (user as any).role !== "admin") {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
+        await connectDB();
+        await requireAdmin();
 
         const { id } = await params;
-        await connectDB();
-
-        // isPublished check nahi — draft bhi milega
         const note = await Note.findById(id).lean() as any;
-        if (!note) {
+
+        if (!note)
             return NextResponse.json({ error: "Note nahi mila" }, { status: 404 });
-        }
 
         return NextResponse.json({
             success: true,
             note: {
-                _id: note._id,
-                title: note.title,
-                moduleName: note.moduleName,
-                courseSlug: note.courseSlug,
+                _id:         note._id,
+                title:       note.title,
+                moduleName:  note.moduleName,
+                courseSlug:  note.courseSlug,
                 isPublished: note.isPublished,
-                updatedAt: note.updatedAt,
+                updatedAt:   note.updatedAt,
             },
             content: note.content || "",
         });
 
-    } catch (error) {
-        console.error("GET /api/admin/notes/study/[id] error:", error);
-        return NextResponse.json({ error: "Server error" }, { status: 500 });
-    }
+    } catch (e: any) { return handleError(e, "GET /api/admin/notes/study/[id]"); }
 }

@@ -1,4 +1,3 @@
-// app/dashboard/admin/courses/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -6,12 +5,12 @@ import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import { COURSE_LEVELS } from "@/lib/constants/courseConfig";
 import {
     Plus, X, Edit2, Trash2, ToggleLeft, ToggleRight,
-    BookOpen, Upload, ChevronDown, ChevronUp
+    BookOpen, Upload, ChevronDown, ChevronUp, RefreshCw,
 } from "lucide-react";
 
-/* ─── Types ───────────────────────────────────────── */
-interface TopicItem { value: string; }
-interface ModuleItem { module: string; topics: TopicItem[]; }
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+interface ModuleItem { module: string; topics: { value: string }[]; }
 interface CourseItem {
     _id: string; name: string; level: string;
     duration?: string; eligibility?: string; certificate?: string;
@@ -22,7 +21,8 @@ interface CourseItem {
 
 const EMPTY_FORM = { name: "", level: "", duration: "", eligibility: "", certificate: "" };
 
-/* ─── Tag List Editor ─────────────────────────────── */
+// ── Tag Editor ────────────────────────────────────────────────────────────────
+
 function TagEditor({ label, items, onChange, onAdd, onRemove, placeholder }: {
     label: string; items: string[]; placeholder: string;
     onChange: (i: number, v: string) => void;
@@ -34,13 +34,11 @@ function TagEditor({ label, items, onChange, onAdd, onRemove, placeholder }: {
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {items.map((item, i) => (
                     <div key={i} style={{ display: "flex", gap: 6 }}>
-                        <input
-                            className="ac-input" style={{ flex: 1 }}
+                        <input className="ac-input" style={{ flex: 1 }}
                             placeholder={placeholder} value={item}
-                            onChange={e => onChange(i, e.target.value)}
-                        />
+                            onChange={e => onChange(i, e.target.value)} />
                         {items.length > 1 && (
-                            <button className="ac-icon-btn danger" onClick={() => onRemove(i)}>
+                            <button className="ac-icon-btn ac-icon-btn--danger" onClick={() => onRemove(i)}>
                                 <X size={12} />
                             </button>
                         )}
@@ -54,65 +52,113 @@ function TagEditor({ label, items, onChange, onAdd, onRemove, placeholder }: {
     );
 }
 
-/* ═══════════════════════════════════════════════════
-   MAIN
-═══════════════════════════════════════════════════ */
+// ── Skeleton ──────────────────────────────────────────────────────────────────
+
+function CoursesSkeleton() {
+    return (
+        <div className="ac-root">
+            <div className="ac-page-header">
+                <div>
+                    <div className="ac-sk" style={{ width: 140, height: 28, borderRadius: 6 }} />
+                    <div className="ac-sk" style={{ width: 160, height: 12, borderRadius: 4, marginTop: 8 }} />
+                </div>
+            </div>
+            <div className="ac-grid">
+                {/* Form skeleton */}
+                <div className="ac-card">
+                    <div className="ac-card-head">
+                        <div className="ac-sk" style={{ width: 120, height: 12, borderRadius: 4 }} />
+                    </div>
+                    <div className="ac-card-body">
+                        {[1, 2, 3, 4].map(i => (
+                            <div key={i} className="ac-field">
+                                <div className="ac-sk" style={{ width: 80, height: 10, borderRadius: 4 }} />
+                                <div className="ac-sk" style={{ width: "100%", height: 38, borderRadius: 8, marginTop: 4 }} />
+                            </div>
+                        ))}
+                        <div className="ac-sk" style={{ width: "100%", height: 42, borderRadius: 9 }} />
+                    </div>
+                </div>
+                {/* List skeleton */}
+                <div className="ac-card">
+                    <div className="ac-card-head">
+                        <div className="ac-sk" style={{ width: 140, height: 12, borderRadius: 4 }} />
+                    </div>
+                    <div style={{ padding: "8px 0" }}>
+                        {[1, 2, 3, 4].map(i => (
+                            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 18px", borderBottom: "1px solid var(--cp-border)" }}>
+                                <div className="ac-sk" style={{ width: 52, height: 38, borderRadius: 7, flexShrink: 0 }} />
+                                <div style={{ flex: 1 }}>
+                                    <div className="ac-sk" style={{ width: 120, height: 13, borderRadius: 4 }} />
+                                    <div className="ac-sk" style={{ width: 80, height: 10, borderRadius: 4, marginTop: 6 }} />
+                                </div>
+                                <div style={{ display: "flex", gap: 5 }}>
+                                    {[1, 2, 3].map(j => (
+                                        <div key={j} className="ac-sk" style={{ width: 28, height: 28, borderRadius: 7 }} />
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ── Main ──────────────────────────────────────────────────────────────────────
+
 export default function AdminCourses() {
     const [courses, setCourses] = useState<CourseItem[]>([]);
-    const [loading, setLoading] = useState(false);
+    const [pageLoading, setPageLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
     const [editId, setEditId] = useState<string | null>(null);
     const [bannerFile, setBannerFile] = useState<File | null>(null);
     const [form, setForm] = useState(EMPTY_FORM);
     const [designedFor, setDesignedFor] = useState<string[]>([""]);
-    const [careerOpportunities, setCareerOpportunities] = useState<string[]>([""]);
+    const [careerOpps, setCareerOpps] = useState<string[]>([""]);
     const [syllabus, setSyllabus] = useState<ModuleItem[]>([{ module: "", topics: [{ value: "" }] }]);
     const [expandedModules, setExpandedModules] = useState<Set<number>>(new Set([0]));
+    const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
+
+    const showToast = (msg: string, ok = true) => {
+        setToast({ msg, ok }); setTimeout(() => setToast(null), 3000);
+    };
 
     const fetchCourses = async () => {
-        const res = await fetchWithAuth("/api/admin/courses");
-        setCourses(await res.json() || []);
+        setPageLoading(true);
+        try {
+            const res = await fetchWithAuth("/api/admin/courses");
+            const d = await res.json();
+            setCourses(Array.isArray(d) ? d : []);
+        } catch { showToast("Courses load nahi hue", false); }
+        finally { setPageLoading(false); }
     };
 
     useEffect(() => { fetchCourses(); }, []);
 
-    const handleChange = (e: any) => setForm({ ...form, [e.target.name]: e.target.value });
-
-    /* ── designedFor ── */
-    const handleDesignedForChange = (i: number, v: string) => { const u = [...designedFor]; u[i] = v; setDesignedFor(u); };
-    const addDesignedFor = () => setDesignedFor([...designedFor, ""]);
-    const removeDesignedFor = (i: number) => setDesignedFor(designedFor.filter((_, idx) => idx !== i));
-
-    /* ── careerOpportunities ── */
-    const handleCareerChange = (i: number, v: string) => { const u = [...careerOpportunities]; u[i] = v; setCareerOpportunities(u); };
-    const addCareer = () => setCareerOpportunities([...careerOpportunities, ""]);
-    const removeCareer = (i: number) => setCareerOpportunities(careerOpportunities.filter((_, idx) => idx !== i));
-
-    /* ── Syllabus ── */
+    // ── Syllabus handlers ──
     const addModule = () => {
         const idx = syllabus.length;
         setSyllabus([...syllabus, { module: "", topics: [{ value: "" }] }]);
         setExpandedModules(p => new Set(p).add(idx));
     };
-    const removeModule = (i: number) => {
-        setSyllabus(syllabus.filter((_, idx) => idx !== i));
-        setExpandedModules(p => { const n = new Set(p); n.delete(i); return n; });
-    };
-    const toggleModule = (i: number) => setExpandedModules(p => {
-        const n = new Set(p); n.has(i) ? n.delete(i) : n.add(i); return n;
-    });
-    const handleModuleName = (i: number, v: string) => { const u = [...syllabus]; u[i].module = v; setSyllabus(u); };
+    const removeModule = (i: number) => { setSyllabus(syllabus.filter((_, idx) => idx !== i)); };
+    const toggleModule = (i: number) => setExpandedModules(p => { const n = new Set(p); n.has(i) ? n.delete(i) : n.add(i); return n; });
+    const handleModName = (i: number, v: string) => { const u = [...syllabus]; u[i].module = v; setSyllabus(u); };
     const addTopic = (mi: number) => { const u = [...syllabus]; u[mi].topics.push({ value: "" }); setSyllabus(u); };
     const removeTopic = (mi: number, ti: number) => { const u = [...syllabus]; u[mi].topics = u[mi].topics.filter((_, i) => i !== ti); setSyllabus(u); };
-    const handleTopicChange = (mi: number, ti: number, v: string) => { const u = [...syllabus]; u[mi].topics[ti].value = v; setSyllabus(u); };
+    const handleTopicChg = (mi: number, ti: number, v: string) => { const u = [...syllabus]; u[mi].topics[ti].value = v; setSyllabus(u); };
 
-    /* ── Submit ── */
+    // ── Submit ──
     const handleSubmit = async () => {
+        if (!form.name.trim() || !form.level) { showToast("Name aur Level required hain", false); return; }
+        setSaving(true);
         try {
-            setLoading(true);
-            const fmtSyllabus = syllabus.filter(m => m.module.trim()).map(m => ({
-                module: m.module.trim(),
-                topics: m.topics.map(t => t.value.trim()).filter(Boolean),
-            }));
+            const fmtSyllabus = syllabus
+                .filter(m => m.module.trim())
+                .map(m => ({ module: m.module.trim(), topics: m.topics.map(t => t.value.trim()).filter(Boolean) }));
+
             const method = editId ? "PUT" : "POST";
             const res = await fetchWithAuth("/api/admin/courses", {
                 method, headers: { "Content-Type": "application/json" },
@@ -120,34 +166,39 @@ export default function AdminCourses() {
                     ...(editId && { id: editId }), ...form,
                     syllabus: fmtSyllabus,
                     designedFor: designedFor.map(s => s.trim()).filter(Boolean),
-                    careerOpportunities: careerOpportunities.map(s => s.trim()).filter(Boolean),
+                    careerOpportunities: careerOpps.map(s => s.trim()).filter(Boolean),
                 }),
             });
-            if (bannerFile && editId) {
+            const d = await res.json();
+            if (!res.ok) { showToast(d.message || "Error", false); return; }
+
+            // Upload banner if selected (editId available after POST too)
+            const courseId = editId || d._id;
+            if (bannerFile && courseId) {
                 const fd = new FormData();
-                fd.append("file", bannerFile); fd.append("courseId", editId);
+                fd.append("file", bannerFile); fd.append("courseId", courseId);
                 await fetchWithAuth("/api/admin/courses/upload-banner", { method: "POST", body: fd });
             }
+
+            showToast(editId ? "Course updated ✓" : "Course created ✓");
             resetForm(); fetchCourses();
-        } catch { console.error("Course save failed"); }
-        finally { setLoading(false); }
+        } catch { showToast("Server error", false); }
+        finally { setSaving(false); }
     };
 
-    /* ── Reset ── */
     const resetForm = () => {
         setForm(EMPTY_FORM);
         setSyllabus([{ module: "", topics: [{ value: "" }] }]);
-        setDesignedFor([""]); setCareerOpportunities([""]);
+        setDesignedFor([""]); setCareerOpps([""]);
         setEditId(null); setBannerFile(null);
         setExpandedModules(new Set([0]));
     };
 
-    /* ── Edit ── */
     const handleEdit = (c: CourseItem) => {
         setEditId(c._id);
         setForm({ name: c.name, level: c.level, duration: c.duration || "", eligibility: c.eligibility || "", certificate: c.certificate || "" });
         setDesignedFor(c.designedFor?.length ? c.designedFor : [""]);
-        setCareerOpportunities(c.careerOpportunities?.length ? c.careerOpportunities : [""]);
+        setCareerOpps(c.careerOpportunities?.length ? c.careerOpportunities : [""]);
         setSyllabus(c.syllabus?.length
             ? c.syllabus.map(m => ({ module: m.module, topics: m.topics.map(t => ({ value: t })) }))
             : [{ module: "", topics: [{ value: "" }] }]);
@@ -155,14 +206,13 @@ export default function AdminCourses() {
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
-    /* ── Delete ── */
     const handleDelete = async (id: string) => {
-        if (!confirm("Delete this course?")) return;
-        await fetchWithAuth(`/api/admin/courses?id=${id}`, { method: "DELETE" });
-        fetchCourses();
+        if (!confirm("Is course ko delete karna chahte ho?")) return;
+        const res = await fetchWithAuth(`/api/admin/courses?id=${id}`, { method: "DELETE" });
+        if (res.ok) { showToast("Course deleted"); fetchCourses(); }
+        else { const d = await res.json(); showToast(d.message || "Delete failed", false); }
     };
 
-    /* ── Toggle Active ── */
     const toggleActive = async (c: CourseItem) => {
         await fetchWithAuth("/api/admin/courses", {
             method: "PATCH", headers: { "Content-Type": "application/json" },
@@ -171,86 +221,109 @@ export default function AdminCourses() {
         fetchCourses();
     };
 
+    if (pageLoading) return <><style>{acStyles}</style><CoursesSkeleton /></>;
+
     return (
         <>
             <style>{acStyles}</style>
-            <div className="ac-root">
 
-                {/* ── Page header ── */}
+            {toast && (
+                <div className={`ac-toast ${toast.ok ? "ac-toast--ok" : "ac-toast--err"}`}>{toast.msg}</div>
+            )}
+
+            <div className="ac-root">
+                {/* Header */}
                 <div className="ac-page-header">
                     <div>
                         <h1 className="ac-page-title">{editId ? "Edit Course" : "Courses"}</h1>
                         <p className="ac-page-sub">{courses.length} courses configured</p>
                     </div>
-                    {editId && (
-                        <button className="ac-ghost-btn" onClick={resetForm}>
-                            <X size={13} /> Cancel Edit
-                        </button>
-                    )}
+                    <div style={{ display: "flex", gap: 8 }}>
+                        {!editId && (
+                            <button className="ac-ghost-btn" onClick={fetchCourses} title="Refresh">
+                                <RefreshCw size={13} />
+                            </button>
+                        )}
+                        {editId && (
+                            <button className="ac-ghost-btn" onClick={resetForm}>
+                                <X size={13} /> Cancel Edit
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 <div className="ac-grid">
 
-                    {/* ════ LEFT — FORM ════ */}
+                    {/* ── LEFT — FORM ── */}
                     <div className="ac-card">
                         <div className="ac-card-head">
-                            <BookOpen size={13} style={{ color: "#f59e0b" }} />
+                            <BookOpen size={13} style={{ color: "var(--cp-warning)" }} />
                             <span>{editId ? "Update Course" : "Create New Course"}</span>
                         </div>
                         <div className="ac-card-body">
 
-                            {/* Basic info */}
                             <div className="ac-section-label">Basic Info</div>
                             <div className="ac-field">
-                                <label className="ac-label">Course Name</label>
-                                <input className="ac-input" name="name" placeholder="e.g. DCA, Tally Prime" value={form.name} onChange={handleChange} />
+                                <label className="ac-label">Course Name *</label>
+                                <input className="ac-input" name="name" placeholder="e.g. DCA, Tally Prime"
+                                    value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
                             </div>
                             <div className="ac-form-grid">
                                 <div className="ac-field">
-                                    <label className="ac-label">Level / Authority</label>
-                                    <select className="ac-select" name="level" value={form.level} onChange={handleChange}>
+                                    <label className="ac-label">Level *</label>
+                                    <select className="ac-select" name="level"
+                                        value={form.level} onChange={e => setForm(f => ({ ...f, level: e.target.value }))}>
                                         <option value="">Select Level</option>
-                                        {COURSE_LEVELS.map(item => (
+                                        {COURSE_LEVELS.map((item: any) => (
                                             <option key={item.level} value={item.level}>{item.level}</option>
                                         ))}
                                     </select>
                                 </div>
                                 <div className="ac-field">
                                     <label className="ac-label">Duration</label>
-                                    <input className="ac-input" name="duration" placeholder="e.g. 3 Months" value={form.duration} onChange={handleChange} />
+                                    <input className="ac-input" name="duration" placeholder="e.g. 3 Months"
+                                        value={form.duration} onChange={e => setForm(f => ({ ...f, duration: e.target.value }))} />
                                 </div>
                                 <div className="ac-field">
                                     <label className="ac-label">Eligibility</label>
-                                    <input className="ac-input" name="eligibility" placeholder="e.g. 10th Pass" value={form.eligibility} onChange={handleChange} />
+                                    <input className="ac-input" name="eligibility" placeholder="e.g. 10th Pass"
+                                        value={form.eligibility} onChange={e => setForm(f => ({ ...f, eligibility: e.target.value }))} />
                                 </div>
                                 <div className="ac-field">
                                     <label className="ac-label">Certificate Info</label>
-                                    <input className="ac-input" name="certificate" placeholder="Certificate type" value={form.certificate} onChange={handleChange} />
+                                    <input className="ac-input" name="certificate" placeholder="Certificate type"
+                                        value={form.certificate} onChange={e => setForm(f => ({ ...f, certificate: e.target.value }))} />
                                 </div>
                             </div>
 
                             {/* Banner */}
                             <div className="ac-section-label">Course Banner</div>
                             <label className="ac-upload-zone">
-                                <Upload size={16} style={{ color: "#475569" }} />
-                                <span style={{ fontSize: 12, color: "#64748b" }}>
-                                    {bannerFile ? bannerFile.name : "Click to upload banner image"}
+                                <Upload size={16} style={{ color: "var(--cp-muted)" }} />
+                                <span style={{ fontSize: 12, color: "var(--cp-muted)" }}>
+                                    {bannerFile ? bannerFile.name : "Click to upload banner (1200×630 recommended)"}
                                 </span>
                                 <input type="file" accept="image/*" style={{ display: "none" }}
                                     onChange={e => setBannerFile(e.target.files?.[0] || null)} />
                             </label>
-                            {!editId && bannerFile && (
-                                <p style={{ fontSize: 10, color: "#f59e0b", marginTop: 4 }}>
-                                    ⚠️ Banner will upload after saving the course first
+                            {bannerFile && (
+                                <p style={{ fontSize: 10, color: "var(--cp-warning)", marginTop: 2 }}>
+                                    ⚠️ Banner course save hone ke baad upload hoga
                                 </p>
                             )}
 
-                            {/* Designed For */}
+                            {/* Audience & Careers */}
                             <div className="ac-section-label">Audience & Careers</div>
-                            <TagEditor label="Designed For" items={designedFor} placeholder="e.g. Students, Professionals"
-                                onChange={handleDesignedForChange} onAdd={addDesignedFor} onRemove={removeDesignedFor} />
-                            <TagEditor label="Career Opportunities" items={careerOpportunities} placeholder="e.g. Data Entry Operator"
-                                onChange={handleCareerChange} onAdd={addCareer} onRemove={removeCareer} />
+                            <TagEditor label="Designed For" items={designedFor}
+                                placeholder="e.g. Students, Professionals"
+                                onChange={(i, v) => { const u = [...designedFor]; u[i] = v; setDesignedFor(u); }}
+                                onAdd={() => setDesignedFor([...designedFor, ""])}
+                                onRemove={i => setDesignedFor(designedFor.filter((_, idx) => idx !== i))} />
+                            <TagEditor label="Career Opportunities" items={careerOpps}
+                                placeholder="e.g. Data Entry Operator"
+                                onChange={(i, v) => { const u = [...careerOpps]; u[i] = v; setCareerOpps(u); }}
+                                onAdd={() => setCareerOpps([...careerOpps, ""])}
+                                onRemove={i => setCareerOpps(careerOpps.filter((_, idx) => idx !== i))} />
 
                             {/* Syllabus */}
                             <div className="ac-section-label">Syllabus Modules</div>
@@ -260,38 +333,38 @@ export default function AdminCourses() {
                                         <div className="ac-module-head" onClick={() => toggleModule(mi)}>
                                             <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
                                                 <span className="ac-module-num">M{mi + 1}</span>
-                                                <input
-                                                    className="ac-module-name-input"
+                                                <input className="ac-module-name-input"
                                                     placeholder="Module name..."
                                                     value={mod.module}
                                                     onClick={e => e.stopPropagation()}
-                                                    onChange={e => handleModuleName(mi, e.target.value)}
-                                                />
+                                                    onChange={e => handleModName(mi, e.target.value)} />
                                             </div>
                                             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                                <span style={{ fontSize: 10, color: "#475569" }}>{mod.topics.length} topics</span>
+                                                <span style={{ fontSize: 10, color: "var(--cp-muted)" }}>
+                                                    {mod.topics.length} topics
+                                                </span>
                                                 {syllabus.length > 1 && (
-                                                    <button className="ac-icon-btn danger" onClick={e => { e.stopPropagation(); removeModule(mi); }}>
+                                                    <button className="ac-icon-btn ac-icon-btn--danger"
+                                                        onClick={e => { e.stopPropagation(); removeModule(mi); }}>
                                                         <X size={11} />
                                                     </button>
                                                 )}
                                                 {expandedModules.has(mi)
-                                                    ? <ChevronUp size={13} style={{ color: "#64748b" }} />
-                                                    : <ChevronDown size={13} style={{ color: "#64748b" }} />}
+                                                    ? <ChevronUp size={13} style={{ color: "var(--cp-muted)" }} />
+                                                    : <ChevronDown size={13} style={{ color: "var(--cp-muted)" }} />}
                                             </div>
                                         </div>
                                         {expandedModules.has(mi) && (
                                             <div className="ac-module-body">
                                                 {mod.topics.map((topic, ti) => (
                                                     <div key={ti} style={{ display: "flex", gap: 6, marginBottom: 6 }}>
-                                                        <input
-                                                            className="ac-input" style={{ flex: 1, fontSize: 12 }}
+                                                        <input className="ac-input" style={{ flex: 1, fontSize: 12 }}
                                                             placeholder={`Topic ${ti + 1}`}
                                                             value={topic.value}
-                                                            onChange={e => handleTopicChange(mi, ti, e.target.value)}
-                                                        />
+                                                            onChange={e => handleTopicChg(mi, ti, e.target.value)} />
                                                         {mod.topics.length > 1 && (
-                                                            <button className="ac-icon-btn danger" onClick={() => removeTopic(mi, ti)}>
+                                                            <button className="ac-icon-btn ac-icon-btn--danger"
+                                                                onClick={() => removeTopic(mi, ti)}>
                                                                 <X size={11} />
                                                             </button>
                                                         )}
@@ -311,8 +384,8 @@ export default function AdminCourses() {
 
                             {/* Submit */}
                             <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                                <button className="ac-submit-btn" onClick={handleSubmit} disabled={loading}>
-                                    {loading ? "Saving..." : editId ? "Update Course" : "Save Course"}
+                                <button className="ac-submit-btn" onClick={handleSubmit} disabled={saving}>
+                                    {saving ? "Saving..." : editId ? "Update Course" : "Save Course"}
                                 </button>
                                 {editId && (
                                     <button className="ac-ghost-btn" onClick={resetForm}>Cancel</button>
@@ -321,31 +394,32 @@ export default function AdminCourses() {
                         </div>
                     </div>
 
-                    {/* ════ RIGHT — COURSE LIST ════ */}
+                    {/* ── RIGHT — COURSE LIST ── */}
                     <div className="ac-card">
                         <div className="ac-card-head">
-                            <BookOpen size={13} style={{ color: "#f59e0b" }} />
+                            <BookOpen size={13} style={{ color: "var(--cp-warning)" }} />
                             <span>Existing Courses ({courses.length})</span>
                         </div>
                         <div style={{ padding: "8px 0" }}>
                             {courses.length === 0 ? (
                                 <div className="ac-empty">
                                     <div style={{ fontSize: 28, marginBottom: 8 }}>📚</div>
-                                    <div style={{ fontSize: 13, color: "#64748b" }}>No courses yet — create one!</div>
+                                    <div style={{ fontSize: 13, color: "var(--cp-muted)" }}>
+                                        No courses yet — create one!
+                                    </div>
                                 </div>
                             ) : courses.map(course => (
                                 <div key={course._id} className="ac-course-row">
-                                    {/* Banner */}
                                     <div className="ac-course-banner">
                                         {course.banner
-                                            ? <img src={course.banner} alt={course.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                            : <BookOpen size={16} style={{ color: "#475569" }} />}
+                                            ? <img src={course.banner} alt={course.name}
+                                                style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                            : <BookOpen size={16} style={{ color: "var(--cp-muted)" }} />}
                                     </div>
-                                    {/* Info */}
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 2 }}>
                                             <span className="ac-course-name">{course.name}</span>
-                                            <span className={`ac-active-dot ${course.isActive ? "on" : "off"}`} />
+                                            <span className={`ac-active-dot ${course.isActive ? "ac-active-dot--on" : "ac-active-dot--off"}`} />
                                         </div>
                                         <div className="ac-course-level">{course.level}</div>
                                         <div className="ac-course-meta">
@@ -355,19 +429,20 @@ export default function AdminCourses() {
                                             <span>{course.careerOpportunities?.length || 0} careers</span>
                                         </div>
                                     </div>
-                                    {/* Actions */}
                                     <div className="ac-course-actions">
-                                        <button className="ac-icon-btn amber" onClick={() => handleEdit(course)} title="Edit">
+                                        <button className="ac-icon-btn ac-icon-btn--amber"
+                                            onClick={() => handleEdit(course)} title="Edit">
                                             <Edit2 size={12} />
                                         </button>
-                                        <button
-                                            className={`ac-icon-btn ${course.isActive ? "success" : "muted"}`}
+                                        <button className={`ac-icon-btn ${course.isActive ? "ac-icon-btn--success" : "ac-icon-btn--muted"}`}
                                             onClick={() => toggleActive(course)}
-                                            title={course.isActive ? "Deactivate" : "Activate"}
-                                        >
-                                            {course.isActive ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
+                                            title={course.isActive ? "Deactivate" : "Activate"}>
+                                            {course.isActive
+                                                ? <ToggleRight size={14} />
+                                                : <ToggleLeft size={14} />}
                                         </button>
-                                        <button className="ac-icon-btn danger" onClick={() => handleDelete(course._id)} title="Delete">
+                                        <button className="ac-icon-btn ac-icon-btn--danger"
+                                            onClick={() => handleDelete(course._id)} title="Delete">
                                             <Trash2 size={12} />
                                         </button>
                                     </div>
@@ -382,11 +457,16 @@ export default function AdminCourses() {
     );
 }
 
-// acStyles replace karo:
+// ── Styles ────────────────────────────────────────────────────────────────────
+
 const acStyles = `
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap');
 
     .ac-root { font-family:'Plus Jakarta Sans',sans-serif; color:var(--cp-text); display:flex; flex-direction:column; gap:20px; }
+
+    .ac-toast { position:fixed; top:16px; right:16px; z-index:999; padding:10px 18px; border-radius:9px; font-size:12px; font-weight:700; font-family:'Plus Jakarta Sans',sans-serif; box-shadow:0 8px 24px rgba(0,0,0,.3); }
+    .ac-toast--ok  { background:rgba(34,197,94,0.12); color:var(--cp-success); border:1px solid rgba(34,197,94,0.3); }
+    .ac-toast--err { background:rgba(239,68,68,0.12); color:var(--cp-danger);  border:1px solid rgba(239,68,68,0.3); }
 
     .ac-page-header { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px; }
     .ac-page-title  { font-family:'DM Serif Display',serif; font-size:1.6rem; color:var(--cp-text); font-weight:400; }
@@ -396,11 +476,7 @@ const acStyles = `
     @media(max-width:900px){ .ac-grid { grid-template-columns:1fr; } }
 
     .ac-card { background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:12px; overflow:hidden; }
-    .ac-card-head {
-        display:flex; align-items:center; gap:7px; padding:13px 18px;
-        border-bottom:1px solid var(--cp-border); background:var(--cp-surface2);
-        font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--cp-subtext);
-    }
+    .ac-card-head { display:flex; align-items:center; gap:7px; padding:13px 18px; border-bottom:1px solid var(--cp-border); background:var(--cp-surface2); font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--cp-subtext); }
     .ac-card-body { padding:18px; display:flex; flex-direction:column; gap:14px; }
 
     .ac-section-label { font-size:9.5px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--cp-muted); padding-bottom:6px; border-bottom:1px solid var(--cp-border); }
@@ -411,21 +487,12 @@ const acStyles = `
     .ac-field { display:flex; flex-direction:column; gap:5px; }
     .ac-label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--cp-muted); }
 
-    .ac-input, .ac-select {
-        font-family:'Plus Jakarta Sans',sans-serif;
-        padding:9px 12px; font-size:13px;
-        background:var(--cp-bg); border:1px solid var(--cp-border); border-radius:8px;
-        color:var(--cp-text); outline:none; transition:border-color .15s; width:100%;
-    }
+    .ac-input, .ac-select { font-family:'Plus Jakarta Sans',sans-serif; padding:9px 12px; font-size:13px; background:var(--cp-bg); border:1px solid var(--cp-border); border-radius:8px; color:var(--cp-text); outline:none; transition:border-color .15s; width:100%; }
     .ac-input:focus, .ac-select:focus { border-color:var(--cp-accent); box-shadow:0 0 0 3px var(--cp-accent-glow); }
-    .ac-input::placeholder { color:var(--cp-border2); }
+    .ac-input::placeholder { color:var(--cp-muted); }
     .ac-select option { background:var(--cp-surface); }
 
-    .ac-upload-zone {
-        display:flex; align-items:center; gap:10px; cursor:pointer;
-        padding:12px 16px; border:1px dashed var(--cp-border); border-radius:9px;
-        background:var(--cp-bg); transition:border-color .15s;
-    }
+    .ac-upload-zone { display:flex; align-items:center; gap:10px; cursor:pointer; padding:12px 16px; border:1px dashed var(--cp-border); border-radius:9px; background:var(--cp-bg); transition:border-color .15s; }
     .ac-upload-zone:hover { border-color:var(--cp-accent); }
 
     .ac-module-card { background:var(--cp-bg); border:1px solid var(--cp-border); border-radius:9px; overflow:hidden; }
@@ -433,7 +500,7 @@ const acStyles = `
     .ac-module-head:hover { background:var(--cp-accent-glow); }
     .ac-module-num { width:22px; height:22px; border-radius:6px; flex-shrink:0; background:var(--cp-accent-glow); color:var(--cp-accent); display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:800; }
     .ac-module-name-input { font-family:'Plus Jakarta Sans',sans-serif; flex:1; background:transparent; border:none; outline:none; color:var(--cp-text); font-size:12px; font-weight:600; min-width:0; }
-    .ac-module-name-input::placeholder { color:var(--cp-border2); }
+    .ac-module-name-input::placeholder { color:var(--cp-muted); }
     .ac-module-body { padding:10px 12px 12px; border-top:1px solid var(--cp-border); }
 
     .ac-submit-btn { flex:1; padding:11px; border-radius:9px; border:none; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:700; background:var(--cp-accent); color:#fff; transition:opacity .15s; }
@@ -450,30 +517,30 @@ const acStyles = `
     .ac-text-btn:hover { opacity:.75; }
 
     .ac-icon-btn { width:28px; height:28px; border-radius:7px; border:1px solid; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .13s; flex-shrink:0; }
-    .ac-icon-btn.amber   { background:var(--cp-accent-glow); color:var(--cp-accent); border-color:color-mix(in srgb,var(--cp-accent) 25%,transparent); }
-    .ac-icon-btn.amber:hover { background:color-mix(in srgb,var(--cp-accent) 20%,transparent); }
-    .ac-icon-btn.danger  { background:rgba(239,68,68,0.08); color:var(--cp-danger); border-color:rgba(239,68,68,0.2); }
-    .ac-icon-btn.danger:hover { background:rgba(239,68,68,0.18); }
-    .ac-icon-btn.success { background:rgba(34,197,94,0.08); color:var(--cp-success); border-color:rgba(34,197,94,0.2); }
-    .ac-icon-btn.success:hover { background:rgba(34,197,94,0.18); }
-    .ac-icon-btn.muted   { background:rgba(100,116,139,0.08); color:var(--cp-muted); border-color:rgba(100,116,139,0.2); }
-    .ac-icon-btn.muted:hover { background:rgba(100,116,139,0.18); }
+    .ac-icon-btn--amber   { background:var(--cp-accent-glow); color:var(--cp-accent); border-color:color-mix(in srgb,var(--cp-accent) 25%,transparent); }
+    .ac-icon-btn--amber:hover { background:color-mix(in srgb,var(--cp-accent) 20%,transparent); }
+    .ac-icon-btn--danger  { background:rgba(239,68,68,0.08); color:var(--cp-danger); border-color:rgba(239,68,68,0.2); }
+    .ac-icon-btn--danger:hover { background:rgba(239,68,68,0.18); }
+    .ac-icon-btn--success { background:rgba(34,197,94,0.08); color:var(--cp-success); border-color:rgba(34,197,94,0.2); }
+    .ac-icon-btn--success:hover { background:rgba(34,197,94,0.18); }
+    .ac-icon-btn--muted   { background:rgba(100,116,139,0.08); color:var(--cp-muted); border-color:rgba(100,116,139,0.2); }
+    .ac-icon-btn--muted:hover { background:rgba(100,116,139,0.18); }
 
     .ac-course-row { display:flex; align-items:center; gap:12px; padding:12px 18px; border-bottom:1px solid var(--cp-border); transition:background .12s; }
     .ac-course-row:last-child { border-bottom:none; }
     .ac-course-row:hover { background:var(--cp-accent-glow); }
-
     .ac-course-banner { width:52px; height:38px; border-radius:7px; flex-shrink:0; background:var(--cp-bg); border:1px solid var(--cp-border); overflow:hidden; display:flex; align-items:center; justify-content:center; }
     .ac-course-name  { font-size:13px; font-weight:700; color:var(--cp-text); }
     .ac-course-level { font-size:10px; color:var(--cp-muted); margin-bottom:4px; }
     .ac-course-meta  { display:flex; flex-wrap:wrap; gap:8px; font-size:10px; color:var(--cp-muted); }
     .ac-course-meta span::before { content:'·'; margin-right:8px; }
     .ac-course-meta span:first-child::before { content:''; margin:0; }
-
     .ac-active-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
-    .ac-active-dot.on  { background:var(--cp-success); box-shadow:0 0 5px rgba(34,197,94,.5); }
-    .ac-active-dot.off { background:var(--cp-muted); }
-
+    .ac-active-dot--on  { background:var(--cp-success); box-shadow:0 0 5px rgba(34,197,94,.5); }
+    .ac-active-dot--off { background:var(--cp-muted); }
     .ac-course-actions { display:flex; gap:5px; flex-shrink:0; }
     .ac-empty { padding:40px 20px; text-align:center; }
+
+    .ac-sk { background:linear-gradient(90deg,var(--cp-surface) 25%,var(--cp-surface2) 50%,var(--cp-surface) 75%); background-size:200% 100%; animation:acShimmer 1.4s infinite; }
+    @keyframes acShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 `;
