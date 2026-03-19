@@ -20,13 +20,14 @@ interface AnalyticsData {
     financial: {
         totalExpected: number; totalCollected: number; totalPending: number;
         fullyPaidCount: number; partiallyPaidCount: number; unpaidCount: number;
-        revenueGrowth?: number;
+        revenueGrowth?: number; thisMonthRev?: number; lastMonthRev?: number;
     };
     students: {
         total: number; active: number; inactive: number;
         completed: number; dropped: number;
         completionRate: number; dropoutRate: number;
         recentEnrollments: number; enrollmentGrowth?: number;
+        thisMonthEnrCount?: number; lastMonthEnrCount?: number;
     };
     certificates: {
         notApplied: number; applied: number; examGiven: number;
@@ -149,18 +150,35 @@ function KpiCard({
 
 // ── Growth Card ───────────────────────────────────────────────────────────────
 
-function GrowthCard({ title, value }: { title: string; value: number }) {
-    const pos = value >= 0;
+function GrowthCard({
+    title, value, thisVal, lastVal, prefix = "",
+}: {
+    title: string; value: number;
+    thisVal?: number; lastVal?: number; prefix?: string;
+}) {
+    const pos     = value >= 0;
+    const noData  = thisVal === undefined && lastVal === undefined;
+    const fmt     = (n: number) => prefix === "₹"
+        ? `₹${n.toLocaleString("en-IN")}`
+        : n.toLocaleString("en-IN");
     return (
         <div className="cp-growth-card">
             <div className="cp-growth-label">{title}</div>
-            <div className="cp-growth-val" style={{ color: pos ? "var(--cp-success)" : "var(--cp-danger)" }}>
-                {pos ? <TrendingUp size={22} /> : <TrendingDown size={22} />}
-                <span>{Math.abs(value)}%</span>
+            <div className="cp-growth-val" style={{ color: noData ? "var(--cp-muted)" : pos ? "var(--cp-success)" : "var(--cp-danger)" }}>
+                {noData ? null : pos ? <TrendingUp size={22} /> : <TrendingDown size={22} />}
+                <span>{noData ? "—" : `${pos ? "+" : ""}${value}%`}</span>
             </div>
-            <div className="cp-growth-sub" style={{ color: pos ? "var(--cp-success)" : "var(--cp-danger)" }}>
-                {pos ? "vs last month ↑" : "vs last month ↓"}
-            </div>
+            {!noData && (
+                <div className="cp-growth-sub" style={{ color: pos ? "var(--cp-success)" : "var(--cp-danger)" }}>
+                    {pos ? "vs last month ↑" : "vs last month ↓"}
+                </div>
+            )}
+            {(thisVal !== undefined || lastVal !== undefined) && (
+                <div className="cp-growth-meta">
+                    <span>This month: <strong>{fmt(thisVal ?? 0)}</strong></span>
+                    <span>Last month: <strong>{fmt(lastVal ?? 0)}</strong></span>
+                </div>
+            )}
         </div>
     );
 }
@@ -302,8 +320,19 @@ export default function AdminDashboard() {
 
                 {/* ── Growth ── */}
                 <div className="cp-growth-row">
-                    <GrowthCard title="Revenue Growth"    value={data?.financial.revenueGrowth    ?? 0} />
-                    <GrowthCard title="Enrollment Growth" value={data?.students.enrollmentGrowth  ?? 0} />
+                    <GrowthCard
+                        title="Revenue Growth"
+                        value={data?.financial.revenueGrowth ?? 0}
+                        thisVal={data?.financial.thisMonthRev}
+                        lastVal={data?.financial.lastMonthRev}
+                        prefix="₹"
+                    />
+                    <GrowthCard
+                        title="Enrollment Growth"
+                        value={data?.students.enrollmentGrowth ?? 0}
+                        thisVal={data?.students.thisMonthEnrCount}
+                        lastVal={data?.students.lastMonthEnrCount}
+                    />
                 </div>
 
                 {/* ── Bar Charts ── */}
@@ -515,7 +544,14 @@ const styles = `
         display: flex; align-items: center; gap: 8px;
         font-family: 'DM Serif Display', serif; font-size: 1.8rem;
     }
-    .cp-growth-sub { font-size: 11px; margin-top: 6px; font-weight: 500; }
+    .cp-growth-sub  { font-size: 11px; margin-top: 6px; font-weight: 500; }
+    .cp-growth-meta {
+        display: flex; flex-direction: column; gap: 3px;
+        margin-top: 10px; padding-top: 10px;
+        border-top: 1px solid var(--cp-border);
+        font-size: 11px; color: var(--cp-muted);
+    }
+    .cp-growth-meta strong { color: var(--cp-subtext); }
 
     /* ── Charts ── */
     .cp-chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }

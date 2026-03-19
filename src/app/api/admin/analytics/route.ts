@@ -7,11 +7,11 @@
  */
 
 import { NextResponse } from "next/server";
-import { connectDB }    from "@/lib/db";
-import { verifyUser }   from "@/lib/verifyUser";
-import Student          from "@/models/Student";
-import Enrollment       from "@/models/Enrollment";
-import Course           from "@/models/Course";
+import { connectDB } from "@/lib/db";
+import { verifyUser } from "@/lib/verifyUser";
+import Student from "@/models/Student";
+import Enrollment from "@/models/Enrollment";
+import Course from "@/models/Course";
 import "@/models/Franchise";
 import "@/models/CertificateType";
 
@@ -53,14 +53,14 @@ export async function GET() {
             droppedStudents, inactiveStudents,
         ] = await Promise.all([
             Student.countDocuments(),
-            Student.countDocuments({ courseStatus: "active"    }),
+            Student.countDocuments({ courseStatus: "active" }),
             Student.countDocuments({ courseStatus: "completed" }),
-            Student.countDocuments({ courseStatus: "dropped"   }),
-            Student.countDocuments({ isActive: false           }),
+            Student.countDocuments({ courseStatus: "dropped" }),
+            Student.countDocuments({ isActive: false }),
         ]);
 
         const completionRate = totalStudents > 0 ? Math.round((completedStudents / totalStudents) * 100) : 0;
-        const dropoutRate    = totalStudents > 0 ? Math.round((droppedStudents   / totalStudents) * 100) : 0;
+        const dropoutRate = totalStudents > 0 ? Math.round((droppedStudents / totalStudents) * 100) : 0;
 
         const startOfMonth = new Date();
         startOfMonth.setDate(1);
@@ -84,20 +84,20 @@ export async function GET() {
         const certificateStats = { notApplied: 0, applied: 0, examGiven: 0, passed: 0, generated: 0 };
 
         enrollments.forEach((e: any) => {
-            totalExpected  += e.feesTotal;
+            totalExpected += e.feesTotal;
             totalCollected += e.feesPaid;
-            if      (e.feesPaid === 0)         unpaidCount++;
+            if (e.feesPaid === 0) unpaidCount++;
             else if (e.feesPaid < e.feesTotal) partiallyPaidCount++;
-            else                               fullyPaidCount++;
-            if (e.certificateStatus === "Not Applied")           certificateStats.notApplied++;
-            if (e.certificateStatus === "Applied")               certificateStats.applied++;
-            if (e.certificateStatus === "Exam Given")            certificateStats.examGiven++;
-            if (e.certificateStatus === "Passed")                certificateStats.passed++;
+            else fullyPaidCount++;
+            if (e.certificateStatus === "Not Applied") certificateStats.notApplied++;
+            if (e.certificateStatus === "Applied") certificateStats.applied++;
+            if (e.certificateStatus === "Exam Given") certificateStats.examGiven++;
+            if (e.certificateStatus === "Passed") certificateStats.passed++;
             if (e.certificateStatus === "Certificate Generated") certificateStats.generated++;
         });
 
-        const totalPending      = totalExpected - totalCollected;
-        const totalRevenue      = totalCollected;
+        const totalPending = totalExpected - totalCollected;
+        const totalRevenue = totalCollected;
         const feeCollectionRate = totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0;
 
         /* ── 4. Franchise breakdown ── */
@@ -111,17 +111,17 @@ export async function GET() {
             const fid = e.franchise._id.toString();
             if (!franchiseMap[fid]) {
                 franchiseMap[fid] = {
-                    franchiseId:   fid,
+                    franchiseId: fid,
                     franchiseName: e.franchise.name,
                     franchiseCode: e.franchise.code,
-                    isOwn:         e.franchise.isOwn || false,
-                    studentCount:  0,
-                    totalFees:     0,
+                    isOwn: e.franchise.isOwn || false,
+                    studentCount: 0,
+                    totalFees: 0,
                     collectedFees: 0,
                 };
             }
             franchiseMap[fid].studentCount++;
-            franchiseMap[fid].totalFees     += e.feesTotal;
+            franchiseMap[fid].totalFees += e.feesTotal;
             franchiseMap[fid].collectedFees += e.feesPaid;
         });
 
@@ -130,10 +130,10 @@ export async function GET() {
         /* ── 5. Revenue trend + Growth calculation ── */
 
         // Current month aur pichle mahine ki date ranges
-        const now           = new Date();
+        const now = new Date();
         const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
         const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        const lastMonthEnd   = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+        const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
 
         const [revenueTrendRaw, pendingTrendRaw, enrollmentTrendRaw] = await Promise.all([
             Enrollment.aggregate([
@@ -157,19 +157,19 @@ export async function GET() {
         const pendingMap: Record<number, number> = {};
         pendingTrendRaw.forEach((p: any) => { pendingMap[p.month] = p.pending; });
 
-        const revenueTrend   = revenueTrendRaw.map((m: any) => ({ month: MONTH_NAMES[m.month], amount: m.amount }));
+        const revenueTrend = revenueTrendRaw.map((m: any) => ({ month: MONTH_NAMES[m.month], amount: m.amount }));
         const revenueByMonth = revenueTrendRaw.map((m: any) => ({
             month: MONTH_NAMES[m.month], revenue: m.amount, pending: pendingMap[m.month] ?? 0,
         }));
 
-        const enrollmentTrend    = enrollmentTrendRaw.map((e: any) => ({ month: MONTH_NAMES[e.month], count: e.count }));
+        const enrollmentTrend = enrollmentTrendRaw.map((e: any) => ({ month: MONTH_NAMES[e.month], count: e.count }));
         const enrollmentsByMonth = enrollmentTrend;
 
         /* ── Revenue growth: this month vs last month ── */
         const [thisMonthRevRaw, lastMonthRevRaw] = await Promise.all([
             Enrollment.aggregate([
                 { $unwind: "$payments" },
-                { $match: { "payments.date": { $gte: thisMonthStart } } },
+                { $match: { "payments.date": { $gte: thisMonthStart, $lte: now } } },
                 { $group: { _id: null, total: { $sum: "$payments.amount" } } },
             ]),
             Enrollment.aggregate([
@@ -203,16 +203,16 @@ export async function GET() {
             { $sort: { due: -1 } },
             { $limit: 10 },
             { $lookup: { from: "students", localField: "student", foreignField: "_id", as: "student" } },
-            { $lookup: { from: "courses",  localField: "course",  foreignField: "_id", as: "course"  } },
+            { $lookup: { from: "courses", localField: "course", foreignField: "_id", as: "course" } },
             { $unwind: { path: "$student", preserveNullAndEmptyArrays: false } },
-            { $unwind: { path: "$course",  preserveNullAndEmptyArrays: false } },
+            { $unwind: { path: "$course", preserveNullAndEmptyArrays: false } },
             {
                 $project: {
                     studentName: "$student.name",
-                    studentId:   "$student.studentId",
-                    course:      "$course.name",
-                    due:         1,
-                    _id:         0,
+                    studentId: "$student.studentId",
+                    course: "$course.name",
+                    due: 1,
+                    _id: 0,
                 },
             },
         ]);
@@ -236,9 +236,9 @@ export async function GET() {
             { $unwind: "$course" },
             {
                 $group: {
-                    _id:           "$course.name",
+                    _id: "$course.name",
                     totalStudents: { $sum: 1 },
-                    totalRevenue:  { $sum: "$feesPaid"  },
+                    totalRevenue: { $sum: "$feesPaid" },
                     totalExpected: { $sum: "$feesTotal" },
                 },
             },
@@ -246,7 +246,7 @@ export async function GET() {
             { $sort: { totalRevenue: -1 } },
         ]);
 
-        const topCourses         = courseAnalytics.slice(0, 5);
+        const topCourses = courseAnalytics.slice(0, 5);
         const courseWiseStudents = courseAnalytics.map((c: any) => ({ course: c._id, count: c.totalStudents }));
         const attendanceSummary: any[] = []; // Not implemented yet
 
@@ -256,16 +256,20 @@ export async function GET() {
             financial: {
                 totalExpected, totalCollected, totalPending,
                 fullyPaidCount, partiallyPaidCount, unpaidCount,
-                revenueGrowth,      // NEW
+                revenueGrowth,
+                thisMonthRev,
+                lastMonthRev,
             },
             students: {
                 total: totalStudents, active: activeStudents,
                 completed: completedStudents, dropped: droppedStudents,
                 inactive: inactiveStudents, completionRate, dropoutRate,
                 recentEnrollments,
-                enrollmentGrowth,   // NEW
+                enrollmentGrowth,
+                thisMonthEnrCount,
+                lastMonthEnrCount,
             },
-            certificates:    certificateStats,
+            certificates: certificateStats,
             revenueTrend,
             enrollmentTrend,
             topCourses,
