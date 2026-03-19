@@ -1,45 +1,59 @@
 /**
- * /api/admin/franchises
- * GET    → All franchises
- * POST   → Create franchise
- * PUT    → Update franchise
- * PATCH  → Toggle isActive
- * DELETE → Delete franchise
+ * GET    /api/admin/franchises  — Sabhi franchises
+ * POST   /api/admin/franchises  — Naya franchise create
+ * PUT    /api/admin/franchises  — Franchise update
+ * PATCH  /api/admin/franchises  — isActive toggle
+ * DELETE /api/admin/franchises  — Franchise delete
  */
-import { NextResponse } from "next/server";
+
+import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
-import Franchise from "@/models/Franchise";
 import { verifyUser } from "@/lib/verifyUser";
+import Franchise from "@/models/Franchise";
+
+// ── Auth helper ───────────────────────────────────────────────────────────────
+
+async function requireAdmin() {
+    const user: any = await verifyUser();
+    if (!user || user.role !== "admin") throw new Error("UNAUTHORIZED");
+    return user;
+}
+
+// ── Error helper ──────────────────────────────────────────────────────────────
+
+function handleError(error: any, context: string) {
+    if (["UNAUTHORIZED", "NO_TOKEN", "TOKEN_EXPIRED"].includes(error.message))
+        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    console.error(`[${context}]`, error.message || error);
+    return NextResponse.json({ message: "Server error" }, { status: 500 });
+}
+
+// ── GET ───────────────────────────────────────────────────────────────────────
 
 export async function GET() {
     try {
         await connectDB();
-        const user: any = await verifyUser();
-        if (user.role !== "admin")
-            return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
-
-        const franchises = await Franchise.find().sort({ createdAt: 1 });
+        await requireAdmin();
+        const franchises = await Franchise.find().sort({ createdAt: 1 }).lean();
         return NextResponse.json(franchises);
-    } catch (error) {
-        console.error("GET ERROR:", error);
-        return NextResponse.json({ message: "Failed to fetch" }, { status: 500 });
+    } catch (error: any) {
+        return handleError(error, "GET /api/admin/franchises");
     }
 }
 
-export async function POST(req: Request) {
+// ── POST ──────────────────────────────────────────────────────────────────────
+
+export async function POST(req: NextRequest) {
     try {
         await connectDB();
-        const user: any = await verifyUser();
-        if (user.role !== "admin")
-            return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+        await requireAdmin();
 
-        const body = await req.json();
-        const { name, code, description, registeredBodies, websiteUrl, portalUrl, portalLoginRequired, isOwn } = body;
+        const { name, code, description, registeredBodies, websiteUrl, portalUrl, portalLoginRequired, isOwn } = await req.json();
 
-        if (!name || !code)
-            return NextResponse.json({ message: "Name and Code required" }, { status: 400 });
+        if (!name?.trim() || !code?.trim())
+            return NextResponse.json({ message: "Name aur Code required hain" }, { status: 400 });
 
-        const existing = await Franchise.findOne({ code: code.toUpperCase() });
+        const existing = await Franchise.findOne({ code: code.toUpperCase() }).lean();
         if (existing)
             return NextResponse.json({ message: "Franchise code already exists" }, { status: 400 });
 
@@ -53,25 +67,22 @@ export async function POST(req: Request) {
 
         return NextResponse.json(franchise, { status: 201 });
     } catch (error: any) {
-        if (error.message === "NO_TOKEN" || error.message === "TOKEN_EXPIRED")
-            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-        return NextResponse.json({ message: "Server error" }, { status: 500 });
+        return handleError(error, "POST /api/admin/franchises");
     }
 }
 
-export async function PUT(req: Request) {
+// ── PUT ───────────────────────────────────────────────────────────────────────
+
+export async function PUT(req: NextRequest) {
     try {
         await connectDB();
-        const user: any = await verifyUser();
-        if (user.role !== "admin")
-            return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+        await requireAdmin();
 
-        const body = await req.json();
-        const { id, name, description, registeredBodies, websiteUrl, portalUrl, portalLoginRequired, isOwn } = body;
+        const { id, name, description, registeredBodies, websiteUrl, portalUrl, portalLoginRequired, isOwn } = await req.json();
 
         const franchise = await Franchise.findById(id);
         if (!franchise)
-            return NextResponse.json({ message: "Not found" }, { status: 404 });
+            return NextResponse.json({ message: "Franchise not found" }, { status: 404 });
 
         if (name !== undefined) franchise.name = name;
         if (description !== undefined) franchise.description = description;
@@ -84,51 +95,49 @@ export async function PUT(req: Request) {
         await franchise.save();
         return NextResponse.json(franchise);
     } catch (error: any) {
-        if (error.message === "NO_TOKEN" || error.message === "TOKEN_EXPIRED")
-            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-        return NextResponse.json({ message: "Server error" }, { status: 500 });
+        return handleError(error, "PUT /api/admin/franchises");
     }
 }
 
-export async function PATCH(req: Request) {
+// ── PATCH — toggle isActive ───────────────────────────────────────────────────
+
+export async function PATCH(req: NextRequest) {
     try {
         await connectDB();
-        const user: any = await verifyUser();
-        if (user.role !== "admin")
-            return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+        await requireAdmin();
 
         const { id, isActive } = await req.json();
+
         const franchise = await Franchise.findById(id);
         if (!franchise)
-            return NextResponse.json({ message: "Not found" }, { status: 404 });
+            return NextResponse.json({ message: "Franchise not found" }, { status: 404 });
 
         franchise.isActive = isActive;
         await franchise.save();
         return NextResponse.json(franchise);
     } catch (error: any) {
-        if (error.message === "NO_TOKEN" || error.message === "TOKEN_EXPIRED")
-            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-        return NextResponse.json({ message: "Server error" }, { status: 500 });
+        return handleError(error, "PATCH /api/admin/franchises");
     }
 }
 
-export async function DELETE(req: Request) {
+// ── DELETE ────────────────────────────────────────────────────────────────────
+
+export async function DELETE(req: NextRequest) {
     try {
         await connectDB();
-        const user: any = await verifyUser();
-        if (user.role !== "admin")
-            return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+        await requireAdmin();
 
         const { searchParams } = new URL(req.url);
         const id = searchParams.get("id");
         if (!id)
             return NextResponse.json({ message: "ID required" }, { status: 400 });
 
-        await Franchise.findByIdAndDelete(id);
-        return NextResponse.json({ message: "Deleted" });
+        const franchise = await Franchise.findByIdAndDelete(id).lean();
+        if (!franchise)
+            return NextResponse.json({ message: "Franchise not found" }, { status: 404 });
+
+        return NextResponse.json({ message: "Franchise deleted" });
     } catch (error: any) {
-        if (error.message === "NO_TOKEN" || error.message === "TOKEN_EXPIRED")
-            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-        return NextResponse.json({ message: "Server error" }, { status: 500 });
+        return handleError(error, "DELETE /api/admin/franchises");
     }
 }

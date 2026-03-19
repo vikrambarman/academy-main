@@ -140,10 +140,15 @@ export default function AdminFeesPage() {
         if (!editPayment) return;
         setSaving(true);
         try {
-            const res = await fetchWithAuth(`/api/admin/payments/${editPayment._id}`, {
+            const res = await fetchWithAuth(`/api/admin/enrollments/${editPayment.enrollmentId}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ amount: Number(editForm.amount), date: editForm.date, remark: editForm.remark }),
+                body: JSON.stringify({
+                    editPaymentId: editPayment._id,
+                    amount:        Number(editForm.amount),
+                    date:          editForm.date,
+                    remark:        editForm.remark,
+                }),
             });
             const d = await res.json();
             if (!res.ok) throw new Error(d.message);

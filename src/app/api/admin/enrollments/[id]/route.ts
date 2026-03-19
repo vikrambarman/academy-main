@@ -1,15 +1,17 @@
 /**
  * PATCH /api/admin/enrollments/[id]
- * Handles: add payment | certificate status | fees total | franchise assign
+ * Handles:
+ *   1. Add payment        — body.paymentAmount
+ *   2. Edit existing pay  — body.editPaymentId + body.amount
+ *   3. Certificate status — body.certificateStatus
+ *   4. Fees total update  — body.feesTotal
+ *   5. Franchise assign   — body.franchiseId
  */
 
 import { NextRequest, NextResponse } from "next/server";
-
 import { connectDB } from "@/lib/db";
 import { verifyUser } from "@/lib/verifyUser";
 import Enrollment from "@/models/Enrollment";
-
-// ── Auth helper ───────────────────────────────────────────────────────────────
 
 async function requireAdmin() {
     const user: any = await verifyUser();
@@ -17,16 +19,12 @@ async function requireAdmin() {
     return user;
 }
 
-// ── Error helper ──────────────────────────────────────────────────────────────
-
 function handleError(error: any, context: string) {
     if (["UNAUTHORIZED", "NO_TOKEN", "TOKEN_EXPIRED"].includes(error.message))
         return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     console.error(`[${context}]`, error.message || error);
     return NextResponse.json({ message: "Server error" }, { status: 500 });
 }
-
-// ── PATCH ─────────────────────────────────────────────────────────────────────
 
 export async function PATCH(
     req: NextRequest,
@@ -66,21 +64,48 @@ export async function PATCH(
             return NextResponse.json({ message: "Payment added", receiptNo, enrollment });
         }
 
-        /* ── 2. Certificate status ── */
+        /* ── 2. Edit existing payment ── */
+        if (body.editPaymentId !== undefined) {
+            const payment = enrollment.payments.id(body.editPaymentId);
+            if (!payment)
+                return NextResponse.json({ message: "Payment not found" }, { status: 404 });
+
+            const newAmount = Number(body.amount);
+            if (isNaN(newAmount) || newAmount <= 0)
+                return NextResponse.json({ message: "Invalid amount" }, { status: 400 });
+
+            // Overpayment check — exclude current payment from sum
+            const otherPaid = enrollment.payments.reduce(
+                (sum: number, p: any) =>
+                    p._id.toString() === body.editPaymentId ? sum : sum + p.amount,
+                0
+            );
+            if (otherPaid + newAmount > enrollment.feesTotal)
+                return NextResponse.json({ message: "Payment exceeds total fees" }, { status: 400 });
+
+            payment.amount = newAmount;
+            if (body.date) payment.date = new Date(body.date);
+            if (body.remark !== undefined) payment.remark = body.remark;
+
+            await enrollment.save();
+            return NextResponse.json({ message: "Payment updated", enrollment });
+        }
+
+        /* ── 3. Certificate status ── */
         if (body.certificateStatus) {
             enrollment.certificateStatus = body.certificateStatus;
             await enrollment.save();
             return NextResponse.json({ message: "Certificate status updated", enrollment });
         }
 
-        /* ── 3. Fees total update ── */
+        /* ── 4. Fees total update ── */
         if (body.feesTotal !== undefined) {
             enrollment.feesTotal = Number(body.feesTotal);
             await enrollment.save();
             return NextResponse.json({ message: "Fees updated", enrollment });
         }
 
-        /* ── 4. Franchise assign / remove ── */
+        /* ── 5. Franchise assign / remove ── */
         if ("franchiseId" in body) {
             enrollment.franchise = body.franchiseId || null;
             enrollment.certType = body.certTypeId || null;

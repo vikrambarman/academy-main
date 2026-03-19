@@ -8,6 +8,7 @@ export default function EnrollStudentPage() {
     const [students, setStudents] = useState<any[]>([]);
     const [courses, setCourses] = useState<any[]>([]);
     const [configs, setConfigs] = useState<any[]>([]);
+    // selected franchise config — to get availableCertTypes
     const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
     const [loading, setLoading] = useState(false);
     const [loadingCfg, setLoadingCfg] = useState(false);
@@ -243,6 +244,29 @@ export default function EnrollStudentPage() {
                                             })}
                                         </div>
                                     )}
+                                </div>
+                            )}
+
+                            {/* Cert type selector — show when franchise has multiple cert types */}
+                            {selectedCfg && (selectedCfg.availableCertTypes?.length ?? 0) > 1 && (
+                                <div className="en-field">
+                                    <label className="en-label">Certificate Type</label>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                                        {selectedCfg.availableCertTypes.map((ct: any) => (
+                                            <label key={ct._id} className={`en-radio-card ${form.certTypeId === ct._id ? "selected" : ""}`}>
+                                                <input type="radio" name="certTypeId" value={ct._id}
+                                                    checked={form.certTypeId === ct._id}
+                                                    onChange={handleChange}
+                                                    style={{ accentColor: "var(--cp-accent)" }} />
+                                                <div>
+                                                    <div style={{ fontSize: 12, fontWeight: 600, color: "var(--cp-text)" }}>{ct.name}</div>
+                                                    {selectedCfg.defaultCertType?._id === ct._id && (
+                                                        <div style={{ fontSize: 9, color: "var(--cp-accent)", fontWeight: 700 }}>DEFAULT</div>
+                                                    )}
+                                                </div>
+                                            </label>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 

@@ -1,15 +1,14 @@
 /**
- * /api/admin/course-franchise-configs
- * GET    ?courseId=xxx  → Course ke sab configs
- * GET    (no params)    → All configs
- * POST                  → Naya config create
- * PUT                   → Config update
- * DELETE ?id=xxx        → Config delete
+ * GET    /api/admin/course-franchise-configs?courseId=xxx
+ * POST   /api/admin/course-franchise-configs  — Create config
+ * PUT    /api/admin/course-franchise-configs  — Update config
+ * DELETE /api/admin/course-franchise-configs?id=xxx
  */
-import { NextResponse } from "next/server";
+
+import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
-import CourseFranchiseConfig from "@/models/CourseFranchiseConfig";
 import { verifyUser } from "@/lib/verifyUser";
+import CourseFranchiseConfig from "@/models/CourseFranchiseConfig";
 import "@/models/Franchise";
 import "@/models/CertificateType";
 import "@/models/Course";
@@ -20,14 +19,23 @@ async function requireAdmin() {
     return user;
 }
 
-const POPULATE_CONFIG = [
-    { path: "franchise", select: "name code registeredBodies portalUrl portalLoginRequired isOwn" },
-    { path: "defaultCertType", select: "name code issuingBody verificationMethod verificationUrl portalVerificationSteps benefits" },
-    { path: "availableCertTypes", select: "name code issuingBody verificationMethod" },
-    { path: "course", select: "name level" },
+function handleError(error: any, context: string) {
+    if (["UNAUTHORIZED", "NO_TOKEN", "TOKEN_EXPIRED"].includes(error.message))
+        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    console.error(`[${context}]`, error.message || error);
+    return NextResponse.json({ message: "Server error" }, { status: 500 });
+}
+
+const POPULATE = [
+    { path: "franchise", select: "name code registeredBodies isOwn websiteUrl description" },
+    { path: "defaultCertType", select: "name code issuingBody verificationMethod verificationUrl benefits" },
+    { path: "certEntries.certType", select: "name code issuingBody verificationMethod verificationUrl benefits defaultFee" },
+    { path: "course", select: "name level duration description modules" },
 ];
 
-export async function GET(req: Request) {
+// ── GET ───────────────────────────────────────────────────────────────────────
+
+export async function GET(req: NextRequest) {
     try {
         await connectDB();
         await requireAdmin();
@@ -37,79 +45,100 @@ export async function GET(req: Request) {
         const query: any = courseId ? { course: courseId } : {};
 
         const configs = await CourseFranchiseConfig.find(query)
-            .populate(POPULATE_CONFIG)
+            .populate(POPULATE)
             .sort({ createdAt: 1 })
-            .lean();
+            .lean({ virtuals: true });
 
         return NextResponse.json(configs);
-    } catch (error: any) {
-        if (error.message === "UNAUTHORIZED" || error.message === "NO_TOKEN" || error.message === "TOKEN_EXPIRED")
-            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-        console.error("CONFIGS GET:", error);
-        return NextResponse.json({ message: "Failed to fetch" }, { status: 500 });
-    }
+    } catch (e: any) { return handleError(e, "GET /course-franchise-configs"); }
 }
 
-export async function POST(req: Request) {
+// ── POST ──────────────────────────────────────────────────────────────────────
+
+export async function POST(req: NextRequest) {
     try {
         await connectDB();
         await requireAdmin();
 
         const body = await req.json();
-        const { courseId, franchiseId, defaultCertTypeId, availableCertTypeIds, feeStructure, benefits, highlights } = body;
+        const { courseId, franchiseId, certEntries, benefits, highlights } = body;
 
-        if (!courseId || !franchiseId || !defaultCertTypeId)
-            return NextResponse.json({ message: "courseId, franchiseId, defaultCertTypeId required" }, { status: 400 });
+        if (!courseId || !franchiseId || !certEntries?.length)
+            return NextResponse.json(
+                { message: "courseId, franchiseId aur kam se kam ek certEntry required hai" },
+                { status: 400 }
+            );
+
+        // Ensure exactly one default
+        const hasDefault = certEntries.some((e: any) => e.isDefault);
+        if (!hasDefault) certEntries[0].isDefault = true;
+
+        const defaultEntry = certEntries.find((e: any) => e.isDefault);
 
         const existing = await CourseFranchiseConfig.findOne({ course: courseId, franchise: franchiseId }).lean();
         if (existing)
-            return NextResponse.json({ message: "Config already exists for this course + franchise" }, { status: 400 });
+            return NextResponse.json(
+                { message: "Config already exists for this course + franchise" },
+                { status: 400 }
+            );
 
         const config = await CourseFranchiseConfig.create({
             course: courseId,
             franchise: franchiseId,
-            defaultCertType: defaultCertTypeId,
-            availableCertTypes: availableCertTypeIds?.length ? availableCertTypeIds : [defaultCertTypeId],
-            feeStructure: {
-                total: Number(feeStructure?.total) || 0,
-                installmentsAllowed: feeStructure?.installmentsAllowed ?? true,
-                maxInstallments: Number(feeStructure?.maxInstallments) || 3,
-                minInstallmentAmount: Number(feeStructure?.minInstallmentAmount) || 500,
-            },
+            certEntries: certEntries.map((e: any) => ({
+                certType: e.certTypeId,
+                isDefault: !!e.isDefault,
+                fee: Number(e.fee) || 0,
+                registrationFee: Number(e.registrationFee) || 0,
+                installmentsAllowed: e.installmentsAllowed ?? true,
+                maxInstallments: Number(e.maxInstallments) || 3,
+                minInstallmentAmount: Number(e.minInstallmentAmount) || 500,
+            })),
+            defaultCertType: defaultEntry.certTypeId,
             benefits: benefits || [],
             highlights: highlights || [],
         });
 
         const populated = await CourseFranchiseConfig.findById(config._id)
-            .populate(POPULATE_CONFIG)
-            .lean();
+            .populate(POPULATE)
+            .lean({ virtuals: true });
 
         return NextResponse.json(populated, { status: 201 });
-    } catch (error: any) {
-        if (error.message === "UNAUTHORIZED" || error.message === "NO_TOKEN" || error.message === "TOKEN_EXPIRED")
-            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-        console.error("CONFIGS POST:", error);
-        return NextResponse.json({ message: "Server error" }, { status: 500 });
-    }
+    } catch (e: any) { return handleError(e, "POST /course-franchise-configs"); }
 }
 
-export async function PUT(req: Request) {
+// ── PUT ───────────────────────────────────────────────────────────────────────
+
+export async function PUT(req: NextRequest) {
     try {
         await connectDB();
         await requireAdmin();
 
         const body = await req.json();
-        const { id, defaultCertTypeId, availableCertTypeIds, feeStructure, benefits, highlights, isActive } = body;
+        const { id, certEntries, benefits, highlights, isActive } = body;
 
         const config = await CourseFranchiseConfig.findById(id);
-        if (!config) return NextResponse.json({ message: "Config not found" }, { status: 404 });
+        if (!config)
+            return NextResponse.json({ message: "Config not found" }, { status: 404 });
 
-        if (defaultCertTypeId !== undefined) config.defaultCertType = defaultCertTypeId;
-        if (availableCertTypeIds !== undefined) config.availableCertTypes = availableCertTypeIds;
-        if (feeStructure?.total !== undefined) config.feeStructure.total = Number(feeStructure.total);
-        if (feeStructure?.installmentsAllowed !== undefined) config.feeStructure.installmentsAllowed = feeStructure.installmentsAllowed;
-        if (feeStructure?.maxInstallments !== undefined) config.feeStructure.maxInstallments = Number(feeStructure.maxInstallments);
-        if (feeStructure?.minInstallmentAmount !== undefined) config.feeStructure.minInstallmentAmount = Number(feeStructure.minInstallmentAmount);
+        if (certEntries?.length) {
+            const hasDefault = certEntries.some((e: any) => e.isDefault);
+            if (!hasDefault) certEntries[0].isDefault = true;
+
+            config.certEntries = certEntries.map((e: any) => ({
+                certType: e.certTypeId,
+                isDefault: !!e.isDefault,
+                fee: Number(e.fee) || 0,
+                registrationFee: Number(e.registrationFee) || 0,
+                installmentsAllowed: e.installmentsAllowed ?? true,
+                maxInstallments: Number(e.maxInstallments) || 3,
+                minInstallmentAmount: Number(e.minInstallmentAmount) || 500,
+            }));
+
+            const defaultEntry = certEntries.find((e: any) => e.isDefault);
+            config.defaultCertType = defaultEntry.certTypeId;
+        }
+
         if (benefits !== undefined) config.benefits = benefits;
         if (highlights !== undefined) config.highlights = highlights;
         if (isActive !== undefined) config.isActive = isActive;
@@ -117,18 +146,16 @@ export async function PUT(req: Request) {
         await config.save();
 
         const populated = await CourseFranchiseConfig.findById(id)
-            .populate(POPULATE_CONFIG)
-            .lean();
+            .populate(POPULATE)
+            .lean({ virtuals: true });
 
         return NextResponse.json(populated);
-    } catch (error: any) {
-        if (error.message === "UNAUTHORIZED" || error.message === "NO_TOKEN" || error.message === "TOKEN_EXPIRED")
-            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-        return NextResponse.json({ message: "Server error" }, { status: 500 });
-    }
+    } catch (e: any) { return handleError(e, "PUT /course-franchise-configs"); }
 }
 
-export async function DELETE(req: Request) {
+// ── DELETE ────────────────────────────────────────────────────────────────────
+
+export async function DELETE(req: NextRequest) {
     try {
         await connectDB();
         await requireAdmin();
@@ -139,9 +166,5 @@ export async function DELETE(req: Request) {
 
         await CourseFranchiseConfig.findByIdAndDelete(id);
         return NextResponse.json({ message: "Deleted" });
-    } catch (error: any) {
-        if (error.message === "UNAUTHORIZED" || error.message === "NO_TOKEN" || error.message === "TOKEN_EXPIRED")
-            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-        return NextResponse.json({ message: "Server error" }, { status: 500 });
-    }
+    } catch (e: any) { return handleError(e, "DELETE /course-franchise-configs"); }
 }

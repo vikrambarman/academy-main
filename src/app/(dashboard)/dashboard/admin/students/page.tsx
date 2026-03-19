@@ -13,6 +13,7 @@ interface FranchiseConfig {
     _id: string;
     franchise: { _id: string; name: string; code: string; isOwn: boolean; };
     defaultCertType: { _id: string; name: string; code: string; } | null;
+    availableCertTypes: { _id: string; name: string; code: string }[];
     feeStructure: { total: number; };
 }
 
@@ -82,7 +83,7 @@ export default function AdminStudents() {
                 updated.feesTotal = "";
                 fetchConfigs(value);
             }
-            // When franchise config selected, auto-fill fee
+            // When franchise config selected, auto-fill fee + default cert type
             if (name === "franchiseId") {
                 const cfg = configs.find(c => c.franchise._id === value);
                 updated.certTypeId = cfg?.defaultCertType?._id ?? "";
@@ -418,6 +419,35 @@ export default function AdminStudents() {
                                                 )}
                                             </div>
                                         </>
+                                    )}
+
+                                    {/* Cert type selector — show when franchise selected and has multiple cert types */}
+                                    {selectedCfg && (selectedCfg.availableCertTypes?.length ?? 0) > 1 && (
+                                        <div className="ast-field">
+                                            <label className="ast-label">Certificate Type</label>
+                                            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                                                {selectedCfg.availableCertTypes.map(ct => (
+                                                    <label key={ct._id} style={{
+                                                        display: "flex", alignItems: "center", gap: 8,
+                                                        padding: "8px 12px", borderRadius: 8, cursor: "pointer",
+                                                        border: `1px solid ${form.certTypeId === ct._id ? "var(--cp-accent)" : "var(--cp-border)"}`,
+                                                        background: form.certTypeId === ct._id ? "var(--cp-accent-glow)" : "var(--cp-surface2)",
+                                                        fontSize: 12, transition: "all .14s",
+                                                    }}>
+                                                        <input type="radio" name="certTypeId" value={ct._id}
+                                                            checked={form.certTypeId === ct._id}
+                                                            onChange={handleChange}
+                                                            style={{ accentColor: "var(--cp-accent)" }} />
+                                                        <div>
+                                                            <div style={{ fontWeight: 600, color: "var(--cp-text)" }}>{ct.name}</div>
+                                                            {selectedCfg.defaultCertType?._id === ct._id && (
+                                                                <div style={{ fontSize: 9, color: "var(--cp-accent)", fontWeight: 700 }}>DEFAULT</div>
+                                                            )}
+                                                        </div>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        </div>
                                     )}
 
                                     {/* Fee input */}

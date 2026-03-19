@@ -13,59 +13,60 @@ export default function StudentDetail() {
     const { id } = useParams() as { id: string };
     const router = useRouter();
 
-    const [student, setStudent] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
-    const [courses, setCourses] = useState<any[]>([]);
-    const [selectedCourse, setSelectedCourse] = useState("");
-    const [feesTotal, setFeesTotal] = useState("");
-    const [paymentForms, setPaymentForms] = useState<any>({});
-    const [editingPayment, setEditingPayment] = useState<any>(null);
-    const [editAmount, setEditAmount] = useState("");
-    const [editRemark, setEditRemark] = useState("");
-    const [editDate, setEditDate] = useState("");
-    const [editingEnrollment, setEditingEnrollment] = useState<any>(null);
-    const [editFeesTotal, setEditFeesTotal] = useState("");
-    const [certificateStatus, setCertificateStatus] = useState("");
-    const [courseStatus, setCourseStatus] = useState("");
-    const [editProfileOpen, setEditProfileOpen] = useState(false);
-    const [profileForm, setProfileForm] = useState({
+    const [student,          setStudent]          = useState<any>(null);
+    const [loading,          setLoading]          = useState(true);
+    const [courses,          setCourses]          = useState<any[]>([]);
+    const [selectedCourse,   setSelectedCourse]   = useState("");
+    const [feesTotal,        setFeesTotal]         = useState("");
+    const [paymentForms,     setPaymentForms]      = useState<any>({});
+    const [editingPayment,   setEditingPayment]    = useState<any>(null);
+    const [editAmount,       setEditAmount]        = useState("");
+    const [editRemark,       setEditRemark]        = useState("");
+    const [editDate,         setEditDate]          = useState("");
+    const [editingEnrollment,setEditingEnrollment] = useState<any>(null);
+    const [editFeesTotal,    setEditFeesTotal]     = useState("");
+    const [certificateStatus,setCertificateStatus] = useState("");
+    const [courseStatus,     setCourseStatus]      = useState("");
+    const [editProfileOpen,  setEditProfileOpen]   = useState(false);
+    const [profileForm,      setProfileForm]       = useState({
         name: "", fatherName: "", email: "", phone: "",
         gender: "", qualification: "", address: "", dob: ""
     });
 
     // Franchise enrollment state (new course)
-    const [enrollConfigs, setEnrollConfigs] = useState<any[]>([]);
-    const [enrollFranchiseId, setEnrollFranchiseId] = useState("");
-    const [loadingCfg, setLoadingCfg] = useState(false);
+    const [enrollConfigs,    setEnrollConfigs]     = useState<any[]>([]);
+    const [enrollFranchiseId,setEnrollFranchiseId] = useState("");
+    const [loadingCfg,       setLoadingCfg]        = useState(false);
 
     // Assign franchise to EXISTING enrollment
-    const [assigningEid, setAssigningEid] = useState<string | null>(null);
-    const [assignConfigs, setAssignConfigs] = useState<any[]>([]);
-    const [assignFranchiseId, setAssignFranchiseId] = useState("");
-    const [assignLoading, setAssignLoading] = useState(false);
-    const [assignLoadingCfg, setAssignLoadingCfg] = useState(false);
+    const [assigningEid,     setAssigningEid]      = useState<string|null>(null);
+    const [assignConfigs,    setAssignConfigs]      = useState<any[]>([]);
+    const [assignFranchiseId,setAssignFranchiseId] = useState("");
+    const [assignCertTypeId, setAssignCertTypeId]  = useState("");
+    const [assignLoading,    setAssignLoading]      = useState(false);
+    const [assignLoadingCfg, setAssignLoadingCfg]  = useState(false);
 
     const loadStudent = async () => {
-        const res = await fetchWithAuth(`/api/admin/students/${id}`);
+        const res  = await fetchWithAuth(`/api/admin/students/${id}`);
         const data = await res.json();
         if (!res.ok || !data) { setLoading(false); return; }
         setStudent(data);
         setCourseStatus(data.courseStatus ?? "active");
         setProfileForm({
-            name: data.name || "",
-            fatherName: data.fatherName || "",
-            email: data.email || "",
-            phone: data.phone || "",
-            gender: data.gender || "",
+            name:          data.name          || "",
+            fatherName:    data.fatherName    || "",
+            email:         data.email         || "",
+            phone:         data.phone         || "",
+            gender:        data.gender        || "",
             qualification: data.qualification || "",
-            address: data.address || "",
-            dob: data.dob?.split("T")[0] || "",
+            address:       data.address       || "",
+            dob:           data.dob?.split("T")[0] || "",
         });
         setLoading(false);
     };
 
     const loadCourses = async () => {
-        const res = await fetchWithAuth("/api/admin/courses");
+        const res  = await fetchWithAuth("/api/admin/courses");
         const data = await res.json();
         setCourses(Array.isArray(data) ? data.filter((c: any) => c.isActive) : []);
     };
@@ -84,6 +85,7 @@ export default function StudentDetail() {
     const openAssignFranchise = async (e: any) => {
         setAssigningEid(e._id);
         setAssignFranchiseId(e.franchise?._id ?? "");
+        setAssignCertTypeId(e.certType?._id ?? "");
         setAssignLoadingCfg(true);
         try {
             const r = await fetchWithAuth(`/api/admin/course-franchise-configs?courseId=${e.course?._id}`);
@@ -98,9 +100,14 @@ export default function StudentDetail() {
         setAssignLoading(true);
         try {
             const cfg = assignConfigs.find((c: any) => c.franchise._id === assignFranchiseId);
+            // Use manually selected cert type, or fall back to config default
+            const resolvedCertTypeId = assignCertTypeId
+                || cfg?.defaultCertType?._id
+                || cfg?.certType?._id
+                || "";
             const payload: any = assignFranchiseId
-                ? { franchiseId: assignFranchiseId, certTypeId: cfg?.defaultCertType?._id ?? cfg?.certType?._id ?? "" }
-                : { franchiseId: null, certTypeId: null };  // remove franchise
+                ? { franchiseId: assignFranchiseId, certTypeId: resolvedCertTypeId }
+                : { franchiseId: null, certTypeId: null };
 
             const res = await fetchWithAuth(`/api/admin/enrollments/${assigningEid}`, {
                 method: "PATCH",
@@ -110,6 +117,7 @@ export default function StudentDetail() {
             const d = await res.json();
             if (!res.ok) { alert(d.message || "Failed"); return; }
             setAssigningEid(null);
+            setAssignCertTypeId("");
             loadStudent();
         } catch { alert("Server error"); }
         finally { setAssignLoading(false); }
@@ -155,9 +163,14 @@ export default function StudentDetail() {
 
     const updatePayment = async () => {
         if (!editingPayment) return;
-        const res = await fetchWithAuth(`/api/admin/payments/${editingPayment._id}`, {
+        const res = await fetchWithAuth(`/api/admin/enrollments/${editingPayment.enrollmentId}`, {
             method: "PATCH", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ amount: Number(editAmount), remark: editRemark, date: editDate }),
+            body: JSON.stringify({
+                editPaymentId: editingPayment._id,
+                amount:        Number(editAmount),
+                remark:        editRemark,
+                date:          editDate,
+            }),
         });
         const d = await res.json();
         if (!res.ok) return alert(d.message);
@@ -187,14 +200,14 @@ export default function StudentDetail() {
         if (!selectedCourse) return alert("Select course");
         const payload: any = {
             studentId: student._id,
-            courseId: selectedCourse,
+            courseId:  selectedCourse,
             feesTotal: Number(feesTotal),
         };
         // Add franchise if selected
         const cfg = enrollConfigs.find(c => c.franchise._id === enrollFranchiseId);
         if (cfg) {
             payload.franchiseId = cfg.franchise._id;
-            payload.certTypeId = cfg.defaultCertType?._id ?? cfg.certType?._id;
+            payload.certTypeId  = cfg.defaultCertType?._id ?? cfg.certType?._id;
         }
         const res = await fetchWithAuth("/api/admin/enrollments", {
             method: "POST", headers: { "Content-Type": "application/json" },
@@ -221,7 +234,7 @@ export default function StudentDetail() {
     const deleteEnrollment = async (eid: string) => {
         if (!confirm("Delete this enrollment?")) return;
         const res = await fetchWithAuth(`/api/admin/enrollments/${eid}/delete`, { method: "DELETE" });
-        const d = await res.json();
+        const d   = await res.json();
         if (!res.ok) { alert(d.message); return; }
         loadStudent();
     };
@@ -285,11 +298,11 @@ export default function StudentDetail() {
                     <div style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 14 }}>
                         <div className="sd-skeleton" style={{ width: "100%", height: 6, borderRadius: 100 }} />
                         <div style={{ display: "flex", gap: 10 }}>
-                            <div className="sd-skeleton" style={{ width: 90, height: 36, borderRadius: 8 }} />
+                            <div className="sd-skeleton" style={{ width: 90,  height: 36, borderRadius: 8 }} />
                             <div className="sd-skeleton" style={{ width: 130, height: 36, borderRadius: 8 }} />
-                            <div className="sd-skeleton" style={{ width: 80, height: 36, borderRadius: 8 }} />
+                            <div className="sd-skeleton" style={{ width: 80,  height: 36, borderRadius: 8 }} />
                         </div>
-                        {[1, 2, 3].map(i => (
+                        {[1,2,3].map(i => (
                             <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid var(--cp-border)" }}>
                                 <div>
                                     <div className="sd-skeleton" style={{ width: 80, height: 14, borderRadius: 4 }} />
@@ -345,15 +358,15 @@ export default function StudentDetail() {
                     </div>
                     <div className="sd-profile-grid">
                         {[
-                            ["Student ID", student.studentId],
-                            ["Full Name", student.name],
+                            ["Student ID",    student.studentId],
+                            ["Full Name",     student.name],
                             ["Father's Name", student.fatherName],
-                            ["Email", student.email],
-                            ["Phone", student.phone],
-                            ["Gender", student.gender],
+                            ["Email",         student.email],
+                            ["Phone",         student.phone],
+                            ["Gender",        student.gender],
                             ["Date of Birth", student.dob?.split("T")[0]],
                             ["Qualification", student.qualification],
-                            ["Address", student.address],
+                            ["Address",       student.address],
                         ].map(([k, v]) => (
                             <div key={k as string} className="sd-profile-row">
                                 <div className="sd-profile-key">{k}</div>
@@ -434,7 +447,7 @@ export default function StudentDetail() {
                                             No Franchise
                                         </label>
                                         {enrollConfigs.map(cfg => {
-                                            const sel = enrollFranchiseId === cfg.franchise._id;
+                                            const sel   = enrollFranchiseId === cfg.franchise._id;
                                             const color = cfg.franchise.isOwn ? "#F59E0B" : "var(--cp-accent)";
                                             return (
                                                 <label key={cfg._id} style={{
@@ -478,11 +491,11 @@ export default function StudentDetail() {
 
                 {/* Enrollment cards */}
                 {student.enrollments?.map((e: any) => {
-                    const total = e.feesTotal || 0;
-                    const paid = e.feesPaid || 0;
-                    const due = total - paid;
+                    const total    = e.feesTotal || 0;
+                    const paid     = e.feesPaid  || 0;
+                    const due      = total - paid;
                     const progress = total > 0 ? (paid / total) * 100 : 0;
-                    const fmt = (n: number) => n.toLocaleString("en-IN");
+                    const fmt      = (n: number) => n.toLocaleString("en-IN");
 
                     return (
                         <div key={e._id} className="sd-card">
@@ -620,7 +633,7 @@ export default function StudentDetail() {
                                                     </div>
                                                     <div className="sd-payment-receipt">Receipt #{p.receiptNo}</div>
                                                 </div>
-                                                <button className="sd-link-btn" onClick={() => openEdit(p)}>
+                                                <button className="sd-link-btn" onClick={() => openEdit({ ...p, enrollmentId: e._id })}>
                                                     <Edit2 size={10} /> Edit
                                                 </button>
                                             </div>
@@ -742,7 +755,7 @@ export default function StudentDetail() {
                                     </div>
                                 ) : assignConfigs.length === 0 ? (
                                     <div style={{ fontSize: 13, color: "var(--cp-muted)", padding: "12px 0" }}>
-                                        Is course ke liye koi franchise config nahi hai.<br />
+                                        Is course ke liye koi franchise config nahi hai.<br/>
                                         Pehle Course Config page pe config banao.
                                     </div>
                                 ) : (
@@ -771,7 +784,7 @@ export default function StudentDetail() {
                                         </label>
 
                                         {assignConfigs.map((cfg: any) => {
-                                            const sel = assignFranchiseId === cfg.franchise._id;
+                                            const sel   = assignFranchiseId === cfg.franchise._id;
                                             const color = cfg.franchise.isOwn ? "#F59E0B" : "var(--cp-accent)";
                                             return (
                                                 <label key={cfg._id} style={{
@@ -813,6 +826,41 @@ export default function StudentDetail() {
                                         })}
                                     </div>
                                 )}
+                                {/* Cert type selector when franchise selected & multiple available */}
+                                {(() => {
+                                    const cfg = assignConfigs.find((c: any) => c.franchise._id === assignFranchiseId);
+                                    if (!cfg || !assignFranchiseId) return null;
+                                    const available = cfg.availableCertTypes || [cfg.defaultCertType];
+                                    if (available.length <= 1) return null;
+                                    return (
+                                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                                            <div className="sd-label">Certificate Type</div>
+                                            {available.map((ct: any) => {
+                                                const isDefault = cfg.defaultCertType?._id === ct._id;
+                                                const isSel     = (assignCertTypeId || cfg.defaultCertType?._id) === ct._id;
+                                                return (
+                                                    <label key={ct._id} style={{
+                                                        display: "flex", alignItems: "center", gap: 9,
+                                                        padding: "9px 12px", borderRadius: 8, cursor: "pointer",
+                                                        border: `1px solid ${isSel ? "var(--cp-accent)" : "var(--cp-border)"}`,
+                                                        background: isSel ? "var(--cp-accent-glow)" : "var(--cp-surface2)",
+                                                        transition: "all .14s",
+                                                    }}>
+                                                        <input type="radio" name="assignCertType"
+                                                            checked={isSel}
+                                                            onChange={() => setAssignCertTypeId(ct._id)}
+                                                            style={{ accentColor: "var(--cp-accent)" }} />
+                                                        <div>
+                                                            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--cp-text)" }}>{ct.name}</div>
+                                                            {isDefault && <div style={{ fontSize: 9, color: "var(--cp-accent)", fontWeight: 700 }}>DEFAULT</div>}
+                                                        </div>
+                                                    </label>
+                                                );
+                                            })}
+                                        </div>
+                                    );
+                                })()}
+
                                 <div className="sd-modal-footer">
                                     <button className="sd-ghost-btn" onClick={() => setAssigningEid(null)}>
                                         Cancel
@@ -840,12 +888,12 @@ export default function StudentDetail() {
                             </div>
                             <div className="sd-modal-body">
                                 {[
-                                    { label: "Full Name", name: "name", type: "text" },
-                                    { label: "Father's Name", name: "fatherName", type: "text" },
-                                    { label: "Email", name: "email", type: "email" },
-                                    { label: "Phone", name: "phone", type: "tel" },
-                                    { label: "Date of Birth", name: "dob", type: "date" },
-                                    { label: "Qualification", name: "qualification", type: "text" },
+                                    { label: "Full Name",     name: "name",          type: "text"  },
+                                    { label: "Father's Name", name: "fatherName",    type: "text"  },
+                                    { label: "Email",         name: "email",         type: "email" },
+                                    { label: "Phone",         name: "phone",         type: "tel"   },
+                                    { label: "Date of Birth", name: "dob",           type: "date"  },
+                                    { label: "Qualification", name: "qualification", type: "text"  },
                                 ].map(f => (
                                     <div key={f.name} className="sd-field">
                                         <label className="sd-label">{f.label}</label>
