@@ -5,19 +5,25 @@ import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import { UserPlus, CheckCircle2, AlertCircle, Shield } from "lucide-react";
 
 export default function EnrollStudentPage() {
-    const [students,   setStudents]   = useState<any[]>([]);
-    const [courses,    setCourses]    = useState<any[]>([]);
-    const [configs,    setConfigs]    = useState<any[]>([]);
-    const [message,    setMessage]    = useState<{ text: string; type: "success" | "error" } | null>(null);
-    const [loading,    setLoading]    = useState(false);
+    const [students, setStudents] = useState<any[]>([]);
+    const [courses, setCourses] = useState<any[]>([]);
+    const [configs, setConfigs] = useState<any[]>([]);
+    const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
+    const [loading, setLoading] = useState(false);
     const [loadingCfg, setLoadingCfg] = useState(false);
+    const [pageLoading, setPageLoading] = useState(true);
     const [form, setForm] = useState({
         studentId: "", courseId: "", franchiseId: "", certTypeId: "", feesTotal: "",
     });
 
     useEffect(() => {
-        fetchWithAuth("/api/admin/students").then(r => r.json()).then(setStudents);
-        fetchWithAuth("/api/admin/courses").then(r => r.json()).then(d => setCourses(Array.isArray(d) ? d : []));
+        Promise.all([
+            fetchWithAuth("/api/admin/students").then(r => r.json()),
+            fetchWithAuth("/api/admin/courses").then(r => r.json()),
+        ]).then(([s, co]) => {
+            setStudents(Array.isArray(s) ? s : []);
+            setCourses(Array.isArray(co) ? co : []);
+        }).catch(() => { }).finally(() => setPageLoading(false));
     }, []);
 
     const handleChange = (e: any) => {
@@ -26,15 +32,15 @@ export default function EnrollStudentPage() {
             const updated = { ...prev, [name]: value };
             if (name === "courseId") {
                 updated.franchiseId = "";
-                updated.certTypeId  = "";
-                updated.feesTotal   = "";
+                updated.certTypeId = "";
+                updated.feesTotal = "";
                 if (value) loadConfigs(value);
                 else setConfigs([]);
             }
             if (name === "franchiseId") {
                 const cfg = configs.find(c => c.franchise._id === value);
                 updated.certTypeId = cfg?.defaultCertType?._id ?? "";
-                updated.feesTotal  = cfg?.feeStructure?.total ? String(cfg.feeStructure.total) : "";
+                updated.feesTotal = cfg?.feeStructure?.total ? String(cfg.feeStructure.total) : "";
             }
             return updated;
         });
@@ -58,14 +64,14 @@ export default function EnrollStudentPage() {
             setLoading(true);
             const payload: any = {
                 studentId: form.studentId,
-                courseId:  form.courseId,
+                courseId: form.courseId,
                 feesTotal: Number(form.feesTotal),
             };
             if (form.franchiseId) {
                 payload.franchiseId = form.franchiseId;
-                payload.certTypeId  = form.certTypeId;
+                payload.certTypeId = form.certTypeId;
             }
-            const res  = await fetchWithAuth("/api/admin/enrollments", {
+            const res = await fetchWithAuth("/api/admin/enrollments", {
                 method: "POST", headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             });
@@ -78,166 +84,189 @@ export default function EnrollStudentPage() {
         finally { setLoading(false); }
     };
 
-    const selected    = students.find(s => s._id === form.studentId);
+    const selected = students.find(s => s._id === form.studentId);
     const selectedCfg = configs.find(c => c.franchise._id === form.franchiseId);
 
     return (
         <>
             <style>{enStyles}</style>
-            <div className="en-root">
-                <div className="en-header">
-                    <h1 className="en-title">Enroll Student</h1>
-                    <p className="en-sub">Kisi student ko ek course mein enroll karo</p>
-                </div>
-
-                <div className="en-card">
-                    <div className="en-card-head">
-                        <UserPlus size={13} style={{ color: "#f59e0b" }} />
-                        <span>Enrollment Form</span>
+            {pageLoading ? (
+                <div className="en-root">
+                    <div className="en-header">
+                        <div className="en-sk" style={{ width: 180, height: 28, borderRadius: 6 }} />
+                        <div className="en-sk" style={{ width: 260, height: 12, borderRadius: 4, marginTop: 8 }} />
                     </div>
-                    <div className="en-body">
-
-                        {message && (
-                            <div className={`en-msg ${message.type}`}>
-                                {message.type === "success" ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
-                                {message.text}
-                            </div>
-                        )}
-
-                        {/* Student select */}
-                        <div className="en-field">
-                            <label className="en-label">Student Select Karo</label>
-                            <select className="en-select" name="studentId" value={form.studentId} onChange={handleChange}>
-                                <option value="">-- Student chunno --</option>
-                                {students.map(s => (
-                                    <option key={s._id} value={s._id}>{s.name} ({s.studentId})</option>
-                                ))}
-                            </select>
+                    <div className="en-card">
+                        <div className="en-card-head">
+                            <div className="en-sk" style={{ width: 120, height: 12, borderRadius: 4 }} />
                         </div>
+                        <div className="en-body">
+                            {[180, 220, 160, 200, 100].map((w, i) => (
+                                <div key={i} style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                                    <div className="en-sk" style={{ width: 80, height: 10, borderRadius: 4 }} />
+                                    <div className="en-sk" style={{ width: "100%", height: 40, borderRadius: 8 }} />
+                                </div>
+                            ))}
+                            <div className="en-sk" style={{ width: "100%", height: 42, borderRadius: 9 }} />
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                <div className="en-root">
+                    <div className="en-header">
+                        <h1 className="en-title">Enroll Student</h1>
+                        <p className="en-sub">Kisi student ko ek course mein enroll karo</p>
+                    </div>
 
-                        {/* Student preview */}
-                        {selected && (
-                            <div className="en-student-preview">
-                                <div className="en-preview-avatar">{selected.name.charAt(0).toUpperCase()}</div>
-                                <div>
-                                    <div className="en-preview-name">{selected.name}</div>
-                                    <div className="en-preview-meta">{selected.studentId} · {selected.phone}</div>
-                                    {selected.enrollments?.length > 0 && (
-                                        <div className="en-preview-courses">
-                                            Already enrolled: {selected.enrollments.map((e: any) =>
-                                                `${e.course?.name}${e.franchise?.code ? ` (${e.franchise.code})` : ""}`
-                                            ).join(", ")}
+                    <div className="en-card">
+                        <div className="en-card-head">
+                            <UserPlus size={13} style={{ color: "var(--cp-warning)" }} />
+                            <span>Enrollment Form</span>
+                        </div>
+                        <div className="en-body">
+
+                            {message && (
+                                <div className={`en-msg ${message.type}`}>
+                                    {message.type === "success" ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
+                                    {message.text}
+                                </div>
+                            )}
+
+                            {/* Student select */}
+                            <div className="en-field">
+                                <label className="en-label">Student Select Karo</label>
+                                <select className="en-select" name="studentId" value={form.studentId} onChange={handleChange}>
+                                    <option value="">-- Student chunno --</option>
+                                    {students.map(s => (
+                                        <option key={s._id} value={s._id}>{s.name} ({s.studentId})</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Student preview */}
+                            {selected && (
+                                <div className="en-student-preview">
+                                    <div className="en-preview-avatar">{selected.name.charAt(0).toUpperCase()}</div>
+                                    <div>
+                                        <div className="en-preview-name">{selected.name}</div>
+                                        <div className="en-preview-meta">{selected.studentId} · {selected.phone}</div>
+                                        {selected.enrollments?.length > 0 && (
+                                            <div className="en-preview-courses">
+                                                Already enrolled: {selected.enrollments.map((e: any) =>
+                                                    `${e.course?.name}${e.franchise?.code ? ` (${e.franchise.code})` : ""}`
+                                                ).join(", ")}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Course select */}
+                            <div className="en-field">
+                                <label className="en-label">Course Select Karo</label>
+                                <select className="en-select" name="courseId" value={form.courseId} onChange={handleChange}>
+                                    <option value="">-- Course chunno --</option>
+                                    {courses.filter((c: any) => c.isActive).map(c => (
+                                        <option key={c._id} value={c._id}>{c.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Franchise options */}
+                            {form.courseId && (
+                                <div className="en-field">
+                                    <label className="en-label">
+                                        <Shield size={10} style={{ display: "inline", marginRight: 4 }} />
+                                        Franchise / Program
+                                    </label>
+                                    {loadingCfg ? (
+                                        <div style={{ fontSize: 12, color: "var(--cp-muted)", padding: "8px 0" }}>
+                                            Loading options…
+                                        </div>
+                                    ) : configs.length === 0 ? (
+                                        <div style={{
+                                            fontSize: 12, color: "var(--cp-muted)",
+                                            padding: "10px 14px", borderRadius: 8,
+                                            background: "var(--cp-surface2)",
+                                            border: "1px solid var(--cp-border)",
+                                        }}>
+                                            Is course ke liye koi franchise config nahi — direct enrollment hoga.
+                                        </div>
+                                    ) : (
+                                        <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                                            {/* No franchise */}
+                                            <label className={`en-radio-card ${!form.franchiseId ? "selected" : ""}`}>
+                                                <input type="radio" name="franchiseId" value=""
+                                                    checked={!form.franchiseId} onChange={handleChange}
+                                                    style={{ accentColor: "var(--cp-accent)" }} />
+                                                <div>
+                                                    <div style={{ fontSize: 12, fontWeight: 600, color: "var(--cp-text)" }}>No Franchise</div>
+                                                    <div style={{ fontSize: 10, color: "var(--cp-muted)" }}>Manual fee entry</div>
+                                                </div>
+                                            </label>
+                                            {configs.map(cfg => {
+                                                const sel = form.franchiseId === cfg.franchise._id;
+                                                const color = cfg.franchise.isOwn ? "#F59E0B" : "var(--cp-accent)";
+                                                return (
+                                                    <label key={cfg._id}
+                                                        className={`en-radio-card ${sel ? "selected" : ""}`}
+                                                        style={sel ? { borderColor: color, background: cfg.franchise.isOwn ? "rgba(245,158,11,0.06)" : "var(--cp-accent-glow)" } : {}}>
+                                                        <input type="radio" name="franchiseId"
+                                                            value={cfg.franchise._id}
+                                                            checked={sel}
+                                                            onChange={handleChange}
+                                                            style={{ accentColor: color }} />
+                                                        <div style={{ flex: 1 }}>
+                                                            <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 3 }}>
+                                                                <span style={{
+                                                                    fontSize: 9, fontWeight: 800,
+                                                                    padding: "1px 7px", borderRadius: 5,
+                                                                    background: color, color: "#fff",
+                                                                }}>
+                                                                    {cfg.franchise.code}
+                                                                </span>
+                                                                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--cp-text)" }}>
+                                                                    {cfg.franchise.name}
+                                                                </span>
+                                                            </div>
+                                                            <div style={{ fontSize: 10, color: "var(--cp-muted)" }}>
+                                                                {cfg.defaultCertType?.name ?? "—"}
+                                                                {cfg.feeStructure?.total ? (
+                                                                    <span style={{ marginLeft: 8, color: "var(--cp-success)", fontWeight: 700 }}>
+                                                                        · Default ₹{cfg.feeStructure.total.toLocaleString("en-IN")}
+                                                                    </span>
+                                                                ) : null}
+                                                            </div>
+                                                        </div>
+                                                    </label>
+                                                );
+                                            })}
                                         </div>
                                     )}
                                 </div>
-                            </div>
-                        )}
+                            )}
 
-                        {/* Course select */}
-                        <div className="en-field">
-                            <label className="en-label">Course Select Karo</label>
-                            <select className="en-select" name="courseId" value={form.courseId} onChange={handleChange}>
-                                <option value="">-- Course chunno --</option>
-                                {courses.filter((c: any) => c.isActive).map(c => (
-                                    <option key={c._id} value={c._id}>{c.name}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* Franchise options */}
-                        {form.courseId && (
+                            {/* Total Fees */}
                             <div className="en-field">
                                 <label className="en-label">
-                                    <Shield size={10} style={{ display: "inline", marginRight: 4 }} />
-                                    Franchise / Program
+                                    Total Fees (₹)
+                                    {selectedCfg && (
+                                        <span style={{ marginLeft: 6, fontSize: 10, color: "var(--cp-success)", fontWeight: 500, textTransform: "none" }}>
+                                            — auto-filled (edit if needed)
+                                        </span>
+                                    )}
                                 </label>
-                                {loadingCfg ? (
-                                    <div style={{ fontSize: 12, color: "var(--cp-muted)", padding: "8px 0" }}>
-                                        Loading options…
-                                    </div>
-                                ) : configs.length === 0 ? (
-                                    <div style={{
-                                        fontSize: 12, color: "var(--cp-muted)",
-                                        padding: "10px 14px", borderRadius: 8,
-                                        background: "var(--cp-surface2)",
-                                        border: "1px solid var(--cp-border)",
-                                    }}>
-                                        Is course ke liye koi franchise config nahi — direct enrollment hoga.
-                                    </div>
-                                ) : (
-                                    <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-                                        {/* No franchise */}
-                                        <label className={`en-radio-card ${!form.franchiseId ? "selected" : ""}`}>
-                                            <input type="radio" name="franchiseId" value=""
-                                                checked={!form.franchiseId} onChange={handleChange}
-                                                style={{ accentColor: "var(--cp-accent)" }} />
-                                            <div>
-                                                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--cp-text)" }}>No Franchise</div>
-                                                <div style={{ fontSize: 10, color: "var(--cp-muted)" }}>Manual fee entry</div>
-                                            </div>
-                                        </label>
-                                        {configs.map(cfg => {
-                                            const sel   = form.franchiseId === cfg.franchise._id;
-                                            const color = cfg.franchise.isOwn ? "#F59E0B" : "var(--cp-accent)";
-                                            return (
-                                                <label key={cfg._id}
-                                                    className={`en-radio-card ${sel ? "selected" : ""}`}
-                                                    style={sel ? { borderColor: color, background: cfg.franchise.isOwn ? "rgba(245,158,11,0.06)" : "var(--cp-accent-glow)" } : {}}>
-                                                    <input type="radio" name="franchiseId"
-                                                        value={cfg.franchise._id}
-                                                        checked={sel}
-                                                        onChange={handleChange}
-                                                        style={{ accentColor: color }} />
-                                                    <div style={{ flex: 1 }}>
-                                                        <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 3 }}>
-                                                            <span style={{
-                                                                fontSize: 9, fontWeight: 800,
-                                                                padding: "1px 7px", borderRadius: 5,
-                                                                background: color, color: "#fff",
-                                                            }}>
-                                                                {cfg.franchise.code}
-                                                            </span>
-                                                            <span style={{ fontSize: 12, fontWeight: 700, color: "var(--cp-text)" }}>
-                                                                {cfg.franchise.name}
-                                                            </span>
-                                                        </div>
-                                                        <div style={{ fontSize: 10, color: "var(--cp-muted)" }}>
-                                                            {cfg.defaultCertType?.name ?? "—"}
-                                                            {cfg.feeStructure?.total ? (
-                                                                <span style={{ marginLeft: 8, color: "var(--cp-success)", fontWeight: 700 }}>
-                                                                    · Default ₹{cfg.feeStructure.total.toLocaleString("en-IN")}
-                                                                </span>
-                                                            ) : null}
-                                                        </div>
-                                                    </div>
-                                                </label>
-                                            );
-                                        })}
-                                    </div>
-                                )}
+                                <input className="en-input" name="feesTotal" type="number"
+                                    placeholder="e.g. 5000" value={form.feesTotal} onChange={handleChange} />
                             </div>
-                        )}
 
-                        {/* Total Fees */}
-                        <div className="en-field">
-                            <label className="en-label">
-                                Total Fees (₹)
-                                {selectedCfg && (
-                                    <span style={{ marginLeft: 6, fontSize: 10, color: "var(--cp-success)", fontWeight: 500, textTransform: "none" }}>
-                                        — auto-filled (edit if needed)
-                                    </span>
-                                )}
-                            </label>
-                            <input className="en-input" name="feesTotal" type="number"
-                                placeholder="e.g. 5000" value={form.feesTotal} onChange={handleChange} />
+                            <button className="en-submit-btn" onClick={handleSubmit} disabled={loading}>
+                                {loading ? "Enrolling..." : "Enroll Student"}
+                            </button>
                         </div>
-
-                        <button className="en-submit-btn" onClick={handleSubmit} disabled={loading}>
-                            {loading ? "Enrolling..." : "Enroll Student"}
-                        </button>
                     </div>
                 </div>
-            </div>
+            )}
         </>
     );
 }
@@ -270,4 +299,6 @@ const enStyles = `
     .en-submit-btn { padding:11px; border-radius:9px; border:none; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:700; background:var(--cp-accent); color:#fff; transition:opacity .15s; }
     .en-submit-btn:hover { opacity:.9; }
     .en-submit-btn:disabled { opacity:.5; cursor:not-allowed; }
+    .en-sk { background:linear-gradient(90deg,var(--cp-surface) 25%,var(--cp-surface2) 50%,var(--cp-surface) 75%); background-size:200% 100%; animation:enShimmer 1.4s infinite; }
+    @keyframes enShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 `;

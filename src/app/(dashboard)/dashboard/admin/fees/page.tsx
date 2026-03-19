@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import {
-    Search, ChevronLeft, ChevronRight, IndianRupee,
-    ChevronDown, ChevronUp, Plus, Edit2, X, Shield
+    Search, ChevronLeft, ChevronRight,
+    ChevronDown, ChevronUp, Plus, Edit2, X, Shield, RefreshCw,
 } from "lucide-react";
+
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 interface Payment {
     _id: string; amount: number; date: string;
@@ -25,8 +27,57 @@ interface StudentFee {
     enrollments: Enrollment[];
 }
 
+const fmt = (n: number) => `₹${n.toLocaleString("en-IN")}`;
+
+const EMPTY_PAY = { amount: "", date: "", remark: "" };
+
+// ── Skeleton ──────────────────────────────────────────────────────────────────
+
+function FeesSkeleton() {
+    return (
+        <div className="af-root">
+            <div className="af-header">
+                <div>
+                    <div className="af-sk" style={{ width: 200, height: 28, borderRadius: 6 }} />
+                    <div className="af-sk" style={{ width: 280, height: 12, borderRadius: 4, marginTop: 8 }} />
+                </div>
+            </div>
+            <div className="af-kpi-row">
+                {[1,2,3,4].map(i => (
+                    <div key={i} className="af-kpi af-kpi--muted">
+                        <div className="af-sk" style={{ width: 80,  height: 10, borderRadius: 4 }} />
+                        <div className="af-sk" style={{ width: 110, height: 24, borderRadius: 5, marginTop: 8 }} />
+                    </div>
+                ))}
+            </div>
+            <div className="af-sk" style={{ width: 300, height: 36, borderRadius: 9 }} />
+            {[1,2,3,4,5].map(i => (
+                <div key={i} className="af-student-card">
+                    <div className="af-student-row" style={{ cursor: "default" }}>
+                        <div className="af-student-left">
+                            <div className="af-sk" style={{ width: 36, height: 36, borderRadius: "50%" }} />
+                            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                                <div className="af-sk" style={{ width: 140, height: 13, borderRadius: 4 }} />
+                                <div className="af-sk" style={{ width: 100, height: 10, borderRadius: 4 }} />
+                            </div>
+                        </div>
+                        <div className="af-student-right">
+                            <div className="af-sk" style={{ width: 120, height: 13, borderRadius: 4 }} />
+                            <div className="af-sk" style={{ width: 70,  height: 4,  borderRadius: 100 }} />
+                            <div className="af-sk" style={{ width: 32,  height: 13, borderRadius: 4 }} />
+                        </div>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+// ── Main Component ────────────────────────────────────────────────────────────
+
 export default function AdminFeesPage() {
     const [students,    setStudents]    = useState<StudentFee[]>([]);
+    const [pageLoading, setPageLoading] = useState(true);
     const [search,      setSearch]      = useState("");
     const [page,        setPage]        = useState(1);
     const [expanded,    setExpanded]    = useState<Set<string>>(new Set());
@@ -43,9 +94,13 @@ export default function AdminFeesPage() {
     };
 
     const load = async () => {
-        const res = await fetchWithAuth("/api/admin/students");
-        const d   = await res.json();
-        setStudents(Array.isArray(d) ? d : []);
+        setPageLoading(true);
+        try {
+            const res = await fetchWithAuth("/api/admin/students");
+            const d   = await res.json();
+            setStudents(Array.isArray(d) ? d : []);
+        } catch { setStudents([]); }
+        finally  { setPageLoading(false); }
     };
 
     useEffect(() => { load(); }, []);
@@ -55,10 +110,10 @@ export default function AdminFeesPage() {
     });
 
     const handlePayChange = (eid: string, field: string, value: string) =>
-        setPayForms(p => ({ ...p, [eid]: { ...p[eid], [field]: value } }));
+        setPayForms(p => ({ ...p, [eid]: { ...EMPTY_PAY, ...(p[eid] || {}), [field]: value } }));
 
     const addPayment = async (eid: string) => {
-        const f = payForms[eid] || {};
+        const f = { ...EMPTY_PAY, ...(payForms[eid] || {}) };
         if (!f.amount) { showToast("Amount enter karo", "error"); return; }
         setSaving(true);
         try {
@@ -110,27 +165,50 @@ export default function AdminFeesPage() {
     const totalExpected  = students.reduce((s, st) => s + (st.enrollments?.reduce((a, e) => a + (e.feesTotal || 0), 0) ?? 0), 0);
     const totalCollected = students.reduce((s, st) => s + (st.enrollments?.reduce((a, e) => a + (e.feesPaid  || 0), 0) ?? 0), 0);
     const totalPending   = totalExpected - totalCollected;
-    const fmt = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
+    // ── Loading ──
+    if (pageLoading) return <><style>{afStyles}</style><FeesSkeleton /></>;
+
+    // ── Main render ──
     return (
         <>
             <style>{afStyles}</style>
-            {toast && <div className={`af-toast ${toast.type}`}>{toast.msg}</div>}
+
+            {toast && (
+                <div className={`af-toast af-toast--${toast.type}`}>{toast.msg}</div>
+            )}
 
             <div className="af-root">
+
+                {/* Header */}
                 <div className="af-header">
                     <div>
                         <h1 className="af-title">Fee Management</h1>
                         <p className="af-sub">Student-wise fee records aur payments manage karo</p>
                     </div>
+                    <button className="af-refresh-btn" onClick={load} title="Refresh">
+                        <RefreshCw size={13} />
+                    </button>
                 </div>
 
                 {/* KPIs */}
                 <div className="af-kpi-row">
-                    <div className="af-kpi amber"><div className="af-kpi-label">Total Expected</div><div className="af-kpi-val">{fmt(totalExpected)}</div></div>
-                    <div className="af-kpi green"><div className="af-kpi-label">Collected</div><div className="af-kpi-val">{fmt(totalCollected)}</div></div>
-                    <div className="af-kpi red"><div className="af-kpi-label">Pending</div><div className="af-kpi-val">{fmt(totalPending)}</div></div>
-                    <div className="af-kpi muted"><div className="af-kpi-label">Students</div><div className="af-kpi-val">{students.length}</div></div>
+                    <div className="af-kpi af-kpi--accent">
+                        <div className="af-kpi-label">Total Expected</div>
+                        <div className="af-kpi-val">{fmt(totalExpected)}</div>
+                    </div>
+                    <div className="af-kpi af-kpi--green">
+                        <div className="af-kpi-label">Collected</div>
+                        <div className="af-kpi-val">{fmt(totalCollected)}</div>
+                    </div>
+                    <div className="af-kpi af-kpi--red">
+                        <div className="af-kpi-label">Pending</div>
+                        <div className="af-kpi-val">{fmt(totalPending)}</div>
+                    </div>
+                    <div className="af-kpi af-kpi--muted">
+                        <div className="af-kpi-label">Students</div>
+                        <div className="af-kpi-val">{students.length}</div>
+                    </div>
                 </div>
 
                 {/* Search */}
@@ -153,6 +231,7 @@ export default function AdminFeesPage() {
 
                         return (
                             <div key={student._id} className="af-student-card">
+                                {/* Student row header */}
                                 <div className="af-student-row" onClick={() => toggleExpand(student._id)}>
                                     <div className="af-student-left">
                                         <div className="af-avatar">{student.name?.charAt(0).toUpperCase()}</div>
@@ -166,45 +245,52 @@ export default function AdminFeesPage() {
                                             <span className="af-fee-paid">{fmt(totalPaid)}</span>
                                             <span className="af-fee-sep">/</span>
                                             <span className="af-fee-total">{fmt(totalFees)}</span>
-                                            {due > 0 && <span className="af-fee-due">Due {fmt(due)}</span>}
+                                            {due > 0 && <span className="af-fee-due">{fmt(due)} due</span>}
                                         </div>
                                         <div className="af-mini-bar">
                                             <div className="af-mini-fill" style={{ width: `${pct}%` }} />
                                         </div>
-                                        <span className="af-pct" style={{ color: pct === 100 ? "#22c55e" : pct > 50 ? "#f59e0b" : "#ef4444" }}>
+                                        <span className="af-pct" style={{
+                                            color: pct === 100
+                                                ? "var(--cp-success)"
+                                                : pct > 50
+                                                ? "var(--cp-warning)"
+                                                : "var(--cp-danger)",
+                                        }}>
                                             {pct}%
                                         </span>
-                                        {isOpen ? <ChevronUp size={14} style={{ color: "#475569" }} /> : <ChevronDown size={14} style={{ color: "#475569" }} />}
+                                        {isOpen
+                                            ? <ChevronUp  size={14} style={{ color: "var(--cp-muted)" }} />
+                                            : <ChevronDown size={14} style={{ color: "var(--cp-muted)" }} />
+                                        }
                                     </div>
                                 </div>
 
+                                {/* Expanded enrollments */}
                                 {isOpen && (
                                     <div className="af-enrollments">
                                         {student.enrollments?.map(enr => {
-                                            const ePct = enr.feesTotal > 0 ? Math.round((enr.feesPaid / enr.feesTotal) * 100) : 0;
-                                            const eDue = (enr.feesTotal || 0) - (enr.feesPaid || 0);
-                                            const pf   = payForms[enr._id] || { amount: "", date: "", remark: "" };
-                                            const franchiseColor = enr.franchise?.isOwn ? "#F59E0B" : "var(--cp-accent)";
+                                            const ePct  = enr.feesTotal > 0 ? Math.round((enr.feesPaid / enr.feesTotal) * 100) : 0;
+                                            const eDue  = (enr.feesTotal || 0) - (enr.feesPaid || 0);
+                                            const pf    = { ...EMPTY_PAY, ...(payForms[enr._id] || {}) };
+                                            const fColor = enr.franchise?.isOwn ? "var(--cp-warning)" : "var(--cp-accent)";
+                                            const fBg    = enr.franchise?.isOwn ? "rgba(245,158,11,0.1)" : "var(--cp-accent-glow)";
+                                            const fBorder = enr.franchise?.isOwn ? "rgba(245,158,11,0.25)" : "color-mix(in srgb,var(--cp-accent) 25%,transparent)";
 
                                             return (
-                                                <div key={enr._id} className="af-enrollment-block">
-                                                    {/* Course header with franchise badge */}
+                                                <div key={enr._id} className="af-enr-block">
+
+                                                    {/* Course + franchise header */}
                                                     <div className="af-course-head">
                                                         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                                                             <span className="af-course-name">{enr.course?.name}</span>
-                                                            {/* Franchise badge — new enrollments only */}
                                                             {enr.franchise && (
                                                                 <span style={{
                                                                     display: "inline-flex", alignItems: "center", gap: 4,
                                                                     fontSize: 9, fontWeight: 800,
                                                                     padding: "2px 8px", borderRadius: 100,
-                                                                    background: enr.franchise.isOwn
-                                                                        ? "rgba(245,158,11,0.12)"
-                                                                        : "rgba(26,86,219,0.1)",
-                                                                    color: franchiseColor,
-                                                                    border: `1px solid ${enr.franchise.isOwn
-                                                                        ? "rgba(245,158,11,0.25)"
-                                                                        : "rgba(26,86,219,0.2)"}`,
+                                                                    background: fBg, color: fColor,
+                                                                    border: `1px solid ${fBorder}`,
                                                                 }}>
                                                                     <Shield size={8} /> {enr.franchise.code}
                                                                 </span>
@@ -216,13 +302,17 @@ export default function AdminFeesPage() {
                                                             )}
                                                         </div>
                                                         <span className="af-enr-stats">
-                                                            <span style={{ color: "#22c55e" }}>{fmt(enr.feesPaid)}</span>
-                                                            <span style={{ color: "#475569" }}> / {fmt(enr.feesTotal)}</span>
-                                                            {eDue > 0 && <span style={{ color: "#ef4444", marginLeft: 8 }}>Due {fmt(eDue)}</span>}
+                                                            <span style={{ color: "var(--cp-success)" }}>{fmt(enr.feesPaid)}</span>
+                                                            <span style={{ color: "var(--cp-muted)" }}> / {fmt(enr.feesTotal)}</span>
+                                                            {eDue > 0 && (
+                                                                <span style={{ color: "var(--cp-danger)", marginLeft: 8 }}>
+                                                                    Due {fmt(eDue)}
+                                                                </span>
+                                                            )}
                                                         </span>
                                                     </div>
 
-                                                    {/* Progress */}
+                                                    {/* Progress bar */}
                                                     <div className="af-prog-wrap">
                                                         <div className="af-prog-track">
                                                             <div className="af-prog-fill" style={{ width: `${ePct}%` }} />
@@ -232,18 +322,20 @@ export default function AdminFeesPage() {
 
                                                     {/* Payment history */}
                                                     {enr.payments?.length > 0 && (
-                                                        <div className="af-payment-list">
+                                                        <div className="af-pay-list">
                                                             {enr.payments.map(p => (
-                                                                <div key={p._id} className="af-payment-row">
+                                                                <div key={p._id} className="af-pay-row">
                                                                     <div className="af-pay-left">
                                                                         <span className="af-pay-amt">{fmt(p.amount)}</span>
                                                                         <span className="af-pay-date">
-                                                                            {new Date(p.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                                                                            {new Date(p.date).toLocaleDateString("en-IN", {
+                                                                                day: "numeric", month: "short", year: "numeric",
+                                                                            })}
                                                                         </span>
                                                                         {p.remark && <span className="af-pay-remark">{p.remark}</span>}
                                                                         {p.receiptNo && <span className="af-pay-receipt">#{p.receiptNo}</span>}
                                                                     </div>
-                                                                    <button className="af-icon-btn amber" onClick={() => openEditPayment(p, enr._id)}>
+                                                                    <button className="af-icon-btn" onClick={() => openEditPayment(p, enr._id)}>
                                                                         <Edit2 size={11} />
                                                                     </button>
                                                                 </div>
@@ -251,16 +343,19 @@ export default function AdminFeesPage() {
                                                         </div>
                                                     )}
 
-                                                    {/* Add payment */}
-                                                    <div className="af-add-pay-form">
-                                                        <div className="af-add-pay-label">Add Installment</div>
-                                                        <div className="af-add-pay-row">
+                                                    {/* Add payment form */}
+                                                    <div className="af-add-form">
+                                                        <div className="af-add-label">Add Installment</div>
+                                                        <div className="af-add-row">
                                                             <input className="af-input" type="number" placeholder="Amount (₹)"
-                                                                value={pf.amount} onChange={e => handlePayChange(enr._id, "amount", e.target.value)} />
+                                                                value={pf.amount}
+                                                                onChange={e => handlePayChange(enr._id, "amount", e.target.value)} />
                                                             <input className="af-input" type="date"
-                                                                value={pf.date} onChange={e => handlePayChange(enr._id, "date", e.target.value)} />
+                                                                value={pf.date}
+                                                                onChange={e => handlePayChange(enr._id, "date", e.target.value)} />
                                                             <input className="af-input" placeholder="Remark (optional)"
-                                                                value={pf.remark} onChange={e => handlePayChange(enr._id, "remark", e.target.value)} />
+                                                                value={pf.remark}
+                                                                onChange={e => handlePayChange(enr._id, "remark", e.target.value)} />
                                                             <button className="af-green-btn" onClick={() => addPayment(enr._id)} disabled={saving}>
                                                                 <Plus size={12} /> Add
                                                             </button>
@@ -276,12 +371,13 @@ export default function AdminFeesPage() {
                     })}
                 </div>
 
+                {/* Pagination */}
                 {totalPages > 1 && (
                     <div className="af-pag">
                         <button className="af-pag-btn" disabled={page === 1} onClick={() => setPage(p => p - 1)}>
                             <ChevronLeft size={13} /> Prev
                         </button>
-                        <span className="af-pag-info">Page {page} of {totalPages}</span>
+                        <span className="af-pag-info">Page {page} / {totalPages}</span>
                         <button className="af-pag-btn" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>
                             Next <ChevronRight size={13} />
                         </button>
@@ -295,7 +391,9 @@ export default function AdminFeesPage() {
                     <div className="af-modal">
                         <div className="af-modal-head">
                             <span className="af-modal-title">Edit Payment</span>
-                            <button className="af-modal-close" onClick={() => setEditPayment(null)}><X size={13} /></button>
+                            <button className="af-modal-close" onClick={() => setEditPayment(null)}>
+                                <X size={13} />
+                            </button>
                         </div>
                         <div className="af-modal-body">
                             <div className="af-field">
@@ -315,7 +413,7 @@ export default function AdminFeesPage() {
                             </div>
                             <div className="af-modal-footer">
                                 <button className="af-ghost-btn" onClick={() => setEditPayment(null)}>Cancel</button>
-                                <button className="af-amber-btn" onClick={saveEditPayment} disabled={saving}>
+                                <button className="af-primary-btn" onClick={saveEditPayment} disabled={saving}>
                                     {saving ? "Saving..." : "Save Changes"}
                                 </button>
                             </div>
@@ -327,28 +425,39 @@ export default function AdminFeesPage() {
     );
 }
 
+// ── Styles — ALL colors via var(--cp-*) ──────────────────────────────────────
+
 const afStyles = `
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap');
+
     .af-root  { font-family:'Plus Jakarta Sans',sans-serif; color:var(--cp-text); display:flex; flex-direction:column; gap:16px; }
-    .af-toast { position:fixed; top:16px; right:16px; z-index:999; padding:10px 18px; border-radius:9px; font-size:12px; font-weight:700; font-family:'Plus Jakarta Sans',sans-serif; box-shadow:0 8px 24px rgba(0,0,0,.4); }
-    .af-toast.success { background:rgba(34,197,94,0.12); color:var(--cp-success); border:1px solid rgba(34,197,94,0.3); }
-    .af-toast.error   { background:rgba(239,68,68,0.12);  color:var(--cp-danger);  border:1px solid rgba(239,68,68,0.3); }
-    .af-title { font-family:'DM Serif Display',serif; font-size:1.6rem; color:var(--cp-text); font-weight:400; }
-    .af-sub   { font-size:12px; color:var(--cp-muted); margin-top:3px; }
+
+    .af-toast { position:fixed; top:16px; right:16px; z-index:999; padding:10px 18px; border-radius:9px; font-size:12px; font-weight:700; font-family:'Plus Jakarta Sans',sans-serif; box-shadow:0 8px 24px rgba(0,0,0,.3); }
+    .af-toast--success { background:rgba(34,197,94,0.12); color:var(--cp-success); border:1px solid rgba(34,197,94,.3); }
+    .af-toast--error   { background:rgba(239,68,68,0.12);  color:var(--cp-danger);  border:1px solid rgba(239,68,68,.3); }
+
+    .af-header { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+    .af-title  { font-family:'DM Serif Display',serif; font-size:1.6rem; color:var(--cp-text); font-weight:400; }
+    .af-sub    { font-size:12px; color:var(--cp-muted); margin-top:3px; }
+    .af-refresh-btn { display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; border:1px solid var(--cp-border); background:var(--cp-surface); color:var(--cp-muted); cursor:pointer; transition:all .14s; flex-shrink:0; }
+    .af-refresh-btn:hover { border-color:var(--cp-accent); color:var(--cp-accent); }
+
     .af-kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
     @media(max-width:700px){ .af-kpi-row { grid-template-columns:repeat(2,1fr); } }
-    .af-kpi { background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:10px; padding:14px 16px; }
-    .af-kpi.amber { border-left:3px solid var(--cp-accent); }
-    .af-kpi.green { border-left:3px solid var(--cp-success); }
-    .af-kpi.red   { border-left:3px solid var(--cp-danger); }
-    .af-kpi.muted { border-left:3px solid var(--cp-muted); }
-    .af-kpi-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--cp-muted); margin-bottom:6px; }
-    .af-kpi-val   { font-family:'DM Serif Display',serif; font-size:1.3rem; color:var(--cp-text); }
+    .af-kpi         { background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:10px; padding:14px 16px; border-left:3px solid var(--cp-border); }
+    .af-kpi--accent { border-left-color:var(--cp-accent); }
+    .af-kpi--green  { border-left-color:var(--cp-success); }
+    .af-kpi--red    { border-left-color:var(--cp-danger); }
+    .af-kpi--muted  { border-left-color:var(--cp-muted); }
+    .af-kpi-label   { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--cp-muted); margin-bottom:6px; }
+    .af-kpi-val     { font-family:'DM Serif Display',serif; font-size:1.3rem; color:var(--cp-text); }
+
     .af-search-wrap { position:relative; max-width:320px; }
     .af-search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--cp-muted); pointer-events:none; }
-    .af-search { font-family:'Plus Jakarta Sans',sans-serif; width:100%; padding:9px 12px 9px 32px; background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:9px; color:var(--cp-text); font-size:13px; outline:none; }
+    .af-search { font-family:'Plus Jakarta Sans',sans-serif; width:100%; padding:9px 12px 9px 32px; background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:9px; color:var(--cp-text); font-size:13px; outline:none; transition:border-color .14s; }
     .af-search:focus { border-color:var(--cp-accent); }
     .af-search::placeholder { color:var(--cp-muted); }
+
     .af-student-card { background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:12px; overflow:hidden; }
     .af-student-row  { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; cursor:pointer; transition:background .13s; gap:12px; flex-wrap:wrap; }
     .af-student-row:hover { background:var(--cp-accent-glow); }
@@ -357,62 +466,75 @@ const afStyles = `
     .af-student-name  { font-size:13px; font-weight:700; color:var(--cp-text); }
     .af-student-meta  { font-size:11px; color:var(--cp-muted); margin-top:1px; }
     .af-student-right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
-    .af-fee-summary { display:flex; align-items:center; gap:4px; font-size:12px; }
-    .af-fee-paid  { font-weight:700; color:var(--cp-success); }
-    .af-fee-sep   { color:var(--cp-border2); }
-    .af-fee-total { color:var(--cp-muted); }
-    .af-fee-due   { font-size:10px; font-weight:700; background:rgba(239,68,68,0.1); color:var(--cp-danger); border:1px solid rgba(239,68,68,0.2); padding:2px 8px; border-radius:100px; margin-left:6px; }
+    .af-fee-summary   { display:flex; align-items:center; gap:4px; font-size:12px; }
+    .af-fee-paid      { font-weight:700; color:var(--cp-success); }
+    .af-fee-sep       { color:var(--cp-border2); }
+    .af-fee-total     { color:var(--cp-muted); }
+    .af-fee-due       { font-size:10px; font-weight:700; background:rgba(239,68,68,0.1); color:var(--cp-danger); border:1px solid rgba(239,68,68,0.2); padding:2px 8px; border-radius:100px; margin-left:4px; }
     .af-mini-bar  { width:70px; height:4px; background:var(--cp-border); border-radius:100px; overflow:hidden; }
-    .af-mini-fill { height:100%; background:linear-gradient(90deg, var(--cp-accent), var(--cp-success)); border-radius:100px; transition:width .4s ease; }
+    .af-mini-fill { height:100%; background:linear-gradient(90deg,var(--cp-accent),var(--cp-success)); border-radius:100px; transition:width .4s; }
     .af-pct { font-size:11px; font-weight:700; }
+
     .af-enrollments { border-top:1px solid var(--cp-border); }
-    .af-enrollment-block { padding:16px 18px; border-bottom:1px solid var(--cp-border); }
-    .af-enrollment-block:last-child { border-bottom:none; }
-    .af-course-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; flex-wrap:wrap; gap:6px; }
-    .af-course-name { font-size:12px; font-weight:700; color:var(--cp-subtext); text-transform:uppercase; letter-spacing:.06em; }
-    .af-enr-stats { font-size:12px; }
-    .af-prog-wrap  { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
-    .af-prog-track { flex:1; height:5px; background:var(--cp-border); border-radius:100px; overflow:hidden; }
-    .af-prog-fill  { height:100%; background:linear-gradient(90deg, var(--cp-accent), var(--cp-success)); border-radius:100px; transition:width .4s; }
-    .af-prog-pct   { font-size:10px; font-weight:700; color:var(--cp-muted); flex-shrink:0; }
-    .af-payment-list { background:var(--cp-bg); border:1px solid var(--cp-border); border-radius:8px; overflow:hidden; margin-bottom:12px; }
-    .af-payment-row  { display:flex; align-items:center; justify-content:space-between; padding:9px 12px; border-bottom:1px solid var(--cp-border); transition:background .12s; }
-    .af-payment-row:last-child { border-bottom:none; }
-    .af-payment-row:hover { background:var(--cp-accent-glow); }
+    .af-enr-block   { padding:16px 18px; border-bottom:1px solid var(--cp-border); }
+    .af-enr-block:last-child { border-bottom:none; }
+    .af-course-head  { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; flex-wrap:wrap; gap:6px; }
+    .af-course-name  { font-size:12px; font-weight:700; color:var(--cp-subtext); text-transform:uppercase; letter-spacing:.06em; }
+    .af-enr-stats    { font-size:12px; }
+    .af-prog-wrap    { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+    .af-prog-track   { flex:1; height:5px; background:var(--cp-border); border-radius:100px; overflow:hidden; }
+    .af-prog-fill    { height:100%; background:linear-gradient(90deg,var(--cp-accent),var(--cp-success)); border-radius:100px; transition:width .4s; }
+    .af-prog-pct     { font-size:10px; font-weight:700; color:var(--cp-muted); flex-shrink:0; }
+
+    .af-pay-list { background:var(--cp-bg); border:1px solid var(--cp-border); border-radius:8px; overflow:hidden; margin-bottom:12px; }
+    .af-pay-row  { display:flex; align-items:center; justify-content:space-between; padding:9px 12px; border-bottom:1px solid var(--cp-border); transition:background .12s; }
+    .af-pay-row:last-child { border-bottom:none; }
+    .af-pay-row:hover { background:var(--cp-accent-glow); }
     .af-pay-left    { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
     .af-pay-amt     { font-size:13px; font-weight:700; color:var(--cp-success); }
     .af-pay-date    { font-size:11px; color:var(--cp-muted); }
     .af-pay-remark  { font-size:11px; color:var(--cp-subtext); }
     .af-pay-receipt { font-size:10px; color:var(--cp-border2); font-family:monospace; }
-    .af-add-pay-form  { background:var(--cp-bg); border:1px solid var(--cp-border); border-radius:8px; padding:12px; }
-    .af-add-pay-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--cp-border2); margin-bottom:8px; }
-    .af-add-pay-row   { display:flex; flex-wrap:wrap; gap:8px; align-items:flex-end; }
-    .af-add-pay-row .af-input { flex:1; min-width:120px; }
+
+    .af-add-form  { background:var(--cp-bg); border:1px solid var(--cp-border); border-radius:8px; padding:12px; }
+    .af-add-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--cp-muted); margin-bottom:8px; }
+    .af-add-row   { display:flex; flex-wrap:wrap; gap:8px; align-items:flex-end; }
+    .af-add-row .af-input { flex:1; min-width:120px; }
+
     .af-field { display:flex; flex-direction:column; gap:5px; }
     .af-label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--cp-muted); }
     .af-input { font-family:'Plus Jakarta Sans',sans-serif; padding:8px 11px; font-size:12px; background:var(--cp-bg); border:1px solid var(--cp-border); border-radius:8px; color:var(--cp-text); outline:none; transition:border-color .15s; width:100%; }
     .af-input:focus { border-color:var(--cp-accent); }
-    .af-input::placeholder { color:var(--cp-border2); }
-    .af-green-btn { display:inline-flex; align-items:center; gap:5px; padding:8px 14px; border-radius:8px; border:1px solid rgba(34,197,94,0.3); background:rgba(34,197,94,0.1); color:var(--cp-success); font-size:12px; font-weight:700; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; white-space:nowrap; }
+    .af-input::placeholder { color:var(--cp-muted); }
+
+    .af-green-btn   { display:inline-flex; align-items:center; gap:5px; padding:8px 14px; border-radius:8px; border:1px solid rgba(34,197,94,0.3); background:rgba(34,197,94,0.1); color:var(--cp-success); font-size:12px; font-weight:700; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; white-space:nowrap; transition:background .14s; }
+    .af-green-btn:hover { background:rgba(34,197,94,0.18); }
     .af-green-btn:disabled { opacity:.5; cursor:not-allowed; }
-    .af-amber-btn { padding:9px 18px; border-radius:8px; border:none; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; font-size:12px; font-weight:700; background:var(--cp-accent); color:#fff; }
-    .af-amber-btn:disabled { opacity:.5; cursor:not-allowed; }
-    .af-ghost-btn { padding:9px 16px; border-radius:8px; border:1px solid var(--cp-border); background:transparent; color:var(--cp-muted); font-size:12px; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; }
-    .af-icon-btn { width:26px; height:26px; border-radius:7px; border:1px solid; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .13s; flex-shrink:0; }
-    .af-icon-btn.amber { background:var(--cp-accent-glow); color:var(--cp-accent); border-color:color-mix(in srgb,var(--cp-accent) 25%,transparent); }
-    .af-pag     { display:flex; align-items:center; justify-content:center; gap:10px; }
-    .af-pag-btn { display:flex; align-items:center; gap:4px; padding:6px 14px; border-radius:8px; border:1px solid var(--cp-border); background:var(--cp-surface); color:var(--cp-subtext); font-size:12px; font-weight:500; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; }
+    .af-primary-btn { padding:9px 18px; border-radius:8px; border:none; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; font-size:12px; font-weight:700; background:var(--cp-accent); color:#fff; transition:opacity .14s; }
+    .af-primary-btn:disabled { opacity:.5; cursor:not-allowed; }
+    .af-ghost-btn   { padding:9px 16px; border-radius:8px; border:1px solid var(--cp-border); background:transparent; color:var(--cp-muted); font-size:12px; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all .13s; }
+    .af-ghost-btn:hover { border-color:var(--cp-border2); color:var(--cp-subtext); }
+    .af-icon-btn    { width:26px; height:26px; border-radius:7px; border:1px solid color-mix(in srgb,var(--cp-accent) 25%,transparent); background:var(--cp-accent-glow); color:var(--cp-accent); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .13s; flex-shrink:0; }
+    .af-icon-btn:hover { background:color-mix(in srgb,var(--cp-accent) 20%,transparent); }
+
+    .af-pag      { display:flex; align-items:center; justify-content:center; gap:10px; }
+    .af-pag-btn  { display:flex; align-items:center; gap:4px; padding:6px 14px; border-radius:8px; border:1px solid var(--cp-border); background:var(--cp-surface); color:var(--cp-subtext); font-size:12px; font-weight:500; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all .14s; }
     .af-pag-btn:hover:not(:disabled) { border-color:var(--cp-accent); color:var(--cp-accent); }
     .af-pag-btn:disabled { opacity:.35; cursor:not-allowed; }
     .af-pag-info { font-size:12px; color:var(--cp-muted); }
+
     .af-empty { background:var(--cp-surface); border:1px dashed var(--cp-border); border-radius:12px; padding:40px; text-align:center; font-size:13px; color:var(--cp-muted); }
+
     .af-overlay { position:fixed; inset:0; background:rgba(0,0,0,.72); backdrop-filter:blur(4px); z-index:60; display:flex; align-items:center; justify-content:center; padding:20px; }
     .af-modal   { background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:14px; width:100%; max-width:400px; box-shadow:0 24px 60px rgba(0,0,0,.5); animation:afIn .18s ease; }
     @keyframes afIn { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
     .af-modal-head   { display:flex; align-items:center; justify-content:space-between; padding:15px 18px; border-bottom:1px solid var(--cp-border); }
     .af-modal-title  { font-family:'DM Serif Display',serif; font-size:1.05rem; color:var(--cp-text); }
-    .af-modal-close  { width:26px; height:26px; border-radius:7px; border:1px solid var(--cp-border); background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--cp-muted); }
+    .af-modal-close  { width:26px; height:26px; border-radius:7px; border:1px solid var(--cp-border); background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--cp-muted); transition:all .13s; }
     .af-modal-close:hover { background:var(--cp-surface2); color:var(--cp-text); }
     .af-modal-body   { padding:18px; display:flex; flex-direction:column; gap:12px; }
     .af-modal-footer { display:flex; justify-content:flex-end; gap:8px; }
+
+    .af-sk { background:linear-gradient(90deg,var(--cp-surface) 25%,var(--cp-surface2) 50%,var(--cp-surface) 75%); background-size:200% 100%; animation:afShimmer 1.4s infinite; }
+    @keyframes afShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 `;
