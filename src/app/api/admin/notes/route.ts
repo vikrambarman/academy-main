@@ -8,16 +8,28 @@ import { verifyUser } from "@/lib/verifyUser";
 import Note from "@/models/Note";
 import Course from "@/models/Course";
 import { slugify } from "@/lib/slugify";
+import "@/models/Student";
+
+
+async function requireAdmin() {
+    const user: any = await verifyUser();
+    if (!user || user.role !== "admin") throw new Error("UNAUTHORIZED");
+    return user;
+}
+
+function handleError(error: any, context: string) {
+    if (["UNAUTHORIZED", "NO_TOKEN", "TOKEN_EXPIRED"].includes(error.message))
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    console.error(`[${context}]`, error.message || error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+}
+
 
 // GET /api/admin/notes?courseSlug=dca
 export async function GET(request: NextRequest) {
     try {
-        const user = await verifyUser();
-        if (!user || (user as any).role !== "admin") {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
         await connectDB();
+        await requireAdmin();
 
         const { searchParams } = new URL(request.url);
         const courseSlug = searchParams.get("courseSlug");
@@ -54,10 +66,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({ success: true, notes });
 
-    } catch (error) {
-        console.error("GET /api/admin/notes error:", error);
-        return NextResponse.json({ error: "Server error" }, { status: 500 });
-    }
+    } catch (e: any) { return handleError(e, "GET /api/admin/notes"); }
 }
 
 // POST /api/admin/notes
