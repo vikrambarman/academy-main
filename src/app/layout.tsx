@@ -1,6 +1,7 @@
 import { ThemeProvider } from "@/components/ThemeProvider";
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
+import ChatWidget from "@/components/ChatWidget/ChatWidget";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.shivshakticomputer.in"),
@@ -94,6 +95,7 @@ export default function RootLayout({
       <body>
         <ThemeProvider storageKey="public-theme">
           {children}
+          <ChatWidget/>
 
           <script
             type="application/ld+json"
