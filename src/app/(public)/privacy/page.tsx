@@ -11,7 +11,7 @@ export default function PrivacyPage() {
       color: '#111827'
     }}>
       <h1>Privacy Policy</h1>
-      <p>Last updated: January 2025</p>
+      <p>Last updated: April 2026</p>
 
       <h2>Information We Collect</h2>
       <p>
@@ -32,7 +32,7 @@ export default function PrivacyPage() {
       <h2>Contact Us</h2>
       <p>
         For any privacy concerns, contact us at:
-        admin@shivshakticomputer.in
+        shivshakticomputeracademy25@gmail.com
       </p>
     </div>
   );
