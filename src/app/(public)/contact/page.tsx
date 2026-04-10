@@ -1,74 +1,121 @@
 "use client";
 
 import { useState } from "react";
-import { Phone, Mail, MapPin, MessageCircle } from "lucide-react";
 import Script from "next/script";
+
+/* ─── Data ───────────────────────────────────────────────────────── */
 
 const contactCards = [
     {
         href: "tel:+917477036832",
-        icon: Phone,
         label: "Call Us",
         value: "+91 74770 36832",
         sub: "Mon–Sat · 8AM–6PM",
         external: false,
+        icon: "phone",
     },
     {
         href: "https://wa.me/919009087883",
-        icon: MessageCircle,
         label: "WhatsApp",
         value: "+91 90090 87883",
         sub: "Quick response",
         external: true,
+        icon: "whatsapp",
     },
     {
         href: "mailto:shivshakticomputeracademy25@gmail.com",
-        icon: Mail,
         label: "Email",
         value: "Send a Message",
         sub: "We reply within 24hrs",
         external: false,
+        icon: "mail",
     },
     {
         href: "https://www.google.com/maps?q=Shivshakti+Computer+Academy",
-        icon: MapPin,
         label: "Visit Us",
         value: "Ambikapur, C.G.",
         sub: "Get directions →",
         external: true,
+        icon: "map",
     },
 ];
 
 const mapInfoRows = [
-    { label: "Address", value: "1st Floor, Above Usha Matching Center", sub: "Near Babra Petrol Pump, Banaras Road, Phunderdihari" },
-    { label: "City",    value: "Ambikapur, Chhattisgarh",               sub: "Dist: Surguja · PIN 497001"                         },
-    { label: "Phone",   value: "+91 74770 36832",                        sub: "Call or WhatsApp"                                    },
-    { label: "Hours",   value: "Mon – Sat",                              sub: "8:00 AM – 6:00 PM"                                   },
+    {
+        label: "Address",
+        value: "1st Floor, Above Usha Matching Center",
+        sub: "Near Babra Petrol Pump, Banaras Road, Phunderdihari",
+    },
+    {
+        label: "City",
+        value: "Ambikapur, Chhattisgarh",
+        sub: "Dist: Surguja · PIN 497001",
+    },
+    {
+        label: "Phone",
+        value: "+91 74770 36832",
+        sub: "Call or WhatsApp",
+    },
+    {
+        label: "Hours",
+        value: "Mon – Sat",
+        sub: "8:00 AM – 6:00 PM",
+    },
 ];
 
-/* ── Reusable eyebrow (matches HeroSection / VisitUs pattern) ── */
-function Eyebrow({ label }: { label: string }) {
-    return (
-        <div className="flex items-center gap-2 mb-3.5 text-[10px] font-medium tracking-[0.18em] uppercase"
-            style={{ color: "var(--color-primary)" }}>
-            <span aria-hidden="true"
-                style={{ display: "inline-block", width: 24, height: 1.5, background: "var(--color-primary)", flexShrink: 0 }} />
-            {label}
-        </div>
-    );
-}
+/* ─── Icons (inline SVG) ─────────────────────────────────────────── */
 
-/* ── Reusable dark eyebrow (for dark panels) ── */
-function EyebrowDark({ label }: { label: string }) {
-    return (
-        <div className="flex items-center gap-1.5 mb-2 text-[9px] font-medium tracking-[0.18em] uppercase"
-            style={{ color: "var(--color-warning)" }}>
-            <span aria-hidden="true"
-                style={{ display: "inline-block", width: 14, height: 1.5, background: "var(--color-warning)", flexShrink: 0 }} />
-            {label}
-        </div>
-    );
-}
+const PhoneIcon = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="1.8"
+        strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l.97-.87a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+    </svg>
+);
+
+const WhatsAppIcon = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="1.8"
+        strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+    </svg>
+);
+
+const MailIcon = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="1.8"
+        strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+        <polyline points="22,6 12,13 2,6" />
+    </svg>
+);
+
+const MapPinIcon = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="1.8"
+        strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+        <circle cx="12" cy="10" r="3" />
+    </svg>
+);
+
+const SendIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="2"
+        strokeLinecap="round" strokeLinejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13" />
+        <polygon points="22 2 15 22 11 13 2 9 22 2" />
+    </svg>
+);
+
+const iconMap: Record<string, React.ReactNode> = {
+    phone:    <PhoneIcon />,
+    whatsapp: <WhatsAppIcon />,
+    mail:     <MailIcon />,
+    map:      <MapPinIcon />,
+};
+
+/* ─── Page ───────────────────────────────────────────────────────── */
 
 export default function ContactPage() {
     const [form, setForm]       = useState({ name: "", mobile: "", message: "" });
@@ -82,9 +129,9 @@ export default function ContactPage() {
         setError(false);
         try {
             const res = await fetch("/api/public/contact", {
-                method: "POST",
+                method:  "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(form),
+                body:    JSON.stringify(form),
             });
             if (res.ok) {
                 setSuccess(true);
@@ -110,7 +157,8 @@ export default function ContactPage() {
                         name: "Shivshakti Computer Academy",
                         address: {
                             "@type": "PostalAddress",
-                            streetAddress: "1st Floor, Above Usha Matching Center, Near Babra Petrol Pump, Banaras Road, Phunderdihari",
+                            streetAddress:
+                                "1st Floor, Above Usha Matching Center, Near Babra Petrol Pump, Banaras Road, Phunderdihari",
                             addressLocality: "Ambikapur",
                             addressRegion: "Chhattisgarh",
                             postalCode: "497001",
@@ -121,299 +169,853 @@ export default function ContactPage() {
                 }}
             />
 
-            <main style={{ background: "var(--color-bg)", minHeight: "100vh", fontFamily: "'DM Sans', sans-serif" }}>
+            <main className="ct-root">
 
-                {/* ══════════════════════ HERO ══════════════════════ */}
-                <section className="relative overflow-hidden px-6 pt-[88px] pb-16"
-                    style={{ background: "var(--color-bg)" }}
-                    aria-labelledby="contact-hero-heading">
+                {/* ════════════ HERO ════════════ */}
+                <section
+                    className="ct-hero home-section"
+                    aria-labelledby="contact-hero-heading"
+                >
+                    <div className="ct-hero__glow ct-hero__glow--1" aria-hidden="true" />
+                    <div className="ct-hero__glow ct-hero__glow--2" aria-hidden="true" />
 
-                    {/* Glow */}
-                    <div aria-hidden="true" className="absolute -top-20 -right-20 w-[420px] h-[420px] rounded-full pointer-events-none z-0"
-                        style={{ background: "radial-gradient(circle,color-mix(in srgb,var(--color-primary) 9%,transparent) 0%,transparent 65%)" }} />
+                    <div className="container container-xl ct-hero__inner">
+                        {/* Eyebrow */}
+                        <div className="ct-hero__eyebrow">
+                            <span className="ct-hero__eyebrow-line" aria-hidden="true" />
+                            Get in Touch
+                        </div>
 
-                    <div className="relative z-10 max-w-[1100px] mx-auto">
-                        <Eyebrow label="Get in Touch" />
-                        <div className="flex items-end justify-between gap-10 flex-wrap">
-                            <h1 id="contact-hero-heading"
-                                className="font-serif font-bold leading-[1.15]"
-                                style={{ fontSize: "clamp(2rem,4vw,3rem)", color: "var(--color-text)" }}>
-                                Contact <em className="italic" style={{ color: "var(--color-accent)" }}>Shivshakti</em><br />
+                        {/* Split layout */}
+                        <div className="ct-hero__layout">
+                            <h1
+                                id="contact-hero-heading"
+                                className="ct-hero__title"
+                            >
+                                Contact{" "}
+                                <em className="ct-hero__title-em">
+                                    Shivshakti
+                                </em>
+                                <br />
                                 Computer Academy
                             </h1>
-                            <p className="text-[0.88rem] font-light leading-[1.8] max-w-[340px] pb-1"
-                                style={{ color: "var(--color-text-muted)" }}>
-                                Reach us for admissions, certifications and course
-                                guidance. We&apos;re available Mon–Sat, 8AM–6PM.
+                            <p className="ct-hero__desc">
+                                Reach us for admissions, certifications and
+                                course guidance. We&apos;re available Mon–Sat,
+                                8AM–6PM.
                             </p>
                         </div>
                     </div>
                 </section>
 
-                {/* ══════════════════════ CONTACT CARDS ══════════════════════ */}
-                <section className="relative px-6" aria-label="Contact options">
-                    {/* Top divider */}
-                    <div aria-hidden="true" className="absolute top-0 pointer-events-none"
-                        style={{ left: "10%", right: "10%", height: 1, background: "linear-gradient(to right,transparent,var(--color-border),transparent)" }} />
+                {/* ════════════ CONTACT CARDS ════════════ */}
+                <section className="ct-cards-section" aria-label="Contact options">
+                    <div className="ct-cards-section__divider" aria-hidden="true" />
+                    <div className="container container-xl ct-cards-section__inner">
+                        <div className="ct-cards-grid">
+                            {contactCards.map((c) => (
+                                <a
+                                    key={c.label}
+                                    href={c.href}
+                                    target={c.external ? "_blank" : undefined}
+                                    rel={c.external ? "noopener noreferrer" : undefined}
+                                    className="ct-card"
+                                >
+                                    {/* Accent bar */}
+                                    <span
+                                        className="ct-card__accent"
+                                        aria-hidden="true"
+                                    />
 
-                    <div className="max-w-[1100px] mx-auto pt-12">
-                        {/* Cards grid */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 rounded-[20px] overflow-hidden"
-                            style={{ border: "1px solid var(--color-border)", background: "var(--color-border)", gap: 1 }}>
-                            {contactCards.map((c) => {
-                                const Icon = c.icon;
-                                return (
-                                    <a key={c.label}
-                                        href={c.href}
-                                        target={c.external ? "_blank" : undefined}
-                                        rel={c.external ? "noopener noreferrer" : undefined}
-                                        className="group flex flex-col items-start no-underline px-6 py-7 transition-colors duration-200 relative overflow-hidden"
-                                        style={{ background: "var(--color-bg-card)" }}
-                                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "color-mix(in srgb,var(--color-primary) 5%,var(--color-bg-card))"}
-                                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "var(--color-bg-card)"}>
+                                    {/* Icon */}
+                                    <div className="ct-card__icon">
+                                        {iconMap[c.icon]}
+                                    </div>
 
-                                        {/* Top accent bar on hover */}
-                                        <span aria-hidden="true" className="absolute top-0 left-0 right-0 h-[2px] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-[260ms] ease-out"
-                                            style={{ background: "var(--color-primary)" }} />
-
-                                        {/* Icon */}
-                                        <div className="w-10 h-10 rounded-[11px] flex items-center justify-center mb-[18px] transition-colors duration-200"
-                                            style={{
-                                                background: "color-mix(in srgb,var(--color-primary) 8%,var(--color-bg))",
-                                                border: "1px solid color-mix(in srgb,var(--color-primary) 20%,transparent)",
-                                            }}>
-                                            <Icon size={18} strokeWidth={1.8} style={{ color: "var(--color-primary)" }} />
-                                        </div>
-
-                                        <div className="text-[9px] font-medium tracking-[0.14em] uppercase mb-1.5"
-                                            style={{ color: "var(--color-text-muted)" }}>
-                                            {c.label}
-                                        </div>
-                                        <div className="text-[0.9rem] font-medium leading-[1.3] mb-1"
-                                            style={{ color: "var(--color-text)" }}>
-                                            {c.value}
-                                        </div>
-                                        <div className="text-[0.75rem] font-light"
-                                            style={{ color: "var(--color-text-muted)" }}>
-                                            {c.sub}
-                                        </div>
-                                    </a>
-                                );
-                            })}
+                                    <div className="ct-card__label">
+                                        {c.label}
+                                    </div>
+                                    <div className="ct-card__value">
+                                        {c.value}
+                                    </div>
+                                    <div className="ct-card__sub">
+                                        {c.sub}
+                                    </div>
+                                </a>
+                            ))}
                         </div>
                     </div>
                 </section>
 
-                {/* ══════════════════════ FORM + MAP ══════════════════════ */}
-                <section className="relative px-6 pt-14 pb-[88px]" aria-label="Contact form and location">
-                    {/* Top divider */}
-                    <div aria-hidden="true" className="absolute top-0 pointer-events-none"
-                        style={{ left: "10%", right: "10%", height: 1, background: "linear-gradient(to right,transparent,var(--color-border),transparent)" }} />
+                {/* ════════════ FORM + MAP ════════════ */}
+                <section
+                    className="ct-bottom-section"
+                    aria-label="Contact form and location"
+                >
+                    <div className="ct-bottom-section__divider" aria-hidden="true" />
 
-                    <div className="max-w-[1100px] mx-auto grid grid-cols-1 md:grid-cols-[1fr_1.2fr] gap-5 items-start">
+                    <div className="container container-xl ct-bottom-section__inner">
 
-                        {/* ── Form card ── */}
-                        <div className="rounded-[24px] overflow-hidden"
-                            style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}>
+                        {/* ── Form Card ── */}
+                        <div className="ct-form-card">
 
                             {/* Dark header */}
-                            <div className="relative overflow-hidden px-9 py-8"
-                                style={{ background: "var(--color-bg-sidebar)", borderBottom: "1px solid var(--color-border)" }}>
-                                {/* Dot pattern */}
-                                <div aria-hidden="true" className="absolute -bottom-5 -right-5 w-24 h-24 pointer-events-none"
-                                    style={{
-                                        backgroundImage: "radial-gradient(circle,color-mix(in srgb,var(--color-warning) 15%,transparent) 1.5px,transparent 1.5px)",
-                                        backgroundSize: "10px 10px",
-                                    }} />
-                                <EyebrowDark label="Message Us" />
-                                <div className="font-serif text-[1.25rem] font-bold leading-[1.2] relative z-10"
-                                    style={{ color: "var(--color-text-inverse)" }}>
-                                    Send a Message &<br />We&apos;ll Get Back to You
+                            <div className="ct-form-card__header">
+                                <div
+                                    className="ct-form-card__header-dots"
+                                    aria-hidden="true"
+                                />
+                                <div className="ct-form-card__header-eyebrow">
+                                    <span className="ct-form-card__header-eyebrow-line" />
+                                    Message Us
+                                </div>
+                                <div className="ct-form-card__header-title">
+                                    Send a Message &amp;
+                                    <br />
+                                    We&apos;ll Get Back to You
                                 </div>
                             </div>
 
                             {/* Form body */}
-                            <div className="px-9 py-8">
+                            <div className="ct-form-card__body">
+
+                                {/* Success alert */}
                                 {success && (
-                                    <div role="alert" className="flex items-start gap-2.5 rounded-xl px-4 py-3 mb-5 text-[0.82rem] font-light leading-[1.6]"
-                                        style={{ background: "color-mix(in srgb,var(--color-success) 10%,var(--color-bg))", border: "1px solid color-mix(in srgb,var(--color-success) 35%,transparent)", color: "var(--color-success)" }}>
-                                        <span>✓</span>
-                                        <span>Thank you! Your message has been sent. We&apos;ll respond shortly.</span>
+                                    <div
+                                        role="alert"
+                                        className="ct-alert ct-alert--success"
+                                    >
+                                        <span aria-hidden="true">✓</span>
+                                        <span>
+                                            Thank you! Your message has been
+                                            sent. We&apos;ll respond shortly.
+                                        </span>
                                     </div>
                                 )}
+
+                                {/* Error alert */}
                                 {error && (
-                                    <div role="alert" className="flex items-start gap-2.5 rounded-xl px-4 py-3 mb-5 text-[0.82rem] font-light leading-[1.6]"
-                                        style={{ background: "color-mix(in srgb,var(--color-error) 10%,var(--color-bg))", border: "1px solid color-mix(in srgb,var(--color-error) 35%,transparent)", color: "var(--color-error)" }}>
-                                        <span>✕</span>
-                                        <span>Something went wrong. Please try again or call us directly.</span>
+                                    <div
+                                        role="alert"
+                                        className="ct-alert ct-alert--error"
+                                    >
+                                        <span aria-hidden="true">✕</span>
+                                        <span>
+                                            Something went wrong. Please try
+                                            again or call us directly.
+                                        </span>
                                     </div>
                                 )}
 
-                                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-
+                                <form
+                                    onSubmit={handleSubmit}
+                                    className="ct-form"
+                                >
                                     {/* Name */}
-                                    <div className="flex flex-col gap-1.5">
-                                        <label htmlFor="ct-name"
-                                            className="text-[11px] font-medium tracking-[0.1em] uppercase"
-                                            style={{ color: "var(--color-text-muted)" }}>
+                                    <div className="form-group">
+                                        <label
+                                            htmlFor="ct-name"
+                                            className="ct-form__label"
+                                        >
                                             Your Name
                                         </label>
-                                        <input id="ct-name" type="text" placeholder="Full name" required
+                                        <input
+                                            id="ct-name"
+                                            type="text"
+                                            placeholder="Full name"
+                                            required
                                             value={form.name}
-                                            onChange={e => setForm({ ...form, name: e.target.value })}
-                                            className="w-full rounded-xl px-4 py-3 text-[0.85rem] font-light outline-none transition-all duration-200"
-                                            style={{
-                                                background: "var(--color-bg)",
-                                                border: "1px solid var(--color-border)",
-                                                color: "var(--color-text)",
-                                                fontFamily: "'DM Sans', sans-serif",
-                                            }}
-                                            onFocus={e => {
-                                                e.currentTarget.style.borderColor = "var(--color-primary)";
-                                                e.currentTarget.style.background  = "var(--color-bg-card)";
-                                                e.currentTarget.style.boxShadow   = "0 0 0 3px color-mix(in srgb,var(--color-primary) 12%,transparent)";
-                                            }}
-                                            onBlur={e => {
-                                                e.currentTarget.style.borderColor = "var(--color-border)";
-                                                e.currentTarget.style.background  = "var(--color-bg)";
-                                                e.currentTarget.style.boxShadow   = "none";
-                                            }}
+                                            onChange={(e) =>
+                                                setForm({
+                                                    ...form,
+                                                    name: e.target.value,
+                                                })
+                                            }
+                                            className="ct-form__input"
                                         />
                                     </div>
 
                                     {/* Mobile */}
-                                    <div className="flex flex-col gap-1.5">
-                                        <label htmlFor="ct-mobile"
-                                            className="text-[11px] font-medium tracking-[0.1em] uppercase"
-                                            style={{ color: "var(--color-text-muted)" }}>
+                                    <div className="form-group">
+                                        <label
+                                            htmlFor="ct-mobile"
+                                            className="ct-form__label"
+                                        >
                                             Mobile Number
                                         </label>
-                                        <input id="ct-mobile" type="tel" placeholder="+91 XXXXX XXXXX" required
+                                        <input
+                                            id="ct-mobile"
+                                            type="tel"
+                                            placeholder="+91 XXXXX XXXXX"
+                                            required
                                             value={form.mobile}
-                                            onChange={e => setForm({ ...form, mobile: e.target.value })}
-                                            className="w-full rounded-xl px-4 py-3 text-[0.85rem] font-light outline-none transition-all duration-200"
-                                            style={{
-                                                background: "var(--color-bg)",
-                                                border: "1px solid var(--color-border)",
-                                                color: "var(--color-text)",
-                                                fontFamily: "'DM Sans', sans-serif",
-                                            }}
-                                            onFocus={e => {
-                                                e.currentTarget.style.borderColor = "var(--color-primary)";
-                                                e.currentTarget.style.background  = "var(--color-bg-card)";
-                                                e.currentTarget.style.boxShadow   = "0 0 0 3px color-mix(in srgb,var(--color-primary) 12%,transparent)";
-                                            }}
-                                            onBlur={e => {
-                                                e.currentTarget.style.borderColor = "var(--color-border)";
-                                                e.currentTarget.style.background  = "var(--color-bg)";
-                                                e.currentTarget.style.boxShadow   = "none";
-                                            }}
+                                            onChange={(e) =>
+                                                setForm({
+                                                    ...form,
+                                                    mobile: e.target.value,
+                                                })
+                                            }
+                                            className="ct-form__input"
                                         />
                                     </div>
 
                                     {/* Message */}
-                                    <div className="flex flex-col gap-1.5">
-                                        <label htmlFor="ct-message"
-                                            className="text-[11px] font-medium tracking-[0.1em] uppercase"
-                                            style={{ color: "var(--color-text-muted)" }}>
+                                    <div className="form-group">
+                                        <label
+                                            htmlFor="ct-message"
+                                            className="ct-form__label"
+                                        >
                                             Message
                                         </label>
-                                        <textarea id="ct-message"
+                                        <textarea
+                                            id="ct-message"
                                             placeholder="Ask about courses, admissions, fees..."
                                             value={form.message}
-                                            onChange={e => setForm({ ...form, message: e.target.value })}
-                                            className="w-full rounded-xl px-4 py-3 text-[0.85rem] font-light outline-none transition-all duration-200 resize-y"
-                                            style={{
-                                                minHeight: 110,
-                                                background: "var(--color-bg)",
-                                                border: "1px solid var(--color-border)",
-                                                color: "var(--color-text)",
-                                                fontFamily: "'DM Sans', sans-serif",
-                                            }}
-                                            onFocus={e => {
-                                                e.currentTarget.style.borderColor = "var(--color-primary)";
-                                                e.currentTarget.style.background  = "var(--color-bg-card)";
-                                                e.currentTarget.style.boxShadow   = "0 0 0 3px color-mix(in srgb,var(--color-primary) 12%,transparent)";
-                                            }}
-                                            onBlur={e => {
-                                                e.currentTarget.style.borderColor = "var(--color-border)";
-                                                e.currentTarget.style.background  = "var(--color-bg)";
-                                                e.currentTarget.style.boxShadow   = "none";
-                                            }}
+                                            onChange={(e) =>
+                                                setForm({
+                                                    ...form,
+                                                    message: e.target.value,
+                                                })
+                                            }
+                                            className="ct-form__textarea"
                                         />
                                     </div>
 
                                     {/* Submit */}
-                                    <button type="submit" disabled={loading}
-                                        className="w-full flex items-center justify-center gap-2 rounded-xl py-[14px] text-[0.88rem] font-medium transition-all duration-200 mt-1 disabled:opacity-60 disabled:cursor-not-allowed hover:-translate-y-px"
-                                        style={{
-                                            background: "var(--color-bg-sidebar)",
-                                            color: "var(--color-text-inverse)",
-                                            fontFamily: "'DM Sans', sans-serif",
-                                        }}
-                                        onMouseEnter={e => { if (!loading) (e.currentTarget as HTMLElement).style.background = "var(--color-primary)"; }}
-                                        onMouseLeave={e => { if (!loading) (e.currentTarget as HTMLElement).style.background = "var(--color-bg-sidebar)"; }}>
-                                        {loading ? "Sending..." : <>Send Message <span aria-hidden="true">→</span></>}
+                                    <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className="ct-form__submit"
+                                    >
+                                        {loading ? (
+                                            "Sending…"
+                                        ) : (
+                                            <>
+                                                <SendIcon />
+                                                Send Message
+                                            </>
+                                        )}
                                     </button>
-
                                 </form>
                             </div>
                         </div>
 
-                        {/* ── Map + info card ── */}
-                        <div className="flex flex-col rounded-[24px] overflow-hidden"
-                            style={{ border: "1px solid var(--color-border)" }}>
+                        {/* ── Map + Info Card ── */}
+                        <div className="ct-map-card">
 
-                            {/* Info rows */}
-                            <div className="grid grid-cols-2 gap-3 p-7"
-                                style={{ background: "var(--color-bg-card)", borderBottom: "1px solid var(--color-border)" }}>
+                            {/* Info rows grid */}
+                            <div className="ct-map-card__info">
                                 {mapInfoRows.map((row) => (
-                                    <div key={row.label}
-                                        className="relative flex flex-col gap-0.5 px-4 py-3.5 rounded-xl overflow-hidden transition-colors duration-200"
-                                        style={{ border: "1px solid var(--color-border)" }}
-                                        onMouseEnter={e => {
-                                            (e.currentTarget as HTMLElement).style.background   = "color-mix(in srgb,var(--color-primary) 5%,var(--color-bg))";
-                                            (e.currentTarget as HTMLElement).style.borderColor  = "color-mix(in srgb,var(--color-primary) 30%,transparent)";
-                                        }}
-                                        onMouseLeave={e => {
-                                            (e.currentTarget as HTMLElement).style.background   = "transparent";
-                                            (e.currentTarget as HTMLElement).style.borderColor  = "var(--color-border)";
-                                        }}>
-                                        {/* Left accent bar */}
-                                        <span aria-hidden="true" className="absolute left-0 top-1 bottom-1 w-[2px] rounded-full"
-                                            style={{ background: "var(--color-primary)", opacity: 0.5 }} />
-                                        <span className="text-[9px] font-medium tracking-[0.14em] uppercase"
-                                            style={{ color: "var(--color-primary)" }}>
+                                    <div
+                                        key={row.label}
+                                        className="ct-info-row"
+                                    >
+                                        <span
+                                            className="ct-info-row__bar"
+                                            aria-hidden="true"
+                                        />
+                                        <span className="ct-info-row__label">
                                             {row.label}
                                         </span>
-                                        <span className="text-[0.8rem] font-medium leading-[1.5]"
-                                            style={{ color: "var(--color-text)" }}>
+                                        <span className="ct-info-row__value">
                                             {row.value}
                                         </span>
-                                        <span className="text-[0.72rem] font-light leading-[1.4]"
-                                            style={{ color: "var(--color-text-muted)" }}>
+                                        <span className="ct-info-row__sub">
                                             {row.sub}
                                         </span>
                                     </div>
                                 ))}
                             </div>
 
-                            {/* Iframe */}
-                            <div className="relative flex-1" style={{ minHeight: 340 }}>
+                            {/* Map iframe */}
+                            <div className="ct-map-card__map">
                                 <iframe
                                     title="Shivshakti Computer Academy Location"
                                     src="https://www.google.com/maps?q=Shivshakti+Computer+Academy&output=embed"
                                     loading="lazy"
                                     referrerPolicy="no-referrer-when-downgrade"
-                                    style={{ display: "block", width: "100%", height: "100%", minHeight: 340, border: "none" }}
+                                    className="ct-map-card__iframe"
                                 />
                             </div>
-
                         </div>
                     </div>
                 </section>
-
             </main>
+
+            {/* ════════════ PAGE-SCOPED CSS ════════════ */}
+            <style>{`
+
+/* ══════════════════════════════════════════
+   CONTACT PAGE  —  page-scoped styles
+   Follows: variables.css + components.css
+   ══════════════════════════════════════════ */
+
+/* ── Root ───────────────────────────────── */
+.ct-root {
+  background-color: var(--bg-page);
+  min-height: 100vh;
+}
+
+/* ══════════════════════════════════════════
+   HERO
+   ══════════════════════════════════════════ */
+.ct-hero {
+  position: relative;
+  padding: var(--space-24) 0 var(--space-16);
+  overflow: hidden;
+  background: linear-gradient(
+    160deg,
+    var(--color-primary-200) 0%,
+    var(--color-white) 60%,
+    var(--color-primary-400) 100%
+  );
+}
+
+/* Glow orbs */
+.ct-hero__glow {
+  position: absolute;
+  border-radius: var(--radius-full);
+  pointer-events: none;
+  filter: blur(80px);
+  opacity: 0.30;
+}
+.ct-hero__glow--1 {
+  width: 460px;
+  height: 460px;
+  background: var(--color-primary-200);
+  top: -190px;
+  right: -130px;
+}
+.ct-hero__glow--2 {
+  width: 300px;
+  height: 300px;
+  background: var(--color-accent-200);
+  bottom: -80px;
+  left: -80px;
+}
+
+.ct-hero__inner {
+  position: relative;
+  z-index: 2;
+}
+
+/* Eyebrow */
+.ct-hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-primary-600);
+  margin-bottom: var(--space-4);
+}
+.ct-hero__eyebrow-line {
+  display: inline-block;
+  width: 24px;
+  height: 2px;
+  background: var(--color-primary-500);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+/* Split layout */
+.ct-hero__layout {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-10);
+  flex-wrap: wrap;
+}
+
+/* Title */
+.ct-hero__title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tight);
+  margin: 0;
+}
+.ct-hero__title-em {
+  font-style: italic;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-600),
+    var(--color-accent-500)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Desc */
+.ct-hero__desc {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-light);
+  color: var(--text-secondary);
+  line-height: var(--line-height-relaxed);
+  max-width: 360px;
+  margin: 0;
+  padding-bottom: var(--space-1);
+}
+
+/* ══════════════════════════════════════════
+   CONTACT CARDS
+   ══════════════════════════════════════════ */
+.ct-cards-section {
+  position: relative;
+  padding-bottom: 0;
+}
+.ct-cards-section__divider {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--border-color),
+    transparent
+  );
+  margin: 0 10%;
+}
+.ct-cards-section__inner {
+  padding-top: var(--space-12);
+}
+
+/* Grid — 4 cols separated by 1px border lines */
+.ct-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+/* Contact card (anchor) */
+.ct-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: var(--space-6) var(--space-6) var(--space-8);
+  background: var(--bg-elevated);
+  text-decoration: none;
+  overflow: hidden;
+  transition: background var(--transition-fast);
+}
+.ct-card:hover {
+  background: var(--color-primary-50);
+}
+
+/* Accent bar */
+.ct-card__accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    to right,
+    var(--color-primary-500),
+    var(--color-accent-400)
+  );
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--transition-base);
+}
+.ct-card:hover .ct-card__accent {
+  transform: scaleX(1);
+}
+
+/* Icon wrapper */
+.ct-card__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-5);
+  background: var(--color-primary-50);
+  border: 1px solid var(--color-primary-100);
+  color: var(--color-primary-600);
+  flex-shrink: 0;
+  transition: background var(--transition-fast);
+}
+.ct-card:hover .ct-card__icon {
+  background: var(--color-primary-100);
+}
+
+.ct-card__label {
+  font-size: 9px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-1);
+}
+.ct-card__value {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  line-height: var(--line-height-tight);
+  margin-bottom: var(--space-1);
+}
+.ct-card__sub {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-light);
+  color: var(--text-tertiary);
+}
+
+/* ══════════════════════════════════════════
+   FORM + MAP SECTION
+   ══════════════════════════════════════════ */
+.ct-bottom-section {
+  position: relative;
+  padding-bottom: var(--space-24);
+}
+.ct-bottom-section__divider {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--border-color),
+    transparent
+  );
+  margin: 0 10%;
+}
+.ct-bottom-section__inner {
+  padding-top: var(--space-12);
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+/* ══════════════════════════════════════════
+   FORM CARD
+   ══════════════════════════════════════════ */
+.ct-form-card {
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+/* Dark header */
+.ct-form-card__header {
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-8) var(--space-8) var(--space-6);
+  background: linear-gradient(
+    135deg,
+    var(--color-gray-800) 0%,
+    var(--color-gray-900) 100%
+  );
+  border-bottom: 1px solid var(--color-gray-700);
+}
+
+/* Dot pattern decoration */
+.ct-form-card__header-dots {
+  position: absolute;
+  bottom: -16px;
+  right: -16px;
+  width: 100px;
+  height: 100px;
+  background-image: radial-gradient(
+    circle,
+    rgba(251, 146, 60, 0.18) 1.5px,
+    transparent 1.5px
+  );
+  background-size: 10px 10px;
+  pointer-events: none;
+}
+
+/* Header eyebrow */
+.ct-form-card__header-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 9px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-accent-400);
+  margin-bottom: var(--space-3);
+  position: relative;
+  z-index: 1;
+}
+.ct-form-card__header-eyebrow-line {
+  display: inline-block;
+  width: 14px;
+  height: 1.5px;
+  background: var(--color-accent-400);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+/* Header title */
+.ct-form-card__header-title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-white);
+  line-height: var(--line-height-snug);
+  position: relative;
+  z-index: 1;
+}
+
+/* Form body */
+.ct-form-card__body {
+  padding: var(--space-8);
+  background: var(--bg-elevated);
+}
+
+/* ── Alerts ─────────────────────────── */
+.ct-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  border-radius: var(--radius-xl);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-5);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-light);
+  line-height: var(--line-height-relaxed);
+}
+.ct-alert--success {
+  background: var(--color-success-light);
+  border: 1px solid var(--color-success);
+  color: var(--color-success-dark);
+}
+.ct-alert--error {
+  background: var(--color-danger-light);
+  border: 1px solid var(--color-danger);
+  color: var(--color-danger-dark);
+}
+
+/* ── Form ───────────────────────────── */
+.ct-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.ct-form__label {
+  display: block;
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-2);
+}
+
+/* Input + Textarea — reuse foundation pattern */
+.ct-form__input,
+.ct-form__textarea {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-light);
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  background: var(--bg-page);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    background var(--transition-fast);
+}
+.ct-form__input:focus,
+.ct-form__textarea:focus {
+  outline: none;
+  border-color: var(--color-primary-500);
+  background: var(--bg-elevated);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
+}
+.ct-form__input::placeholder,
+.ct-form__textarea::placeholder {
+  color: var(--color-gray-400);
+}
+.ct-form__textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+/* Submit button */
+.ct-form__submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-4) var(--space-6);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-sans);
+  color: var(--color-white);
+  background: var(--color-gray-900);
+  border: none;
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+  margin-top: var(--space-1);
+}
+.ct-form__submit:hover:not(:disabled) {
+  background: var(--color-primary-600);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+.ct-form__submit:disabled {
+  opacity: 0.60;
+  cursor: not-allowed;
+}
+
+/* ══════════════════════════════════════════
+   MAP CARD
+   ══════════════════════════════════════════ */
+.ct-map-card {
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Info rows grid */
+.ct-map-card__info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Info row item */
+.ct-info-row {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+}
+.ct-info-row:hover {
+  background: var(--color-primary-50);
+  border-color: var(--color-primary-200);
+}
+
+/* Left accent bar */
+.ct-info-row__bar {
+  position: absolute;
+  left: 0;
+  top: var(--space-2);
+  bottom: var(--space-2);
+  width: 2px;
+  background: var(--color-primary-400);
+  border-radius: var(--radius-full);
+  opacity: 0.55;
+}
+.ct-info-row__label {
+  font-size: 9px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-primary-600);
+}
+.ct-info-row__value {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  line-height: var(--line-height-snug);
+}
+.ct-info-row__sub {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-light);
+  color: var(--text-tertiary);
+  line-height: var(--line-height-snug);
+}
+
+/* Map iframe */
+.ct-map-card__map {
+  position: relative;
+  flex: 1;
+  min-height: 340px;
+}
+.ct-map-card__iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 340px;
+  border: none;
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════════ */
+
+/* Tablet */
+@media (max-width: 900px) {
+  .ct-bottom-section__inner {
+    grid-template-columns: 1fr;
+  }
+  .ct-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .ct-hero {
+    padding: var(--space-16) 0 var(--space-12);
+  }
+  .ct-hero__layout {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+  .ct-hero__desc {
+    max-width: 100%;
+  }
+  .ct-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    border-radius: var(--radius-xl);
+  }
+  .ct-map-card__info {
+    grid-template-columns: 1fr;
+  }
+  .ct-bottom-section {
+    padding-bottom: var(--space-16);
+  }
+}
+
+@media (max-width: 480px) {
+  .ct-hero {
+    padding: var(--space-12) 0 var(--space-10);
+  }
+  .ct-cards-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .ct-form-card__header,
+  .ct-form-card__body {
+    padding: var(--space-6);
+  }
+}
+
+      `}</style>
         </>
     );
 }

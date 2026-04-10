@@ -3,58 +3,79 @@
 import { useEffect, useState } from "react";
 import Script from "next/script";
 
+/* ─── Data ───────────────────────────────────────────────────────── */
+
 const CONTACT_METHODS = ["Phone", "WhatsApp"];
 
 const admissionSteps = [
-    { num: "1", title: "Submit Enquiry",    desc: "Fill the form with your details and preferred course."          },
-    { num: "2", title: "Team Contacts You", desc: "We reach out within 24 hours on your preferred channel."        },
-    { num: "3", title: "Visit the Academy", desc: "Come in for a demo session or direct admission."                },
-    { num: "4", title: "Enroll & Begin",    desc: "Complete admission formalities and start learning."             },
+    { num: "1", title: "Submit Enquiry",    desc: "Fill the form with your details and preferred course."       },
+    { num: "2", title: "Team Contacts You", desc: "We reach out within 24 hours on your preferred channel."     },
+    { num: "3", title: "Visit the Academy", desc: "Come in for a demo session or direct admission."             },
+    { num: "4", title: "Enroll & Begin",    desc: "Complete admission formalities and start learning."          },
 ];
 
 const contactLinks = [
-    { href: "tel:+917477036832",                         icon: "📞", label: "Call Us",   value: "+91 74770 36832",  external: false },
-    { href: "https://wa.me/919009087883", icon: "💬", label: "WhatsApp", value: "+91 90090 87883", external: true  },
+    { href: "tel:+917477036832",          label: "Call Us",   value: "+91 74770 36832",  external: false, type: "phone"    },
+    { href: "https://wa.me/919009087883", label: "WhatsApp",  value: "+91 90090 87883",  external: true,  type: "whatsapp" },
 ];
 
-/* ── Reusable eyebrow ── */
-function Eyebrow({ label }: { label: string }) {
-    return (
-        <div className="flex items-center gap-2 mb-3.5 text-[10px] font-medium tracking-[0.18em] uppercase"
-            style={{ color: "var(--color-primary)" }}>
-            <span aria-hidden="true"
-                style={{ display: "inline-block", width: 24, height: 1.5, background: "var(--color-primary)", flexShrink: 0 }} />
-            {label}
-        </div>
-    );
-}
+/* ─── Icons ─────────────────────────────────────────────────────── */
 
-/* ── Dark panel eyebrow ── */
-function EyebrowDark({ label, small = false }: { label: string; small?: boolean }) {
-    return (
-        <div className={`flex items-center gap-1.5 mb-2 font-medium tracking-[0.18em] uppercase ${small ? "text-[9px]" : "text-[9px]"}`}
-            style={{ color: "var(--color-warning)" }}>
-            <span aria-hidden="true"
-                style={{ display: "inline-block", width: small ? 12 : 14, height: 1.5, background: "var(--color-warning)", flexShrink: 0 }} />
-            {label}
-        </div>
-    );
-}
+const PhoneIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="1.8"
+        strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l.97-.87a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+    </svg>
+);
+
+const WhatsAppIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="1.8"
+        strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+    </svg>
+);
+
+const SendIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="2"
+        strokeLinecap="round" strokeLinejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13" />
+        <polygon points="22 2 15 22 11 13 2 9 22 2" />
+    </svg>
+);
+
+const ChevronDownIcon = () => (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="2"
+        strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="6 9 12 15 18 9" />
+    </svg>
+);
+
+const iconMap: Record<string, React.ReactNode> = {
+    phone:    <PhoneIcon />,
+    whatsapp: <WhatsAppIcon />,
+};
+
+/* ─── Page ───────────────────────────────────────────────────────── */
 
 export default function EnquiryPage() {
-    const [courses, setCourses]   = useState<any[]>([]);
-    const [loading, setLoading]   = useState(false);
-    const [success, setSuccess]   = useState(false);
-    const [error, setError]       = useState(false);
-    const [form, setForm]         = useState({
-        name: "", mobile: "", course: "", contactMethod: "Phone", message: "",
+    const [courses, setCourses] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [success, setSuccess] = useState(false);
+    const [error, setError]     = useState(false);
+    const [form, setForm]       = useState({
+        name: "", mobile: "", course: "",
+        contactMethod: "Phone", message: "",
     });
 
     useEffect(() => {
         fetch("/api/public/courses")
-            .then(r => r.json())
-            .then(result => setCourses(result.data || []))
-            .catch(err => console.error("Failed to fetch courses:", err));
+            .then((r) => r.json())
+            .then((result) => setCourses(result.data || []))
+            .catch((err) => console.error("Failed to fetch courses:", err));
     }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -63,43 +84,23 @@ export default function EnquiryPage() {
         setError(false);
         try {
             const res = await fetch("/api/public/enquiry", {
-                method: "POST",
+                method:  "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(form),
+                body:    JSON.stringify(form),
             });
             if (res.ok) {
                 setSuccess(true);
-                setForm({ name: "", mobile: "", course: "", contactMethod: "Phone", message: "" });
-            } else { setError(true); }
-        } catch { setError(true); }
+                setForm({
+                    name: "", mobile: "", course: "",
+                    contactMethod: "Phone", message: "",
+                });
+            } else {
+                setError(true);
+            }
+        } catch {
+            setError(true);
+        }
         setLoading(false);
-    };
-
-    /* Shared input style helpers */
-    const inputBase: React.CSSProperties = {
-        background: "var(--color-bg)",
-        border: "1px solid var(--color-border)",
-        color: "var(--color-text)",
-        fontFamily: "'DM Sans', sans-serif",
-        borderRadius: 12,
-        padding: "12px 16px",
-        fontSize: "0.85rem",
-        fontWeight: 300,
-        width: "100%",
-        outline: "none",
-        boxSizing: "border-box",
-        appearance: "none",
-        transition: "border-color 0.2s, background 0.2s, box-shadow 0.2s",
-    };
-    const onFocus = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        e.currentTarget.style.borderColor = "var(--color-primary)";
-        e.currentTarget.style.background  = "var(--color-bg-card)";
-        e.currentTarget.style.boxShadow   = "0 0 0 3px color-mix(in srgb,var(--color-primary) 12%,transparent)";
-    };
-    const onBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        e.currentTarget.style.borderColor = "var(--color-border)";
-        e.currentTarget.style.background  = "var(--color-bg)";
-        e.currentTarget.style.boxShadow   = "none";
     };
 
     return (
@@ -117,28 +118,35 @@ export default function EnquiryPage() {
                 }}
             />
 
-            <main style={{ background: "var(--color-bg)", minHeight: "100vh", fontFamily: "'DM Sans', sans-serif" }}>
+            <main className="eq-root">
 
-                {/* ══════════════════════ HERO ══════════════════════ */}
-                <section className="relative overflow-hidden px-6 pt-[88px] pb-16"
-                    style={{ background: "var(--color-bg)" }}
-                    aria-labelledby="enquiry-hero-heading">
+                {/* ════════════ HERO ════════════ */}
+                <section
+                    className="eq-hero home-section"
+                    aria-labelledby="enquiry-hero-heading"
+                >
+                    <div className="eq-hero__glow eq-hero__glow--1" aria-hidden="true" />
+                    <div className="eq-hero__glow eq-hero__glow--2" aria-hidden="true" />
 
-                    {/* Glow */}
-                    <div aria-hidden="true" className="absolute -top-20 -right-20 w-[420px] h-[420px] rounded-full pointer-events-none z-0"
-                        style={{ background: "radial-gradient(circle,color-mix(in srgb,var(--color-primary) 9%,transparent) 0%,transparent 65%)" }} />
+                    <div className="container container-xl eq-hero__inner">
+                        {/* Eyebrow */}
+                        <div className="eq-hero__eyebrow">
+                            <span className="eq-hero__eyebrow-line" aria-hidden="true" />
+                            Admissions Open
+                        </div>
 
-                    <div className="relative z-10 max-w-[1100px] mx-auto">
-                        <Eyebrow label="Admissions Open" />
-                        <div className="flex items-end justify-between gap-10 flex-wrap">
-                            <h1 id="enquiry-hero-heading"
-                                className="font-serif font-bold leading-[1.15]"
-                                style={{ fontSize: "clamp(2rem,4vw,3rem)", color: "var(--color-text)" }}>
-                                Course <em className="italic" style={{ color: "var(--color-accent)" }}>Enquiry</em><br />
+                        {/* Split layout */}
+                        <div className="eq-hero__layout">
+                            <h1
+                                id="enquiry-hero-heading"
+                                className="eq-hero__title"
+                            >
+                                Course{" "}
+                                <em className="eq-hero__title-em">Enquiry</em>
+                                <br />
                                 in Ambikapur
                             </h1>
-                            <p className="text-[0.88rem] font-light leading-[1.8] max-w-[340px] pb-1"
-                                style={{ color: "var(--color-text-muted)" }}>
+                            <p className="eq-hero__desc">
                                 Submit your enquiry and our admission team
                                 will contact you within 24 hours.
                             </p>
@@ -146,114 +154,190 @@ export default function EnquiryPage() {
                     </div>
                 </section>
 
-                {/* ══════════════════════ BODY ══════════════════════ */}
-                <section className="relative px-6 pb-[88px]" aria-label="Enquiry form">
-                    {/* Top divider */}
-                    <div aria-hidden="true" className="absolute top-0 pointer-events-none"
-                        style={{ left: "10%", right: "10%", height: 1, background: "linear-gradient(to right,transparent,var(--color-border),transparent)" }} />
+                {/* ════════════ BODY ════════════ */}
+                <section className="eq-body" aria-label="Enquiry form">
+                    <div className="eq-body__divider" aria-hidden="true" />
 
-                    <div className="max-w-[1100px] mx-auto pt-14 grid grid-cols-1 md:grid-cols-[1fr_360px] gap-5 items-start">
+                    <div className="container container-xl eq-body__inner">
 
-                        {/* ── Form card ── */}
-                        <div className="rounded-[24px] overflow-hidden"
-                            style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}>
+                        {/* ── Form Card ── */}
+                        <div className="eq-form-card">
 
                             {/* Dark header */}
-                            <div className="relative overflow-hidden px-9 py-8"
-                                style={{ background: "var(--color-bg-sidebar)", borderBottom: "1px solid var(--color-border)" }}>
-                                {/* Dot pattern */}
-                                <div aria-hidden="true" className="absolute -bottom-4 -right-4 w-28 h-28 pointer-events-none"
-                                    style={{
-                                        backgroundImage: "radial-gradient(circle,color-mix(in srgb,var(--color-warning) 15%,transparent) 1.5px,transparent 1.5px)",
-                                        backgroundSize: "11px 11px",
-                                    }} />
-                                <EyebrowDark label="Admission Enquiry" />
-                                <div className="font-serif text-[1.2rem] font-bold leading-[1.25] relative z-10"
-                                    style={{ color: "var(--color-text-inverse)" }}>
+                            <div className="eq-form-card__header">
+                                <div
+                                    className="eq-form-card__header-dots"
+                                    aria-hidden="true"
+                                />
+                                <div className="eq-form-card__header-eyebrow">
+                                    <span className="eq-form-card__header-eyebrow-line" />
+                                    Admission Enquiry
+                                </div>
+                                <div className="eq-form-card__header-title">
                                     Tell Us About Yourself
                                 </div>
-                                <div className="text-[0.8rem] font-light leading-[1.6] mt-1.5 relative z-10"
-                                    style={{ color: "color-mix(in srgb,var(--color-text-inverse) 45%,transparent)" }}>
-                                    Fill in the form and we&apos;ll get back to you shortly.
+                                <div className="eq-form-card__header-sub">
+                                    Fill in the form and we&apos;ll get back
+                                    to you shortly.
                                 </div>
                             </div>
 
                             {/* Form body */}
-                            <div className="px-9 py-8">
+                            <div className="eq-form-card__body">
+
+                                {/* Success */}
                                 {success && (
-                                    <div role="alert" className="flex items-start gap-2.5 rounded-xl px-4 py-3 mb-5 text-[0.82rem] font-light leading-[1.65]"
-                                        style={{ background: "color-mix(in srgb,var(--color-success) 10%,var(--color-bg))", border: "1px solid color-mix(in srgb,var(--color-success) 35%,transparent)", color: "var(--color-success)" }}>
-                                        <span>✓</span>
-                                        <span>Thank you! Your enquiry has been submitted. Our team will contact you within 24 hours.</span>
+                                    <div
+                                        role="alert"
+                                        className="eq-alert eq-alert--success"
+                                    >
+                                        <span aria-hidden="true">✓</span>
+                                        <span>
+                                            Thank you! Your enquiry has been
+                                            submitted. Our team will contact
+                                            you within 24 hours.
+                                        </span>
                                     </div>
                                 )}
+
+                                {/* Error */}
                                 {error && (
-                                    <div role="alert" className="flex items-start gap-2.5 rounded-xl px-4 py-3 mb-5 text-[0.82rem] font-light leading-[1.65]"
-                                        style={{ background: "color-mix(in srgb,var(--color-error) 10%,var(--color-bg))", border: "1px solid color-mix(in srgb,var(--color-error) 35%,transparent)", color: "var(--color-error)" }}>
-                                        <span>✕</span>
-                                        <span>Something went wrong. Please try again or call us directly.</span>
+                                    <div
+                                        role="alert"
+                                        className="eq-alert eq-alert--error"
+                                    >
+                                        <span aria-hidden="true">✕</span>
+                                        <span>
+                                            Something went wrong. Please try
+                                            again or call us directly.
+                                        </span>
                                     </div>
                                 )}
 
-                                <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-
+                                <form
+                                    onSubmit={handleSubmit}
+                                    className="eq-form"
+                                >
                                     {/* Full Name */}
-                                    <div className="flex flex-col gap-1.5">
-                                        <label htmlFor="eq-name" className="text-[10px] font-medium tracking-[0.12em] uppercase"
-                                            style={{ color: "var(--color-text-muted)" }}>Full Name</label>
-                                        <input id="eq-name" type="text" required placeholder="Your full name"
-                                            value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
-                                            style={inputBase} onFocus={onFocus} onBlur={onBlur} />
+                                    <div className="form-group">
+                                        <label
+                                            htmlFor="eq-name"
+                                            className="eq-form__label"
+                                        >
+                                            Full Name
+                                        </label>
+                                        <input
+                                            id="eq-name"
+                                            type="text"
+                                            required
+                                            placeholder="Your full name"
+                                            value={form.name}
+                                            onChange={(e) =>
+                                                setForm({ ...form, name: e.target.value })
+                                            }
+                                            className="eq-form__input"
+                                        />
                                     </div>
 
                                     {/* Mobile */}
-                                    <div className="flex flex-col gap-1.5">
-                                        <label htmlFor="eq-mobile" className="text-[10px] font-medium tracking-[0.12em] uppercase"
-                                            style={{ color: "var(--color-text-muted)" }}>Mobile Number</label>
-                                        <input id="eq-mobile" type="tel" required placeholder="+91 XXXXX XXXXX"
-                                            value={form.mobile} onChange={e => setForm({ ...form, mobile: e.target.value })}
-                                            style={inputBase} onFocus={onFocus} onBlur={onBlur} />
+                                    <div className="form-group">
+                                        <label
+                                            htmlFor="eq-mobile"
+                                            className="eq-form__label"
+                                        >
+                                            Mobile Number
+                                        </label>
+                                        <input
+                                            id="eq-mobile"
+                                            type="tel"
+                                            required
+                                            placeholder="+91 XXXXX XXXXX"
+                                            value={form.mobile}
+                                            onChange={(e) =>
+                                                setForm({ ...form, mobile: e.target.value })
+                                            }
+                                            className="eq-form__input"
+                                        />
                                     </div>
 
                                     {/* Course select */}
-                                    <div className="flex flex-col gap-1.5">
-                                        <label htmlFor="eq-course" className="text-[10px] font-medium tracking-[0.12em] uppercase"
-                                            style={{ color: "var(--color-text-muted)" }}>Course Interested In</label>
-                                        <div className="relative">
-                                            <select id="eq-course" required
-                                                value={form.course} onChange={e => setForm({ ...form, course: e.target.value })}
-                                                style={inputBase} onFocus={onFocus} onBlur={onBlur}>
-                                                <option value="">Select a course</option>
-                                                {courses.map(course => (
-                                                    <option key={course._id} value={course.name}>{course.name}</option>
+                                    <div className="form-group">
+                                        <label
+                                            htmlFor="eq-course"
+                                            className="eq-form__label"
+                                        >
+                                            Course Interested In
+                                        </label>
+                                        <div className="eq-select-wrap">
+                                            <select
+                                                id="eq-course"
+                                                required
+                                                value={form.course}
+                                                onChange={(e) =>
+                                                    setForm({ ...form, course: e.target.value })
+                                                }
+                                                className="eq-form__select"
+                                            >
+                                                <option value="">
+                                                    Select a course
+                                                </option>
+                                                {courses.map((course) => (
+                                                    <option
+                                                        key={course._id}
+                                                        value={course.name}
+                                                    >
+                                                        {course.name}
+                                                    </option>
                                                 ))}
                                             </select>
-                                            {/* Chevron */}
-                                            <span aria-hidden="true" className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[0.7rem] pointer-events-none"
-                                                style={{ color: "var(--color-text-muted)" }}>▾</span>
+                                            <span
+                                                className="eq-select-wrap__chevron"
+                                                aria-hidden="true"
+                                            >
+                                                <ChevronDownIcon />
+                                            </span>
                                         </div>
                                     </div>
 
-                                    {/* Contact method tabs */}
-                                    <div className="flex flex-col gap-1.5">
-                                        <span className="text-[10px] font-medium tracking-[0.12em] uppercase"
-                                            style={{ color: "var(--color-text-muted)" }}>Preferred Contact Method</span>
-                                        <div className="flex gap-2" role="group" aria-label="Contact method">
-                                            {CONTACT_METHODS.map(method => {
-                                                const active = form.contactMethod === method;
+                                    {/* Contact method */}
+                                    <div className="form-group">
+                                        <span className="eq-form__label">
+                                            Preferred Contact Method
+                                        </span>
+                                        <div
+                                            className="eq-method-group"
+                                            role="group"
+                                            aria-label="Contact method"
+                                        >
+                                            {CONTACT_METHODS.map((method) => {
+                                                const active =
+                                                    form.contactMethod ===
+                                                    method;
                                                 return (
-                                                    <button key={method} type="button"
+                                                    <button
+                                                        key={method}
+                                                        type="button"
                                                         aria-pressed={active}
-                                                        onClick={() => setForm({ ...form, contactMethod: method })}
-                                                        className="flex-1 text-[0.82rem] rounded-[10px] px-4 py-2.5 text-center transition-all duration-200 cursor-pointer"
-                                                        style={{
-                                                            fontFamily: "'DM Sans', sans-serif",
-                                                            background: active ? "var(--color-bg-sidebar)" : "var(--color-bg)",
-                                                            border:     active ? "1px solid var(--color-bg-sidebar)" : "1px solid var(--color-border)",
-                                                            color:      active ? "var(--color-text-inverse)" : "var(--color-text-muted)",
-                                                            fontWeight: active ? 500 : 400,
-                                                        }}>
-                                                        {method === "WhatsApp" ? "💬 " : "📞 "}{method}
+                                                        onClick={() =>
+                                                            setForm({
+                                                                ...form,
+                                                                contactMethod: method,
+                                                            })
+                                                        }
+                                                        className={
+                                                            active
+                                                                ? "eq-method-btn eq-method-btn--active"
+                                                                : "eq-method-btn"
+                                                        }
+                                                    >
+                                                        <span className="eq-method-btn__icon">
+                                                            {iconMap[
+                                                                method === "WhatsApp"
+                                                                    ? "whatsapp"
+                                                                    : "phone"
+                                                            ]}
+                                                        </span>
+                                                        {method}
                                                     </button>
                                                 );
                                             })}
@@ -261,79 +345,86 @@ export default function EnquiryPage() {
                                     </div>
 
                                     {/* Message — full width */}
-                                    <div className="flex flex-col gap-1.5 col-span-1 sm:col-span-2">
-                                        <label htmlFor="eq-message" className="text-[10px] font-medium tracking-[0.12em] uppercase"
-                                            style={{ color: "var(--color-text-muted)" }}>Message (Optional)</label>
-                                        <textarea id="eq-message"
+                                    <div className="form-group eq-form__full">
+                                        <label
+                                            htmlFor="eq-message"
+                                            className="eq-form__label"
+                                        >
+                                            Message{" "}
+                                            <span className="eq-form__label-opt">
+                                                (Optional)
+                                            </span>
+                                        </label>
+                                        <textarea
+                                            id="eq-message"
                                             placeholder="Any questions or specific requirements..."
-                                            value={form.message} onChange={e => setForm({ ...form, message: e.target.value })}
-                                            style={{ ...inputBase, minHeight: 100, resize: "vertical" }}
-                                            onFocus={onFocus} onBlur={onBlur} />
+                                            value={form.message}
+                                            onChange={(e) =>
+                                                setForm({ ...form, message: e.target.value })
+                                            }
+                                            className="eq-form__textarea"
+                                        />
                                     </div>
 
                                     {/* Submit — full width */}
-                                    <div className="col-span-1 sm:col-span-2">
-                                        <button type="submit" disabled={loading}
-                                            className="w-full flex items-center justify-center gap-2 rounded-xl py-[15px] text-[0.9rem] font-medium transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed hover:-translate-y-px"
-                                            style={{
-                                                background: "var(--color-bg-sidebar)",
-                                                color: "var(--color-text-inverse)",
-                                                fontFamily: "'DM Sans', sans-serif",
-                                                border: "none",
-                                            }}
-                                            onMouseEnter={e => { if (!loading) (e.currentTarget as HTMLElement).style.background = "var(--color-primary)"; }}
-                                            onMouseLeave={e => { if (!loading) (e.currentTarget as HTMLElement).style.background = "var(--color-bg-sidebar)"; }}>
-                                            {loading ? "Submitting..." : <>Submit Enquiry <span aria-hidden="true">→</span></>}
+                                    <div className="eq-form__full">
+                                        <button
+                                            type="submit"
+                                            disabled={loading}
+                                            className="eq-form__submit"
+                                        >
+                                            {loading ? (
+                                                "Submitting…"
+                                            ) : (
+                                                <>
+                                                    <SendIcon />
+                                                    Submit Enquiry
+                                                </>
+                                            )}
                                         </button>
                                     </div>
-
                                 </form>
                             </div>
                         </div>
 
-                        {/* ── Side info card ── */}
-                        <div className="rounded-[24px] overflow-hidden relative"
-                            style={{ background: "var(--color-bg-sidebar)" }}>
-
-                            {/* Glows & dots */}
-                            <div aria-hidden="true" className="absolute -top-10 -right-10 w-52 h-52 rounded-full pointer-events-none"
-                                style={{ background: "radial-gradient(circle,color-mix(in srgb,var(--color-primary) 15%,transparent) 0%,transparent 65%)" }} />
-                            <div aria-hidden="true" className="absolute -bottom-2 -left-2 w-28 h-28 pointer-events-none"
-                                style={{
-                                    backgroundImage: "radial-gradient(circle,color-mix(in srgb,var(--color-warning) 12%,transparent) 1.5px,transparent 1.5px)",
-                                    backgroundSize: "11px 11px",
-                                }} />
+                        {/* ── Side Info Card ── */}
+                        <aside className="eq-side-card">
+                            {/* Glows */}
+                            <div
+                                className="eq-side-card__glow eq-side-card__glow--1"
+                                aria-hidden="true"
+                            />
+                            <div
+                                className="eq-side-card__glow eq-side-card__glow--dots"
+                                aria-hidden="true"
+                            />
 
                             {/* Header */}
-                            <div className="relative z-10 px-7 pt-7 pb-6"
-                                style={{ borderBottom: "1px solid color-mix(in srgb,var(--color-warning) 10%,transparent)" }}>
-                                <EyebrowDark label="What Happens Next" small />
-                                <div className="font-serif text-[1.05rem] font-bold leading-[1.25]"
-                                    style={{ color: "var(--color-text-inverse)" }}>
+                            <div className="eq-side-card__header">
+                                <div className="eq-side-card__eyebrow">
+                                    <span className="eq-side-card__eyebrow-line" />
+                                    What Happens Next
+                                </div>
+                                <div className="eq-side-card__title">
                                     Our Admission Process
                                 </div>
                             </div>
 
                             {/* Steps */}
-                            <div className="relative z-10 px-7 pt-5 flex flex-col"
-                                style={{ borderBottom: "1px solid color-mix(in srgb,var(--color-warning) 8%,transparent)" }}>
+                            <div className="eq-steps">
                                 {admissionSteps.map((step, i) => (
-                                    <div key={step.num}
-                                        className="flex items-start gap-3 py-4"
-                                        style={{ borderBottom: i < admissionSteps.length - 1 ? "1px solid color-mix(in srgb,var(--color-warning) 7%,transparent)" : "none" }}>
-                                        {/* Step number badge */}
-                                        <div className="w-[22px] h-[22px] rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 font-serif text-[0.7rem] font-bold"
-                                            style={{ background: "var(--color-warning)", color: "var(--color-bg-sidebar)" }}
-                                            aria-hidden="true">
+                                    <div key={step.num} className="eq-step">
+                                        <div
+                                            className="eq-step__num"
+                                            aria-hidden="true"
+                                        >
                                             {step.num}
                                         </div>
                                         <div>
-                                            <div className="text-[0.82rem] font-medium leading-[1.3] mb-0.5"
-                                                style={{ color: "var(--color-text-inverse)" }}>
+                                            <div className="eq-step__title">
                                                 {step.title}
                                             </div>
-                                            <div className="text-[0.74rem] font-light leading-[1.5]"
-                                                style={{ color: "color-mix(in srgb,var(--color-text-inverse) 40%,transparent)" }}>
+                                            <div className="eq-step__desc">
                                                 {step.desc}
                                             </div>
                                         </div>
@@ -342,45 +433,672 @@ export default function EnquiryPage() {
                             </div>
 
                             {/* Contact links */}
-                            <div className="relative z-10 px-7 pt-5 pb-7 flex flex-col gap-2.5">
-                                {contactLinks.map(link => (
-                                    <a key={link.label}
+                            <div className="eq-contact-links">
+                                {contactLinks.map((link) => (
+                                    <a
+                                        key={link.label}
                                         href={link.href}
-                                        target={link.external ? "_blank" : undefined}
-                                        rel={link.external ? "noopener noreferrer" : undefined}
-                                        className="flex items-center gap-2.5 no-underline rounded-xl px-3.5 py-2.5 transition-all duration-200"
-                                        style={{
-                                            background: "color-mix(in srgb,var(--color-text-inverse) 3%,transparent)",
-                                            border: "1px solid color-mix(in srgb,var(--color-warning) 12%,transparent)",
-                                        }}
-                                        onMouseEnter={e => {
-                                            (e.currentTarget as HTMLElement).style.background   = "color-mix(in srgb,var(--color-warning) 10%,transparent)";
-                                            (e.currentTarget as HTMLElement).style.borderColor  = "color-mix(in srgb,var(--color-warning) 25%,transparent)";
-                                        }}
-                                        onMouseLeave={e => {
-                                            (e.currentTarget as HTMLElement).style.background   = "color-mix(in srgb,var(--color-text-inverse) 3%,transparent)";
-                                            (e.currentTarget as HTMLElement).style.borderColor  = "color-mix(in srgb,var(--color-warning) 12%,transparent)";
-                                        }}>
-                                        <span className="text-[0.9rem] w-7 text-center flex-shrink-0" aria-hidden="true">{link.icon}</span>
+                                        target={
+                                            link.external ? "_blank" : undefined
+                                        }
+                                        rel={
+                                            link.external
+                                                ? "noopener noreferrer"
+                                                : undefined
+                                        }
+                                        className="eq-contact-link"
+                                    >
+                                        <span className="eq-contact-link__icon">
+                                            {iconMap[link.type]}
+                                        </span>
                                         <div>
-                                            <div className="text-[9px] font-medium tracking-[0.1em] uppercase mb-0.5"
-                                                style={{ color: "color-mix(in srgb,var(--color-warning) 55%,transparent)" }}>
+                                            <div className="eq-contact-link__label">
                                                 {link.label}
                                             </div>
-                                            <div className="text-[0.8rem] font-normal"
-                                                style={{ color: "color-mix(in srgb,var(--color-text-inverse) 70%,transparent)" }}>
+                                            <div className="eq-contact-link__value">
                                                 {link.value}
                                             </div>
                                         </div>
                                     </a>
                                 ))}
                             </div>
-
-                        </div>
+                        </aside>
                     </div>
                 </section>
-
             </main>
+
+            {/* ════════════ PAGE-SCOPED CSS ════════════ */}
+            <style>{`
+
+/* ══════════════════════════════════════════
+   ENQUIRY PAGE  —  page-scoped styles
+   Follows: variables.css + components.css
+   ══════════════════════════════════════════ */
+
+/* ── Root ───────────────────────────────── */
+.eq-root {
+  background-color: var(--bg-page);
+  min-height: 100vh;
+}
+
+/* ══════════════════════════════════════════
+   HERO
+   ══════════════════════════════════════════ */
+.eq-hero {
+  position: relative;
+  padding: var(--space-24) 0 var(--space-16);
+  overflow: hidden;
+  background: linear-gradient(
+    160deg,
+    var(--color-primary-200) 0%,
+    var(--color-white) 60%,
+    var(--color-primary-400) 100%
+  );
+}
+.eq-hero__glow {
+  position: absolute;
+  border-radius: var(--radius-full);
+  pointer-events: none;
+  filter: blur(80px);
+  opacity: 0.30;
+}
+.eq-hero__glow--1 {
+  width: 460px;
+  height: 460px;
+  background: var(--color-primary-200);
+  top: -190px;
+  right: -130px;
+}
+.eq-hero__glow--2 {
+  width: 300px;
+  height: 300px;
+  background: var(--color-accent-200);
+  bottom: -80px;
+  left: -80px;
+}
+.eq-hero__inner {
+  position: relative;
+  z-index: 2;
+}
+
+/* Eyebrow */
+.eq-hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-primary-600);
+  margin-bottom: var(--space-4);
+}
+.eq-hero__eyebrow-line {
+  display: inline-block;
+  width: 24px;
+  height: 2px;
+  background: var(--color-primary-500);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+/* Layout */
+.eq-hero__layout {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-10);
+  flex-wrap: wrap;
+}
+.eq-hero__title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tight);
+  margin: 0;
+}
+.eq-hero__title-em {
+  font-style: italic;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-600),
+    var(--color-accent-500)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.eq-hero__desc {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-light);
+  color: var(--text-secondary);
+  line-height: var(--line-height-relaxed);
+  max-width: 360px;
+  margin: 0;
+  padding-bottom: var(--space-1);
+}
+
+/* ══════════════════════════════════════════
+   BODY
+   ══════════════════════════════════════════ */
+.eq-body {
+  position: relative;
+  padding-bottom: var(--space-24);
+}
+.eq-body__divider {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--border-color),
+    transparent
+  );
+  margin: 0 10%;
+}
+.eq-body__inner {
+  padding-top: var(--space-12);
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+/* ══════════════════════════════════════════
+   FORM CARD
+   ══════════════════════════════════════════ */
+.eq-form-card {
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+/* Dark header */
+.eq-form-card__header {
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-8) var(--space-8) var(--space-6);
+  background: linear-gradient(
+    135deg,
+    var(--color-gray-800) 0%,
+    var(--color-gray-900) 100%
+  );
+  border-bottom: 1px solid var(--color-gray-700);
+}
+.eq-form-card__header-dots {
+  position: absolute;
+  bottom: -16px;
+  right: -16px;
+  width: 112px;
+  height: 112px;
+  background-image: radial-gradient(
+    circle,
+    rgba(251, 146, 60, 0.18) 1.5px,
+    transparent 1.5px
+  );
+  background-size: 11px 11px;
+  pointer-events: none;
+}
+.eq-form-card__header-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 9px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-accent-400);
+  margin-bottom: var(--space-3);
+  position: relative;
+  z-index: 1;
+}
+.eq-form-card__header-eyebrow-line {
+  display: inline-block;
+  width: 14px;
+  height: 1.5px;
+  background: var(--color-accent-400);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+.eq-form-card__header-title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-white);
+  line-height: var(--line-height-tight);
+  position: relative;
+  z-index: 1;
+  margin-bottom: var(--space-2);
+}
+.eq-form-card__header-sub {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-light);
+  color: rgba(255, 255, 255, 0.45);
+  line-height: var(--line-height-relaxed);
+  position: relative;
+  z-index: 1;
+}
+
+/* Form body */
+.eq-form-card__body {
+  padding: var(--space-8);
+  background: var(--bg-elevated);
+}
+
+/* ── Alerts ─────────────────────────────── */
+.eq-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  border-radius: var(--radius-xl);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-5);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-light);
+  line-height: var(--line-height-relaxed);
+}
+.eq-alert--success {
+  background: var(--color-success-light);
+  border: 1px solid var(--color-success);
+  color: var(--color-success-dark);
+}
+.eq-alert--error {
+  background: var(--color-danger-light);
+  border: 1px solid var(--color-danger);
+  color: var(--color-danger-dark);
+}
+
+/* ── Form grid ──────────────────────────── */
+.eq-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+.eq-form__full {
+  grid-column: 1 / -1;
+}
+
+/* Label */
+.eq-form__label {
+  display: block;
+  font-size: 10px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-2);
+}
+.eq-form__label-opt {
+  font-weight: var(--font-weight-normal);
+  opacity: 0.65;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* Input */
+.eq-form__input,
+.eq-form__select,
+.eq-form__textarea {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-light);
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  background: var(--bg-page);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  appearance: none;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    background var(--transition-fast);
+}
+.eq-form__input:focus,
+.eq-form__select:focus,
+.eq-form__textarea:focus {
+  outline: none;
+  border-color: var(--color-primary-500);
+  background: var(--bg-elevated);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
+}
+.eq-form__input::placeholder,
+.eq-form__textarea::placeholder {
+  color: var(--color-gray-400);
+}
+.eq-form__textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Select wrapper */
+.eq-select-wrap {
+  position: relative;
+}
+.eq-select-wrap__chevron {
+  position: absolute;
+  right: var(--space-4);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-tertiary);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+/* ── Contact method tabs ────────────────── */
+.eq-method-group {
+  display: flex;
+  gap: var(--space-2);
+}
+.eq-method-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-normal);
+  font-family: var(--font-sans);
+  color: var(--text-tertiary);
+  background: var(--bg-page);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
+}
+.eq-method-btn:hover {
+  border-color: var(--color-primary-300);
+  color: var(--text-primary);
+}
+.eq-method-btn--active {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-white);
+  background: var(--color-gray-900);
+  border-color: var(--color-gray-900);
+}
+.eq-method-btn--active:hover {
+  background: var(--color-primary-600);
+  border-color: var(--color-primary-600);
+  color: var(--color-white);
+}
+.eq-method-btn__icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Submit button */
+.eq-form__submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-4) var(--space-6);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-sans);
+  color: var(--color-white);
+  background: var(--color-gray-900);
+  border: none;
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+.eq-form__submit:hover:not(:disabled) {
+  background: var(--color-primary-600);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+.eq-form__submit:disabled {
+  opacity: 0.60;
+  cursor: not-allowed;
+}
+
+/* ══════════════════════════════════════════
+   SIDE INFO CARD
+   ══════════════════════════════════════════ */
+.eq-side-card {
+  position: relative;
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  background: linear-gradient(
+    160deg,
+    var(--color-gray-800) 0%,
+    var(--color-gray-900) 100%
+  );
+  border: 1px solid var(--color-gray-700);
+}
+
+/* Decorations */
+.eq-side-card__glow {
+  position: absolute;
+  pointer-events: none;
+}
+.eq-side-card__glow--1 {
+  width: 200px;
+  height: 200px;
+  border-radius: var(--radius-full);
+  background: radial-gradient(
+    circle,
+    rgba(37, 99, 235, 0.18) 0%,
+    transparent 65%
+  );
+  top: -60px;
+  right: -60px;
+}
+.eq-side-card__glow--dots {
+  bottom: -8px;
+  left: -8px;
+  width: 110px;
+  height: 110px;
+  background-image: radial-gradient(
+    circle,
+    rgba(251, 146, 60, 0.14) 1.5px,
+    transparent 1.5px
+  );
+  background-size: 11px 11px;
+}
+
+/* Header */
+.eq-side-card__header {
+  position: relative;
+  z-index: 2;
+  padding: var(--space-6) var(--space-6) var(--space-5);
+  border-bottom: 1px solid rgba(251, 146, 60, 0.10);
+}
+.eq-side-card__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 9px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-accent-400);
+  margin-bottom: var(--space-3);
+}
+.eq-side-card__eyebrow-line {
+  display: inline-block;
+  width: 12px;
+  height: 1.5px;
+  background: var(--color-accent-400);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+.eq-side-card__title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-white);
+  line-height: var(--line-height-tight);
+}
+
+/* Steps */
+.eq-steps {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-2) var(--space-6);
+  border-bottom: 1px solid rgba(251, 146, 60, 0.08);
+}
+.eq-step {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid rgba(251, 146, 60, 0.07);
+}
+.eq-step:last-child {
+  border-bottom: none;
+}
+.eq-step__num {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+  font-family: var(--font-display);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  background: var(--color-warning);
+  color: var(--color-gray-900);
+}
+.eq-step__title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-white);
+  line-height: var(--line-height-tight);
+  margin-bottom: 3px;
+}
+.eq-step__desc {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-light);
+  color: rgba(255, 255, 255, 0.42);
+  line-height: var(--line-height-relaxed);
+}
+
+/* Contact links */
+.eq-contact-links {
+  position: relative;
+  z-index: 2;
+  padding: var(--space-5) var(--space-6) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.eq-contact-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  text-decoration: none;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-xl);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(251, 146, 60, 0.12);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+}
+.eq-contact-link:hover {
+  background: rgba(251, 146, 60, 0.10);
+  border-color: rgba(251, 146, 60, 0.28);
+}
+.eq-contact-link__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-accent-300);
+  flex-shrink: 0;
+}
+.eq-contact-link__label {
+  font-size: 9px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: rgba(251, 146, 60, 0.60);
+  margin-bottom: 2px;
+}
+.eq-contact-link__value {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-normal);
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════════ */
+
+/* Tablet */
+@media (max-width: 900px) {
+  .eq-body__inner {
+    grid-template-columns: 1fr;
+  }
+  .eq-side-card {
+    order: -1;
+  }
+  .eq-steps {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .eq-hero {
+    padding: var(--space-16) 0 var(--space-12);
+  }
+  .eq-hero__layout {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+  .eq-hero__desc {
+    max-width: 100%;
+  }
+  .eq-form {
+    grid-template-columns: 1fr;
+  }
+  .eq-form__full {
+    grid-column: 1;
+  }
+  .eq-steps {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .eq-hero {
+    padding: var(--space-12) 0 var(--space-10);
+  }
+  .eq-body {
+    padding-bottom: var(--space-16);
+  }
+  .eq-form-card__header,
+  .eq-form-card__body {
+    padding: var(--space-6);
+  }
+}
+
+      `}</style>
         </>
     );
 }

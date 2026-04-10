@@ -1,157 +1,850 @@
-"use client"
+"use client";
 
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowRight, Clock, Award } from "lucide-react";
 
 const courses = [
-    { title:"DCA – Diploma in Computer Applications", description:"Computer fundamentals, MS Office, internet usage and practical office skills for beginners.",            image:"/images/courses/dca.jpg",       tag:"Diploma",    slug:"dca-diploma-in-computer-applications" },
-    { title:"PGDCA – Post Graduate Diploma",          description:"Advanced diploma program focused on professional-level computer skills and career growth.",               image:"/images/courses/pgdca.jpg",      tag:"Diploma",    slug:"pgdca"                                },
-    { title:"Tally with GST",                         description:"Practical accounting and GST training designed for office work and business operations.",                image:"/images/courses/tally.jpg",      tag:"Accounting", slug:"tally-with-gst"                       },
-    { title:"Basic Computer Course",                  description:"Perfect starting point for students and first-time learners beginning computer education.",              image:"/images/courses/basic.jpg",      tag:"Foundation", slug:"basic-computer-course"                },
-    { title:"Web Development",                        description:"Learn modern website development using HTML, CSS, JavaScript and project-based learning.",               image:"/images/courses/web.jpg",        tag:"Technical",  slug:"web-development"                      },
-    { title:"Software Development",                   description:"Programming logic, application development and real-world software skills.",                             image:"/images/courses/software.jpg",   tag:"Technical",  slug:"software-development"                 },
-    { title:"Typing Course",                          description:"Hindi & English typing training focused on speed, accuracy and exam preparation.",                       image:"/images/courses/typing.jpg",     tag:"Foundation", slug:"typing-course"                        },
-    { title:"Cyber Security",                         description:"Cyber safety fundamentals, ethical hacking concepts and data protection practices.",                     image:"/images/courses/cyber.jpg",      tag:"Technical",  slug:"cyber-security"                       },
-    { title:"Vocational Training",                    description:"Skill-based vocational programs aligned with employment and self-employment readiness.",                 image:"/images/courses/vocational.jpg", tag:"Vocational", slug:"vocational-training"                  },
+  {
+    title: "DCA – Diploma in Computer Applications",
+    description:
+      "Computer fundamentals, MS Office, internet usage and practical office skills for beginners.",
+    image: "/images/courses/dca.jpg",
+    tag: "Diploma",
+    slug: "dca-diploma-in-computer-applications",
+    duration: "6 Months",
+    featured: true,
+  },
+  {
+    title: "PGDCA – Post Graduate Diploma",
+    description:
+      "Advanced diploma program focused on professional-level computer skills and career growth.",
+    image: "/images/courses/pgdca.jpg",
+    tag: "Diploma",
+    slug: "pgdca",
+    duration: "1 Year",
+    featured: true,
+  },
+  {
+    title: "Tally with GST",
+    description:
+      "Practical accounting and GST training designed for office work and business operations.",
+    image: "/images/courses/tally.jpg",
+    tag: "Accounting",
+    slug: "tally-with-gst",
+    duration: "3 Months",
+    featured: false,
+  },
+  {
+    title: "Basic Computer Course",
+    description:
+      "Perfect starting point for students and first-time learners beginning computer education.",
+    image: "/images/courses/basic.jpg",
+    tag: "Foundation",
+    slug: "basic-computer-course",
+    duration: "2 Months",
+    featured: false,
+  },
+  {
+    title: "Web Development",
+    description:
+      "Learn modern website development using HTML, CSS, JavaScript and project-based learning.",
+    image: "/images/courses/web.jpg",
+    tag: "Technical",
+    slug: "web-development",
+    duration: "4 Months",
+    featured: false,
+  },
+  {
+    title: "Software Development",
+    description:
+      "Programming logic, application development and real-world software skills.",
+    image: "/images/courses/software.jpg",
+    tag: "Technical",
+    slug: "software-development",
+    duration: "6 Months",
+    featured: false,
+  },
+  {
+    title: "Typing Course",
+    description:
+      "Hindi & English typing training focused on speed, accuracy and exam preparation.",
+    image: "/images/courses/typing.jpg",
+    tag: "Foundation",
+    slug: "typing-course",
+    duration: "1 Month",
+    featured: false,
+  },
+  {
+    title: "Cyber Security",
+    description:
+      "Cyber safety fundamentals, ethical hacking concepts and data protection practices.",
+    image: "/images/courses/cyber.jpg",
+    tag: "Technical",
+    slug: "cyber-security",
+    duration: "3 Months",
+    featured: false,
+  },
+  {
+    title: "Vocational Training",
+    description:
+      "Skill-based vocational programs aligned with employment and self-employment readiness.",
+    image: "/images/courses/vocational.jpg",
+    tag: "Vocational",
+    slug: "vocational-training",
+    duration: "Variable",
+    featured: false,
+  },
 ];
 
-// Tag badge inline styles using CSS variables where possible
-const tagStyle: Record<string, React.CSSProperties> = {
-    Diploma:    { background:"color-mix(in srgb,var(--color-primary) 75%,#000)",    color:"#fff" },
-    Accounting: { background:"rgba(5,150,105,0.82)",                                 color:"#fff" },
-    Foundation: { background:"rgba(30,41,59,0.82)",                                  color:"#e2e8f0" },
-    Technical:  { background:"color-mix(in srgb,var(--color-accent) 82%,#000)",     color:"#fff" },
-    Vocational: { background:"rgba(109,40,217,0.82)",                                color:"#fff" },
+const tagColors: Record<
+  string,
+  { bg: string; text: string; border: string }
+> = {
+  Diploma: {
+    bg: "rgba(37, 99, 235, 0.1)",
+    text: "var(--color-primary-700)",
+    border: "rgba(37, 99, 235, 0.3)",
+  },
+  Accounting: {
+    bg: "rgba(34, 197, 94, 0.1)",
+    text: "#059669",
+    border: "rgba(34, 197, 94, 0.3)",
+  },
+  Foundation: {
+    bg: "rgba(100, 116, 139, 0.1)",
+    text: "#475569",
+    border: "rgba(100, 116, 139, 0.3)",
+  },
+  Technical: {
+    bg: "rgba(249, 115, 22, 0.1)",
+    text: "var(--color-accent-700)",
+    border: "rgba(249, 115, 22, 0.3)",
+  },
+  Vocational: {
+    bg: "rgba(139, 92, 246, 0.1)",
+    text: "#7c3aed",
+    border: "rgba(139, 92, 246, 0.3)",
+  },
 };
 
 export default function CoursesPreview() {
-    return (
-        <>
-            <style>{`
-                .cp-root::before {
-                    content: '';
-                    position: absolute;
-                    top: 0; left: 10%; right: 10%;
-                    height: 1px;
-                    background: linear-gradient(to right, transparent, var(--color-border), transparent);
-                }
-                .cp-card::before {
-                    content: '';
-                    position: absolute;
-                    top: 0; left: 0; right: 0;
-                    height: 2px;
-                    background: var(--color-primary);
-                    transform: scaleX(0);
-                    transform-origin: left;
-                    transition: transform 0.28s ease;
-                    z-index: 1;
-                }
-                .cp-card:hover::before { transform: scaleX(1); }
-                .cp-card-img-inner { transition: transform 0.5s ease; }
-                .cp-card:hover .cp-card-img-inner { transform: scale(1.05); }
-                .cp-card-link { transition: gap 0.2s; }
-                .cp-card:hover .cp-card-link { gap: 9px; }
-                .cp-bottom-arrow { transition: transform 0.2s; }
-                .cp-bottom-cta:hover .cp-bottom-arrow { transform: translateX(4px); }
-                .cp-header-arrow { transition: transform 0.2s; }
-                .cp-header-cta:hover .cp-header-arrow { transform: translateX(4px); }
-            `}</style>
+  return (
+    <>
+      <style>{coursesStyles}</style>
 
-            <section
-                className="cp-root relative overflow-hidden py-20 md:py-24 px-6"
-                style={{ background:"var(--color-bg)" }}
-                aria-labelledby="courses-preview-heading">
-                <div className="max-w-[1100px] mx-auto">
+      <section className="courses-section" aria-labelledby="courses-heading">
+        
+        {/* Background Elements */}
+        <div className="courses-bg-grid" aria-hidden="true" />
+        <div className="courses-gradient" aria-hidden="true" />
 
-                    {/* Header */}
-                    <div className="flex flex-wrap items-end justify-between gap-5 md:gap-8 mb-12 md:mb-14">
-                        <div className="max-w-[520px]">
-                            <div className="flex items-center gap-2 mb-3.5 text-[10px] font-medium tracking-[0.18em] uppercase"
-                                style={{ color:"var(--color-primary)" }}>
-                                <span style={{ display:"inline-block", width:24, height:1.5, background:"var(--color-primary)", flexShrink:0 }} />
-                                Our Courses
-                            </div>
-                            <h2 id="courses-preview-heading"
-                                className="font-serif font-bold leading-[1.2]"
-                                style={{ fontSize:"clamp(1.8rem,3vw,2.5rem)", color:"var(--color-text)" }}>
-                                Professional Courses<br />
-                                in <em className="not-italic" style={{ color:"var(--color-accent)" }}>Ambikapur</em>
-                            </h2>
-                            <p className="text-[0.88rem] font-light leading-[1.75] mt-3"
-                                style={{ color:"var(--color-text-muted)" }}>
-                                Career-oriented computer training with practical exposure and government-recognized certification.
-                            </p>
-                        </div>
+        <div className="courses-container">
+          
+          {/* Header */}
+          <div className="courses-header">
+            <div className="courses-header-content">
+              <div className="courses-badge anim-fade-in">
+                <span className="courses-badge-line" />
+                Our Courses
+              </div>
+              <h2 id="courses-heading" className="courses-title anim-slide-up">
+                Professional Courses
+                <br />
+                in <span className="courses-title-highlight">Ambikapur</span>
+              </h2>
+              <p className="courses-description anim-fade-in-delay">
+                Career-oriented computer training with practical exposure and
+                government-recognized certification.
+              </p>
+            </div>
 
-                        <Link href="/courses"
-                            className="cp-header-cta inline-flex items-center gap-2 shrink-0 text-[0.85rem] font-medium no-underline px-6 py-2.5 rounded-full transition-all duration-200 hover:-translate-y-px"
-                            style={{ color:"var(--color-primary)", border:"1.5px solid var(--color-border)" }}
-                            onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor="var(--color-primary)"; el.style.background="color-mix(in srgb,var(--color-primary) 6%,transparent)"; }}
-                            onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor="var(--color-border)"; el.style.background="transparent"; }}>
-                            View All Courses
-                            <span className="cp-header-arrow" aria-hidden="true">→</span>
-                        </Link>
+            <Link href="/courses" className="courses-header-btn anim-scale-in">
+              View All Courses
+              <ArrowRight size={16} strokeWidth={2} className="courses-btn-arrow" />
+            </Link>
+          </div>
+
+          {/* Featured Courses - Large Cards */}
+          <div className="courses-featured">
+            {courses
+              .filter((c) => c.featured)
+              .map((course, i) => (
+                <Link
+                  key={course.slug}
+                  href={`/courses/${course.slug}`}
+                  className={`course-card-featured anim-scale-${i + 1}`}
+                  aria-label={course.title}
+                >
+                  <div className="course-featured-image">
+                    <Image
+                      src={course.image}
+                      alt={course.title}
+                      fill
+                      sizes="(max-width: 900px) 100vw, 500px"
+                      className="course-image"
+                    />
+                    <div className="course-featured-overlay" />
+                    
+                    {/* Tag */}
+                    <div
+                      className="course-tag"
+                      style={{
+                        background: tagColors[course.tag]?.bg,
+                        color: tagColors[course.tag]?.text,
+                        border: `1px solid ${tagColors[course.tag]?.border}`,
+                      }}
+                    >
+                      <Award size={12} strokeWidth={2} />
+                      {course.tag}
                     </div>
 
-                    {/* Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                        {courses.map((course, i) => (
-                            <Link key={course.slug} href={`/courses/${course.slug}`}
-                                className="cp-card group relative flex flex-col no-underline rounded-[18px] overflow-hidden transition-all duration-200 hover:-translate-y-1"
-                                style={{ background:"var(--color-bg-card)", border:"1px solid var(--color-border)" }}
-                                aria-label={course.title}
-                                onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor="color-mix(in srgb,var(--color-primary) 40%,transparent)"; el.style.boxShadow="0 16px 48px color-mix(in srgb,var(--color-primary) 12%,transparent)"; }}
-                                onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor="var(--color-border)"; el.style.boxShadow="none"; }}>
-                                {/* Image */}
-                                <div className="relative h-[180px] overflow-hidden shrink-0"
-                                    style={{ background:"color-mix(in srgb,var(--color-primary) 6%,var(--color-bg))" }}>
-                                    <div className="cp-card-img-inner absolute inset-0">
-                                        <Image src={course.image} alt={course.title} fill
-                                            sizes="(max-width:560px) 100vw,(max-width:900px) 50vw,360px"
-                                            className="object-cover" />
-                                    </div>
-                                    <span className="absolute top-3 left-3 z-10 text-[9px] font-medium tracking-[0.12em] uppercase px-2.5 py-1 rounded-full backdrop-blur-sm"
-                                        style={tagStyle[course.tag] ?? tagStyle.Foundation}>
-                                        {course.tag}
-                                    </span>
-                                </div>
-
-                                {/* Body */}
-                                <div className="flex flex-col flex-1 px-5 py-5">
-                                    <h3 className="font-serif text-[1rem] font-semibold leading-[1.35]"
-                                        style={{ color:"var(--color-text)" }}>{course.title}</h3>
-                                    <p className="text-[0.8rem] font-light leading-[1.7] mt-2 flex-1"
-                                        style={{ color:"var(--color-text-muted)" }}>{course.description}</p>
-                                    <div className="flex items-center justify-between mt-4 pt-3.5"
-                                        style={{ borderTop:"1px solid var(--color-border)" }}>
-                                        <span className="cp-card-link flex items-center gap-1.5 text-[0.78rem] font-medium"
-                                            style={{ color:"var(--color-primary)" }}>
-                                            Learn More <span aria-hidden="true">→</span>
-                                        </span>
-                                        <span className="font-serif text-[1.3rem] font-bold leading-none select-none"
-                                            style={{ color:"var(--color-border)" }} aria-hidden="true">
-                                            {String(i + 1).padStart(2, "0")}
-                                        </span>
-                                    </div>
-                                </div>
-                            </Link>
-                        ))}
+                    {/* Duration Badge */}
+                    <div className="course-duration-badge">
+                      <Clock size={14} strokeWidth={2} />
+                      {course.duration}
                     </div>
+                  </div>
 
-                    {/* Bottom CTA */}
-                    <div className="flex items-center gap-5 mt-12">
-                        <div className="flex-1 h-px" style={{ background:"var(--color-border)" }} aria-hidden="true" />
-                        <Link href="/courses"
-                            className="cp-bottom-cta inline-flex items-center gap-2 shrink-0 no-underline text-[0.88rem] font-medium px-7 py-3 rounded-full transition-all duration-200 hover:-translate-y-0.5 whitespace-nowrap"
-                            style={{ color:"#fff", background:"var(--color-primary)", boxShadow:"0 4px 20px color-mix(in srgb,var(--color-primary) 35%,transparent)" }}>
-                            Explore All Courses
-                            <span className="cp-bottom-arrow" aria-hidden="true">→</span>
-                        </Link>
-                        <div className="flex-1 h-px" style={{ background:"var(--color-border)" }} aria-hidden="true" />
+                  <div className="course-featured-content">
+                    <h3 className="course-featured-title">{course.title}</h3>
+                    <p className="course-featured-desc">{course.description}</p>
+                    
+                    <div className="course-featured-footer">
+                      <span className="course-learn-more">
+                        Learn More
+                        <ArrowRight size={14} strokeWidth={2} className="course-arrow" />
+                      </span>
                     </div>
+                  </div>
 
-                </div>
-            </section>
-        </>
-    );
+                  <div className="course-card-shine" />
+                </Link>
+              ))}
+          </div>
+
+          {/* Regular Courses Grid */}
+          <div className="courses-grid">
+            {courses
+              .filter((c) => !c.featured)
+              .map((course, i) => (
+                <Link
+                  key={course.slug}
+                  href={`/courses/${course.slug}`}
+                  className={`course-card anim-scale-${i + 3}`}
+                  aria-label={course.title}
+                >
+                  {/* Top Bar */}
+                  <div className="course-card-top-bar" />
+
+                  {/* Image */}
+                  <div className="course-card-image">
+                    <Image
+                      src={course.image}
+                      alt={course.title}
+                      fill
+                      sizes="(max-width: 560px) 100vw, (max-width: 900px) 50vw, 360px"
+                      className="course-image"
+                    />
+                    
+                    {/* Tag */}
+                    <div
+                      className="course-tag"
+                      style={{
+                        background: tagColors[course.tag]?.bg,
+                        color: tagColors[course.tag]?.text,
+                        border: `1px solid ${tagColors[course.tag]?.border}`,
+                      }}
+                    >
+                      {course.tag}
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="course-card-content">
+                    <h3 className="course-card-title">{course.title}</h3>
+                    <p className="course-card-desc">{course.description}</p>
+
+                    {/* Footer */}
+                    <div className="course-card-footer">
+                      <div className="course-meta">
+                        <Clock size={14} strokeWidth={2} />
+                        <span>{course.duration}</span>
+                      </div>
+                      <span className="course-learn-more">
+                        View
+                        <ArrowRight size={14} strokeWidth={2} className="course-arrow" />
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Hover Border Effect */}
+                  <div className="course-card-border" />
+                </Link>
+              ))}
+          </div>
+
+          {/* Bottom CTA */}
+          <div className="courses-bottom-cta">
+            <div className="courses-cta-line" aria-hidden="true" />
+            <Link href="/courses" className="courses-cta-btn">
+              Explore All Courses
+              <ArrowRight size={18} strokeWidth={2} className="courses-cta-arrow" />
+            </Link>
+            <div className="courses-cta-line" aria-hidden="true" />
+          </div>
+        </div>
+      </section>
+    </>
+  );
 }
+
+const coursesStyles = `
+/* ==========================================
+   COURSES PREVIEW SECTION
+   ========================================== */
+
+.courses-section {
+  position: relative;
+  padding: var(--space-24) var(--space-6);
+  background: var(--bg-page);
+  overflow: hidden;
+}
+
+/* Background */
+.courses-bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(37, 99, 235, 0.03) 1.5px, transparent 1.5px),
+    linear-gradient(90deg, rgba(37, 99, 235, 0.03) 1.5px, transparent 1.5px);
+  background-size: 60px 60px;
+  z-index: 0;
+}
+
+.courses-gradient {
+  position: absolute;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.08), transparent);
+  border-radius: 50%;
+  filter: blur(80px);
+  z-index: 0;
+}
+
+/* Container */
+.courses-container {
+  position: relative;
+  z-index: 10;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Header */
+.courses-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-6);
+  margin-bottom: var(--space-16);
+}
+
+.courses-header-content {
+  max-width: 520px;
+}
+
+.courses-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-primary-600);
+  margin-bottom: var(--space-4);
+}
+
+.courses-badge-line {
+  width: 24px;
+  height: 1.5px;
+  background: var(--color-primary-600);
+  flex-shrink: 0;
+}
+
+.courses-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+
+.courses-title-highlight {
+  color: var(--color-accent-600);
+  font-style: normal;
+}
+
+.courses-description {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-light);
+  line-height: 1.75;
+  color: var(--text-secondary);
+  margin-top: var(--space-3);
+}
+
+.courses-header-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  background: transparent;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary-600);
+  text-decoration: none;
+  transition: all var(--transition-base);
+}
+
+.courses-header-btn:hover {
+  border-color: var(--color-primary-600);
+  background: rgba(37, 99, 235, 0.06);
+  transform: translateY(-2px);
+}
+
+.courses-btn-arrow {
+  transition: transform var(--transition-fast);
+}
+
+.courses-header-btn:hover .courses-btn-arrow {
+  transform: translateX(4px);
+}
+
+/* Featured Courses - Large Cards */
+.courses-featured {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+  margin-bottom: var(--space-12);
+}
+
+@media (min-width: 768px) {
+  .courses-featured {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.course-card-featured {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  text-decoration: none;
+  transition: all var(--transition-base);
+}
+
+.course-card-featured:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(37, 99, 235, 0.12);
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+.course-featured-image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.course-featured-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.6) 100%);
+  z-index: 1;
+}
+
+.course-duration-badge {
+  position: absolute;
+  bottom: var(--space-3);
+  left: var(--space-3);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+.course-featured-content {
+  padding: var(--space-6);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.course-featured-title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.3;
+  color: var(--text-primary);
+  margin-bottom: var(--space-3);
+}
+
+.course-featured-desc {
+  font-size: var(--font-size-sm);
+  line-height: 1.7;
+  color: var(--text-secondary);
+  flex: 1;
+  margin: 0;
+}
+
+.course-featured-footer {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-color);
+}
+
+/* Regular Courses Grid */
+.courses-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-5);
+  margin-bottom: var(--space-12);
+}
+
+@media (min-width: 640px) {
+  .courses-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .courses-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.course-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  text-decoration: none;
+  transition: all var(--transition-base);
+}
+
+.course-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-xl);
+  border-color: rgba(37, 99, 235, 0.2);
+}
+
+/* Top Bar Effect */
+.course-card-top-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary-600), var(--color-accent-600));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--transition-base);
+  z-index: 10;
+}
+
+.course-card:hover .course-card-top-bar {
+  transform: scaleX(1);
+}
+
+/* Card Image */
+.course-card-image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  background: rgba(37, 99, 235, 0.05);
+  overflow: hidden;
+}
+
+.course-image {
+  object-fit: cover;
+  transition: transform var(--transition-slow);
+}
+
+.course-card:hover .course-image {
+  transform: scale(1.08);
+}
+
+/* Tag Badge */
+.course-tag {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: 9px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  backdrop-filter: blur(10px);
+}
+
+/* Card Content */
+.course-card-content {
+  padding: var(--space-5);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.course-card-title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.35;
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.course-card-desc {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-light);
+  line-height: 1.7;
+  color: var(--text-secondary);
+  flex: 1;
+  margin: 0;
+}
+
+/* Card Footer */
+.course-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-color);
+}
+
+.course-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+}
+
+.course-learn-more {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary-600);
+  transition: gap var(--transition-fast);
+}
+
+.course-card:hover .course-learn-more {
+  gap: var(--space-3);
+}
+
+.course-arrow {
+  transition: transform var(--transition-fast);
+}
+
+.course-card:hover .course-arrow {
+  transform: translateX(2px);
+}
+
+/* Card Effects */
+.course-card-shine {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.6s ease;
+}
+
+.course-card-featured:hover .course-card-shine {
+  left: 100%;
+}
+
+.course-card-border {
+  position: absolute;
+  inset: 0;
+  border: 2px solid transparent;
+  border-radius: var(--radius-xl);
+  transition: border-color var(--transition-base);
+  pointer-events: none;
+}
+
+.course-card:hover .course-card-border {
+  border-color: rgba(37, 99, 235, 0.2);
+}
+
+/* Bottom CTA */
+.courses-bottom-cta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  margin-top: var(--space-12);
+}
+
+.courses-cta-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+}
+
+.courses-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-8);
+  background: var(--color-primary-600);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-white);
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.35);
+  transition: all var(--transition-base);
+}
+
+.courses-cta-btn:hover {
+  background: var(--color-primary-700);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(37, 99, 235, 0.4);
+}
+
+.courses-cta-arrow {
+  transition: transform var(--transition-fast);
+}
+
+.courses-cta-btn:hover .courses-cta-arrow {
+  transform: translateX(4px);
+}
+
+/* Animations */
+.anim-fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.anim-slide-up {
+  animation: slideUp 0.8s ease-out 0.1s both;
+}
+
+.anim-fade-in-delay {
+  animation: fadeIn 0.6s ease-out 0.2s both;
+}
+
+.anim-scale-in {
+  animation: scaleIn 0.6s ease-out 0.3s both;
+}
+
+.anim-scale-1 {
+  animation: scaleIn 0.6s ease-out 0.1s both;
+}
+
+.anim-scale-2 {
+  animation: scaleIn 0.6s ease-out 0.2s both;
+}
+
+.anim-scale-3 {
+  animation: scaleIn 0.6s ease-out 0.3s both;
+}
+
+.anim-scale-4 {
+  animation: scaleIn 0.6s ease-out 0.4s both;
+}
+
+.anim-scale-5 {
+  animation: scaleIn 0.6s ease-out 0.5s both;
+}
+
+.anim-scale-6 {
+  animation: scaleIn 0.6s ease-out 0.6s both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .courses-header {
+    flex-direction: column;
+    align-items: start;
+  }
+
+  .courses-header-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .courses-bottom-cta {
+    flex-direction: column;
+  }
+
+  .courses-cta-line {
+    width: 100%;
+  }
+
+  .courses-cta-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+`;

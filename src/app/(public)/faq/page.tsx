@@ -6,6 +6,8 @@
 import Link from "next/link";
 import { useState } from "react";
 
+/* ─── Data ───────────────────────────────────────────────────────── */
+
 const faqs = [
     {
         q: "Is Shivshakti Computer Academy government recognized?",
@@ -33,185 +35,607 @@ const faqs = [
     },
 ];
 
+/* ─── Icons ─────────────────────────────────────────────────────── */
+
+const ArrowRightIcon = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="2"
+        strokeLinecap="round" strokeLinejoin="round">
+        <line x1="5" y1="12" x2="19" y2="12" />
+        <polyline points="12 5 19 12 12 19" />
+    </svg>
+);
+
+/* ─── Page ───────────────────────────────────────────────────────── */
+
 export default function FAQPage() {
     const [openIndex, setOpenIndex] = useState<number | null>(0);
 
     return (
         <>
-            {/* Only accordion animation CSS — no color, no layout */}
-            <style>{`
-                .fq-answer {
-                    max-height: 0;
-                    overflow: hidden;
-                    opacity: 0;
-                    transition: max-height 0.32s ease, opacity 0.24s ease;
-                }
-                .fq-answer.open {
-                    max-height: 300px;
-                    opacity: 1;
-                }
-            `}</style>
+            <main className="fq-root">
 
-            <main style={{ background: "var(--color-bg)", minHeight: "100vh", fontFamily: "'DM Sans', sans-serif" }}>
+                {/* ════════════ HERO ════════════ */}
+                <section
+                    className="fq-hero home-section"
+                    aria-labelledby="faq-hero-heading"
+                >
+                    <div className="fq-hero__glow fq-hero__glow--1" aria-hidden="true" />
+                    <div className="fq-hero__glow fq-hero__glow--2" aria-hidden="true" />
 
-                {/* ══════════════════════ HERO ══════════════════════ */}
-                <section className="relative overflow-hidden px-6 pt-[88px] pb-16"
-                    style={{ background: "var(--color-bg)" }}
-                    aria-labelledby="faq-hero-heading">
-
-                    {/* Glow */}
-                    <div aria-hidden="true" className="absolute -top-20 -right-20 w-[420px] h-[420px] rounded-full pointer-events-none z-0"
-                        style={{ background: "radial-gradient(circle,color-mix(in srgb,var(--color-primary) 9%,transparent) 0%,transparent 65%)" }} />
-
-                    <div className="relative z-10 max-w-[800px] mx-auto">
+                    <div className="container fq-hero__inner">
                         {/* Eyebrow */}
-                        <div className="flex items-center gap-2 mb-3.5 text-[10px] font-medium tracking-[0.18em] uppercase"
-                            style={{ color: "var(--color-primary)" }}>
-                            <span aria-hidden="true"
-                                style={{ display: "inline-block", width: 24, height: 1.5, background: "var(--color-primary)", flexShrink: 0 }} />
-                            Help & Information
+                        <div className="fq-hero__eyebrow">
+                            <span className="fq-hero__eyebrow-line" aria-hidden="true" />
+                            Help &amp; Information
                         </div>
 
-                        <div className="flex items-end justify-between gap-10 flex-wrap">
-                            <h1 id="faq-hero-heading"
-                                className="font-serif font-bold leading-[1.15]"
-                                style={{ fontSize: "clamp(2rem,4vw,3rem)", color: "var(--color-text)" }}>
-                                Frequently<br />
-                                <em className="italic" style={{ color: "var(--color-accent)" }}>Asked Questions</em>
+                        {/* Split layout */}
+                        <div className="fq-hero__layout">
+                            <h1
+                                id="faq-hero-heading"
+                                className="fq-hero__title"
+                            >
+                                Frequently
+                                <br />
+                                <em className="fq-hero__title-em">
+                                    Asked Questions
+                                </em>
                             </h1>
-                            <p className="text-[0.88rem] font-light leading-[1.8] max-w-[300px] pb-1"
-                                style={{ color: "var(--color-text-muted)" }}>
-                                Common questions about admissions, certifications,
-                                training structure and policies.
+                            <p className="fq-hero__desc">
+                                Common questions about admissions,
+                                certifications, training structure and
+                                policies.
                             </p>
                         </div>
                     </div>
                 </section>
 
-                {/* ══════════════════════ FAQ BODY ══════════════════════ */}
-                <section className="relative px-6 pb-[88px]" aria-label="FAQ accordion">
-                    {/* Top divider */}
-                    <div aria-hidden="true" className="absolute top-0 pointer-events-none"
-                        style={{ left: "10%", right: "10%", height: 1, background: "linear-gradient(to right,transparent,var(--color-border),transparent)" }} />
+                {/* ════════════ FAQ BODY ════════════ */}
+                <section className="fq-body" aria-label="FAQ accordion">
+                    <div className="fq-body__divider" aria-hidden="true" />
 
-                    <div className="max-w-[800px] mx-auto pt-14">
+                    <div className="container fq-body__inner">
 
-                        {/* Accordion list */}
-                        <div className="flex flex-col rounded-[20px] overflow-hidden mb-5"
-                            style={{ gap: 1, background: "var(--color-border)", border: "1px solid var(--color-border)" }}
-                            role="list">
+                        {/* Accordion */}
+                        <div className="fq-accordion" role="list">
                             {faqs.map((faq, i) => {
                                 const isOpen = openIndex === i;
                                 return (
-                                    <div key={i}
-                                        className="relative overflow-hidden transition-colors duration-200"
-                                        style={{ background: isOpen ? "color-mix(in srgb,var(--color-primary) 3%,var(--color-bg-card))" : "var(--color-bg-card)" }}
-                                        role="listitem">
-
-                                        {/* Left accent bar — visible when open */}
-                                        <span aria-hidden="true"
-                                            className="absolute left-0 top-0 bottom-0 w-[3px] transition-transform duration-[280ms] ease-out origin-top"
-                                            style={{
-                                                background: "linear-gradient(to bottom,var(--color-primary),color-mix(in srgb,var(--color-primary) 50%,transparent))",
-                                                transform: isOpen ? "scaleY(1)" : "scaleY(0)",
-                                            }} />
+                                    <div
+                                        key={i}
+                                        className={
+                                            isOpen
+                                                ? "fq-item fq-item--open"
+                                                : "fq-item"
+                                        }
+                                        role="listitem"
+                                    >
+                                        {/* Left accent bar */}
+                                        <span
+                                            className="fq-item__bar"
+                                            aria-hidden="true"
+                                        />
 
                                         {/* Trigger */}
                                         <button
-                                            className="w-full flex items-center justify-between gap-4 pl-7 pr-6 py-5 text-left cursor-pointer transition-colors duration-200"
-                                            style={{
-                                                background: "none",
-                                                border: "none",
-                                                fontFamily: "'DM Sans', sans-serif",
-                                            }}
-                                            onClick={() => setOpenIndex(isOpen ? null : i)}
+                                            className="fq-trigger"
+                                            onClick={() =>
+                                                setOpenIndex(
+                                                    isOpen ? null : i
+                                                )
+                                            }
                                             aria-expanded={isOpen}
-                                            onMouseEnter={e => { if (!isOpen) (e.currentTarget as HTMLElement).style.background = "color-mix(in srgb,var(--color-primary) 3%,var(--color-bg-card))"; }}
-                                            onMouseLeave={e => { if (!isOpen) (e.currentTarget as HTMLElement).style.background = "none"; }}>
-
+                                        >
                                             {/* Number */}
-                                            <span className="font-serif text-[0.72rem] font-bold flex-shrink-0 min-w-[24px]"
-                                                style={{ color: isOpen ? "var(--color-primary)" : "color-mix(in srgb,var(--color-primary) 35%,transparent)" }}
-                                                aria-hidden="true">
-                                                {String(i + 1).padStart(2, "0")}
+                                            <span
+                                                className="fq-trigger__num"
+                                                aria-hidden="true"
+                                            >
+                                                {String(i + 1).padStart(
+                                                    2,
+                                                    "0"
+                                                )}
                                             </span>
 
                                             {/* Question */}
-                                            <span className="text-[0.88rem] font-medium leading-[1.4] flex-1"
-                                                style={{ color: "var(--color-text)" }}>
+                                            <span className="fq-trigger__question">
                                                 {faq.q}
                                             </span>
 
                                             {/* Toggle icon */}
-                                            <span className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-base font-light leading-none transition-all duration-[250ms] ease-out"
-                                                style={{
-                                                    background:  isOpen ? "var(--color-bg-sidebar)" : "var(--color-bg)",
-                                                    border:      isOpen ? "1px solid var(--color-bg-sidebar)" : "1px solid var(--color-border)",
-                                                    color:       isOpen ? "var(--color-warning)" : "var(--color-text-muted)",
-                                                    transform:   isOpen ? "rotate(45deg)" : "rotate(0deg)",
-                                                }}
-                                                aria-hidden="true">
+                                            <span
+                                                className="fq-trigger__icon"
+                                                aria-hidden="true"
+                                            >
                                                 +
                                             </span>
                                         </button>
 
                                         {/* Answer */}
-                                        <div className={`fq-answer ${isOpen ? "open" : ""}`}
-                                            aria-hidden={!isOpen}>
-                                            <div className="pl-[52px] pr-6 pb-5 text-[0.84rem] font-light leading-[1.85]"
-                                                style={{ color: "var(--color-text-muted)" }}>
+                                        <div
+                                            className="fq-answer"
+                                            aria-hidden={!isOpen}
+                                        >
+                                            <div className="fq-answer__inner">
                                                 {faq.a}
                                             </div>
                                         </div>
-
                                     </div>
                                 );
                             })}
                         </div>
 
-                        {/* CTA strip */}
-                        <div className="relative overflow-hidden rounded-[18px] px-8 py-7 flex items-center justify-between gap-5 flex-wrap"
-                            style={{ background: "var(--color-bg-sidebar)" }}
-                            aria-label="Still have questions?">
+                        {/* CTA Strip */}
+                        <div
+                            className="fq-cta"
+                            aria-label="Still have questions?"
+                        >
+                            <div
+                                className="fq-cta__dots"
+                                aria-hidden="true"
+                            />
 
-                            {/* Dot pattern */}
-                            <div aria-hidden="true" className="absolute -right-2.5 top-1/2 -translate-y-1/2 w-36 h-36 pointer-events-none"
-                                style={{
-                                    backgroundImage: "radial-gradient(circle,color-mix(in srgb,var(--color-warning) 12%,transparent) 1.5px,transparent 1.5px)",
-                                    backgroundSize: "12px 12px",
-                                }} />
-
-                            <div className="relative z-10">
-                                <div className="flex items-center gap-1.5 text-[9px] font-medium tracking-[0.16em] uppercase mb-1"
-                                    style={{ color: "color-mix(in srgb,var(--color-warning) 55%,transparent)" }}>
-                                    <span aria-hidden="true"
-                                        style={{ display: "inline-block", width: 12, height: 1.5, background: "color-mix(in srgb,var(--color-warning) 45%,transparent)", flexShrink: 0 }} />
+                            <div className="fq-cta__left">
+                                <div className="fq-cta__eyebrow">
+                                    <span className="fq-cta__eyebrow-line" />
                                     Need More Help
                                 </div>
-                                <div className="font-serif text-[0.95rem] font-semibold"
-                                    style={{ color: "var(--color-text-inverse)" }}>
+                                <div className="fq-cta__text">
                                     Still have questions? Talk to our team.
                                 </div>
                             </div>
 
-                            <Link href="/contact"
-                                className="relative z-10 inline-flex items-center gap-2 no-underline rounded-full px-[22px] py-[11px] text-[0.82rem] font-medium flex-shrink-0 transition-all duration-200 hover:-translate-y-px"
-                                style={{
-                                    background:  "var(--color-warning)",
-                                    color:       "var(--color-bg-sidebar)",
-                                    fontFamily:  "'DM Sans', sans-serif",
-                                }}
-                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "color-mix(in srgb,var(--color-warning) 80%,#fff)"}
-                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "var(--color-warning)"}>
+                            <Link
+                                href="/contact"
+                                className="fq-cta__btn"
+                            >
                                 Contact the Academy
-                                <span className="transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true">→</span>
+                                <span
+                                    className="fq-cta__btn-arrow"
+                                    aria-hidden="true"
+                                >
+                                    <ArrowRightIcon />
+                                </span>
                             </Link>
                         </div>
-
                     </div>
                 </section>
-
             </main>
+
+            {/* ════════════ PAGE-SCOPED CSS ════════════ */}
+            <style>{`
+
+/* ══════════════════════════════════════════
+   FAQ PAGE  —  page-scoped styles
+   Follows: variables.css + components.css
+   ══════════════════════════════════════════ */
+
+/* ── Root ───────────────────────────────── */
+.fq-root {
+  background-color: var(--bg-page);
+  min-height: 100vh;
+}
+
+/* ══════════════════════════════════════════
+   HERO
+   ══════════════════════════════════════════ */
+.fq-hero {
+  position: relative;
+  padding: var(--space-24) 0 var(--space-16);
+  overflow: hidden;
+  background: linear-gradient(
+    160deg,
+    var(--color-primary-200) 0%,
+    var(--color-white) 60%,
+    var(--color-primary-400) 100%
+  );
+}
+
+/* Glow orbs */
+.fq-hero__glow {
+  position: absolute;
+  border-radius: var(--radius-full);
+  pointer-events: none;
+  filter: blur(80px);
+  opacity: 0.30;
+}
+.fq-hero__glow--1 {
+  width: 460px;
+  height: 460px;
+  background: var(--color-primary-200);
+  top: -190px;
+  right: -130px;
+}
+.fq-hero__glow--2 {
+  width: 300px;
+  height: 300px;
+  background: var(--color-accent-200);
+  bottom: -80px;
+  left: -80px;
+}
+
+/* Center-constrained inner */
+.fq-hero__inner {
+  position: relative;
+  z-index: 2;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+}
+
+/* Eyebrow */
+.fq-hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-primary-600);
+  margin-bottom: var(--space-4);
+}
+.fq-hero__eyebrow-line {
+  display: inline-block;
+  width: 24px;
+  height: 2px;
+  background: var(--color-primary-500);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+/* Split layout */
+.fq-hero__layout {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-10);
+  flex-wrap: wrap;
+}
+
+/* Title */
+.fq-hero__title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tight);
+  margin: 0;
+}
+.fq-hero__title-em {
+  font-style: italic;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-600),
+    var(--color-accent-500)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Desc */
+.fq-hero__desc {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-light);
+  color: var(--text-secondary);
+  line-height: var(--line-height-relaxed);
+  max-width: 300px;
+  margin: 0;
+  padding-bottom: var(--space-1);
+}
+
+/* ══════════════════════════════════════════
+   BODY
+   ══════════════════════════════════════════ */
+.fq-body {
+  position: relative;
+  padding-bottom: var(--space-24);
+}
+.fq-body__divider {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--border-color),
+    transparent
+  );
+  margin: 0 10%;
+}
+
+/* Center-constrained inner */
+.fq-body__inner {
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+  padding-top: var(--space-12);
+}
+
+/* ══════════════════════════════════════════
+   ACCORDION
+   ══════════════════════════════════════════ */
+.fq-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--border-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  margin-bottom: var(--space-5);
+}
+
+/* ── Item ────────────────────────────────── */
+.fq-item {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-elevated);
+  transition: background var(--transition-fast);
+}
+.fq-item:hover {
+  background: var(--color-primary-50);
+}
+.fq-item--open {
+  background: var(--color-primary-50);
+}
+
+/* Left accent bar */
+.fq-item__bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(
+    to bottom,
+    var(--color-primary-500),
+    var(--color-primary-200)
+  );
+  transform: scaleY(0);
+  transform-origin: top center;
+  transition: transform var(--transition-base);
+}
+.fq-item--open .fq-item__bar {
+  transform: scaleY(1);
+}
+
+/* ── Trigger ─────────────────────────────── */
+.fq-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-6) var(--space-5) var(--space-6);
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+}
+
+/* Number */
+.fq-trigger__num {
+  font-family: var(--font-display);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  flex-shrink: 0;
+  min-width: 24px;
+  color: var(--color-primary-200);
+  transition: color var(--transition-fast);
+}
+.fq-item--open .fq-trigger__num {
+  color: var(--color-primary-600);
+}
+
+/* Question */
+.fq-trigger__question {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  line-height: var(--line-height-snug);
+  flex: 1;
+}
+
+/* Toggle icon */
+.fq-trigger__icon {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-light);
+  line-height: 1;
+  color: var(--text-tertiary);
+  background: var(--bg-page);
+  border: 1px solid var(--border-color);
+  transition:
+    transform var(--transition-base),
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
+}
+.fq-item--open .fq-trigger__icon {
+  transform: rotate(45deg);
+  background: var(--color-gray-900);
+  border-color: var(--color-gray-900);
+  color: var(--color-warning);
+}
+
+/* ── Answer (CSS accordion) ─────────────── */
+.fq-answer {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    max-height 0.32s var(--ease-in-out),
+    opacity 0.24s var(--ease-in-out);
+}
+.fq-item--open .fq-answer {
+  max-height: 300px;
+  opacity: 1;
+}
+.fq-answer__inner {
+  padding: 0 var(--space-6) var(--space-5) calc(var(--space-6) + 24px + var(--space-4));
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-light);
+  color: var(--text-secondary);
+  line-height: var(--line-height-relaxed);
+}
+
+/* ══════════════════════════════════════════
+   CTA STRIP
+   ══════════════════════════════════════════ */
+.fq-cta {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  padding: var(--space-6) var(--space-8);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+  background: linear-gradient(
+    135deg,
+    var(--color-gray-800) 0%,
+    var(--color-gray-900) 100%
+  );
+  border: 1px solid var(--color-gray-700);
+}
+
+/* Dot pattern */
+.fq-cta__dots {
+  position: absolute;
+  right: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 144px;
+  height: 144px;
+  background-image: radial-gradient(
+    circle,
+    rgba(251, 146, 60, 0.14) 1.5px,
+    transparent 1.5px
+  );
+  background-size: 12px 12px;
+  pointer-events: none;
+}
+
+.fq-cta__left {
+  position: relative;
+  z-index: 1;
+}
+
+/* CTA eyebrow */
+.fq-cta__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 9px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(251, 146, 60, 0.55);
+  margin-bottom: var(--space-2);
+}
+.fq-cta__eyebrow-line {
+  display: inline-block;
+  width: 12px;
+  height: 1.5px;
+  background: rgba(251, 146, 60, 0.45);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.fq-cta__text {
+  font-family: var(--font-display);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-white);
+  line-height: var(--line-height-tight);
+}
+
+/* CTA button */
+.fq-cta__btn {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration: none;
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-sans);
+  color: var(--color-gray-900);
+  background: var(--color-warning);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  transition:
+    filter var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+.fq-cta__btn:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(251, 146, 60, 0.35);
+}
+.fq-cta__btn-arrow {
+  display: flex;
+  align-items: center;
+  transition: transform var(--transition-fast);
+}
+.fq-cta__btn:hover .fq-cta__btn-arrow {
+  transform: translateX(3px);
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .fq-hero {
+    padding: var(--space-16) 0 var(--space-12);
+  }
+  .fq-hero__layout {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+  .fq-hero__desc {
+    max-width: 100%;
+  }
+  .fq-cta {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: var(--space-6);
+  }
+}
+
+@media (max-width: 480px) {
+  .fq-hero {
+    padding: var(--space-12) 0 var(--space-10);
+  }
+  .fq-body {
+    padding-bottom: var(--space-16);
+  }
+  .fq-trigger {
+    padding: var(--space-4) var(--space-4) var(--space-4) var(--space-5);
+  }
+  .fq-answer__inner {
+    padding-left: var(--space-5);
+  }
+}
+
+      `}</style>
         </>
     );
 }

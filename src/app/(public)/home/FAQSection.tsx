@@ -16,133 +16,401 @@ export default function FAQSection() {
 
     return (
         <>
+            <section className="faq-section" aria-labelledby="faq-heading">
+
+                <div className="faq-bg-dots"    aria-hidden="true" />
+                <div className="faq-glow-tr"    aria-hidden="true" />
+                <div className="faq-glow-bl"    aria-hidden="true" />
+                <div className="faq-watermark"  aria-hidden="true">FAQ</div>
+
+                <div className="faq-inner">
+
+                    {/* ── Header ── */}
+                    <div className="faq-header">
+                        <div className="faq-badge">
+                            <span className="faq-badge-dot" aria-hidden="true" />
+                            Common Questions
+                        </div>
+
+                        <h2 id="faq-heading" className="faq-title">
+                            Frequently Asked{" "}
+                            <span className="faq-title-highlight">Questions</span>
+                        </h2>
+
+                        <p className="faq-subtitle">
+                            Everything you need to know about admissions,
+                            certifications and our training programs.
+                        </p>
+                    </div>
+
+                    {/* ── Accordion ── */}
+                    <div className="faq-list" role="list">
+                        {faqs.map((faq, i) => {
+                            const isOpen = openIndex === i;
+                            return (
+                                <div
+                                    key={i}
+                                    className={`faq-item${isOpen ? " faq-item--open" : ""}`}
+                                    role="listitem"
+                                >
+                                    <button
+                                        className="faq-btn"
+                                        onClick={() => setOpenIndex(isOpen ? null : i)}
+                                        aria-expanded={isOpen}
+                                    >
+                                        <span className="faq-question">{faq.question}</span>
+                                        <span
+                                            className={`faq-icon${isOpen ? " faq-icon--open" : ""}`}
+                                            aria-hidden="true"
+                                        >+</span>
+                                    </button>
+
+                                    <div className="faq-answer" aria-hidden={!isOpen}>
+                                        <div className="faq-answer-inner">
+                                            {faq.answer}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* ── Bottom note ── */}
+                    <p className="faq-footer-note">
+                        Still have questions?{" "}
+                        <a href="/enquiry" className="faq-footer-link">
+                            Contact us directly →
+                        </a>
+                    </p>
+
+                </div>
+            </section>
+
             <style>{`
-                /* Ghost watermark */
+
+                /* ── Section ── */
+                .faq-section {
+                    position: relative;
+                    overflow: hidden;
+                    padding: var(--space-24) var(--space-6);
+                    background: linear-gradient(
+                        180deg,
+                        var(--color-gray-50) 0%,
+                        var(--color-white) 100%
+                    );
+                }
+
+                @media (min-width: 768px) {
+                    .faq-section {
+                        padding-top: var(--space-24);
+                        padding-bottom: var(--space-24);
+                    }
+                }
+
+                /* ── Dot bg ── */
+                .faq-bg-dots {
+                    position: absolute;
+                    inset: 0;
+                    background-image: radial-gradient(
+                        circle,
+                        rgba(37, 99, 235, 0.04) 1px,
+                        transparent 1px
+                    );
+                    background-size: 28px 28px;
+                    pointer-events: none;
+                    z-index: 0;
+                }
+
+                /* ── Glows ── */
+                .faq-glow-tr {
+                    position: absolute;
+                    top: -100px;
+                    right: -80px;
+                    width: 400px;
+                    height: 400px;
+                    border-radius: var(--radius-full);
+                    background: radial-gradient(
+                        circle,
+                        rgba(59, 130, 246, 0.08) 0%,
+                        transparent 65%
+                    );
+                    filter: blur(40px);
+                    pointer-events: none;
+                    z-index: 0;
+                }
+
+                .faq-glow-bl {
+                    position: absolute;
+                    bottom: -80px;
+                    left: -60px;
+                    width: 340px;
+                    height: 340px;
+                    border-radius: var(--radius-full);
+                    background: radial-gradient(
+                        circle,
+                        rgba(249, 115, 22, 0.06) 0%,
+                        transparent 65%
+                    );
+                    filter: blur(40px);
+                    pointer-events: none;
+                    z-index: 0;
+                }
+
+                /* ── Watermark ── */
                 .faq-watermark {
                     position: absolute;
-                    bottom: -40px; left: -20px;
+                    bottom: -20px;
+                    right: -10px;
                     font-family: Georgia, serif;
-                    font-size: clamp(100px, 18vw, 200px);
+                    font-size: clamp(80px, 14vw, 160px);
                     font-weight: 900;
                     font-style: italic;
                     color: transparent;
-                    -webkit-text-stroke: 1px rgba(96,165,250,0.05);
+                    -webkit-text-stroke: 1px rgba(37, 99, 235, 0.05);
                     pointer-events: none;
                     user-select: none;
                     line-height: 1;
                     z-index: 0;
                 }
 
-                /* Accordion answer slide */
+                /* ── Inner ── */
+                .faq-inner {
+                    position: relative;
+                    z-index: 10;
+                    max-width: 780px;
+                    margin: 0 auto;
+                }
+
+                /* ── Header ── */
+                .faq-header {
+                    text-align: center;
+                    margin-bottom: var(--space-12);
+                }
+
+                .faq-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: var(--space-2);
+                    padding: var(--space-2) var(--space-4);
+                    background: rgba(37, 99, 235, 0.08);
+                    border: 1px solid rgba(37, 99, 235, 0.18);
+                    border-radius: var(--radius-full);
+                    font-size: 0.68rem;
+                    font-weight: var(--font-weight-semibold);
+                    color: var(--color-primary-700);
+                    letter-spacing: 0.06em;
+                    text-transform: uppercase;
+                    margin-bottom: var(--space-4);
+                }
+
+                .faq-badge-dot {
+                    width: 6px;
+                    height: 6px;
+                    background: var(--color-primary-600);
+                    border-radius: var(--radius-full);
+                    animation: faq-pulse 2s ease-in-out infinite;
+                }
+
+                .faq-title {
+                    font-family: var(--font-display);
+                    font-size: clamp(1.9rem, 4vw, 2.75rem);
+                    font-weight: var(--font-weight-bold);
+                    line-height: 1.2;
+                    letter-spacing: var(--letter-spacing-tight);
+                    color: var(--text-primary);
+                    margin-bottom: 0;
+                }
+
+                .faq-title-highlight {
+                    background: linear-gradient(
+                        135deg,
+                        var(--color-primary-600),
+                        var(--color-accent-500)
+                    );
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                }
+
+                .faq-subtitle {
+                    font-size: var(--font-size-base);
+                    font-weight: var(--font-weight-normal);
+                    line-height: 1.7;
+                    color: var(--text-secondary);
+                    margin-top: var(--space-3);
+                    margin-bottom: 0;
+                    max-width: 520px;
+                    margin-left: auto;
+                    margin-right: auto;
+                }
+
+                /* ── List container ── */
+                .faq-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: var(--space-3);
+                    margin-bottom: var(--space-10);
+                }
+
+                /* ── Single item ── */
+                .faq-item {
+                    background: var(--color-white);
+                    border: 1px solid var(--color-gray-200);
+                    border-radius: var(--radius-xl);
+                    overflow: hidden;
+                    transition:
+                        border-color var(--transition-base),
+                        box-shadow var(--transition-base);
+                }
+
+                .faq-item:hover {
+                    border-color: var(--color-primary-200);
+                    box-shadow: var(--shadow-sm);
+                }
+
+                .faq-item--open {
+                    border-color: var(--color-primary-200);
+                    box-shadow: var(--shadow-md);
+                }
+
+                /* ── Button ── */
+                .faq-btn {
+                    width: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: var(--space-4);
+                    padding: var(--space-5) var(--space-6);
+                    text-align: left;
+                    background: transparent;
+                    border: none;
+                    cursor: pointer;
+                    transition: background-color var(--transition-fast);
+                }
+
+                .faq-btn:hover {
+                    background-color: var(--color-gray-50);
+                }
+
+                .faq-item--open .faq-btn {
+                    background-color: var(--color-primary-50);
+                }
+
+                .faq-question {
+                    flex: 1;
+                    font-size: var(--font-size-base);
+                    font-weight: var(--font-weight-medium);
+                    line-height: 1.45;
+                    color: var(--text-primary);
+                }
+
+                /* ── Icon ── */
+                .faq-icon {
+                    width: 30px;
+                    height: 30px;
+                    border-radius: var(--radius-full);
+                    flex-shrink: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.15rem;
+                    line-height: 1;
+                    border: 1.5px solid var(--color-gray-300);
+                    background-color: var(--color-white);
+                    color: var(--color-primary-600);
+                    transition:
+                        background-color var(--transition-fast),
+                        border-color var(--transition-fast),
+                        color var(--transition-fast),
+                        transform 0.26s var(--ease-in-out);
+                }
+
+                .faq-icon--open {
+                    transform: rotate(45deg);
+                    background-color: var(--color-primary-600);
+                    border-color: var(--color-primary-600);
+                    color: var(--color-white);
+                }
+
+                /* ── Answer panel ── */
                 .faq-answer {
                     overflow: hidden;
                     max-height: 0;
                     opacity: 0;
-                    transition: max-height 0.32s ease, opacity 0.28s ease;
+                    transition:
+                        max-height 0.34s var(--ease-in-out),
+                        opacity 0.28s var(--ease-in-out);
                 }
-                .faq-item[data-open="true"] .faq-answer {
-                    max-height: 200px;
+
+                .faq-item--open .faq-answer {
+                    max-height: 260px;
                     opacity: 1;
                 }
 
-                /* Icon rotate */
-                .faq-icon {
-                    transition: background 0.2s, border-color 0.2s, transform 0.25s ease, color 0.2s;
-                }
-                .faq-item[data-open="true"] .faq-icon {
-                    transform: rotate(45deg);
+                .faq-answer-inner {
+                    padding: var(--space-4) var(--space-6) var(--space-5);
+                    font-size: var(--font-size-sm);
+                    font-weight: var(--font-weight-normal);
+                    line-height: 1.8;
+                    color: var(--text-secondary);
+                    border-top: 1px solid var(--color-gray-100);
                 }
 
+                /* ── Footer note ── */
+                .faq-footer-note {
+                    text-align: center;
+                    font-size: var(--font-size-sm);
+                    color: var(--text-tertiary);
+                    margin: 0;
+                }
+
+                .faq-footer-link {
+                    color: var(--color-primary-600);
+                    font-weight: var(--font-weight-medium);
+                    text-decoration: none;
+                    transition: color var(--transition-fast);
+                }
+
+                .faq-footer-link:hover {
+                    color: var(--color-primary-700);
+                    text-decoration: underline;
+                }
+
+                /* ── Keyframes ── */
+                @keyframes faq-pulse {
+                    0%, 100% { opacity: 1; transform: scale(1); }
+                    50%       { opacity: 0.5; transform: scale(1.3); }
+                }
+
+                /* ── Responsive ── */
                 @media (max-width: 480px) {
-                    .faq-root { padding: 64px 16px !important; }
-                    .faq-btn  { padding: 18px 20px !important; }
-                    .faq-answer-inner { padding: 0 20px 18px !important; padding-top: 14px !important; }
-                    .faq-btn-q { font-size: 0.86rem !important; }
+                    .faq-section {
+                        padding: var(--space-16) var(--space-4);
+                    }
+
+                    .faq-list {
+                        gap: var(--space-2);
+                    }
+
+                    .faq-btn {
+                        padding: var(--space-4) var(--space-4);
+                    }
+
+                    .faq-answer-inner {
+                        padding: var(--space-3) var(--space-4) var(--space-4);
+                    }
+
+                    .faq-question {
+                        font-size: var(--font-size-sm);
+                    }
+
+                    .faq-icon {
+                        width: 26px;
+                        height: 26px;
+                        font-size: 1rem;
+                    }
                 }
             `}</style>
-
-            <section
-                className="faq-root relative overflow-hidden py-20 md:py-24 px-6"
-                style={{ background: "var(--color-bg-sidebar)" }}
-                aria-labelledby="faq-heading"
-            >
-                {/* Ghost watermark */}
-                <div className="faq-watermark" aria-hidden="true">FAQ</div>
-
-                {/* Blue glow top-right */}
-                <div aria-hidden="true" className="absolute -top-20 -right-16 w-[380px] h-[380px] rounded-full pointer-events-none z-0"
-                    style={{ background: "radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 65%)" }} />
-                {/* Accent glow bottom-left */}
-                <div aria-hidden="true" className="absolute -bottom-20 -left-10 w-[300px] h-[300px] rounded-full pointer-events-none z-0"
-                    style={{ background: "radial-gradient(circle, rgba(239,69,35,0.06) 0%, transparent 65%)" }} />
-
-                <div className="relative z-10 max-w-[800px] mx-auto">
-
-                    {/* Header — centered */}
-                    <div className="text-center mb-14">
-                        {/* Eyebrow with lines on both sides */}
-                        <div className="inline-flex items-center gap-2 mb-4 text-[10px] font-medium tracking-[0.18em] uppercase"
-                            style={{ color: "var(--color-info)" }}>
-                            <span style={{ display: "inline-block", width: 20, height: 1.5, background: "var(--color-info)" }} />
-                            Got Questions
-                            <span style={{ display: "inline-block", width: 20, height: 1.5, background: "var(--color-info)" }} />
-                        </div>
-                        <h2
-                            id="faq-heading"
-                            className="font-serif font-bold leading-[1.2]"
-                            style={{ fontSize: "clamp(1.8rem,3vw,2.5rem)", color: "var(--color-text-inverse)" }}
-                        >
-                            Frequently Asked<br />
-                            <em className="not-italic" style={{ color: "var(--color-accent)" }}>Questions</em>
-                        </h2>
-                        <p className="text-[0.88rem] font-light leading-[1.7] mt-3"
-                            style={{ color: "rgba(255,255,255,0.4)" }}>
-                            Common questions about admissions, certifications and training.
-                        </p>
-                    </div>
-
-                    {/* FAQ list */}
-                    <div className="flex flex-col gap-px rounded-[18px] overflow-hidden"
-                        style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
-                        role="list">
-                        {faqs.map((faq, i) => (
-                            <div key={i}
-                                className="faq-item transition-colors duration-200"
-                                data-open={openIndex === i ? "true" : "false"}
-                                role="listitem"
-                                style={{ background: openIndex === i ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.03)" }}
-                            >
-                                <button
-                                    className="faq-btn w-full flex items-center justify-between gap-4 px-7 py-[22px] text-left bg-transparent border-0 cursor-pointer"
-                                    onClick={() => setOpenIndex(openIndex === i ? null : i)}
-                                    aria-expanded={openIndex === i}
-                                >
-                                    <span className="faq-btn-q text-[0.92rem] font-medium leading-[1.4] flex-1"
-                                        style={{ color: "var(--color-text-inverse)" }}>
-                                        {faq.question}
-                                    </span>
-                                    {/* +/× icon */}
-                                    <span className="faq-icon w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-[1.1rem] leading-none"
-                                        style={{
-                                            border: "1px solid rgba(255,255,255,0.18)",
-                                            background: openIndex === i ? "var(--color-primary)" : "rgba(255,255,255,0.06)",
-                                            color: openIndex === i ? "#fff" : "var(--color-info)",
-                                        }}
-                                        aria-hidden="true">+</span>
-                                </button>
-
-                                <div className="faq-answer">
-                                    <div className="faq-answer-inner px-7 pb-[22px] pt-4 text-[0.83rem] font-light leading-[1.8]"
-                                        style={{ color: "rgba(255,255,255,0.55)", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
-                                        {faq.answer}
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                </div>
-            </section>
         </>
     );
 }

@@ -1,103 +1,189 @@
-@import "tailwindcss";
+/* ==========================================
+   GLOBAL STYLES - MAIN ENTRY POINT
+   Shiv Shakti Computer Academy
+   Custom CSS Architecture
+   ========================================== */
 
-/* ─── Tailwind v4 — dark mode class-based ────────────── */
-@variant dark (&:where(.dark, .dark *));
+/* Custom CSS Architecture */
+@import "../styles/variables.css";
+@import "../styles/reset.css";
+@import "../styles/base.css";
+@import "../styles/layout.css";
+@import "../styles/components.css";
+@import "../styles/utilities.css";
+@import "../styles/animations.css";
+@import "../styles/home.css";
 
-/* ─── Custom theme tokens ────────────────────────────── */
-@theme {
-  /* Brand colors */
-  --color-brand-blue-50:  #EFF6FF;
-  --color-brand-blue-100: #DBEAFE;
-  --color-brand-blue-200: #BFDBFE;
-  --color-brand-blue-400: #60A5FA;
-  --color-brand-blue-600: #1A56DB;
-  --color-brand-blue-700: #1B4FBB;
-  --color-brand-blue-800: #1E3A8A;
-  --color-brand-blue-900: #0F172A;
+/* ==========================================
+   CUSTOM SCROLLBAR (Global)
+   ========================================== */
 
-  --color-brand-orange-50:  #FFF7ED;
-  --color-brand-orange-100: #FFEDD5;
-  --color-brand-orange-400: #FB923C;
-  --color-brand-orange-500: #EF4523;
-  --color-brand-orange-600: #DC2626;
-
-  /* Portal colors */
-  --color-public-primary: #1B4FBB;
-  --color-public-accent:  #EF4523;
-  --color-public-bg:      #F8FAFC;
-  --color-public-bg-dark: #0F172A;
-
-  --color-student-primary: #1A56DB;
-  --color-student-accent:  #EF4523;
-  --color-student-bg:      #EFF6FF;
-  --color-student-bg-dark: #0F1E3D;
-
-  --color-teacher-primary: #0F766E;
-  --color-teacher-accent:  #1A56DB;
-  --color-teacher-bg:      #F0FDFA;
-  --color-teacher-bg-dark: #042F2E;
-
-  --color-admin-primary: #1E293B;
-  --color-admin-accent:  #1A56DB;
-  --color-admin-bg:      #F1F5F9;
-  --color-admin-bg-dark: #0F172A;
-
-  /* Fonts */
-  --font-sans: Inter, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
 }
 
-/* ─── Smooth scroll ──────────────────────────────────── */
+::-webkit-scrollbar-track {
+  background-color: var(--color-gray-100);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-gray-300);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-gray-400);
+}
+
+/* Firefox Scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-gray-300) var(--color-gray-100);
+}
+
+/* ==========================================
+   SMOOTH SCROLL BEHAVIOR
+   ========================================== */
+
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 80px; /* For fixed header */
 }
 
-/* ─── CSS Variables — Light mode ─────────────────────── */
-:root {
-  --color-primary:      #1A56DB;
-  --color-accent:       #EF4523;
-  --color-bg:           #F8FAFC;
-  --color-bg-card:      #FFFFFF;
-  --color-bg-sidebar:   #1B4FBB;
-  --color-text:         #0F172A;
-  --color-text-muted:   #64748B;
-  --color-text-inverse: #FFFFFF;
-  --color-border:       #E2E8F0;
-  --color-success:      #22C55E;
-  --color-warning:      #F59E0B;
-  --color-error:        #EF4444;
-  --color-info:         #3B82F6;
-  --transition:         200ms ease;
+/* ==========================================
+   FOCUS VISIBLE (Accessibility)
+   ========================================== */
+
+*:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }
 
-/* ─── CSS Variables — Dark mode ──────────────────────── */
-.dark {
-  --color-primary:      #3B82F6;
-  --color-accent:       #F97316;
-  --color-bg:           #0F172A;
-  --color-bg-card:      #1E293B;
-  --color-bg-sidebar:   #0F172A;
-  --color-text:         #F1F5F9;
-  --color-text-muted:   #94A3B8;
-  --color-text-inverse: #0F172A;
-  --color-border:       #334155;
-  --color-success:      #4ADE80;
-  --color-warning:      #FCD34D;
-  --color-error:        #F87171;
-  --color-info:         #60A5FA;
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
 }
 
-/* ─── Base styles ────────────────────────────────────── */
-body {
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  transition: background-color var(--transition), color var(--transition);
-  font-family: Inter, system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
+/* ==========================================
+   PRINT STYLES
+   ========================================== */
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  a {
+    text-decoration: underline;
+  }
+
+  * {
+    box-shadow: none !important;
+  }
 }
 
-/* ─── Scrollbar ──────────────────────────────────────── */
-::-webkit-scrollbar       { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--color-bg); }
-::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
+/* ==========================================
+   RESPONSIVE UTILITIES
+   ========================================== */
+
+/* Mobile First Approach */
+@media (min-width: 640px) {
+  .sm\:block { display: block; }
+  .sm\:hidden { display: none; }
+  .sm\:flex { display: flex; }
+  .sm\:grid { display: grid; }
+}
+
+@media (min-width: 768px) {
+  .md\:block { display: block; }
+  .md\:hidden { display: none; }
+  .md\:flex { display: flex; }
+  .md\:grid { display: grid; }
+}
+
+@media (min-width: 1024px) {
+  .lg\:block { display: block; }
+  .lg\:hidden { display: none; }
+  .lg\:flex { display: flex; }
+  .lg\:grid { display: grid; }
+}
+
+@media (min-width: 1280px) {
+  .xl\:block { display: block; }
+  .xl\:hidden { display: none; }
+}
+
+/* ==========================================
+   DARK MODE SUPPORT
+   ========================================== */
+
+@media (prefers-color-scheme: dark) {
+  [data-theme="auto"] {
+    --bg-page: var(--color-gray-900);
+    --bg-surface: var(--color-gray-800);
+    --bg-elevated: var(--color-gray-700);
+    --text-primary: var(--color-gray-50);
+    --text-secondary: var(--color-gray-300);
+  }
+}
+
+/* ==========================================
+   PERFORMANCE OPTIMIZATIONS
+   ========================================== */
+
+/* GPU Acceleration */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Reduce Motion for Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================
+   CUSTOM SELECTION COLOR
+   ========================================== */
+
+::selection {
+  background-color: var(--color-primary-100);
+  color: var(--color-primary-900);
+}
+
+::-moz-selection {
+  background-color: var(--color-primary-100);
+  color: var(--color-primary-900);
+}
+
+/* ==========================================
+   PLACEHOLDER STYLES
+   ========================================== */
+
+::placeholder {
+  color: var(--color-gray-400);
+  opacity: 1;
+}
+
+:-ms-input-placeholder {
+  color: var(--color-gray-400);
+}
+
+::-ms-input-placeholder {
+  color: var(--color-gray-400);
+}

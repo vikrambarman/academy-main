@@ -1,241 +1,612 @@
-"use client"
+"use client";
+
+import { MapPin, Phone, Clock, Shield, Navigation } from "lucide-react";
+
+const infoItems = [
+  {
+    icon: MapPin,
+    label: "Address",
+    content: [
+      "1st Floor above Usha Matching Center,",
+      "Near Babra Petrol Pump, Banaras Road,",
+      "Phunderdihari, Ambikapur – 497001",
+      "Chhattisgarh, India",
+    ],
+  },
+  {
+    icon: Phone,
+    label: "Contact",
+    phones: ["+91 74770 36832", "+91 90090 87883"],
+  },
+  {
+    icon: Clock,
+    label: "Working Hours",
+    hours: ["Monday – Saturday", "8:00 AM – 6:00 PM"],
+  },
+  {
+    icon: Shield,
+    label: "Authorization",
+    content: [
+      "Authorized Training Centre under",
+      "Gramin Skill Development Mission (GSDM)",
+    ],
+  },
+];
 
 export default function VisitUs() {
-    const infoItems = [
-        {
-            icon: "📍",
-            label: "Address",
-            content: (
-                <>
-                    1st Floor above Usha Matching Center,<br />
-                    Near Babra Petrol Pump, Banaras Road,<br />
-                    Phunderdihari, Ambikapur – 497001<br />
-                    Chhattisgarh, India
-                </>
-            ),
-        },
-        {
-            icon: "📞",
-            label: "Contact",
-            content: (
-                <>
-                    <a href="tel:+917477036832" className="vu-link">+91 74770 36832</a>
-                    <span className="vu-sep">·</span>
-                    <a href="tel:+919009087883" className="vu-link">+91 90090 87883</a>
-                </>
-            ),
-        },
-        {
-            icon: "🕐",
-            label: "Working Hours",
-            content: (
-                <>
-                    Monday – Saturday<br />
-                    <span className="vu-hours-highlight">8:00 AM – 6:00 PM</span>
-                </>
-            ),
-        },
-        {
-            icon: "🏛",
-            label: "Authorization",
-            content: (
-                <>
-                    Authorized Training Centre under<br />
-                    Gramin Skill Development Mission (GSDM)
-                </>
-            ),
-        },
-    ];
+  return (
+    <>
+      <style>{visitUsStyles}</style>
 
-    return (
-        <>
-            <style>{`
-                /* Top fade line */
-                .vu-root::before {
-                    content: '';
-                    position: absolute;
-                    top: 0; left: 10%; right: 10%;
-                    height: 1px;
-                    background: linear-gradient(to right, transparent, var(--color-border), transparent);
-                }
+      <section className="visitus-section" aria-labelledby="visit-us-heading">
+        
+        {/* Background */}
+        <div className="visitus-bg-pattern" aria-hidden="true" />
+        
+        <div className="visitus-container">
+          
+          {/* Header */}
+          <div className="visitus-header">
+            <div className="visitus-header-left">
+              <div className="visitus-badge anim-fade-in">
+                <span className="visitus-badge-line" />
+                Find Us
+              </div>
+              <h2 id="visit-us-heading" className="visitus-title anim-slide-up">
+                Visit Us in
+                <br />
+                <span className="visitus-title-highlight">Ambikapur</span>
+              </h2>
+            </div>
+            <p className="visitus-description anim-fade-in-delay">
+              Visit our training centre for course enquiries, admission guidance
+              and free career counselling — walk in anytime during working hours.
+            </p>
+          </div>
 
-                /* Info row — left accent bar */
-                .vu-info-row {
-                    position: relative;
-                    transition: background 0.2s;
-                }
-                .vu-info-row::before {
-                    content: '';
-                    position: absolute;
-                    left: 0; top: 0; bottom: 0;
-                    width: 2px;
-                    background: var(--color-primary);
-                    transform: scaleY(0);
-                    transform-origin: top;
-                    transition: transform 0.24s ease;
-                }
-                .vu-info-row:hover::before { transform: scaleY(1); }
-
-                /* Dot pattern on dark panel header */
-                .vu-info-header::after {
-                    content: '';
-                    position: absolute;
-                    right: -10px; bottom: -10px;
-                    width: 100px; height: 100px;
-                    background-image: radial-gradient(circle, rgba(96,165,250,0.15) 1.5px, transparent 1.5px);
-                    background-size: 12px 12px;
-                    pointer-events: none;
-                }
-
-                /* Maps btn arrow */
-                .vu-maps-arrow { transition: transform 0.2s; }
-                .vu-maps-btn:hover .vu-maps-arrow { transform: translateX(4px); }
-
-                /* Inline helpers */
-                .vu-link {
-                    color: var(--color-primary);
-                    text-decoration: none;
-                    font-weight: 400;
-                    transition: color 0.2s;
-                }
-                .vu-link:hover {
-                    color: var(--color-accent);
-                    text-decoration: underline;
-                }
-                .vu-sep {
-                    color: var(--color-border);
-                    margin: 0 6px;
-                }
-                .vu-hours-highlight {
-                    color: var(--color-primary);
-                    font-weight: 500;
-                }
-
-                @media (max-width: 900px) {
-                    .vu-layout { grid-template-columns: 1fr !important; }
-                    .vu-header { grid-template-columns: 1fr !important; gap: 16px !important; margin-bottom: 36px !important; }
-                    .vu-map-wrap { min-height: 320px !important; }
-                    .vu-map-wrap iframe { min-height: 320px !important; }
-                }
-                @media (max-width: 480px) {
-                    .vu-root { padding: 64px 16px !important; }
-                    .vu-info-row-inner { padding: 18px 20px !important; }
-                    .vu-info-header { padding: 22px 20px !important; }
-                    .vu-maps-btn { margin: 0 20px 20px !important; }
-                }
-            `}</style>
-
-            <section
-                className="vu-root relative overflow-hidden py-20 md:py-24 px-6"
-                style={{ background: "var(--color-bg)" }}
-                aria-labelledby="visit-us-heading"
-            >
-                <div className="max-w-[1100px] mx-auto">
-
-                    {/* ── Header ── */}
-                    <div className="vu-header grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 items-end mb-12 md:mb-14">
-                        <div>
-                            <div className="flex items-center gap-2 mb-3.5 text-[10px] font-medium tracking-[0.18em] uppercase"
-                                style={{ color: "var(--color-primary)" }}>
-                                <span style={{ display: "inline-block", width: 24, height: 1.5, background: "var(--color-primary)", flexShrink: 0 }} />
-                                Find Us
-                            </div>
-                            <h2
-                                id="visit-us-heading"
-                                className="font-serif font-bold leading-[1.2]"
-                                style={{ fontSize: "clamp(1.8rem,3vw,2.5rem)", color: "var(--color-text)" }}
-                            >
-                                Visit Us in<br />
-                                <em className="not-italic" style={{ color: "var(--color-accent)" }}>Ambikapur</em>
-                            </h2>
-                        </div>
-                        <p className="text-[0.88rem] font-light leading-[1.8] md:pb-1"
-                            style={{ color: "var(--color-text-muted)" }}>
-                            Visit our training centre for course enquiries, admission
-                            guidance and free career counselling — walk in anytime
-                            during working hours.
-                        </p>
-                    </div>
-
-                    {/* ── Layout ── */}
-                    <div className="vu-layout grid gap-7" style={{ gridTemplateColumns: "1fr 1.4fr", alignItems: "stretch" }}>
-
-                        {/* Info panel */}
-                        <div className="flex flex-col rounded-[20px] overflow-hidden"
-                            style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}>
-
-                            {/* Dark header */}
-                            <div className="vu-info-header relative overflow-hidden px-7 pt-7 pb-6"
-                                style={{ background: "var(--color-bg-sidebar)", borderBottom: "1px solid var(--color-border)" }}>
-                                <div className="font-serif text-[1.1rem] font-semibold leading-[1.3]"
-                                    style={{ color: "var(--color-text-inverse)" }}>
-                                    Shivshakti Computer Academy
-                                </div>
-                                <div className="text-[0.73rem] font-light mt-1 tracking-[0.04em]"
-                                    style={{ color: "rgba(255,255,255,0.45)" }}>
-                                    Ambikapur, Surguja, Chhattisgarh
-                                </div>
-                            </div>
-
-                            {/* Info rows */}
-                            {infoItems.map((item, i) => (
-                                <div key={i}
-                                    className="vu-info-row"
-                                    style={{ borderBottom: i < infoItems.length - 1 ? "1px solid var(--color-border)" : "none" }}
-                                    onMouseEnter={e => (e.currentTarget.style.background = "color-mix(in srgb, var(--color-primary) 5%, var(--color-bg-card))")}
-                                    onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-                                >
-                                    <div className="vu-info-row-inner flex items-start gap-3.5 px-7 py-5">
-                                        {/* Icon box */}
-                                        <div className="w-[34px] h-[34px] rounded-[9px] shrink-0 flex items-center justify-center text-[0.9rem]"
-                                            style={{ background: "color-mix(in srgb, var(--color-primary) 8%, var(--color-bg))", border: "1px solid color-mix(in srgb, var(--color-primary) 20%, transparent)" }}>
-                                            {item.icon}
-                                        </div>
-                                        <div>
-                                            <div className="text-[9px] font-medium tracking-[0.14em] uppercase mb-1.5"
-                                                style={{ color: "var(--color-text-muted)" }}>
-                                                {item.label}
-                                            </div>
-                                            <div className="text-[0.82rem] font-light leading-[1.65]"
-                                                style={{ color: "var(--color-text)" }}>
-                                                {item.content}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-
-                            {/* Maps CTA */}
-                            <a href="https://www.google.com/maps?q=Shivshakti+Computer+Academy+Ambikapur"
-                                target="_blank" rel="noopener noreferrer"
-                                className="vu-maps-btn flex items-center justify-between gap-3 mx-7 mb-6 mt-1 px-5 py-3.5 rounded-[14px] no-underline text-[0.85rem] font-medium transition-all duration-200 hover:-translate-y-px"
-                                style={{ background: "var(--color-primary)", color: "#fff" }}>
-                                <span>Open in Google Maps</span>
-                                <span className="vu-maps-arrow text-[0.8rem]" aria-hidden="true">→</span>
-                            </a>
-                        </div>
-
-                        {/* Map */}
-                        <div className="vu-map-wrap relative rounded-[20px] overflow-hidden"
-                            style={{ minHeight: 440, border: "1px solid var(--color-border)", background: "color-mix(in srgb, var(--color-primary) 5%, var(--color-bg))" }}>
-                            {/* Badge */}
-                            <div className="absolute top-4 left-4 z-10 text-[0.75rem] font-medium px-3.5 py-1.5 rounded-full pointer-events-none backdrop-blur-md"
-                                style={{ background: "color-mix(in srgb, var(--color-bg-sidebar) 88%, transparent)", color: "var(--color-text-inverse)", border: "1px solid rgba(255,255,255,0.12)" }}
-                                aria-hidden="true">
-                                📍 Ambikapur, Chhattisgarh
-                            </div>
-                            <iframe
-                                src="https://www.google.com/maps?q=Shivshakti+Computer+Academy+Ambikapur&output=embed"
-                                loading="lazy"
-                                title="Shivshakti Computer Academy Ambikapur Location Map"
-                                allowFullScreen
-                                style={{ width: "100%", height: "100%", minHeight: 440, border: "none", display: "block" }}
-                            />
-                        </div>
-
-                    </div>
+          {/* Layout Grid */}
+          <div className="visitus-grid">
+            
+            {/* Left - Info Panel */}
+            <div className="visitus-info-panel anim-scale-1">
+              
+              {/* Panel Header */}
+              <div className="visitus-panel-header">
+                <div className="visitus-panel-icon">📍</div>
+                <div>
+                  <div className="visitus-panel-title">
+                    Shivshakti Computer Academy
+                  </div>
+                  <div className="visitus-panel-subtitle">
+                    Ambikapur, Surguja, Chhattisgarh
+                  </div>
                 </div>
-            </section>
-        </>
-    );
+              </div>
+
+              {/* Info Items */}
+              <div className="visitus-info-list">
+                {infoItems.map((item, index) => {
+                  const Icon = item.icon;
+                  return (
+                    <div key={index} className="visitus-info-item">
+                      <div className="visitus-info-icon">
+                        <Icon size={18} strokeWidth={1.5} />
+                      </div>
+                      <div className="visitus-info-content">
+                        <div className="visitus-info-label">{item.label}</div>
+                        {item.content && (
+                          <div className="visitus-info-text">
+                            {item.content.map((line, i) => (
+                              <div key={i}>{line}</div>
+                            ))}
+                          </div>
+                        )}
+                        {item.phones && (
+                          <div className="visitus-info-phones">
+                            {item.phones.map((phone, i) => (
+                              <a
+                                key={i}
+                                href={`tel:${phone.replace(/\s/g, "")}`}
+                                className="visitus-phone-link"
+                              >
+                                {phone}
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                        {item.hours && (
+                          <div className="visitus-info-text">
+                            <div>{item.hours[0]}</div>
+                            <div className="visitus-hours-highlight">
+                              {item.hours[1]}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Maps Button */}
+              <a
+                href="https://www.google.com/maps?q=Shivshakti+Computer+Academy+Ambikapur"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="visitus-maps-btn"
+              >
+                <Navigation size={18} strokeWidth={2} />
+                <span>Open in Google Maps</span>
+                <span className="visitus-maps-arrow" aria-hidden="true">
+                  →
+                </span>
+              </a>
+            </div>
+
+            {/* Right - Map */}
+            <div className="visitus-map-wrapper anim-scale-2">
+              {/* Location Badge */}
+              <div className="visitus-map-badge">
+                <MapPin size={14} strokeWidth={2} />
+                Ambikapur, Chhattisgarh
+              </div>
+
+              {/* Map Iframe */}
+              <iframe
+                src="https://www.google.com/maps?q=Shivshakti+Computer+Academy+Ambikapur&output=embed"
+                loading="lazy"
+                title="Shivshakti Computer Academy Ambikapur Location Map"
+                allowFullScreen
+                className="visitus-map-iframe"
+              />
+
+              {/* Map Overlay Effect */}
+              <div className="visitus-map-overlay" />
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
+  );
 }
+
+const visitUsStyles = `
+/* ==========================================
+   VISIT US SECTION
+   ========================================== */
+
+.visitus-section {
+  position: relative;
+  padding: var(--space-24) var(--space-6);
+  background: var(--bg-page);
+  overflow: hidden;
+}
+
+/* Background Pattern */
+.visitus-bg-pattern {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+    var(--border-color) 1px,
+    transparent 1px
+  );
+  background-size: 100% 60px;
+  opacity: 0.3;
+  z-index: 0;
+}
+
+.visitus-bg-pattern::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--border-color), transparent);
+}
+
+/* Container */
+.visitus-container {
+  position: relative;
+  z-index: 10;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Header */
+.visitus-header {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+  align-items: end;
+  margin-bottom: var(--space-14);
+}
+
+@media (min-width: 768px) {
+  .visitus-header {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-12);
+  }
+}
+
+.visitus-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-primary-600);
+  margin-bottom: var(--space-4);
+}
+
+.visitus-badge-line {
+  width: 24px;
+  height: 1.5px;
+  background: var(--color-primary-600);
+  flex-shrink: 0;
+}
+
+.visitus-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+
+.visitus-title-highlight {
+  color: var(--color-accent-600);
+}
+
+.visitus-description {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-light);
+  line-height: 1.8;
+  color: var(--text-secondary);
+}
+
+@media (min-width: 768px) {
+  .visitus-description {
+    padding-bottom: var(--space-1);
+  }
+}
+
+/* Grid Layout */
+.visitus-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-8);
+  align-items: stretch;
+}
+
+@media (min-width: 1024px) {
+  .visitus-grid {
+    grid-template-columns: 1fr 1.4fr;
+  }
+}
+
+/* Info Panel */
+.visitus-info-panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+}
+
+/* Panel Header */
+.visitus-panel-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-8);
+  background: var(--color-gray-900);
+  border-bottom: 1px solid var(--border-color);
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .visitus-panel-header {
+  background: var(--color-gray-950, #0a0a0a);
+}
+
+.visitus-panel-header::after {
+  content: "";
+  position: absolute;
+  right: -10px;
+  bottom: -10px;
+  width: 100px;
+  height: 100px;
+  background-image: radial-gradient(
+    circle,
+    rgba(59, 130, 246, 0.15) 1.5px,
+    transparent 1.5px
+  );
+  background-size: 12px 12px;
+  pointer-events: none;
+}
+
+.visitus-panel-icon {
+  font-size: 2rem;
+}
+
+.visitus-panel-title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.visitus-panel-subtitle {
+  font-size: 11px;
+  font-weight: var(--font-weight-light);
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: var(--space-1);
+}
+
+/* Info List */
+.visitus-info-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.visitus-info-item {
+  position: relative;
+  display: flex;
+  align-items: start;
+  gap: var(--space-4);
+  padding: var(--space-6) var(--space-8);
+  border-bottom: 1px solid var(--border-color);
+  transition: background var(--transition-base);
+}
+
+.visitus-info-item:last-child {
+  border-bottom: none;
+}
+
+.visitus-info-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--color-primary-600);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform var(--transition-base);
+}
+
+.visitus-info-item:hover::before {
+  transform: scaleY(1);
+}
+
+.visitus-info-item:hover {
+  background: rgba(37, 99, 235, 0.05);
+}
+
+.visitus-info-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  color: var(--color-primary-600);
+  flex-shrink: 0;
+}
+
+.visitus-info-label {
+  font-size: 9px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-2);
+}
+
+.visitus-info-text {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-light);
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+.visitus-info-phones {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.visitus-phone-link {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-primary-600);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.visitus-phone-link:hover {
+  color: var(--color-accent-600);
+  text-decoration: underline;
+}
+
+.visitus-hours-highlight {
+  color: var(--color-primary-600);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Maps Button */
+.visitus-maps-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: var(--space-4) var(--space-8) var(--space-6);
+  padding: var(--space-4) var(--space-6);
+  background: var(--color-primary-600);
+  color: var(--color-white);
+  border-radius: var(--radius-xl);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  transition: all var(--transition-base);
+}
+
+.visitus-maps-btn:hover {
+  background: var(--color-primary-700);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+}
+
+.visitus-maps-arrow {
+  transition: transform var(--transition-fast);
+}
+
+.visitus-maps-btn:hover .visitus-maps-arrow {
+  transform: translateX(4px);
+}
+
+/* Map Wrapper */
+.visitus-map-wrapper {
+  position: relative;
+  min-height: 440px;
+  background: rgba(37, 99, 235, 0.05);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+}
+
+.visitus-map-badge {
+  position: absolute;
+  top: var(--space-4);
+  left: var(--space-4);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: rgba(17, 24, 39, 0.88);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: var(--font-weight-medium);
+  color: rgba(255, 255, 255, 0.95);
+  pointer-events: none;
+}
+
+.visitus-map-iframe {
+  width: 100%;
+  height: 100%;
+  min-height: 440px;
+  border: none;
+  display: block;
+}
+
+.visitus-map-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.02) 100%
+  );
+  pointer-events: none;
+}
+
+/* Animations */
+.anim-fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.anim-slide-up {
+  animation: slideUp 0.8s ease-out 0.1s both;
+}
+
+.anim-fade-in-delay {
+  animation: fadeIn 0.6s ease-out 0.2s both;
+}
+
+.anim-scale-1 {
+  animation: scaleIn 0.6s ease-out 0.3s both;
+}
+
+.anim-scale-2 {
+  animation: scaleIn 0.6s ease-out 0.4s both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Responsive */
+@media (max-width: 1023px) {
+  .visitus-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .visitus-map-wrapper {
+    min-height: 320px;
+  }
+
+  .visitus-map-iframe {
+    min-height: 320px;
+  }
+}
+
+@media (max-width: 768px) {
+  .visitus-header {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .visitus-panel-header {
+    padding: var(--space-6);
+  }
+
+  .visitus-info-item {
+    padding: var(--space-5);
+  }
+
+  .visitus-maps-btn {
+    margin: var(--space-4) var(--space-5) var(--space-5);
+  }
+}
+`;
