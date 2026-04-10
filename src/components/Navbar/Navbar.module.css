@@ -1,13 +1,14 @@
 /* ============================================ */
-/* HEADER - Remove sticky from here */
+/* HEADER - STICKY FIX */
 /* ============================================ */
 .header {
-    /* CHANGED: Remove position sticky */
+    /* REMOVED: position: sticky; */
     position: relative;
+    /* Keep top: 0 for reference */
     top: 0;
     left: 0;
     right: 0;
-    z-index: 10;
+    z-index: 10; /* Lower than wrapper */
     background: rgba(255, 255, 255, 0.75);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -61,7 +62,9 @@
     transform: scaleX(1);
 }
 
-/* Container */
+/* ============================================ */
+/* CONTAINER */
+/* ============================================ */
 .container {
     max-width: 1400px;
     margin: 0 auto;
@@ -78,7 +81,9 @@
     height: 68px;
 }
 
-/* Mobile Toggle */
+/* ============================================ */
+/* MOBILE TOGGLE */
+/* ============================================ */
 .mobileToggle {
     position: relative;
     display: flex;
@@ -118,7 +123,9 @@
     opacity: 1;
 }
 
-/* Logo */
+/* ============================================ */
+/* LOGO */
+/* ============================================ */
 .logo {
     display: flex;
     align-items: center;
@@ -155,7 +162,12 @@
 .logoGlow {
     position: absolute;
     inset: -50%;
-    background: conic-gradient(from 0deg, var(--color-primary-400), var(--color-accent-400), var(--color-primary-400));
+    background: conic-gradient(
+        from 0deg,
+        var(--color-primary-400),
+        var(--color-accent-400),
+        var(--color-primary-400)
+    );
     opacity: 0;
     animation: rotate 8s linear infinite;
     transition: opacity 0.3s;
@@ -205,7 +217,9 @@
     letter-spacing: 0.03em;
 }
 
-/* Desktop Navigation */
+/* ============================================ */
+/* DESKTOP NAVIGATION */
+/* ============================================ */
 .desktopNav {
     display: none;
     flex: 1;
@@ -221,6 +235,7 @@
     padding: 0;
 }
 
+/* Nav Link */
 .navLink {
     position: relative;
     display: flex;
@@ -258,7 +273,9 @@
     transform: translateX(-50%) scaleX(1);
 }
 
-/* Dropdown */
+/* ============================================ */
+/* DROPDOWN - FIXED HOVER ISSUE */
+/* ============================================ */
 .dropdown {
     position: relative;
 }
@@ -293,17 +310,22 @@
     transform: rotate(180deg);
 }
 
+/* FIXED: Added padding-top to bridge the gap */
 .dropdownMenu {
     position: absolute;
-    top: calc(100% + 8px);
+    top: 100%;
     left: 50%;
-    transform: translateX(-50%) translateY(-10px);
+    transform: translateX(-50%) translateY(0);
     min-width: 260px;
     background: var(--bg-elevated);
     border: 1.5px solid var(--border-color);
     border-radius: 18px;
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
     padding: 10px;
+    /* FIXED: Added padding-top for hover bridge */
+    padding-top: 20px;
+    /* FIXED: Negative margin to compensate padding */
+    margin-top: -6px;
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
@@ -318,10 +340,24 @@
     transform: translateX(-50%) translateY(0);
 }
 
+/* FIXED: Invisible bridge for smooth hover */
+.dropdownMenu::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: transparent;
+}
+
 .dropdownInner {
     display: flex;
     flex-direction: column;
     gap: 3px;
+    background: var(--bg-elevated);
+    border-radius: 14px;
+    padding: 4px;
 }
 
 .dropdownItem {
@@ -372,7 +408,9 @@
     left: 100%;
 }
 
-/* Actions */
+/* ============================================ */
+/* ACTIONS */
+/* ============================================ */
 .actions {
     display: flex;
     align-items: center;
@@ -420,7 +458,9 @@
     opacity: 1;
 }
 
-/* Mobile Drawer */
+/* ============================================ */
+/* MOBILE DRAWER */
+/* ============================================ */
 .backdrop {
     position: fixed;
     inset: 0;
@@ -461,6 +501,7 @@
     transform: translateX(0);
 }
 
+/* Drawer Header */
 .drawerHeader {
     display: flex;
     align-items: center;
@@ -511,6 +552,7 @@
     color: var(--color-primary-600);
 }
 
+/* Drawer Body */
 .drawerBody {
     flex: 1;
     overflow-y: auto;
@@ -539,6 +581,7 @@
     padding-left: 22px;
 }
 
+/* Accordion */
 .accordion {
     margin-top: 6px;
 }
@@ -616,12 +659,14 @@
     padding-left: 20px;
 }
 
+/* Drawer Divider */
 .drawerDivider {
     height: 1px;
     background: linear-gradient(90deg, transparent, var(--border-color), transparent);
     margin: 20px 0;
 }
 
+/* Drawer CTA */
 .drawerCta {
     display: flex;
     align-items: center;
@@ -643,6 +688,7 @@
     transform: scale(0.97);
 }
 
+/* Drawer Footer */
 .drawerFooter {
     padding: 20px;
     border-top: 1.5px solid var(--border-color);
@@ -661,13 +707,18 @@
     font-weight: 600;
 }
 
-/* Responsive */
+/* ============================================ */
+/* RESPONSIVE */
+/* ============================================ */
+
+/* Tablet */
 @media (min-width: 640px) {
     .logoText {
         display: flex;
     }
 }
 
+/* Desktop */
 @media (min-width: 1024px) {
     .mobileToggle {
         display: none;
@@ -682,6 +733,7 @@
     }
 }
 
+/* Large Desktop */
 @media (min-width: 1280px) {
     .container {
         padding: 0 2rem;
