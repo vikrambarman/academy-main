@@ -48,7 +48,16 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 80px; /* For fixed header */
+  scroll-padding-top: 120px; /* Updated for fixed header */
+  height: auto !important;
+  min-height: 100vh !important;
+  overflow-y: auto !important;
+}
+
+body {
+  height: auto !important;
+  min-height: 100vh !important;
+  overflow-y: auto !important;
 }
 
 /* ==========================================
@@ -186,4 +195,81 @@ a:focus-visible {
 
 ::-ms-input-placeholder {
   color: var(--color-gray-400);
+}
+
+/* ==========================================
+   NEXT.JS WRAPPER FIX
+   ========================================== */
+
+#__next {
+  min-height: 100vh;
+  height: auto;
+  overflow: visible;
+}
+
+/* ==========================================
+   MAIN CONTENT OFFSET FOR FIXED HEADER
+   Dynamic margin based on header presence
+   ========================================== */
+
+.public-main {
+  /* Default: Topbar(42) + Navbar(72) = 114px (no breaking news) */
+  margin-top: 114px;
+  min-height: calc(100vh - 314px); /* 100vh - header - footer */
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* When breaking news is present: add extra 42px */
+.public-main.has-breaking-news {
+  margin-top: 156px; /* 42 + 42 + 72 */
+}
+
+/* Tablet */
+@media (max-width: 1023px) {
+  .public-main {
+    margin-top: 110px; /* 38 + 72 */
+  }
+
+  .public-main.has-breaking-news {
+    margin-top: 152px; /* 38 + 42 + 72 */
+  }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .public-main {
+    margin-top: 110px; /* 38 + 72 */
+  }
+
+  .public-main.has-breaking-news {
+    margin-top: 148px; /* 38 + 38 + 72 */
+  }
+}
+
+/* Page transition animation */
+.public-main > * {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==========================================
+   FORCE HEADER TO BE FIXED
+   ========================================== */
+
+.headerWrapper,
+[class*="headerWrapper"] {
+  position: fixed !important;
+  top: 0 !important;
+  z-index: 1000 !important;
 }

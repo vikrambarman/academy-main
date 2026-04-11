@@ -137,26 +137,32 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html 
-      lang="en" 
+    <html
+      lang="en"
       className={`${inter.variable} ${poppins.variable}`}
       suppressHydrationWarning
+      style={{ height: 'auto', minHeight: '100vh' }}
     >
       <head>
         {/* Preconnect to external domains */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link 
-          rel="preconnect" 
-          href="https://fonts.gstatic.com" 
-          crossOrigin="anonymous" 
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
         />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
-        
+
         {/* Manifest */}
         <link rel="manifest" href="/site.webmanifest" />
       </head>
-      
-      <body className="antialiased" suppressHydrationWarning>
+
+      <body className="antialiased" suppressHydrationWarning
+        style={{
+          height: 'auto',
+          minHeight: '100vh',
+          overflowY: 'auto'
+        }}>
         <ThemeProvider storageKey="sca-theme">
           {children}
           {/* <ChatWidget /> */}
