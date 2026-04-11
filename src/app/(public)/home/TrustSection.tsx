@@ -22,7 +22,7 @@ const recognitions = [
 const stats = [
     { value: "1000+", label: "Students Enrolled",        icon: "🎓" },
     { value: "98%",   label: "Completion Rate",          icon: "📈" },
-    { value: "100%",  label: "Certificate Verification", icon: "✅" },
+    { value: "100%",  label: "Certificate Verification", icon: "✓" },
     { value: "24/7",  label: "Student Support",          icon: "🤝" },
 ];
 
