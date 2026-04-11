@@ -227,8 +227,8 @@ export default function HowItWorks() {
                     padding: var(--space-24) var(--space-6);
                     background: linear-gradient(
                         180deg,
-                        var(--color-gray-50) 0%,
-                        var(--color-white) 100%
+                        var(--color-white) 0%,
+                        var(--color-primary-200) 100%
                     );
                     overflow: hidden;
                 }
@@ -346,7 +346,7 @@ export default function HowItWorks() {
                 .hiw-step {
                     position: relative;
                     background: var(--color-white);
-                    border: 1px solid var(--color-gray-200);
+                    border: 1px solid var(--color-primary-800);
                     border-radius: var(--radius-2xl);
                     padding: var(--space-8) var(--space-6);
                     overflow: hidden;

@@ -41,7 +41,7 @@ export default function HeroSection() {
 
         {/* Main Container */}
         <div className="hero-stage">
-          
+
           {/* Animated Top Bar */}
           <div className="hero-top-strip reveal-top">
             <div className="strip-content">
@@ -64,10 +64,10 @@ export default function HeroSection() {
 
           {/* Content Grid */}
           <div className="hero-grid">
-            
+
             {/* Left Content */}
             <div className="hero-content">
-              
+
               {/* Premium Badge */}
               <div className="premium-badge reveal-fade">
                 <div className="badge-glow" />
@@ -135,12 +135,12 @@ export default function HeroSection() {
 
             {/* Right Visual */}
             <div className="hero-visual reveal-scale-delay">
-              
+
               {/* Main Image Frame */}
               <div className="visual-frame">
                 <div className="frame-border" />
                 <div className="frame-glow" />
-                
+
                 <div className="visual-image">
                   <Image
                     src="/hero.jpg"
@@ -350,7 +350,7 @@ const heroStyles = `
   z-index: 10;
   max-width: 1280px; /* ✅ Reduced from 1400px */
   margin: 0 auto;
-  padding: clamp(1.5rem, 3vw, 2.5rem) clamp(1rem, 2vw, 1.5rem); /* ✅ Reduced padding */
+  padding: clamp(1.2rem, 3vw, 1.5rem) clamp(1rem, 2vw, 1.5rem); /* ✅ Reduced padding */
   min-height: 90vh; /* ✅ Reduced */
   display: flex;
   flex-direction: column;
@@ -630,7 +630,7 @@ const heroStyles = `
   display: flex;
   align-items: center;
   gap: 0.75rem; /* ✅ Reduced */
-  padding: 0.938rem 1.5rem; /* ✅ Reduced */
+  padding: 0.938rem 1rem; /* ✅ Reduced */
   background: linear-gradient(135deg, #2563eb, #1d4ed8);
   border-radius: 100px;
   text-decoration: none;
@@ -989,13 +989,10 @@ const heroStyles = `
 .stats-bar {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); /* ✅ Reduced */
-  gap: 1.25rem; /* ✅ Reduced */
-  padding: 1.375rem; /* ✅ Reduced */
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(24px);
-  border: 1px solid rgba(59, 130, 246, 0.12);
-  border-radius: 1.5rem; /* ✅ Reduced */
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05); /* ✅ Reduced */
+  gap: 1rem; /* ✅ Reduced */
+  padding: 1rem; /* ✅ Reduced */
+  background: linear-gradient(285deg,rgba(238, 174, 202, 1) 0%, rgba(148, 187, 233, 1) 100%);
+  border-radius: 1rem; /* ✅ Reduced */
 }
 
 [data-theme="dark"] .stats-bar {
@@ -1007,7 +1004,7 @@ const heroStyles = `
   display: flex;
   align-items: center;
   gap: 0.875rem; /* ✅ Reduced */
-  padding: 0.625rem; /* ✅ Reduced */
+  padding: 0rem; /* ✅ Reduced */
   border-radius: 0.875rem; /* ✅ Reduced */
   transition: all 0.3s;
 }
@@ -1018,7 +1015,7 @@ const heroStyles = `
 }
 
 .stat-icon {
-  font-size: 1.75rem; /* ✅ REDUCED from 2rem */
+  font-size: 1.2rem; /* ✅ REDUCED from 2rem */
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
@@ -1032,7 +1029,7 @@ const heroStyles = `
 
 .stat-desc {
   font-size: 0.688rem; /* ✅ REDUCED from 0.75rem (11px) */
-  color: var(--text-tertiary);
+  color: var(--text-primary);
 }
 
 .stat-glow {
