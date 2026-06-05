@@ -1,4 +1,4 @@
-// FILE: src/app/api/student/attendance/route.ts
+// src/app/api/student/attendance/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
@@ -51,20 +51,30 @@ export async function GET(request: NextRequest) {
 
             // Compute stats
             const stats = {
-                total: 0, present: 0, absent: 0,
-                late: 0, holiday: 0, percentage: 0,
+                total: 0,
+                present: 0,
+                absent: 0,
+                late: 0,
+                holiday: 0,
+                percentage: 0,
             };
 
+            // ✅ Include new fields in response
             const records = (doc.records || []).map((r: any) => {
                 stats.total++;
-                if      (r.status === "present") stats.present++;
-                else if (r.status === "absent")  stats.absent++;
-                else if (r.status === "late")    stats.late++;
+                if (r.status === "present") stats.present++;
+                else if (r.status === "absent") stats.absent++;
+                else if (r.status === "late") stats.late++;
                 else if (r.status === "holiday") stats.holiday++;
+
                 return {
-                    date:   r.date,
+                    date: r.date,
                     status: r.status,
                     remark: r.remark ?? "",
+                    // ✅ NEW FIELDS
+                    inTime: r.inTime ?? null,
+                    outTime: r.outTime ?? null,
+                    markedVia: r.markedVia ?? null,
                 };
             });
 

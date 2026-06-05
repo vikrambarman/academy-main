@@ -8,7 +8,8 @@ import {
     FileText, Settings, LogOut, Menu, Notebook,
     IndianRupee, Award, CalendarDays, Clock,
     ChevronRight, Bell, Shield, Settings2,
-    BarChart2
+    BarChart2,
+    Key
 } from "lucide-react";
 import AuthGuard from "@/components/AuthGaurd";
 import { PortalThemeToggle } from "@/components/ThemeToggle";
@@ -35,6 +36,7 @@ const menuSections = [
             { name: "Notes",        href: "/dashboard/admin/notes",        icon: Notebook     },
             { name: "Study Notes",  href: "/dashboard/admin/study",        icon: BookOpen     },
             { name: "Attendance",   href: "/dashboard/admin/attendance",   icon: CalendarDays },
+            { name: "Hourly Code",  href: "/dashboard/admin/attendance/hourly-code",  icon: Key }, // ← NEW
             { name: "Timetable",    href: "/dashboard/admin/timetable",    icon: Clock        },
             { name: "Course Enquiry", href: "/dashboard/admin/course-enquiry", icon: BarChart2 },
         ],

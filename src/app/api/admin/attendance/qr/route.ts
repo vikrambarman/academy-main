@@ -1,3 +1,5 @@
+// src/app/api/admin/attendance/qr/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { verifyUser } from "@/lib/verifyUser";
 import QRCode from "qrcode";
@@ -19,612 +21,436 @@ export async function GET(req: NextRequest) {
 
         const scanUrl = `${baseUrl}/attendance/scan`;
 
-        // Generate QR Code SVG
+        // Generate QR Code SVG - smaller size for A4
         const qrSvg = await QRCode.toString(scanUrl, {
             type: "svg",
-            width: 400,
-            margin: 2,
+            width: 280,
+            margin: 1,
             color: {
-                dark: "#1e1b4b",
+                dark: "#1e293b",
                 light: "#ffffff",
             },
-            errorCorrectionLevel: "H", // High error correction
+            errorCorrectionLevel: "H",
         });
 
-        // Professional print-ready HTML
         const html = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QR Code - Attendance System | Shivshakti Computer Academy</title>
+  <title>QR Code - Attendance System</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+
     * {
+      margin: 0;
+      padding: 0;
       box-sizing: border-box;
+    }
+
+    html, body {
+      width: 210mm;
+      height: 297mm;
       margin: 0;
       padding: 0;
     }
 
-    :root {
-      --primary: #1e1b4b;
-      --primary-light: #312e81;
-      --accent: #6366f1;
-      --accent-glow: rgba(99, 102, 241, 0.1);
-      --success: #22c55e;
-      --text: #0f172a;
-      --text-muted: #64748b;
-      --border: #e2e8f0;
-      --bg-gray: #f8fafc;
-    }
-
     body {
-      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-      background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 20px;
-      color: var(--text);
-    }
-
-    .container {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background: white;
-      border-radius: 24px;
-      padding: 48px 40px;
-      max-width: 600px;
-      width: 100%;
-      box-shadow: 
-        0 20px 60px rgba(30, 27, 75, 0.12),
-        0 0 0 1px rgba(30, 27, 75, 0.05);
-      position: relative;
+      color: #0f172a;
+      padding: 15mm 15mm 12mm 15mm;
+      display: flex;
+      flex-direction: column;
       overflow: hidden;
     }
 
-    /* Decorative corner */
-    .corner-decoration {
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 200px;
-      height: 200px;
-      background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
-      opacity: 0.05;
-      border-radius: 0 0 0 100%;
-    }
-
-    /* Header */
+    /* Header - Compact */
     .header {
       text-align: center;
-      margin-bottom: 32px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .logo-wrap {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 64px;
-      height: 64px;
-      background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
-      border-radius: 16px;
-      margin-bottom: 16px;
-      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.25);
+      margin-bottom: 8mm;
+      padding-bottom: 6mm;
+      border-bottom: 2px solid #e2e8f0;
     }
 
     .logo {
       font-size: 32px;
-      filter: brightness(0) invert(1);
+      margin-bottom: 3mm;
     }
 
-    .academy-name {
-      font-size: 1.75rem;
+    .title {
+      font-size: 22pt;
       font-weight: 800;
-      color: var(--primary);
-      letter-spacing: -0.02em;
-      margin-bottom: 6px;
-      line-height: 1.2;
+      color: #1e293b;
+      margin-bottom: 2mm;
+      letter-spacing: -0.5px;
+      line-height: 1.1;
     }
 
-    .tagline {
-      font-size: 0.95rem;
-      color: var(--text-muted);
+    .subtitle {
+      font-size: 11pt;
+      color: #64748b;
       font-weight: 500;
+      margin-bottom: 3mm;
     }
 
-    .system-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 14px;
-      background: var(--accent-glow);
-      border: 1px solid rgba(99, 102, 241, 0.2);
-      border-radius: 100px;
-      font-size: 0.75rem;
+    .badge {
+      display: inline-block;
+      padding: 1.5mm 4mm;
+      background: #dbeafe;
+      border: 1px solid #3b82f6;
+      border-radius: 5px;
+      font-size: 9pt;
       font-weight: 700;
-      color: var(--accent);
-      margin-top: 12px;
+      color: #1e40af;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.3px;
     }
 
-    .pulse-dot {
-      width: 6px;
-      height: 6px;
-      background: var(--success);
-      border-radius: 50%;
-      animation: pulse 2s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(0.8); }
-    }
-
-    /* Divider */
-    .divider {
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--border), transparent);
-      margin: 32px 0;
-    }
-
-    /* QR Section */
+    /* QR Section - Compact */
     .qr-section {
       text-align: center;
-      margin-bottom: 32px;
+      margin-bottom: 8mm;
     }
 
-    .qr-title {
-      font-size: 1.2rem;
+    .qr-heading {
+      font-size: 15pt;
       font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 16px;
+      color: #1e293b;
+      margin-bottom: 5mm;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-    }
-
-    .qr-icon {
-      font-size: 1.3rem;
+      gap: 2mm;
     }
 
     .qr-container {
-      background: white;
-      padding: 24px;
-      border-radius: 20px;
-      border: 3px dashed var(--border);
       display: inline-block;
-      position: relative;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-    }
-
-    .qr-container::before {
-      content: '';
-      position: absolute;
-      inset: -8px;
-      background: linear-gradient(135deg, var(--accent), var(--primary));
-      opacity: 0.05;
-      border-radius: 24px;
-      z-index: -1;
+      padding: 6mm;
+      background: white;
+      border: 3px solid #1e293b;
+      border-radius: 3mm;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+      margin-bottom: 3mm;
     }
 
     .qr-code {
       display: block;
-      max-width: 100%;
-      height: auto;
+      width: 70mm;
+      height: 70mm;
     }
 
     .qr-label {
-      margin-top: 16px;
-      font-size: 0.8rem;
-      color: var(--text-muted);
+      font-size: 9pt;
+      color: #64748b;
       font-weight: 600;
+      margin-top: 2mm;
     }
 
-    /* Instructions */
+    /* Instructions - Compact */
     .instructions {
-      background: var(--bg-gray);
-      border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 28px;
+      background: #f8fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 2mm;
+      padding: 4mm 6mm;
+      margin-bottom: 6mm;
     }
 
-    .instruction-title {
-      font-size: 1.05rem;
+    .inst-title {
+      font-size: 12pt;
       font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      color: #1e293b;
+      margin-bottom: 3mm;
+      padding-bottom: 2mm;
+      border-bottom: 1px solid #e2e8f0;
     }
 
     .steps {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+      display: grid;
+      gap: 2mm;
     }
 
     .step {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 12px;
-      background: white;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      transition: all 0.2s;
+      display: grid;
+      grid-template-columns: 7mm 1fr;
+      gap: 2.5mm;
+      align-items: start;
+      font-size: 9.5pt;
+      line-height: 1.5;
+      color: #334155;
     }
 
-    .step:hover {
-      border-color: var(--accent);
-      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
-    }
-
-    .step-number {
-      flex-shrink: 0;
-      width: 28px;
-      height: 28px;
-      background: linear-gradient(135deg, var(--accent), var(--primary));
+    .step-num {
+      width: 7mm;
+      height: 7mm;
+      background: #3b82f6;
       color: white;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 800;
-      font-size: 0.85rem;
-    }
-
-    .step-text {
-      font-size: 0.9rem;
-      color: var(--text);
-      line-height: 1.6;
-      padding-top: 3px;
-    }
-
-    .step-text strong {
-      color: var(--primary);
       font-weight: 700;
-    }
-
-    /* Features Grid */
-    .features {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin-bottom: 28px;
-    }
-
-    .feature {
-      background: var(--bg-gray);
-      padding: 16px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .feature-icon {
-      font-size: 1.5rem;
+      font-size: 9pt;
       flex-shrink: 0;
     }
 
-    .feature-text {
-      font-size: 0.8rem;
-      color: var(--text);
-      font-weight: 600;
-      line-height: 1.3;
+    .step-text strong {
+      color: #1e293b;
+      font-weight: 700;
     }
 
-    /* URL Section */
-    .url-section {
-      background: var(--primary);
+    /* Features - Compact */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2.5mm;
+      margin-bottom: 6mm;
+    }
+
+    .feature {
+      display: flex;
+      align-items: center;
+      gap: 2mm;
+      padding: 2.5mm 3mm;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 2mm;
+      font-size: 9pt;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    .feature-icon {
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    /* URL Box - Compact */
+    .url-box {
+      background: #1e293b;
       color: white;
-      padding: 20px;
-      border-radius: 14px;
-      margin-bottom: 24px;
+      padding: 3mm 4mm;
+      border-radius: 2mm;
       text-align: center;
+      margin-bottom: 6mm;
     }
 
     .url-label {
-      font-size: 0.75rem;
+      font-size: 8pt;
       opacity: 0.7;
-      margin-bottom: 8px;
+      margin-bottom: 1.5mm;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-weight: 700;
+      letter-spacing: 0.3px;
+      font-weight: 600;
     }
 
     .url-text {
       font-family: 'Courier New', monospace;
-      font-size: 0.85rem;
+      font-size: 9pt;
       font-weight: 700;
       word-break: break-all;
       background: rgba(255, 255, 255, 0.1);
-      padding: 10px 16px;
+      padding: 1.5mm 2.5mm;
+      border-radius: 1mm;
+    }
+
+    /* Footer - Compact */
+    .footer {
+      text-align: center;
+      padding-top: 5mm;
+      border-top: 2px solid #e2e8f0;
+      margin-top: auto;
+    }
+
+    .footer-note {
+      font-size: 8pt;
+      color: #64748b;
+      line-height: 1.6;
+      max-width: 150mm;
+      margin: 0 auto;
+    }
+
+    .footer-note strong {
+      color: #1e293b;
+      font-weight: 700;
+    }
+
+    /* Print Button (screen only) */
+    .print-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 12px 24px;
+      background: #3b82f6;
+      color: white;
+      border: none;
       border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    /* Buttons */
-    .button-group {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 14px 28px;
-      border-radius: 12px;
-      font-size: 0.95rem;
+      font-size: 14px;
       font-weight: 700;
       cursor: pointer;
-      border: none;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
       font-family: inherit;
+      z-index: 1000;
       transition: all 0.2s;
     }
 
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent), var(--primary));
-      color: white;
-      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
-    }
-
-    .btn-primary:hover {
+    .print-btn:hover {
+      background: #2563eb;
       transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.5);
     }
 
-    .btn-secondary {
-      background: var(--bg-gray);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-
-    .btn-secondary:hover {
-      background: var(--border);
-    }
-
-    /* Footer */
-    .footer {
-      text-align: center;
-      margin-top: 32px;
-      padding-top: 24px;
-      border-top: 1px solid var(--border);
-    }
-
-    .footer-text {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      line-height: 1.6;
-    }
-
-    .footer-text strong {
-      color: var(--primary);
-      font-weight: 700;
-    }
-
-    /* Print Styles */
     @media print {
+      html, body {
+        width: 210mm;
+        height: 297mm;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
       body {
-        background: white;
-        padding: 0;
+        padding: 15mm 15mm 12mm 15mm !important;
       }
 
-      .container {
-        box-shadow: none;
-        border: 2px solid var(--border);
-        max-width: 100%;
-        padding: 40px;
-      }
-
-      .no-print {
+      .print-btn {
         display: none !important;
       }
 
-      .corner-decoration {
-        opacity: 0.02;
+      @page {
+        size: A4 portrait;
+        margin: 0;
       }
 
-      .qr-container {
-        border-width: 2px;
-      }
-
-      .step:hover {
-        border-color: var(--border);
-        box-shadow: none;
+      /* Force page break prevention */
+      .header, .qr-section, .instructions, .features, .url-box, .footer {
+        page-break-inside: avoid;
+        break-inside: avoid;
       }
     }
 
-    /* Mobile Responsive */
-    @media (max-width: 600px) {
+    @media screen and (max-width: 800px) {
+      html, body {
+        width: 100%;
+        height: auto;
+      }
+
       body {
         padding: 20px;
       }
 
-      .container {
-        padding: 32px 24px;
-      }
-
-      .academy-name {
-        font-size: 1.4rem;
+      .qr-code {
+        width: 60mm;
+        height: 60mm;
       }
 
       .features {
         grid-template-columns: 1fr;
       }
-
-      .button-group {
-        flex-direction: column;
-      }
-
-      .btn {
-        width: 100%;
-        justify-content: center;
-      }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="corner-decoration"></div>
 
-    <!-- Header -->
-    <div class="header">
-      <div class="logo-wrap">
-        <div class="logo">🎓</div>
-      </div>
-      <h1 class="academy-name">Shivshakti Computer Academy</h1>
-      <p class="tagline">Excellence in Computer Education</p>
-      <div class="system-badge">
-        <div class="pulse-dot"></div>
-        Digital Attendance System
-      </div>
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">🎓</div>
+    <h1 class="title">Shivshakti Computer Academy</h1>
+    <p class="subtitle">Excellence in Computer Education</p>
+    <div class="badge">Digital Attendance System</div>
+  </div>
+
+  <!-- QR Code Section -->
+  <div class="qr-section">
+    <h2 class="qr-heading">
+      <span>📱</span>
+      Scan QR Code for Attendance
+    </h2>
+    
+    <div class="qr-container">
+      ${qrSvg}
     </div>
+    
+    <p class="qr-label">Point your phone camera at this QR code</p>
+  </div>
 
-    <div class="divider"></div>
-
-    <!-- QR Code Section -->
-    <div class="qr-section">
-      <h2 class="qr-title">
-        <span class="qr-icon">📱</span>
-        Scan for Attendance
-      </h2>
-      <div class="qr-container">
-        ${qrSvg}
-        <div class="qr-label">Scan with any QR Scanner</div>
-      </div>
-    </div>
-
-    <!-- Instructions -->
-    <div class="instructions">
-      <h3 class="instruction-title">
-        📋 How to Use
-      </h3>
-      <div class="steps">
-        <div class="step">
-          <div class="step-number">1</div>
-          <div class="step-text">
-            Open your <strong>phone camera</strong> or any QR scanner app
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-number">2</div>
-          <div class="step-text">
-            Point camera at the QR code above — link will <strong>auto-open</strong>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-number">3</div>
-          <div class="step-text">
-            Enter your <strong>Student ID</strong> (e.g., SCA-2025-0001)
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-number">4</div>
-          <div class="step-text">
-            Tap <strong>"Mark IN"</strong> when arriving, <strong>"Mark OUT"</strong> when leaving
-          </div>
+  <!-- Instructions -->
+  <div class="instructions">
+    <h3 class="inst-title">📋 How to Mark Attendance</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">
+          Open your <strong>phone camera</strong> app (no special app needed)
         </div>
       </div>
-    </div>
-
-    <!-- Features -->
-    <div class="features">
-      <div class="feature">
-        <div class="feature-icon">⚡</div>
-        <div class="feature-text">Instant attendance marking</div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">
+          Point camera at QR code — link will <strong>open automatically</strong>
+        </div>
       </div>
-      <div class="feature">
-        <div class="feature-icon">🕐</div>
-        <div class="feature-text">Automatic time recording</div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">
+          Enter your <strong>Student ID</strong> (e.g., SCA-2025-0001)
+        </div>
       </div>
-      <div class="feature">
-        <div class="feature-icon">📊</div>
-        <div class="feature-text">Real-time dashboard updates</div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-text">
+          Tap <strong>"Mark IN"</strong> when arriving, <strong>"Mark OUT"</strong> when leaving
+        </div>
       </div>
-      <div class="feature">
-        <div class="feature-icon">🔒</div>
-        <div class="feature-text">Secure & authenticated</div>
-      </div>
-    </div>
-
-    <!-- URL -->
-    <div class="url-section">
-      <div class="url-label">Direct Link (if QR doesn't work)</div>
-      <div class="url-text">${scanUrl}</div>
-    </div>
-
-    <!-- Buttons -->
-    <div class="button-group no-print">
-      <button class="btn btn-primary" onclick="window.print()">
-        🖨️ Print QR Code
-      </button>
-      <button class="btn btn-secondary" onclick="downloadQR()">
-        💾 Download as Image
-      </button>
-    </div>
-
-    <!-- Footer -->
-    <div class="footer">
-      <p class="footer-text">
-        <strong>Important:</strong> Print this QR code and display it at the reception desk.<br>
-        Students can scan it daily for attendance marking.<br>
-        One QR code works for all students and all batches.
-      </p>
     </div>
   </div>
 
-  <script>
-    // Download QR as image
-    function downloadQR() {
-      // Convert SVG to canvas then to PNG
-      const svg = document.querySelector('.qr-code');
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
-      
-      const svgData = new XMLSerializer().serializeToString(svg);
-      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(svgBlob);
-      
-      img.onload = function() {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0);
-        
-        canvas.toBlob(function(blob) {
-          const link = document.createElement('a');
-          link.download = 'attendance-qr-code.png';
-          link.href = URL.createObjectURL(blob);
-          link.click();
-          URL.revokeObjectURL(url);
-        });
-      };
-      
-      img.src = url;
-    }
+  <!-- Features -->
+  <div class="features">
+    <div class="feature">
+      <span class="feature-icon">⚡</span>
+      <span>Instant marking</span>
+    </div>
+    <div class="feature">
+      <span class="feature-icon">🕐</span>
+      <span>Auto time recording</span>
+    </div>
+    <div class="feature">
+      <span class="feature-icon">📊</span>
+      <span>Real-time dashboard</span>
+    </div>
+    <div class="feature">
+      <span class="feature-icon">🔒</span>
+      <span>Secure & authenticated</span>
+    </div>
+  </div>
 
-    // Auto-print option (optional)
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('auto') === 'print') {
-      window.onload = function() {
-        setTimeout(() => window.print(), 500);
-      };
-    }
-  </script>
+  <!-- Direct URL -->
+  <div class="url-box">
+    <div class="url-label">Direct Link (if QR doesn't work)</div>
+    <div class="url-text">${scanUrl}</div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p class="footer-note">
+      <strong>Important:</strong> Print this page and display it at the reception desk or classroom entrance.
+      Students can scan this QR code daily to mark their attendance.
+      <strong>One QR code works for all students and all batches.</strong>
+    </p>
+  </div>
+
+  <!-- Print Button (screen only) -->
+  <button class="print-btn" onclick="window.print()">
+    🖨️ Print This Page
+  </button>
+
 </body>
 </html>`;
 

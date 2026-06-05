@@ -23,6 +23,9 @@ interface StudentRow {
     status: AttStatus;
     remark: string;
     alreadyMarked: boolean;
+    inTime?: string;  // ← ADD
+    outTime?: string;  // ← ADD
+    markedVia?: string;  // ← ADD
 }
 
 interface AttDoc {
@@ -98,11 +101,17 @@ export default function AdminAttendancePage() {
             const enrollments: any[] = data.enrollments || [];
             const attDocs: any[] = data.attendance || [];
 
-            const attMap: Record<string, { status: AttStatus; remark: string } | null> = {};
+            const attMap: Record<string, any> = {};
             for (const doc of attDocs) {
                 const eid = typeof doc.enrollment === "string" ? doc.enrollment : doc.enrollment?._id;
                 attMap[eid] = doc.todayRecord
-                    ? { status: doc.todayRecord.status, remark: doc.todayRecord.remark ?? "" }
+                    ? {
+                        status: doc.todayRecord.status,
+                        remark: doc.todayRecord.remark ?? "",
+                        inTime: doc.todayRecord.inTime ?? null,  // ← ADD
+                        outTime: doc.todayRecord.outTime ?? null,  // ← ADD
+                        markedVia: doc.todayRecord.markedVia ?? "manual", // ← ADD
+                    }
                     : null;
             }
 
@@ -118,6 +127,9 @@ export default function AdminAttendancePage() {
                     status: existing?.status ?? "present",
                     remark: existing?.remark ?? "",
                     alreadyMarked: existing !== null,
+                    inTime: existing?.inTime ?? null,   // ← ADD
+                    outTime: existing?.outTime ?? null,   // ← ADD
+                    markedVia: existing?.markedVia ?? "manual", // ← ADD
                 };
             });
             setRows(built);
@@ -314,18 +326,23 @@ export default function AdminAttendancePage() {
                                     </div>
                                 ) : (
                                     <div className="att-table-wrap">
-                                        <div className="att-table-head">
+                                        <div className="att-table-head att-table-head--time">
                                             <span>#</span>
                                             <span>Student</span>
                                             <span>Status</span>
+                                            <span>IN Time</span>
+                                            <span>OUT Time</span>
                                             <span>Remark</span>
                                         </div>
                                         {filtered.map((row, i) => {
                                             const cfg = STATUS_CFG[row.status];
                                             return (
                                                 <div key={row.enrollmentId}
-                                                    className={`att-table-row${row.alreadyMarked ? " att-table-row--marked" : ""}`}>
+                                                    className={`att-table-row att-table-row--time${row.alreadyMarked ? " att-table-row--marked" : ""}`}>
+
                                                     <span className="att-row-num">{i + 1}</span>
+
+                                                    {/* Student column - same */}
                                                     <div className="att-row-student">
                                                         <div className="att-avatar" style={{ background: cfg.bg, color: cfg.color }}>
                                                             {row.name.charAt(0).toUpperCase()}
@@ -335,42 +352,56 @@ export default function AdminAttendancePage() {
                                                             <div className="att-row-id">{row.studentCode}</div>
                                                         </div>
                                                         {row.alreadyMarked && (
-                                                            <span className="att-marked-badge">✓ Marked</span>
+                                                            <span className="att-marked-badge">
+                                                                {row.markedVia === "qr" ? "📱 QR" : "✓ Manual"}
+                                                            </span>
                                                         )}
                                                     </div>
+
+                                                    {/* Status buttons - same */}
                                                     <div className="att-status-btns">
-                                                        {(Object.keys(STATUS_CFG) as AttStatus[]).map(s => {
-                                                            const isQRMarked = row.alreadyMarked && (row as any).markedVia === "qr";
-                                                            return (
-                                                                <button
-                                                                    key={s}
-                                                                    className={`att-status-btn${row.status === s ? " att-status-btn--active" : ""}`}
-                                                                    style={
-                                                                        row.status === s
-                                                                            ? {
-                                                                                background: STATUS_CFG[s].bg,
-                                                                                color: STATUS_CFG[s].color,
-                                                                                borderColor: STATUS_CFG[s].border,
-                                                                            }
-                                                                            : {}
-                                                                    }
-                                                                    onClick={() => setStatus(row.enrollmentId, s)}
-                                                                    title={
-                                                                        isQRMarked && s === "late"
-                                                                            ? "QR se aaya tha - manually late mark kar sakte ho"
-                                                                            : ""
-                                                                    }
-                                                                >
-                                                                    {STATUS_CFG[s].icon}
-                                                                    {STATUS_CFG[s].label}
-                                                                    {/* QR badge agar QR se marked ho */}
-                                                                    {isQRMarked && row.status === s && (
-                                                                        <span className="att-qr-badge">QR</span>
-                                                                    )}
-                                                                </button>
-                                                            );
-                                                        })}
+                                                        {(Object.keys(STATUS_CFG) as AttStatus[]).map(s => (
+                                                            <button
+                                                                key={s}
+                                                                className={`att-status-btn${row.status === s ? " att-status-btn--active" : ""}`}
+                                                                style={row.status === s ? {
+                                                                    background: STATUS_CFG[s].bg,
+                                                                    color: STATUS_CFG[s].color,
+                                                                    borderColor: STATUS_CFG[s].border,
+                                                                } : {}}
+                                                                onClick={() => setStatus(row.enrollmentId, s)}
+                                                            >
+                                                                {STATUS_CFG[s].icon}
+                                                                {STATUS_CFG[s].label}
+                                                            </button>
+                                                        ))}
                                                     </div>
+
+                                                    {/* ← NEW: IN Time Column */}
+                                                    <div className="att-time-cell">
+                                                        {row.inTime ? (
+                                                            <span className="att-time-badge att-time-badge--in">
+                                                                🕐 {row.inTime}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="att-time-empty">—</span>
+                                                        )}
+                                                    </div>
+
+                                                    {/* ← NEW: OUT Time Column */}
+                                                    <div className="att-time-cell">
+                                                        {row.outTime ? (
+                                                            <span className="att-time-badge att-time-badge--out">
+                                                                🚪 {row.outTime}
+                                                            </span>
+                                                        ) : row.inTime ? (
+                                                            <span className="att-time-pending">Pending</span>
+                                                        ) : (
+                                                            <span className="att-time-empty">—</span>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Remark - same */}
                                                     <input className="att-remark-input" placeholder="Remark..."
                                                         value={row.remark}
                                                         onChange={e => setRemark(row.enrollmentId, e.target.value)} />
@@ -548,6 +579,75 @@ const styles = `
     .att-table-head { grid-template-columns:28px 1fr; }
     .att-table-row  { grid-template-columns:28px 1fr; row-gap:8px; }
     .att-status-btns, .att-remark-input { grid-column:2; }
+}
+
+/* Time columns */
+.att-table-head--time { 
+    grid-template-columns: 36px 1.4fr 1.6fr 100px 100px 1fr; 
+}
+.att-table-row--time { 
+    grid-template-columns: 36px 1.4fr 1.6fr 100px 100px 1fr; 
+}
+
+.att-time-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.att-time-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 9px;
+    border-radius: 6px;
+    border: 1px solid;
+    white-space: nowrap;
+}
+
+.att-time-badge--in {
+    background: rgba(34,197,94,0.08);
+    color: var(--cp-success);
+    border-color: rgba(34,197,94,0.25);
+}
+
+.att-time-badge--out {
+    background: rgba(245,158,11,0.08);
+    color: var(--cp-warning);
+    border-color: rgba(245,158,11,0.25);
+}
+
+.att-time-empty {
+    font-size: 11px;
+    color: var(--cp-muted);
+}
+
+.att-time-pending {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--cp-warning);
+    background: rgba(245,158,11,0.08);
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(245,158,11,0.2);
+}
+
+/* Mobile responsive */
+@media(max-width:960px){
+    .att-table-head--time { 
+        grid-template-columns: 28px 1fr; 
+    }
+    .att-table-row--time { 
+        grid-template-columns: 28px 1fr; 
+        row-gap: 8px; 
+    }
+    .att-status-btns, 
+    .att-time-cell, 
+    .att-remark-input { 
+        grid-column: 2; 
+    }
 }
 
 .att-row-num  { font-size:10px; color:var(--cp-border2); font-weight:600; text-align:center; }

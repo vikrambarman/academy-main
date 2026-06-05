@@ -5,13 +5,15 @@ import { usePathname, useRouter } from "next/navigation";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import {
     LayoutDashboard, CalendarCheck, Clock,
-    BookOpen, LogOut, Menu, X, ChevronRight, GraduationCap
+    BookOpen, LogOut, Menu, X, ChevronRight, GraduationCap,
+    Key
 } from "lucide-react";
 import { PortalThemeToggle } from "@/components/ThemeToggle";
 
 const NAV = [
     { href: "/dashboard/teacher", label: "Dashboard", icon: LayoutDashboard },
     { href: "/dashboard/teacher/attendance", label: "Attendance", icon: CalendarCheck },
+    { href: "/dashboard/teacher/attendance/hourly-code", label: "Hourly Code", icon: Key }, // ← NEW
     { href: "/dashboard/teacher/timetable", label: "Timetable", icon: Clock },
     { href: "/dashboard/teacher/notes", label: "Study Notes", icon: BookOpen },
 ];

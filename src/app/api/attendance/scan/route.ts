@@ -6,6 +6,7 @@ import { connectDB } from "@/lib/db";
 import Student from "@/models/Student";
 import Enrollment from "@/models/Enrollment";
 import Attendance from "@/models/Attendance";
+import { verifyCode } from "@/lib/generateHourlyCodes";
 
 // ── Rate Limiter (same) ────────────────────────────────────────
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -155,10 +156,31 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { studentId, action } = body as {
+    const { studentId, action, code } = body as {
       studentId: string;
       action: "in" | "out";
+      code: string; // ← NEW
     };
+
+    // ── NEW: Verify Hourly Code ───────────────────────────────
+    if (!code || code.trim().length !== 4) {
+      return NextResponse.json(
+        { message: "4-digit code required hai. Staff se pucho." },
+        { status: 400 }
+      );
+    }
+
+    const codeVerification = await verifyCode(code.trim());
+
+    if (!codeVerification || !codeVerification.valid) {
+      return NextResponse.json(
+        {
+          message: codeVerification?.message || "❌ Code invalid hai",
+          code: "INVALID_CODE",
+        },
+        { status: 401 }
+      );
+    }
 
     if (!studentId || !action || !["in", "out"].includes(action)) {
       return NextResponse.json(
