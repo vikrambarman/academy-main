@@ -17,7 +17,7 @@ const hourlyCodeSchema = new Schema<IHourlyCode>(
         date: {
             type: Date,
             required: true,
-            index: true,
+            index: true,        // ✅ Single field index - theek hai
         },
         hour: {
             type: Number,
@@ -33,7 +33,7 @@ const hourlyCodeSchema = new Schema<IHourlyCode>(
         expiresAt: {
             type: Date,
             required: true,
-            index: true, // ✅ Index add kiya for TTL
+            // ❌ index: true HATA DIYA - niche schema.index() se handle hoga
         },
         isActive: {
             type: Boolean,
@@ -43,11 +43,10 @@ const hourlyCodeSchema = new Schema<IHourlyCode>(
     { timestamps: true }
 );
 
-// Compound index for queries
+// Compound unique index
 hourlyCodeSchema.index({ date: 1, hour: 1 }, { unique: true });
 
-// ✅ TTL index - expiresAt ke baad delete ho jayega
-// MongoDB checks every 60 seconds
+// TTL index - expiresAt ke baad auto delete
 hourlyCodeSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 const HourlyCode: Model<IHourlyCode> =

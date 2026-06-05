@@ -7,6 +7,7 @@ import Student from "@/models/Student";
 import Enrollment from "@/models/Enrollment";
 import Attendance from "@/models/Attendance";
 import { verifyCode } from "@/lib/generateHourlyCodes";
+import "@/models/Course";
 
 // ── Rate Limiter (same) ────────────────────────────────────────
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
