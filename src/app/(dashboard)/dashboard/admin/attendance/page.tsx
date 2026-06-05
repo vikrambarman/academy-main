@@ -6,6 +6,7 @@ import {
     CalendarDays, ChevronLeft, ChevronRight, Search,
     CheckCircle2, XCircle, Clock, Coffee, Save,
     Users, TrendingUp, AlertTriangle, Umbrella,
+    QrCode,
 } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -13,35 +14,35 @@ import {
 type AttStatus = "present" | "absent" | "late" | "holiday" | "leave";
 
 interface StudentRow {
-    enrollmentId:  string;
-    studentDbId:   string;
-    studentCode:   string;
-    courseId:      string;
-    name:          string;
-    courseName:    string;
-    status:        AttStatus;
-    remark:        string;
+    enrollmentId: string;
+    studentDbId: string;
+    studentCode: string;
+    courseId: string;
+    name: string;
+    courseName: string;
+    status: AttStatus;
+    remark: string;
     alreadyMarked: boolean;
 }
 
 interface AttDoc {
-    _id:        string;
-    student:    { name: string; studentId: string };
-    course:     { name: string; _id: string };
+    _id: string;
+    student: { name: string; studentId: string };
+    course: { name: string; _id: string };
     enrollment: { _id: string };
-    stats:      { total: number; present: number; absent: number; late: number; holiday: number; leave: number; percentage: number };
+    stats: { total: number; present: number; absent: number; late: number; holiday: number; leave: number; percentage: number };
     todayRecord: { status: AttStatus; remark?: string } | null;
 }
 
-interface Course        { _id: string; name: string; }
+interface Course { _id: string; name: string; }
 interface CourseSummary { _id: string; name: string; studentCount: number; }
 
 const STATUS_CFG: Record<AttStatus, { label: string; icon: React.ReactNode; color: string; bg: string; border: string }> = {
-    present: { label: "Present", icon: <CheckCircle2 size={10} />, color: "var(--cp-success)", bg: "rgba(34,197,94,0.08)",   border: "rgba(34,197,94,0.3)"   },
-    absent:  { label: "Absent",  icon: <XCircle      size={10} />, color: "var(--cp-danger)",  bg: "rgba(239,68,68,0.08)",   border: "rgba(239,68,68,0.3)"   },
-    late:    { label: "Late",    icon: <Clock         size={10} />, color: "var(--cp-warning)", bg: "rgba(245,158,11,0.08)",  border: "rgba(245,158,11,0.3)"  },
-    holiday: { label: "Holiday", icon: <Coffee        size={10} />, color: "#60a5fa",           bg: "rgba(96,165,250,0.08)",  border: "rgba(96,165,250,0.3)"  },
-    leave:   { label: "Leave",   icon: <Umbrella      size={10} />, color: "#a78bfa",           bg: "rgba(167,139,250,0.08)", border: "rgba(167,139,250,0.3)" },
+    present: { label: "Present", icon: <CheckCircle2 size={10} />, color: "var(--cp-success)", bg: "rgba(34,197,94,0.08)", border: "rgba(34,197,94,0.3)" },
+    absent: { label: "Absent", icon: <XCircle size={10} />, color: "var(--cp-danger)", bg: "rgba(239,68,68,0.08)", border: "rgba(239,68,68,0.3)" },
+    late: { label: "Late", icon: <Clock size={10} />, color: "var(--cp-warning)", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.3)" },
+    holiday: { label: "Holiday", icon: <Coffee size={10} />, color: "#60a5fa", bg: "rgba(96,165,250,0.08)", border: "rgba(96,165,250,0.3)" },
+    leave: { label: "Leave", icon: <Umbrella size={10} />, color: "#a78bfa", bg: "rgba(167,139,250,0.08)", border: "rgba(167,139,250,0.3)" },
 };
 
 function fmtDate(iso: string) {
@@ -52,21 +53,21 @@ function isoToday() { return new Date().toISOString().split("T")[0]; }
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 export default function AdminAttendancePage() {
-    const [courses,       setCourses]       = useState<Course[]>([]);
-    const [courseId,      setCourseId]      = useState("");
-    const [date,          setDate]          = useState(isoToday());
-    const [rows,          setRows]          = useState<StudentRow[]>([]);
-    const [search,        setSearch]        = useState("");
-    const [saving,        setSaving]        = useState(false);
-    const [loading,       setLoading]       = useState(false);
-    const [toast,         setToast]         = useState<{ msg: string; type: "success" | "error" } | null>(null);
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [courseId, setCourseId] = useState("");
+    const [date, setDate] = useState(isoToday());
+    const [rows, setRows] = useState<StudentRow[]>([]);
+    const [search, setSearch] = useState("");
+    const [saving, setSaving] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
     const [courseSummary, setCourseSummary] = useState<CourseSummary[]>([]);
 
     // Overview tab
-    const [allDocs,  setAllDocs]  = useState<AttDoc[]>([]);
-    const [tab,      setTab]      = useState<"mark" | "overview">("mark");
+    const [allDocs, setAllDocs] = useState<AttDoc[]>([]);
+    const [tab, setTab] = useState<"mark" | "overview">("mark");
     const [ovSearch, setOvSearch] = useState("");
-    const [ovPage,   setOvPage]   = useState(1);
+    const [ovPage, setOvPage] = useState(1);
     const OV_LIMIT = 12;
 
     const showToast = (msg: string, type: "success" | "error") => {
@@ -80,7 +81,7 @@ export default function AdminAttendancePage() {
 
     const loadOverview = useCallback(async () => {
         const res = await fetchWithAuth("/api/admin/attendance");
-        const d   = await res.json();
+        const d = await res.json();
         setAllDocs(d.attendance || []);
         setCourseSummary(d.courseSummary || []);
     }, []);
@@ -91,11 +92,11 @@ export default function AdminAttendancePage() {
         if (!courseId) return;
         setLoading(true);
         try {
-            const res  = await fetchWithAuth(`/api/admin/attendance?courseId=${courseId}&date=${date}`);
+            const res = await fetchWithAuth(`/api/admin/attendance?courseId=${courseId}&date=${date}`);
             const data = await res.json();
 
-            const enrollments: any[]  = data.enrollments || [];
-            const attDocs:     any[]  = data.attendance  || [];
+            const enrollments: any[] = data.enrollments || [];
+            const attDocs: any[] = data.attendance || [];
 
             const attMap: Record<string, { status: AttStatus; remark: string } | null> = {};
             for (const doc of attDocs) {
@@ -108,20 +109,20 @@ export default function AdminAttendancePage() {
             const built: StudentRow[] = enrollments.map((e: any) => {
                 const existing = attMap[e._id] ?? null;
                 return {
-                    enrollmentId:  e._id,
-                    studentDbId:   e.student?._id ?? e.student,
-                    studentCode:   e.student?.studentId ?? "",
-                    courseId:      typeof e.course === "string" ? e.course : e.course?._id,
-                    name:          e.student?.name ?? "—",
-                    courseName:    typeof e.course === "string" ? "" : (e.course?.name ?? ""),
-                    status:        existing?.status ?? "present",
-                    remark:        existing?.remark ?? "",
+                    enrollmentId: e._id,
+                    studentDbId: e.student?._id ?? e.student,
+                    studentCode: e.student?.studentId ?? "",
+                    courseId: typeof e.course === "string" ? e.course : e.course?._id,
+                    name: e.student?.name ?? "—",
+                    courseName: typeof e.course === "string" ? "" : (e.course?.name ?? ""),
+                    status: existing?.status ?? "present",
+                    remark: existing?.remark ?? "",
                     alreadyMarked: existing !== null,
                 };
             });
             setRows(built);
         } catch { showToast("Students load nahi hue", "error"); }
-        finally  { setLoading(false); }
+        finally { setLoading(false); }
     }, [courseId, date]);
 
     useEffect(() => { loadStudents(); }, [loadStudents]);
@@ -133,6 +134,28 @@ export default function AdminAttendancePage() {
     const markAll = (status: AttStatus) =>
         setRows(prev => prev.map(r => ({ ...r, status })));
 
+
+    // ── Quick Status Update Helper ─────────────────────────────────
+    const handleQuickStatusUpdate = async (enrollmentId: string, date: string, newStatus: AttStatus) => {
+        try {
+            const res = await fetchWithAuth("/api/admin/attendance", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    enrollmentId,
+                    date,
+                    status: newStatus,
+                }),
+            });
+            const d = await res.json();
+            if (!res.ok) throw new Error(d.message);
+            showToast(`Status updated to ${newStatus} ✓`, "success");
+            loadStudents(); // Refresh data
+        } catch (e: any) {
+            showToast(e.message || "Update failed", "error");
+        }
+    };
+
     const handleSave = async () => {
         if (!rows.length) return;
         setSaving(true);
@@ -143,10 +166,10 @@ export default function AdminAttendancePage() {
                     date,
                     records: rows.map(r => ({
                         enrollmentId: r.enrollmentId,
-                        studentId:    r.studentDbId,
-                        courseId:     r.courseId,
-                        status:       r.status,
-                        remark:       r.remark,
+                        studentId: r.studentDbId,
+                        courseId: r.courseId,
+                        status: r.status,
+                        remark: r.remark,
                     })),
                 }),
             });
@@ -164,20 +187,20 @@ export default function AdminAttendancePage() {
         r.studentCode.toLowerCase().includes(search.toLowerCase())
     );
 
-    const ovFiltered  = allDocs.filter(d =>
+    const ovFiltered = allDocs.filter(d =>
         d.student?.name?.toLowerCase().includes(ovSearch.toLowerCase()) ||
         d.student?.studentId?.toLowerCase().includes(ovSearch.toLowerCase())
     );
     const ovTotalPages = Math.ceil(ovFiltered.length / OV_LIMIT) || 1;
-    const ovPaged      = ovFiltered.slice((ovPage - 1) * OV_LIMIT, ovPage * OV_LIMIT);
+    const ovPaged = ovFiltered.slice((ovPage - 1) * OV_LIMIT, ovPage * OV_LIMIT);
 
-    const avgPct  = allDocs.length > 0 ? Math.round(allDocs.reduce((s, a) => s + (a.stats?.percentage || 0), 0) / allDocs.length) : 0;
+    const avgPct = allDocs.length > 0 ? Math.round(allDocs.reduce((s, a) => s + (a.stats?.percentage || 0), 0) / allDocs.length) : 0;
     const below75 = allDocs.filter(a => (a.stats?.percentage || 0) < 75).length;
 
     const presentCount = rows.filter(r => r.status === "present").length;
-    const absentCount  = rows.filter(r => r.status === "absent").length;
-    const lateCount    = rows.filter(r => r.status === "late").length;
-    const leaveCount   = rows.filter(r => r.status === "leave").length;
+    const absentCount = rows.filter(r => r.status === "absent").length;
+    const lateCount = rows.filter(r => r.status === "late").length;
+    const leaveCount = rows.filter(r => r.status === "leave").length;
 
     return (
         <>
@@ -192,12 +215,23 @@ export default function AdminAttendancePage() {
                         <h1 className="att-title">Attendance</h1>
                         <p className="att-sub">Date-wise bulk attendance manage karo</p>
                     </div>
-                    <div className="att-tabs">
-                        <button className={`att-tab${tab === "mark" ? " att-tab--active" : ""}`} onClick={() => setTab("mark")}>
-                            <CalendarDays size={13} /> Mark
-                        </button>
-                        <button className={`att-tab${tab === "overview" ? " att-tab--active" : ""}`} onClick={() => setTab("overview")}>
-                            <TrendingUp size={13} /> Overview
+                    <div className="att-header-actions">
+                        <div className="att-tabs">
+                            <button className={`att-tab${tab === "mark" ? " att-tab--active" : ""}`} onClick={() => setTab("mark")}>
+                                <CalendarDays size={13} /> Mark
+                            </button>
+                            <button className={`att-tab${tab === "overview" ? " att-tab--active" : ""}`} onClick={() => setTab("overview")}>
+                                <TrendingUp size={13} /> Overview
+                            </button>
+                        </div>
+                        {/* ← NEW QR Print Button */}
+                        <button
+                            className="att-qr-print-btn"
+                            onClick={() => window.open('/api/admin/attendance/qr', '_blank')}
+                            title="QR Code print karo"
+                        >
+                            <QrCode size={16} />
+                            <span>Print QR</span>
                         </button>
                     </div>
                 </div>
@@ -241,10 +275,10 @@ export default function AdminAttendancePage() {
                                 {/* Summary bar */}
                                 <div className="att-summary-bar">
                                     {[
-                                        { key: "present", count: presentCount, cls: "att-sum-chip--green"  },
-                                        { key: "absent",  count: absentCount,  cls: "att-sum-chip--red"    },
-                                        { key: "late",    count: lateCount,    cls: "att-sum-chip--amber"  },
-                                        { key: "leave",   count: leaveCount,   cls: "att-sum-chip--purple" },
+                                        { key: "present", count: presentCount, cls: "att-sum-chip--green" },
+                                        { key: "absent", count: absentCount, cls: "att-sum-chip--red" },
+                                        { key: "late", count: lateCount, cls: "att-sum-chip--amber" },
+                                        { key: "leave", count: leaveCount, cls: "att-sum-chip--purple" },
                                     ].map(({ key, count, cls }) => (
                                         <div key={key} className={`att-sum-chip ${cls}`}>
                                             {count} {key.charAt(0).toUpperCase() + key.slice(1)}
@@ -305,15 +339,37 @@ export default function AdminAttendancePage() {
                                                         )}
                                                     </div>
                                                     <div className="att-status-btns">
-                                                        {(Object.keys(STATUS_CFG) as AttStatus[]).map(s => (
-                                                            <button key={s}
-                                                                className={`att-status-btn${row.status === s ? " att-status-btn--active" : ""}`}
-                                                                style={row.status === s ? { background: STATUS_CFG[s].bg, color: STATUS_CFG[s].color, borderColor: STATUS_CFG[s].border } : {}}
-                                                                onClick={() => setStatus(row.enrollmentId, s)}>
-                                                                {STATUS_CFG[s].icon}
-                                                                {STATUS_CFG[s].label}
-                                                            </button>
-                                                        ))}
+                                                        {(Object.keys(STATUS_CFG) as AttStatus[]).map(s => {
+                                                            const isQRMarked = row.alreadyMarked && (row as any).markedVia === "qr";
+                                                            return (
+                                                                <button
+                                                                    key={s}
+                                                                    className={`att-status-btn${row.status === s ? " att-status-btn--active" : ""}`}
+                                                                    style={
+                                                                        row.status === s
+                                                                            ? {
+                                                                                background: STATUS_CFG[s].bg,
+                                                                                color: STATUS_CFG[s].color,
+                                                                                borderColor: STATUS_CFG[s].border,
+                                                                            }
+                                                                            : {}
+                                                                    }
+                                                                    onClick={() => setStatus(row.enrollmentId, s)}
+                                                                    title={
+                                                                        isQRMarked && s === "late"
+                                                                            ? "QR se aaya tha - manually late mark kar sakte ho"
+                                                                            : ""
+                                                                    }
+                                                                >
+                                                                    {STATUS_CFG[s].icon}
+                                                                    {STATUS_CFG[s].label}
+                                                                    {/* QR badge agar QR se marked ho */}
+                                                                    {isQRMarked && row.status === s && (
+                                                                        <span className="att-qr-badge">QR</span>
+                                                                    )}
+                                                                </button>
+                                                            );
+                                                        })}
                                                     </div>
                                                     <input className="att-remark-input" placeholder="Remark..."
                                                         value={row.remark}
@@ -377,7 +433,7 @@ export default function AdminAttendancePage() {
                             {ovPaged.length === 0 ? (
                                 <div className="att-empty"><div>No records found</div></div>
                             ) : ovPaged.map(doc => {
-                                const pct   = doc.stats?.percentage ?? 0;
+                                const pct = doc.stats?.percentage ?? 0;
                                 const color = pct >= 75 ? "var(--cp-success)" : pct >= 50 ? "var(--cp-warning)" : "var(--cp-danger)";
                                 return (
                                     <div key={doc._id} className="att-ov-card">
@@ -505,6 +561,17 @@ const styles = `
 .att-status-btn { display:inline-flex; align-items:center; gap:4px; font-family:'Plus Jakarta Sans',sans-serif; font-size:10px; font-weight:700; padding:5px 9px; border-radius:7px; border:1px solid var(--cp-border); background:var(--cp-bg); color:var(--cp-muted); cursor:pointer; transition:all .13s; white-space:nowrap; }
 .att-status-btn:hover:not(.att-status-btn--active) { border-color:var(--cp-border2); color:var(--cp-subtext); }
 
+.att-qr-badge {
+    font-size: 7px;
+    font-weight: 800;
+    padding: 1px 4px;
+    border-radius: 3px;
+    background: rgba(99,102,241,0.2);
+    color: var(--cp-accent);
+    margin-left: 4px;
+    border: 1px solid rgba(99,102,241,0.3);
+  }
+
 .att-remark-input { font-family:'Plus Jakarta Sans',sans-serif; font-size:12px; padding:7px 10px; background:var(--cp-bg); border:1px solid var(--cp-border); border-radius:7px; color:var(--cp-subtext); outline:none; width:100%; transition:border-color .15s; }
 .att-remark-input:focus { border-color:var(--cp-accent); }
 .att-remark-input::placeholder { color:var(--cp-muted); }
@@ -545,4 +612,61 @@ const styles = `
 @keyframes attSpin { to{transform:rotate(360deg)} }
 
 .att-empty { background:var(--cp-surface); border:1px dashed var(--cp-border); border-radius:12px; padding:48px; text-align:center; color:var(--cp-muted); font-size:13px; display:flex; flex-direction:column; align-items:center; }
+
+/* ── QR Print Button Styles ── */
+.att-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.att-qr-print-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 18px;
+    border-radius: 10px;
+    border: 1px solid;
+    border-color: rgba(99,102,241,0.3);
+    background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08));
+    color: var(--cp-accent);
+    font-size: 12px;
+    font-weight: 700;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(99,102,241,0.15);
+}
+
+.att-qr-print-btn:hover {
+    border-color: var(--cp-accent);
+    background: linear-gradient(135deg, rgba(99,102,241,0.18), rgba(139,92,246,0.12));
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99,102,241,0.25);
+}
+
+.att-qr-print-btn:active {
+    transform: translateY(0);
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+    .att-header-actions {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .att-tabs {
+        width: 100%;
+    }
+    
+    .att-qr-print-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
 `;
