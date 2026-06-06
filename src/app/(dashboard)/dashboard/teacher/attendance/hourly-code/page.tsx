@@ -20,7 +20,7 @@ export default function StaffHourlyCodePage() {
             if (isRefresh) setRefreshing(true);
             setError("");
 
-            const res  = await fetchWithAuth("/api/staff/attendance/hourly-code");
+            const res  = await fetchWithAuth("/api/teacher/attendance/hourly-code");
             const data = await res.json();
 
             if (res.status === 404) {
