@@ -1,5 +1,5 @@
 // ============================================================
-// app/notices/page.tsx  (Server Component)
+// app/(public)/notices/page.tsx  (Server Component)
 // ============================================================
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -10,258 +10,166 @@ import Notice from "@/models/Notice";
 export const revalidate = 30;
 
 export const metadata: Metadata = {
-    title: "Latest Notices & Announcements | Shivshakti Computer Academy Ambikapur",
-    description:
-        "Check latest admission updates, exam notices and announcements from Shivshakti Computer Academy Ambikapur.",
-    alternates: {
-        canonical: "https://www.shivshakticomputer.in/notices",
-    },
+  title: "Latest Notices & Announcements | Shivshakti Computer Academy Ambikapur",
+  description:
+    "Check latest admission updates, exam notices and announcements from Shivshakti Computer Academy Ambikapur.",
+  alternates: { canonical: "https://www.shivshakticomputer.in/notices" },
 };
 
 async function getNotices() {
-    try {
-        await connectDB();
-        const notices = await Notice.find({ isActive: true, isPublished: true })
-            .sort({ createdAt: -1 })
-            .select("-content")
-            .lean();
-        return JSON.parse(JSON.stringify(notices));
-    } catch (error) {
-        console.error("DB FETCH ERROR:", error);
-        return [];
-    }
+  try {
+    await connectDB();
+    const notices = await Notice.find({ isActive: true, isPublished: true })
+      .sort({ createdAt: -1 })
+      .select("-content")
+      .lean();
+    return JSON.parse(JSON.stringify(notices));
+  } catch (error) {
+    console.error("DB FETCH ERROR:", error);
+    return [];
+  }
 }
 
 function formatDate(dateStr: string) {
-    return new Date(dateStr).toLocaleDateString("en-IN", {
-        day: "numeric", month: "short", year: "numeric",
-    });
+  return new Date(dateStr).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 }
 
 export default async function NoticesPage() {
-    const notices = await getNotices();
+  const notices = await getNotices();
 
-    return (
-        <>
-            <Script
-                id="notices-schema"
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{
-                    __html: JSON.stringify({
-                        "@context": "https://schema.org",
-                        "@type": "ItemList",
-                        itemListElement: notices.map((notice: any, index: number) => ({
-                            "@type": "ListItem",
-                            position: index + 1,
-                            url: `https://www.shivshakticomputer.in/notices/${notice.slug}`,
-                            name: notice.title,
-                        })),
-                    }),
-                }}
-            />
+  return (
+    <>
+      <Script
+        id="notices-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            itemListElement: notices.map((notice: any, index: number) => ({
+              "@type": "ListItem",
+              position: index + 1,
+              url: `https://www.shivshakticomputer.in/notices/${notice.slug}`,
+              name: notice.title,
+            })),
+          }),
+        }}
+      />
 
-            <style>{`
-                .notice-row {
-                    background: var(--color-bg-card);
-                    transition: background 200ms ease;
-                }
-                .notice-row:hover {
-                    background: color-mix(in srgb, var(--color-primary) 3%, var(--color-bg-card));
-                }
-                .notice-accent-bar {
-                    transform: scaleY(0);
-                    transition: transform 280ms ease-out;
-                }
-                .notice-row:hover .notice-accent-bar {
-                    transform: scaleY(1);
-                }
-                .notice-arrow {
-                    transition: transform 200ms ease;
-                }
-                .notice-row:hover .notice-arrow {
-                    transform: translateX(2px);
-                }
-            `}</style>
+      <main className="nt-root">
+        {/* ── HERO ── */}
+        <section className="nt-hero" aria-labelledby="notices-hero-heading">
+          <div className="nt-wrap nt-hero__inner">
+            <div className="nt-hero__eyebrow">
+              <span className="nt-hero__eyebrow-line" aria-hidden="true" />
+              Announcements
+            </div>
+            <div className="nt-hero__layout">
+              <h1 id="notices-hero-heading" className="nt-hero__title">
+                Notices &amp; <span className="nt-hero__title-em">Updates</span>
+              </h1>
+              <div className="nt-hero__right">
+                <p className="nt-hero__desc">
+                  Admission notices, exam schedules and important updates from the academy.
+                </p>
+                {notices.length > 0 && (
+                  <div className="nt-hero__count">
+                    <span className="nt-hero__count-dot" aria-hidden="true" />
+                    {notices.length} active notice{notices.length !== 1 ? "s" : ""}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
 
-            <main style={{ background: "var(--color-bg)", minHeight: "100vh", fontFamily: "'DM Sans', sans-serif" }}>
-
-                {/* ══════════════════════ HERO ══════════════════════ */}
-                <section
-                    className="relative overflow-hidden px-6 pt-[88px] pb-16"
-                    style={{ background: "var(--color-bg)" }}
-                    aria-labelledby="notices-hero-heading"
-                >
-                    {/* Glow */}
-                    <div
-                        aria-hidden="true"
-                        className="absolute -top-20 -right-20 w-[420px] h-[420px] rounded-full pointer-events-none z-0"
-                        style={{ background: "radial-gradient(circle,color-mix(in srgb,var(--color-primary) 9%,transparent) 0%,transparent 65%)" }}
-                    />
-
-                    <div className="relative z-10 max-w-[1100px] mx-auto">
-                        {/* Eyebrow */}
-                        <div
-                            className="flex items-center gap-2 mb-3.5 text-[10px] font-medium tracking-[0.18em] uppercase"
-                            style={{ color: "var(--color-primary)" }}
-                        >
-                            <span
-                                aria-hidden="true"
-                                style={{ display: "inline-block", width: 24, height: 1.5, background: "var(--color-primary)", flexShrink: 0 }}
-                            />
-                            Announcements
-                        </div>
-
-                        <div className="flex items-end justify-between gap-10 flex-wrap">
-                            <h1
-                                id="notices-hero-heading"
-                                className="font-serif font-bold leading-[1.15]"
-                                style={{ fontSize: "clamp(2rem,4vw,3rem)", color: "var(--color-text)" }}
-                            >
-                                Notices &<br />
-                                <em className="italic" style={{ color: "var(--color-accent)" }}>Updates</em>
-                            </h1>
-
-                            <div className="flex flex-col items-end gap-2.5 pb-1">
-                                <p
-                                    className="text-[0.88rem] font-light leading-[1.8] max-w-[340px] text-right max-sm:text-left"
-                                    style={{ color: "var(--color-text-muted)" }}
-                                >
-                                    Admission notices, exam schedules and
-                                    important updates from the academy.
-                                </p>
-                                {notices.length > 0 && (
-                                    <div
-                                        className="inline-flex items-center gap-1.5 text-[0.78rem] font-normal px-3.5 py-1.5 rounded-full"
-                                        style={{
-                                            color:      "var(--color-primary)",
-                                            background: "color-mix(in srgb,var(--color-primary) 8%,var(--color-bg))",
-                                            border:     "1px solid color-mix(in srgb,var(--color-primary) 25%,transparent)",
-                                        }}
-                                    >
-                                        <span
-                                            className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                                            style={{ background: "var(--color-primary)" }}
-                                            aria-hidden="true"
-                                        />
-                                        {notices.length} active notice{notices.length !== 1 ? "s" : ""}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+        {/* ── LIST ── */}
+        <section className="nt-body" aria-label="Notices list">
+          <div className="nt-wrap nt-body__inner">
+            {notices.length === 0 ? (
+              <div className="nt-empty">
+                <div className="nt-empty__title">No notices at the moment</div>
+                <div className="nt-empty__text">Check back soon for updates and announcements.</div>
+              </div>
+            ) : (
+              <div className="nt-list">
+                {notices.map((notice: any) => (
+                  <Link key={notice._id} href={`/notices/${notice.slug}`} className="nt-row">
+                    <span className="nt-row__bar" aria-hidden="true" />
+                    <div className="nt-row__content">
+                      <div className="nt-row__meta">
+                        <span className="nt-row__date">{formatDate(notice.createdAt)}</span>
+                        {notice.category && <span className="nt-row__cat">{notice.category}</span>}
+                      </div>
+                      <h2 className="nt-row__title">{notice.title}</h2>
+                      {notice.excerpt && <p className="nt-row__excerpt">{notice.excerpt}</p>}
                     </div>
-                </section>
+                    <span className="nt-row__arrow" aria-hidden="true">→</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      </main>
 
-                {/* ══════════════════════ NOTICES LIST ══════════════════════ */}
-                <section className="relative px-6 pb-[88px]" aria-label="Notices list">
-                    {/* Top divider */}
-                    <div
-                        aria-hidden="true"
-                        className="absolute top-0 pointer-events-none"
-                        style={{ left: "10%", right: "10%", height: 1, background: "linear-gradient(to right,transparent,var(--color-border),transparent)" }}
-                    />
+      <style>{`
+/* ── NOTICES LIST — Clean University style ── */
+.nt-root { background: var(--bg-page); min-height: 100vh; }
+.nt-wrap { max-width: 1100px; margin: 0 auto; padding: 0 var(--space-6); }
 
-                    <div className="max-w-[1100px] mx-auto pt-14">
+.nt-hero { position: relative; padding: var(--space-20) 0 var(--space-12); background: var(--bg-page); border-bottom: 1px solid var(--border-color); }
+.nt-hero__inner { position: relative; }
+.nt-hero__eyebrow { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-accent-600); margin-bottom: var(--space-3); }
+.nt-hero__eyebrow-line { width: 24px; height: 2px; background: var(--color-accent-500); flex-shrink: 0; }
+.nt-hero__layout { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-8); flex-wrap: wrap; }
+.nt-hero__title { font-family: var(--font-display); font-size: clamp(1.75rem, 3.6vw, 2.5rem); font-weight: var(--font-weight-semibold); color: var(--text-primary); line-height: 1.2; letter-spacing: -0.015em; margin: 0; }
+.nt-hero__title-em { font-style: normal; color: var(--color-primary-700); }
+.nt-hero__right { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-3); }
+.nt-hero__desc { font-size: var(--font-size-base); color: var(--text-secondary); line-height: 1.7; max-width: 340px; text-align: right; margin: 0; }
+.nt-hero__count { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--font-size-sm); color: var(--color-primary-700); background: var(--color-primary-50); border: 1px solid var(--border-color); padding: var(--space-1) var(--space-4); border-radius: var(--radius-full); }
+.nt-hero__count-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-primary-600); flex-shrink: 0; }
 
-                        {/* Empty state */}
-                        {notices.length === 0 ? (
-                            <div
-                                className="text-center py-16 rounded-[20px]"
-                                style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}
-                            >
-                                <div className="text-[2.5rem] mb-3.5" aria-hidden="true">📋</div>
-                                <div
-                                    className="font-serif text-[1.1rem] font-semibold mb-2"
-                                    style={{ color: "var(--color-text)" }}
-                                >
-                                    No notices at the moment
-                                </div>
-                                <div
-                                    className="text-[0.82rem] font-light"
-                                    style={{ color: "var(--color-text-muted)" }}
-                                >
-                                    Check back soon for updates and announcements.
-                                </div>
-                            </div>
-                        ) : (
-                            /* Notices list */
-                            <div
-                                className="flex flex-col rounded-[20px] overflow-hidden"
-                                style={{ gap: 1, background: "var(--color-border)", border: "1px solid var(--color-border)" }}
-                            >
-                                {notices.map((notice: any) => (
-                                    <Link
-                                        key={notice._id}
-                                        href={`/notices/${notice.slug}`}
-                                        className="notice-row relative flex items-start justify-between gap-8 no-underline px-9 py-8 overflow-hidden max-sm:px-5 max-sm:py-6 max-sm:gap-4"
-                                    >
-                                        {/* Left accent bar */}
-                                        <span
-                                            aria-hidden="true"
-                                            className="notice-accent-bar absolute left-0 top-0 bottom-0 w-[3px] origin-top"
-                                            style={{ background: "linear-gradient(to bottom,var(--color-primary),color-mix(in srgb,var(--color-primary) 50%,transparent))" }}
-                                        />
+.nt-body { padding: var(--space-12) 0 var(--space-24); }
 
-                                        {/* Content */}
-                                        <div className="flex-1 min-w-0">
-                                            {/* Meta row */}
-                                            <div className="flex items-center gap-2.5 flex-wrap mb-3">
-                                                <span
-                                                    className="text-[0.75rem] font-light tracking-[0.03em]"
-                                                    style={{ color: "var(--color-text-muted)" }}
-                                                >
-                                                    {formatDate(notice.createdAt)}
-                                                </span>
-                                                {notice.category && (
-                                                    <span
-                                                        className="text-[9px] font-medium tracking-[0.12em] uppercase px-2.5 py-0.5 rounded-full"
-                                                        style={{
-                                                            color:      "var(--color-primary)",
-                                                            background: "color-mix(in srgb,var(--color-primary) 10%,var(--color-bg))",
-                                                            border:     "1px solid color-mix(in srgb,var(--color-primary) 25%,transparent)",
-                                                        }}
-                                                    >
-                                                        {notice.category}
-                                                    </span>
-                                                )}
-                                            </div>
+.nt-empty { text-align: center; padding: var(--space-16); border-radius: var(--radius-lg); background: var(--bg-elevated); border: 1px solid var(--border-color); }
+.nt-empty__title { font-family: var(--font-display); font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--text-primary); margin-bottom: var(--space-2); }
+.nt-empty__text { font-size: var(--font-size-sm); color: var(--text-tertiary); }
 
-                                            <h2
-                                                className="font-serif text-[1.1rem] font-bold leading-[1.3] mb-2.5"
-                                                style={{ color: "var(--color-text)" }}
-                                            >
-                                                {notice.title}
-                                            </h2>
+.nt-list { display: flex; flex-direction: column; border: 1px solid var(--border-color); border-radius: var(--radius-lg); overflow: hidden; }
+.nt-row {
+  position: relative; display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-6);
+  text-decoration: none; padding: var(--space-6) var(--space-8); background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-color); transition: background var(--transition-base);
+}
+.nt-row:last-child { border-bottom: none; }
+.nt-row:hover { background: var(--bg-surface); }
+.nt-row__bar { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--color-primary-600); transform: scaleY(0); transform-origin: top; transition: transform var(--transition-base); }
+.nt-row:hover .nt-row__bar { transform: scaleY(1); }
+.nt-row__content { flex: 1; min-width: 0; }
+.nt-row__meta { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; margin-bottom: var(--space-3); }
+.nt-row__date { font-size: var(--font-size-xs); color: var(--text-tertiary); }
+.nt-row__cat { font-size: var(--font-size-xs); font-weight: var(--font-weight-medium); letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 10px; border-radius: var(--radius-full); color: var(--color-primary-700); background: var(--color-primary-50); border: 1px solid var(--border-color); }
+.nt-row__title { font-family: var(--font-display); font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--text-primary); line-height: 1.3; margin-bottom: var(--space-2); letter-spacing: -0.01em; }
+.nt-row__excerpt { font-size: var(--font-size-sm); color: var(--text-secondary); line-height: 1.65; margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.nt-row__arrow {
+  width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  align-self: center; flex-shrink: 0; font-size: 1rem;
+  background: var(--bg-page); border: 1px solid var(--border-color); color: var(--color-primary-600);
+  transition: transform var(--transition-fast);
+}
+.nt-row:hover .nt-row__arrow { transform: translateX(3px); }
 
-                                            {notice.excerpt && (
-                                                <p
-                                                    className="text-[0.82rem] font-light leading-[1.75] line-clamp-2"
-                                                    style={{ color: "var(--color-text-muted)" }}
-                                                >
-                                                    {notice.excerpt}
-                                                </p>
-                                            )}
-                                        </div>
-
-                                        {/* Arrow */}
-                                        <div
-                                            className="notice-arrow w-10 h-10 rounded-full flex items-center justify-center self-center flex-shrink-0 text-base"
-                                            style={{
-                                                background: "var(--color-bg)",
-                                                border:     "1px solid var(--color-border)",
-                                                color:      "var(--color-text-muted)",
-                                            }}
-                                            aria-hidden="true"
-                                        >
-                                            →
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </section>
-
-            </main>
-        </>
-    );
+@media (max-width: 640px) {
+  .nt-hero { padding: var(--space-16) 0 var(--space-10); }
+  .nt-hero__layout { flex-direction: column; align-items: flex-start; gap: var(--space-4); }
+  .nt-hero__right { align-items: flex-start; }
+  .nt-hero__desc { text-align: left; max-width: 100%; }
+  .nt-body { padding: var(--space-10) 0 var(--space-16); }
+  .nt-row { padding: var(--space-5); gap: var(--space-4); }
+  .nt-row__arrow { display: none; }
+}
+      `}</style>
+    </>
+  );
 }

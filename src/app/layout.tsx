@@ -7,7 +7,6 @@ import { Inter, Poppins } from "next/font/google";
 /* ==========================================
    FONT OPTIMIZATION
    ========================================== */
-
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",
@@ -28,19 +27,14 @@ const poppins = Poppins({
 /* ==========================================
    METADATA
    ========================================== */
-
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.shivshakticomputer.in"),
-
   title: {
-    default:
-      "Shivshakti Computer Academy | Best Computer Institute in Ambikapur",
+    default: "Shivshakti Computer Academy | Best Computer Institute in Ambikapur",
     template: "%s | Shivshakti Computer Academy",
   },
-
   description:
     "Shivshakti Computer Academy offers professional computer courses, certifications, and skill development programs in Ambikapur, Chhattisgarh. Join India's leading computer training institute.",
-
   keywords: [
     "Shivshakti Computer Academy",
     "Computer Institute in Ambikapur",
@@ -54,12 +48,10 @@ export const metadata: Metadata = {
     "Programming Classes",
     "Web Development Course",
   ],
-
   authors: [{ name: "Shivshakti Computer Academy" }],
   creator: "Shivshakti Computer Academy",
   publisher: "Shivshakti Computer Academy",
   category: "Education",
-
   openGraph: {
     type: "website",
     locale: "en_IN",
@@ -68,24 +60,14 @@ export const metadata: Metadata = {
     title: "Shivshakti Computer Academy | Best Computer Institute in Ambikapur",
     description:
       "Professional computer courses and certifications in Ambikapur, Chhattisgarh. Transform your career with expert-led training.",
-    images: [
-      {
-        url: "/og-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Shivshakti Computer Academy",
-      },
-    ],
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Shivshakti Computer Academy" }],
   },
-
   twitter: {
     card: "summary_large_image",
     title: "Shivshakti Computer Academy",
-    description:
-      "Best computer institute offering certified courses and training in Ambikapur.",
+    description: "Best computer institute offering certified courses and training in Ambikapur.",
     images: ["/og-image.jpg"],
   },
-
   robots: {
     index: true,
     follow: true,
@@ -97,72 +79,59 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-
-  alternates: {
-    canonical: "https://www.shivshakticomputer.in",
-  },
-
+  alternates: { canonical: "https://www.shivshakticomputer.in" },
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon.ico",
     apple: "/apple-touch-icon.png",
   },
-
-  verification: {
-    google: "your-google-verification-code", // Add your actual code
-  },
+  verification: { google: "your-google-verification-code" },
 };
 
 /* ==========================================
    VIEWPORT
    ========================================== */
-
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0f172a" },
+    { media: "(prefers-color-scheme: dark)", color: "#14150f" },
   ],
 };
 
 /* ==========================================
-   ROOT LAYOUT COMPONENT
+   ROOT LAYOUT
+   --------------------------------------------------
+   ✅ STICKY FIX: <body> se `overflowY: 'auto'` HATA diya.
+   overflow on <html>/<body> position: sticky ko todta hai.
+   Ab body normal scroll karega aur header sticky rahega.
    ========================================== */
-
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       lang="en"
       className={`${inter.variable} ${poppins.variable}`}
       suppressHydrationWarning
-      style={{ height: 'auto', minHeight: '100vh' }}
+      // ❌ koi overflow nahi. height/minHeight theek hai.
+      style={{ height: "auto", minHeight: "100vh" }}
     >
       <head>
-        {/* Preconnect to external domains */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
-
-        {/* Manifest */}
         <link rel="manifest" href="/site.webmanifest" />
       </head>
 
-      <body className="antialiased" suppressHydrationWarning
-        style={{
-          height: 'auto',
-          minHeight: '100vh',
-          overflowY: 'auto'
-        }}>
+      <body
+        className="antialiased"
+        suppressHydrationWarning
+        // ✅ overflowY: 'auto' REMOVED — yahi sticky tod raha tha
+        style={{ height: "auto", minHeight: "100vh" }}
+      >
         <ThemeProvider storageKey="sca-theme">
           {children}
           {/* <ChatWidget /> */}
@@ -190,11 +159,7 @@ export default function RootLayout({
                   postalCode: "497001",
                   addressCountry: "IN",
                 },
-                geo: {
-                  "@type": "GeoCoordinates",
-                  latitude: "23.1186", // Add actual coordinates
-                  longitude: "83.1958",
-                },
+                geo: { "@type": "GeoCoordinates", latitude: "23.1186", longitude: "83.1958" },
                 contactPoint: [
                   {
                     "@type": "ContactPoint",
@@ -214,13 +179,12 @@ export default function RootLayout({
                 sameAs: [
                   "https://www.facebook.com/shivshakticomputeracademy",
                   "https://www.instagram.com/shivshakticomputer07",
-                  // Add more social profiles
                 ],
               }),
             }}
           />
 
-          {/* Breadcrumb Schema (will be added on pages) */}
+          {/* WebSite Schema */}
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{

@@ -1,157 +1,174 @@
 /* ==========================================
    CSS CUSTOM PROPERTIES - DESIGN SYSTEM
+   RETUNED → "Clean Minimal University" look
+   --------------------------------------------------
+   ⚠️ Variable NAAM bilkul same rakhe gaye hain — sirf VALUES badli hain.
+   Isliye aapke koi bhi page/component nahi tootega.
+   Mukhya badlav:
+   - Display font → SERIF (campus feel)
+   - Colors → wahi blue+orange hue, par MUTED/sober
+   - Gradients → flat solid (gradient vars retained but de-emphasised)
+   - Radius → chhota (modern-app/AI feel hatane ke liye)
+   - Shadows → bahut halke
    ========================================== */
 
 :root {
-  /* === PRIMARY COLORS === */
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
+  /* === PRIMARY COLORS === (muted academic blue — same hue, kam saturation) */
+  --color-primary-50: #f1f5f9;
+  --color-primary-100: #e2e8f0;
+  --color-primary-200: #c7d4e2;
+  --color-primary-300: #9fb3c8;
+  --color-primary-400: #6b8aaa;
+  --color-primary-500: #436585;   /* core, thoda desaturated */
+  --color-primary-600: #2f4f6e;   /* main brand blue — sober ink-blue */
+  --color-primary-700: #26415b;
+  --color-primary-800: #1f3349;
+  --color-primary-900: #182838;
 
-  /* === ACCENT COLORS === */
-  --color-accent-50: #fff7ed;
-  --color-accent-100: #ffedd5;
-  --color-accent-200: #fed7aa;
-  --color-accent-300: #fdba74;
-  --color-accent-400: #fb923c;
-  --color-accent-500: #f97316;
-  --color-accent-600: #ea580c;
-  --color-accent-700: #c2410c;
-  --color-accent-800: #9a3412;
-  --color-accent-900: #7c2d12;
+  /* === ACCENT COLORS === (orange → muted terracotta/bronze, same warm family) */
+  --color-accent-50: #faf4ee;
+  --color-accent-100: #f2e3d4;
+  --color-accent-200: #e6c8aa;
+  --color-accent-300: #d7a87b;
+  --color-accent-400: #c68a52;
+  --color-accent-500: #b1733b;   /* muted, "established" warm tone */
+  --color-accent-600: #985f2e;
+  --color-accent-700: #7c4d27;
+  --color-accent-800: #5f3c20;
+  --color-accent-900: #492f1b;
 
-  /* === SEMANTIC COLORS === */
-  --color-success-light: #d1fae5;
-  --color-success: #10b981;
-  --color-success-dark: #047857;
+  /* === SEMANTIC COLORS === (thode sober, par clearly readable) */
+  --color-success-light: #dfeee3;
+  --color-success: #3f7d57;
+  --color-success-dark: #2e5e40;
 
-  --color-warning-light: #fef3c7;
-  --color-warning: #f59e0b;
-  --color-warning-dark: #d97706;
+  --color-warning-light: #f6ecd6;
+  --color-warning: #b88a2e;
+  --color-warning-dark: #8c6720;
 
-  --color-danger-light: #fee2e2;
-  --color-danger: #ef4444;
-  --color-danger-dark: #dc2626;
+  --color-danger-light: #f3dedd;
+  --color-danger: #a8453f;
+  --color-danger-dark: #82332e;
 
-  --color-info-light: #dbeafe;
-  --color-info: #3b82f6;
-  --color-info-dark: #1d4ed8;
+  --color-info-light: #e2e8f0;
+  --color-info: #436585;
+  --color-info-dark: #26415b;
 
-  /* === NEUTRAL COLORS === */
+  /* === NEUTRAL COLORS === (thode warm grays → kagaz/document feel) */
   --color-white: #ffffff;
-  --color-black: #000000;
-  --color-gray-50: #f9fafb;
-  --color-gray-100: #f3f4f6;
-  --color-gray-200: #e5e7eb;
-  --color-gray-300: #d1d5db;
-  --color-gray-400: #9ca3af;
-  --color-gray-500: #6b7280;
-  --color-gray-600: #4b5563;
-  --color-gray-700: #374151;
-  --color-gray-800: #1f2937;
-  --color-gray-900: #111827;
+  --color-black: #15140f;
+  --color-gray-50: #faf9f6;
+  --color-gray-100: #f4f3ee;
+  --color-gray-200: #e8e6df;
+  --color-gray-300: #d6d3c9;
+  --color-gray-400: #a8a59a;
+  --color-gray-500: #7c7a70;
+  --color-gray-600: #5b594f;
+  --color-gray-700: #403e37;
+  --color-gray-800: #2a2925;
+  --color-gray-900: #1a1916;
 
   /* === BACKGROUND COLORS === */
   --bg-page: #ffffff;
-  --bg-surface: #f9fafb;
+  --bg-surface: #faf9f6;
   --bg-elevated: #ffffff;
-  --bg-overlay: rgba(0, 0, 0, 0.5);
-  --bg-gradient-1: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  --bg-gradient-2: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-  --bg-gradient-hero: linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #f97316 100%);
+  --bg-overlay: rgba(26, 25, 22, 0.5);
+  /* Gradients ko flat/sober kiya — ab "gradient" vars bhi solid-ish hain,
+     taaki jahan use hue hain wahan automatically calm dikhe. */
+  --bg-gradient-1: #2f4f6e;
+  --bg-gradient-2: #985f2e;
+  --bg-gradient-hero: #ffffff;
 
-  /* === TEXT COLORS === */
-  --text-primary: #111827;
-  --text-secondary: #4b5563;
-  --text-tertiary: #6b7280;
-  --text-disabled: #9ca3af;
+  /* === TEXT COLORS === (near-black warm, pure #000 nahi → natural) */
+  --text-primary: #1c1b18;
+  --text-secondary: #5b594f;
+  --text-tertiary: #7c7a70;
+  --text-disabled: #a8a59a;
   --text-inverse: #ffffff;
-  --text-link: #2563eb;
-  --text-link-hover: #1d4ed8;
+  --text-link: #2f4f6e;
+  --text-link-hover: #1f3349;
 
-  /* === BORDER & DIVIDER === */
-  --border-color: #e5e7eb;
-  --border-color-light: #f3f4f6;
-  --border-color-dark: #d1d5db;
+  /* === BORDER & DIVIDER === (hairline, halke) */
+  --border-color: #e8e6df;
+  --border-color-light: #f4f3ee;
+  --border-color-dark: #d6d3c9;
+  --border-light: #f4f3ee;   /* home.css me use hua tha — define kar diya */
   --border-width: 1px;
   --border-width-thick: 2px;
 
-  /* === SHADOWS === */
-  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+  /* === SHADOWS === (bahut subtle — heavy glow hata diya) */
+  --shadow-xs: 0 1px 1px 0 rgba(26, 25, 22, 0.03);
+  --shadow-sm: 0 1px 2px 0 rgba(26, 25, 22, 0.05);
+  --shadow-md: 0 1px 3px 0 rgba(26, 25, 22, 0.06), 0 1px 2px -1px rgba(26, 25, 22, 0.05);
+  --shadow-lg: 0 2px 6px -1px rgba(26, 25, 22, 0.07), 0 1px 3px -1px rgba(26, 25, 22, 0.05);
+  --shadow-xl: 0 4px 10px -2px rgba(26, 25, 22, 0.08);
+  --shadow-2xl: 0 8px 20px -6px rgba(26, 25, 22, 0.10);
+  --shadow-inner: inset 0 1px 2px 0 rgba(26, 25, 22, 0.04);
 
-  /* === SPACING SYSTEM === */
+  /* === SPACING SYSTEM === (waise hi rakha — aapke pages depend karte hain) */
   --space-0: 0;
-  --space-1: 0.25rem;    /* 4px */
-  --space-2: 0.5rem;     /* 8px */
-  --space-3: 0.75rem;    /* 12px */
-  --space-4: 1rem;       /* 16px */
-  --space-5: 1.25rem;    /* 20px */
-  --space-6: 1.5rem;     /* 24px */
-  --space-7: 1.75rem;     /* 28px */
-  --space-8: 2rem;       /* 32px */
-  --space-10: 2.5rem;    /* 40px */
-  --space-12: 3rem;      /* 48px */
-  --space-16: 4rem;      /* 64px */
-  --space-20: 5rem;      /* 80px */
-  --space-24: 6rem;      /* 96px */
-  --space-32: 8rem;      /* 128px */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 1.75rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+  --space-32: 8rem;
 
-  /* === BORDER RADIUS === */
+  /* === BORDER RADIUS === (sabko chhota kiya → "soft app/AI" feel hata)
+     Naam same, par values minimal. Bade rounded cards ab clean dikhenge. */
   --radius-none: 0;
-  --radius-sm: 0.25rem;   /* 4px */
-  --radius-md: 0.375rem;  /* 6px */
-  --radius-lg: 0.5rem;    /* 8px */
-  --radius-xl: 0.75rem;   /* 12px */
-  --radius-2xl: 1rem;     /* 16px */
-  --radius-3xl: 1.5rem;   /* 24px */
+  --radius-sm: 0.125rem;   /* 2px */
+  --radius-md: 0.1875rem;  /* 3px */
+  --radius-lg: 0.25rem;    /* 4px */
+  --radius-xl: 0.3125rem;  /* 5px */
+  --radius-2xl: 0.375rem;  /* 6px */
+  --radius-3xl: 0.5rem;    /* 8px */
   --radius-full: 9999px;
 
-  /* === TRANSITIONS === */
-  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slower: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+  /* === TRANSITIONS === (thode slow/natural, bounce hata) */
+  --transition-fast: 140ms ease;
+  --transition-base: 180ms ease;
+  --transition-slow: 260ms ease;
+  --transition-slower: 360ms ease;
 
-  /* === EASING FUNCTIONS === */
+  /* === EASING FUNCTIONS === (bounce ko soft kiya) */
   --ease-linear: cubic-bezier(0, 0, 1, 1);
   --ease-in: cubic-bezier(0.4, 0, 1, 1);
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-smooth: cubic-bezier(0.25, 0.1, 0.25, 1);
-  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-bounce: cubic-bezier(0.25, 0.1, 0.25, 1);   /* bounce → smooth */
 
   /* === TYPOGRAPHY === */
+  /* Body sans — Inter rehne diya (clean, readable). */
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Poppins', 'Inter', sans-serif;
+  /* Display → SERIF. Yahi sabse bada "university/human" signal hai.
+     System serif fallback diye hain; chahein to next/font se 'Lora' add kar sakte hain. */
+  --font-display: 'Lora', 'Georgia', 'Iowan Old Style', 'Times New Roman', serif;
   --font-mono: 'Fira Code', 'Courier New', monospace;
 
-  /* Font Sizes */
-  --font-size-xs: 0.75rem;     /* 12px */
-  --font-size-sm: 0.875rem;    /* 14px */
-  --font-size-base: 1rem;      /* 16px */
-  --font-size-lg: 1.125rem;    /* 18px */
-  --font-size-xl: 1.25rem;     /* 20px */
-  --font-size-2xl: 1.5rem;     /* 24px */
-  --font-size-3xl: 1.875rem;   /* 30px */
-  --font-size-4xl: 2.25rem;    /* 36px */
-  --font-size-5xl: 3rem;       /* 48px */
-  --font-size-6xl: 3.75rem;    /* 60px */
-  --font-size-7xl: 4.5rem;     /* 72px */
+  /* Font Sizes — bade sizes thode chhote kiye (giant hero AI-feel deta hai) */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.75rem;    /* 30 → 28 */
+  --font-size-4xl: 2.125rem;   /* 36 → 34 */
+  --font-size-5xl: 2.625rem;   /* 48 → 42 */
+  --font-size-6xl: 3.25rem;    /* 60 → 52 */
+  --font-size-7xl: 3.75rem;    /* 72 → 60 */
 
-  /* Font Weights */
+  /* Font Weights (waise hi) */
   --font-weight-light: 300;
   --font-weight-normal: 400;
   --font-weight-medium: 500;
@@ -159,26 +176,26 @@
   --font-weight-bold: 700;
   --font-weight-extrabold: 800;
 
-  /* Line Heights */
-  --line-height-tight: 1.25;
-  --line-height-snug: 1.375;
-  --line-height-normal: 1.5;
-  --line-height-relaxed: 1.625;
+  /* Line Heights (body thoda zyada relaxed → readable/natural) */
+  --line-height-tight: 1.2;
+  --line-height-snug: 1.35;
+  --line-height-normal: 1.55;
+  --line-height-relaxed: 1.7;
   --line-height-loose: 2;
 
-  /* Letter Spacing */
-  --letter-spacing-tight: -0.025em;
+  /* Letter Spacing (headings ke liye thoda tight) */
+  --letter-spacing-tight: -0.01em;
   --letter-spacing-normal: 0;
-  --letter-spacing-wide: 0.025em;
+  --letter-spacing-wide: 0.02em;
 
-  /* === CONTAINER WIDTHS === */
+  /* === CONTAINER WIDTHS === (waise hi) */
   --container-sm: 640px;
   --container-md: 768px;
   --container-lg: 1024px;
-  --container-xl: 1280px;
-  --container-2xl: 1536px;
+  --container-xl: 1180px;   /* thoda kam → content readable */
+  --container-2xl: 1320px;
 
-  /* === Z-INDEX SCALE === */
+  /* === Z-INDEX SCALE === (waise hi) */
   --z-base: 0;
   --z-dropdown: 1000;
   --z-sticky: 1020;
@@ -189,7 +206,7 @@
   --z-tooltip: 1070;
   --z-toast: 1080;
 
-  /* === BREAKPOINTS (for JS) === */
+  /* === BREAKPOINTS === */
   --breakpoint-sm: 640px;
   --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
@@ -197,24 +214,33 @@
   --breakpoint-2xl: 1536px;
 }
 
-/* Dark Mode Variables */
+/* Dark Mode Variables (warm dark, same naam) */
 [data-theme="dark"] {
-  --bg-page: #111827;
-  --bg-surface: #1f2937;
-  --bg-elevated: #374151;
-  --bg-overlay: rgba(0, 0, 0, 0.75);
+  --bg-page: #16150f;
+  --bg-surface: #1d1c15;
+  --bg-elevated: #23221a;
+  --bg-overlay: rgba(0, 0, 0, 0.7);
+  --bg-gradient-1: #2f4f6e;
+  --bg-gradient-2: #985f2e;
+  --bg-gradient-hero: #16150f;
 
-  --text-primary: #f9fafb;
-  --text-secondary: #d1d5db;
-  --text-tertiary: #9ca3af;
-  --text-disabled: #6b7280;
+  --text-primary: #ecebde;
+  --text-secondary: #b6b4a6;
+  --text-tertiary: #8a887c;
+  --text-disabled: #6b6a60;
+  --text-inverse: #16150f;
+  --text-link: #9db8d8;
+  --text-link-hover: #c3d4ea;
 
-  --border-color: #374151;
-  --border-color-light: #4b5563;
-  --border-color-dark: #6b7280;
+  --border-color: #34332b;
+  --border-color-light: #2a2922;
+  --border-color-dark: #45443a;
+  --border-light: #2a2922;
 
-  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --shadow-xs: 0 1px 1px 0 rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 2px 6px -1px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 4px 10px -2px rgba(0, 0, 0, 0.55);
+  --shadow-2xl: 0 8px 20px -6px rgba(0, 0, 0, 0.6);
 }

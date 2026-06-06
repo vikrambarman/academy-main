@@ -1,4 +1,16 @@
 /* ==========================================
+   ⚠️ HEADER ab `position: fixed` hai (sticky nahi)
+   --------------------------------------------------
+   Sticky kisi bhi ancestor ke overflow/transform se toot jaata tha.
+   Isliye ab Header FIXED hai (jo immune hai), aur Header.tsx ek
+   spacer <div> render karta hai (header ki exact height) taaki
+   content uske neeche start ho. .public-main par margin-top 0 hi rakho.
+
+   Phir bhi: app/layout.tsx ke <body> se `overflowY: 'auto'` HATA dein
+   (acche practice ke liye), aur scroll body par hone dein.
+   ========================================== */
+
+/* ==========================================
    GLOBAL STYLES - MAIN ENTRY POINT
    Shiv Shakti Computer Academy
    Custom CSS Architecture
@@ -44,20 +56,24 @@
 
 /* ==========================================
    SMOOTH SCROLL BEHAVIOR
+   --------------------------------------------------
+   ✅ FIX: `overflow-y: auto !important` on html/body
+   position: sticky ko tod deta hai. Use `visible` kiya.
    ========================================== */
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 120px; /* Updated for fixed header */
-  height: auto !important;
-  min-height: 100vh !important;
-  overflow-y: auto !important;
+  scroll-padding-top: 150px;       /* sticky header ki height ke aas-paas — anchor links iske neeche na chhupein */
+  height: auto;
+  min-height: 100vh;
+  overflow-y: visible;             /* ✅ tha: auto !important — sticky tod raha tha */
 }
 
 body {
-  height: auto !important;
-  min-height: 100vh !important;
-  overflow-y: auto !important;
+  height: auto;
+  min-height: 100vh;
+  overflow-y: visible;             /* ✅ tha: auto !important */
+  overflow-x: hidden;              /* horizontal scroll rokta hai; ye sticky nahi todta */
 }
 
 /* ==========================================
@@ -199,6 +215,8 @@ a:focus-visible {
 
 /* ==========================================
    NEXT.JS WRAPPER FIX
+   --------------------------------------------------
+   ✅ overflow: visible + height: auto — sticky ko allow karta hai
    ========================================== */
 
 #__next {
@@ -208,42 +226,49 @@ a:focus-visible {
 }
 
 /* ==========================================
-   MAIN CONTENT OFFSET FOR FIXED HEADER
-   Dynamic margin based on header presence
+   MAIN CONTENT
+   --------------------------------------------------
+   ✅ FIX: Header ab `position: sticky` hai (fixed nahi).
+   Sticky element khud document flow me jagah leta hai, isliye
+   .public-main par koi margin-top NAHI chahiye — warna header ke
+   neeche utni hi blank space dikhti thi (114px/156px).
    ========================================== */
 
+/* Public wrapper — koi overflow/height clamp nahi, warna sticky toot jaata hai */
+.public-shell {
+  min-height: 100vh;
+  height: auto;
+  /* ⚠️ overflow YAHAN kabhi mat dena */
+}
+
 .public-main {
-  /* Default: Topbar(42) + Navbar(72) = 114px (no breaking news) */
-  margin-top: 114px;
-  min-height: calc(100vh - 314px); /* 100vh - header - footer */
+  margin-top: 0;                   /* ✅ tha: 114px — sticky header ke saath 0 */
+  min-height: calc(100vh - 200px);
   position: relative;
+  /* ⚠️ overflow-x: hidden bhi sticky tod sakta hai agar parent ho —
+     header isse BAHAR hai (sibling), isliye yahan safe hai.
+     Par agar phir bhi issue ho to ye line hata dein. */
   overflow-x: hidden;
 }
 
-/* When breaking news is present: add extra 42px */
+/* Breaking news ke saath bhi koi extra margin nahi — sticky khud handle karta hai */
 .public-main.has-breaking-news {
-  margin-top: 156px; /* 42 + 42 + 72 */
+  margin-top: 0;                   /* ✅ tha: 156px */
 }
 
 /* Tablet */
 @media (max-width: 1023px) {
-  .public-main {
-    margin-top: 110px; /* 38 + 72 */
-  }
-
+  .public-main,
   .public-main.has-breaking-news {
-    margin-top: 152px; /* 38 + 42 + 72 */
+    margin-top: 0;
   }
 }
 
 /* Mobile */
 @media (max-width: 640px) {
-  .public-main {
-    margin-top: 110px; /* 38 + 72 */
-  }
-
+  .public-main,
   .public-main.has-breaking-news {
-    margin-top: 148px; /* 38 + 38 + 72 */
+    margin-top: 0;
   }
 }
 
@@ -264,12 +289,14 @@ a:focus-visible {
 }
 
 /* ==========================================
-   FORCE HEADER TO BE FIXED
+   HEADER
+   --------------------------------------------------
+   ✅ REMOVED: purana `.headerWrapper { position: fixed !important }`
+   Naya Header (.header) khud `position: sticky` hai — ise force-fixed
+   karne ki zaroorat nahi. Agar kahin purana .headerWrapper class abhi
+   bhi DOM me hai to use sticky behave karne dein:
    ========================================== */
 
-.headerWrapper,
-[class*="headerWrapper"] {
-  position: fixed !important;
-  top: 0 !important;
-  z-index: 1000 !important;
-}
+/* (Safety) Agar koi legacy .headerWrapper element bacha ho to use
+   fixed na karein — sticky/normal rehne dein. Naya header `.header`
+   class use karta hai jo Header.module.css me sticky hai. */
