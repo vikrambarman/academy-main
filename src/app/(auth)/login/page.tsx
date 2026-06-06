@@ -5,206 +5,219 @@ import Image from "next/image";
 
 const PORTALS = [
     {
-        href:      "/admin/login",
-        badge:     "Admin Portal",
-        icon:      "⚙️",
-        title:     "Administrator",
-        desc:      "Manage students, courses, payments, certificates and all academy operations.",
-        features:  ["Student Management", "Course & Fees Control", "Certificate Tracking", "Secure OTP Authentication"],
+        href: "/admin/login",
+        badge: "Admin Portal",
+        icon: "⚙️",
+        title: "Administrator",
+        desc: "Manage students, courses, payments, certificates and all academy operations.",
+        features: ["Student Management", "Course & Fees Control", "Certificate Tracking", "Secure OTP Authentication"],
+        color: "#1e40af",
     },
     {
-        href:      "/teacher/login",
-        badge:     "Faculty Portal",
-        icon:      "📋",
-        title:     "Teacher",
-        desc:      "Mark attendance, manage timetables and create study notes for your students.",
-        features:  ["Mark Daily Attendance", "Manage Class Timetable", "Create & Edit Notes", "View Student Progress"],
+        href: "/teacher/login",
+        badge: "Faculty Portal",
+        icon: "📋",
+        title: "Teacher",
+        desc: "Mark attendance, manage timetables and create study notes for your students.",
+        features: ["Mark Daily Attendance", "Manage Class Timetable", "Create & Edit Notes", "View Student Progress"],
+        color: "#ea580c",
         highlight: true,
     },
     {
-        href:      "/student/login",
-        badge:     "Student Portal",
-        icon:      "🎓",
-        title:     "Student",
-        desc:      "Access your course details, payment records and certificate status from your dashboard.",
-        features:  ["View Course Information", "Track Fee Payments", "Check Certificate Status", "Personal Dashboard"],
+        href: "/student/login",
+        badge: "Student Portal",
+        icon: "🎓",
+        title: "Student",
+        desc: "Access your course details, payment records and certificate status.",
+        features: ["View Course Information", "Track Fee Payments", "Check Certificate Status", "Personal Dashboard"],
+        color: "#1e40af",
     },
 ];
-
-const onFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    e.currentTarget.style.borderColor = "var(--color-primary)";
-};
 
 export default function PortalSelectorPage() {
     const router = useRouter();
 
     return (
-        <>
-            <style>{`
-                @keyframes ps-fade-in {
-                    from { opacity:0; transform:translateY(12px); }
-                    to   { opacity:1; transform:translateY(0); }
-                }
-                .ps-card { animation: ps-fade-in .35s ease both; }
-                .ps-card:nth-child(1) { animation-delay:.04s; }
-                .ps-card:nth-child(2) { animation-delay:.10s; }
-                .ps-card:nth-child(3) { animation-delay:.16s; }
-            `}</style>
-
-            <div className="min-h-screen flex items-center justify-center px-5 py-12 relative overflow-hidden"
-                style={{ fontFamily: "'DM Sans', sans-serif", background: "var(--color-bg)" }}>
-
-                {/* Background glows */}
-                <div aria-hidden className="fixed -top-28 -right-28 w-[440px] h-[440px] rounded-full pointer-events-none"
-                    style={{ background: "radial-gradient(circle,color-mix(in srgb,var(--color-primary) 8%,transparent) 0%,transparent 65%)" }} />
-                <div aria-hidden className="fixed -bottom-20 -left-20 w-[360px] h-[360px] rounded-full pointer-events-none"
-                    style={{ background: "radial-gradient(circle,color-mix(in srgb,var(--color-warning) 5%,transparent) 0%,transparent 65%)" }} />
-
-                <div className="relative z-10 w-full" style={{ maxWidth: 1040 }}>
-
-                    {/* Header */}
-                    <div className="text-center mb-12">
-                        {/* Logo */}
-                        <div className="w-14 h-14 rounded-2xl mx-auto mb-5 flex items-center justify-center overflow-hidden"
-                            style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}>
-                            <Image src="/logo.png" alt="Shivshakti Computer Academy" width={40} height={40} className="object-contain" />
-                        </div>
-
-                        {/* Eyebrow */}
-                        <div className="flex items-center justify-center gap-2 mb-3 text-[9px] font-medium tracking-[0.2em] uppercase"
-                            style={{ color: "var(--color-primary)" }}>
-                            <span aria-hidden style={{ display:"inline-block", width:20, height:1, background:"var(--color-primary)", flexShrink:0 }} />
-                            Portal Access
-                            <span aria-hidden style={{ display:"inline-block", width:20, height:1, background:"var(--color-primary)", flexShrink:0 }} />
-                        </div>
-
-                        <h1 className="font-serif font-bold leading-[1.2] mb-2"
-                            style={{ fontSize: "clamp(1.5rem,3vw,2.1rem)", color: "var(--color-text)" }}>
-                            Shivshakti Computer Academy
-                        </h1>
-                        <p className="text-[0.86rem] font-light" style={{ color: "var(--color-text-muted)" }}>
-                            Select the portal you want to access
-                        </p>
+        <div className="page">
+            <div className="container">
+                {/* Header */}
+                <div className="header">
+                    <div className="logo">
+                        <Image src="/logo.png" alt="Logo" width={48} height={48} />
                     </div>
-
-                    {/* Portal cards grid */}
-                    <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))" }}>
-                        {PORTALS.map((p) => (
-                            <button
-                                key={p.href}
-                                type="button"
-                                className="ps-card text-left relative rounded-[20px] overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1 focus-visible:outline-none"
-                                style={{
-                                    background:  p.highlight
-                                        ? "color-mix(in srgb,var(--color-primary) 4%,var(--color-bg-card))"
-                                        : "var(--color-bg-card)",
-                                    border:      p.highlight
-                                        ? "1px solid color-mix(in srgb,var(--color-primary) 20%,var(--color-border))"
-                                        : "1px solid var(--color-border)",
-                                    padding:     0,
-                                }}
-                                onClick={() => router.push(p.href)}
-                                aria-label={`Go to ${p.title} portal`}
-                                onMouseEnter={e => {
-                                    const el = e.currentTarget as HTMLElement;
-                                    el.style.borderColor = "var(--color-primary)";
-                                    el.style.boxShadow   = "0 12px 40px color-mix(in srgb,var(--color-primary) 10%,transparent)";
-                                }}
-                                onMouseLeave={e => {
-                                    const el = e.currentTarget as HTMLElement;
-                                    el.style.borderColor = p.highlight
-                                        ? "color-mix(in srgb,var(--color-primary) 20%,var(--color-border))"
-                                        : "var(--color-border)";
-                                    el.style.boxShadow = "none";
-                                }}>
-
-                                {/* Top accent bar — only on hover, managed via CSS class */}
-                                <div className="h-[3px] w-full"
-                                    style={{
-                                        background: p.highlight
-                                            ? "linear-gradient(90deg,var(--color-primary),color-mix(in srgb,var(--color-primary) 50%,var(--color-accent)))"
-                                            : "transparent",
-                                        transition: "background .2s",
-                                    }}
-                                    onMouseEnter={e => {
-                                        (e.currentTarget as HTMLElement).style.background = "linear-gradient(90deg,var(--color-primary),color-mix(in srgb,var(--color-primary) 50%,var(--color-accent)))";
-                                    }} />
-
-                                <div className="px-7 pt-6 pb-7">
-                                    {/* Badge */}
-                                    <div className="inline-flex items-center gap-1.5 text-[8px] font-medium tracking-[0.14em] uppercase rounded-full px-2.5 py-[4px] mb-5"
-                                        style={{
-                                            background: "color-mix(in srgb,var(--color-primary) 8%,var(--color-bg))",
-                                            border:     "1px solid color-mix(in srgb,var(--color-primary) 16%,transparent)",
-                                            color:      "var(--color-primary)",
-                                        }}>
-                                        <span className="text-[10px]" aria-hidden>{p.icon}</span>
-                                        {p.badge}
-                                    </div>
-
-                                    {/* Title */}
-                                    <div className="font-serif text-[1.2rem] font-bold leading-[1.2] mb-2.5"
-                                        style={{ color: "var(--color-text)" }}>
-                                        {p.title} Access
-                                    </div>
-
-                                    {/* Description */}
-                                    <p className="text-[0.8rem] font-light leading-[1.75] mb-5"
-                                        style={{ color: "var(--color-text-muted)" }}>
-                                        {p.desc}
-                                    </p>
-
-                                    {/* Features */}
-                                    <div className="flex flex-col rounded-[11px] overflow-hidden mb-6"
-                                        style={{ border: "1px solid var(--color-border)" }}>
-                                        {p.features.map((f, i) => (
-                                            <div key={f}
-                                                className="flex items-center gap-2.5 px-3 py-2 text-[0.76rem] font-light"
-                                                style={{
-                                                    color:        "var(--color-text)",
-                                                    borderBottom: i < p.features.length - 1 ? "1px solid var(--color-border)" : "none",
-                                                    background:   "var(--color-bg)",
-                                                }}>
-                                                <div className="w-3.5 h-3.5 rounded-full flex items-center justify-center flex-shrink-0 text-[0.45rem]"
-                                                    style={{
-                                                        background: "color-mix(in srgb,var(--color-success) 12%,transparent)",
-                                                        border:     "1px solid color-mix(in srgb,var(--color-success) 20%,transparent)",
-                                                        color:      "var(--color-success)",
-                                                    }}
-                                                    aria-hidden>✓</div>
-                                                {f}
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    {/* CTA row */}
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-[0.8rem] font-semibold"
-                                            style={{ color: "var(--color-primary)" }}>
-                                            Sign In
-                                        </span>
-                                        <div className="w-7 h-7 rounded-full flex items-center justify-center text-[0.78rem] transition-all duration-200"
-                                            style={{
-                                                background: "color-mix(in srgb,var(--color-primary) 10%,var(--color-bg))",
-                                                border:     "1px solid color-mix(in srgb,var(--color-primary) 20%,transparent)",
-                                                color:      "var(--color-primary)",
-                                            }}
-                                            aria-hidden>
-                                            →
-                                        </div>
-                                    </div>
-                                </div>
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Footer */}
-                    <p className="mt-8 text-center text-[0.68rem] font-light"
-                        style={{ color: "color-mix(in srgb,var(--color-text-muted) 55%,transparent)" }}>
-                        © 2026 Shivshakti Computer Academy. All rights reserved.
-                    </p>
+                    <h1>Shivshakti Computer Academy</h1>
+                    <p>Select the portal you want to access</p>
                 </div>
+
+                {/* Cards */}
+                <div className="grid">
+                    {PORTALS.map((p) => (
+                        <button
+                            key={p.href}
+                            onClick={() => router.push(p.href)}
+                            className={`card ${p.highlight ? "highlight" : ""}`}
+                            style={{ borderTopColor: p.color }}
+                        >
+                            <div className="badge" style={{ background: `${p.color}15`, color: p.color, borderColor: `${p.color}30` }}>
+                                <span>{p.icon}</span> {p.badge}
+                            </div>
+
+                            <h3>{p.title}</h3>
+                            <p className="desc">{p.desc}</p>
+
+                            <ul>
+                                {p.features.map(f => (
+                                    <li key={f}>
+                                        <span className="check">✓</span> {f}
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <div className="cta" style={{ color: p.color }}>
+                                Sign In <span>→</span>
+                            </div>
+                        </button>
+                    ))}
+                </div>
+
+                <p className="footer">© 2026 Shivshakti Computer Academy. All rights reserved.</p>
             </div>
-        </>
+
+            <style jsx>{`
+        .page {
+          min-height: 100vh;
+          background: #f8fafc;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 40px 20px;
+          font-family: system-ui, -apple-system, sans-serif;
+        }
+        .container { width: 100%; max-width: 1080px; }
+        .header { text-align: center; margin-bottom: 48px; }
+        .logo {
+          width: 64px; height: 64px;
+          background: white;
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 16px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        h1 {
+          font-size: 32px;
+          font-weight: 700;
+          color: #0f172a;
+          margin: 0 0 8px;
+          letter-spacing: -0.5px;
+        }
+        .header p { margin: 0; color: #64748b; font-size: 15px; }
+        .grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 20px;
+        }
+        .card {
+          background: white;
+          border: 1px solid #e2e8f0;
+          border-top: 3px solid;
+          border-radius: 12px;
+          padding: 24px;
+          text-align: left;
+          cursor: pointer;
+          transition: all 0.2s;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+          border-color: #cbd5e1;
+        }
+        .card.highlight {
+          box-shadow: 0 4px 16px rgba(234,88,12,0.12);
+        }
+        .badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 11px;
+          font-weight: 600;
+          padding: 4px 10px;
+          border-radius: 20px;
+          border: 1px solid;
+          margin-bottom: 16px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        h3 {
+          font-size: 20px;
+          font-weight: 700;
+          color: #0f172a;
+          margin: 0 0 8px;
+        }
+        .desc {
+          font-size: 14px;
+          color: #64748b;
+          line-height: 1.5;
+          margin: 0 0 18px;
+          min-height: 42px;
+        }
+        ul {
+          list-style: none;
+          padding: 0;
+          margin: 0 0 20px;
+          border: 1px solid #f1f5f9;
+          border-radius: 8px;
+          overflow: hidden;
+        }
+        li {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 9px 12px;
+          font-size: 13px;
+          color: #334155;
+          border-bottom: 1px solid #f1f5f9;
+          background: #f8fafc;
+        }
+        li:last-child { border-bottom: none; }
+        .check {
+          width: 16px;
+          height: 16px;
+          background: #dcfce7;
+          color: #16a34a;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 10px;
+          font-weight: bold;
+          flex-shrink: 0;
+        }
+        .cta {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-size: 14px;
+          font-weight: 600;
+        }
+        .cta span {
+          transition: transform 0.2s;
+        }
+        .card:hover .cta span { transform: translateX(4px); }
+        .footer {
+          text-align: center;
+          margin-top: 40px;
+          font-size: 12px;
+          color: #94a3b8;
+        }
+        @media (max-width: 768px) {
+          h1 { font-size: 26px; }
+          .grid { grid-template-columns: 1fr; }
+        }
+      `}</style>
+        </div>
     );
 }
