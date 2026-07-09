@@ -1,246 +1,202 @@
-/* ==========================================
-   CSS CUSTOM PROPERTIES - DESIGN SYSTEM
-   RETUNED → "Clean Minimal University" look
-   --------------------------------------------------
-   ⚠️ Variable NAAM bilkul same rakhe gaye hain — sirf VALUES badli hain.
-   Isliye aapke koi bhi page/component nahi tootega.
-   Mukhya badlav:
-   - Display font → SERIF (campus feel)
-   - Colors → wahi blue+orange hue, par MUTED/sober
-   - Gradients → flat solid (gradient vars retained but de-emphasised)
-   - Radius → chhota (modern-app/AI feel hatane ke liye)
-   - Shadows → bahut halke
-   ========================================== */
+/* src/styles/variables.css - COMPLETE REWRITE */
 
 :root {
-  /* === PRIMARY COLORS === (muted academic blue — same hue, kam saturation) */
-  --color-primary-50: #f1f5f9;
-  --color-primary-100: #e2e8f0;
-  --color-primary-200: #c7d4e2;
-  --color-primary-300: #9fb3c8;
-  --color-primary-400: #6b8aaa;
-  --color-primary-500: #436585;   /* core, thoda desaturated */
-  --color-primary-600: #2f4f6e;   /* main brand blue — sober ink-blue */
-  --color-primary-700: #26415b;
-  --color-primary-800: #1f3349;
-  --color-primary-900: #182838;
+  /* ============================================
+     PRIMARY BRAND - Deep Government Blue
+     (NIC, India.gov.in jaisa feel)
+     ============================================ */
+  --color-primary-50:  #EFF6FF;
+  --color-primary-100: #DBEAFE;
+  --color-primary-200: #BFDBFE;
+  --color-primary-300: #93C5FD;
+  --color-primary-400: #60A5FA;
+  --color-primary-500: #1a56db;   /* Main brand - NIC blue */
+  --color-primary-600: #1e40af;   /* Hover state */
+  --color-primary-700: #1e3a8a;   /* Dark accent */
+  --color-primary-800: #1e3166;   /* Very dark */
+  --color-primary-900: #172554;   /* Darkest */
 
-  /* === ACCENT COLORS === (orange → muted terracotta/bronze, same warm family) */
-  --color-accent-50: #faf4ee;
-  --color-accent-100: #f2e3d4;
-  --color-accent-200: #e6c8aa;
-  --color-accent-300: #d7a87b;
-  --color-accent-400: #c68a52;
-  --color-accent-500: #b1733b;   /* muted, "established" warm tone */
-  --color-accent-600: #985f2e;
-  --color-accent-700: #7c4d27;
-  --color-accent-800: #5f3c20;
-  --color-accent-900: #492f1b;
+  /* ============================================
+     ACCENT - Saffron/Orange (Indian flag feel)
+     ============================================ */
+  --color-accent-50:  #FFF7ED;
+  --color-accent-100: #FFEDD5;
+  --color-accent-200: #FED7AA;
+  --color-accent-300: #FDBA74;
+  --color-accent-400: #FB923C;
+  --color-accent-500: #EA580C;   /* Main accent - saffron */
+  --color-accent-600: #C2410C;   /* Hover */
+  --color-accent-700: #9A3412;   /* Dark */
 
-  /* === SEMANTIC COLORS === (thode sober, par clearly readable) */
-  --color-success-light: #dfeee3;
-  --color-success: #3f7d57;
-  --color-success-dark: #2e5e40;
+  /* ============================================
+     NEUTRAL - Warm grays (not cold/robotic)
+     ============================================ */
+  --color-gray-50:  #FAFAF9;    /* Warm white - page bg */
+  --color-gray-100: #F5F5F4;    /* Section alternates */
+  --color-gray-200: #E7E5E4;    /* Borders */
+  --color-gray-300: #D6D3D1;    /* Input borders */
+  --color-gray-400: #A8A29E;    /* Placeholder text */
+  --color-gray-500: #78716C;    /* Secondary text */
+  --color-gray-600: #57534E;    /* Body text light */
+  --color-gray-700: #44403C;    /* Body text */
+  --color-gray-800: #292524;    /* Headings */
+  --color-gray-900: #1C1917;    /* Dark headings */
 
-  --color-warning-light: #f6ecd6;
-  --color-warning: #b88a2e;
-  --color-warning-dark: #8c6720;
+  /* ============================================
+     SEMANTIC COLORS
+     ============================================ */
+  --color-success-500: #16A34A;
+  --color-success-50:  #F0FDF4;
+  --color-warning-500: #D97706;
+  --color-warning-50:  #FFFBEB;
+  --color-error-500:   #DC2626;
+  --color-error-50:    #FEF2F2;
+  --color-info-500:    #0284C7;
+  --color-info-50:     #F0F9FF;
 
-  --color-danger-light: #f3dedd;
-  --color-danger: #a8453f;
-  --color-danger-dark: #82332e;
+  /* ============================================
+     TYPOGRAPHY - Handwritten/Human feel ke liye
+     ============================================ */
 
-  --color-info-light: #e2e8f0;
-  --color-info: #436585;
-  --color-info-dark: #26415b;
+  /* 
+    Kyu ye fonts?
+    - Tiro Devanagari: Hindi text perfect render karta hai
+    - Inter: Government sites jaisa clean reading
+    - Noto Serif: Official document feel headings ke liye
+  */
+  --font-primary:   'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-heading:   'Noto Serif', 'Times New Roman', Georgia, serif;
+  --font-hindi:     'Tiro Devanagari', 'Noto Sans Devanagari', serif;
+  --font-mono:      'Courier New', Courier, monospace;
 
-  /* === NEUTRAL COLORS === (thode warm grays → kagaz/document feel) */
-  --color-white: #ffffff;
-  --color-black: #15140f;
-  --color-gray-50: #faf9f6;
-  --color-gray-100: #f4f3ee;
-  --color-gray-200: #e8e6df;
-  --color-gray-300: #d6d3c9;
-  --color-gray-400: #a8a59a;
-  --color-gray-500: #7c7a70;
-  --color-gray-600: #5b594f;
-  --color-gray-700: #403e37;
-  --color-gray-800: #2a2925;
-  --color-gray-900: #1a1916;
+  /* Font Sizes - Type Scale */
+  --text-xs:   0.75rem;     /* 12px */
+  --text-sm:   0.875rem;    /* 14px */
+  --text-base: 1rem;        /* 16px */
+  --text-lg:   1.125rem;    /* 18px */
+  --text-xl:   1.25rem;     /* 20px */
+  --text-2xl:  1.5rem;      /* 24px */
+  --text-3xl:  1.875rem;    /* 30px */
+  --text-4xl:  2.25rem;     /* 36px */
+  --text-5xl:  3rem;        /* 48px */
 
-  /* === BACKGROUND COLORS === */
-  --bg-page: #ffffff;
-  --bg-surface: #faf9f6;
-  --bg-elevated: #ffffff;
-  --bg-overlay: rgba(26, 25, 22, 0.5);
-  /* Gradients ko flat/sober kiya — ab "gradient" vars bhi solid-ish hain,
-     taaki jahan use hue hain wahan automatically calm dikhe. */
-  --bg-gradient-1: #2f4f6e;
-  --bg-gradient-2: #985f2e;
-  --bg-gradient-hero: #ffffff;
+  /* Font Weights */
+  --font-normal:    400;
+  --font-medium:    500;
+  --font-semibold:  600;
+  --font-bold:      700;
+  --font-extrabold: 800;
 
-  /* === TEXT COLORS === (near-black warm, pure #000 nahi → natural) */
-  --text-primary: #1c1b18;
-  --text-secondary: #5b594f;
-  --text-tertiary: #7c7a70;
-  --text-disabled: #a8a59a;
-  --text-inverse: #ffffff;
-  --text-link: #2f4f6e;
-  --text-link-hover: #1f3349;
+  /* Line Heights */
+  --leading-tight:  1.25;
+  --leading-snug:   1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  --leading-loose:  2;
 
-  /* === BORDER & DIVIDER === (hairline, halke) */
-  --border-color: #e8e6df;
-  --border-color-light: #f4f3ee;
-  --border-color-dark: #d6d3c9;
-  --border-light: #f4f3ee;   /* home.css me use hua tha — define kar diya */
-  --border-width: 1px;
-  --border-width-thick: 2px;
+  /* Letter Spacing */
+  --tracking-tight:  -0.025em;
+  --tracking-normal:  0em;
+  --tracking-wide:    0.025em;
+  --tracking-wider:   0.05em;
+  --tracking-widest:  0.1em;
 
-  /* === SHADOWS === (bahut subtle — heavy glow hata diya) */
-  --shadow-xs: 0 1px 1px 0 rgba(26, 25, 22, 0.03);
-  --shadow-sm: 0 1px 2px 0 rgba(26, 25, 22, 0.05);
-  --shadow-md: 0 1px 3px 0 rgba(26, 25, 22, 0.06), 0 1px 2px -1px rgba(26, 25, 22, 0.05);
-  --shadow-lg: 0 2px 6px -1px rgba(26, 25, 22, 0.07), 0 1px 3px -1px rgba(26, 25, 22, 0.05);
-  --shadow-xl: 0 4px 10px -2px rgba(26, 25, 22, 0.08);
-  --shadow-2xl: 0 8px 20px -6px rgba(26, 25, 22, 0.10);
-  --shadow-inner: inset 0 1px 2px 0 rgba(26, 25, 22, 0.04);
+  /* ============================================
+     SPACING SYSTEM (8px base grid)
+     ============================================ */
+  --space-0:   0;
+  --space-1:   0.25rem;   /* 4px */
+  --space-2:   0.5rem;    /* 8px */
+  --space-3:   0.75rem;   /* 12px */
+  --space-4:   1rem;      /* 16px */
+  --space-5:   1.25rem;   /* 20px */
+  --space-6:   1.5rem;    /* 24px */
+  --space-8:   2rem;      /* 32px */
+  --space-10:  2.5rem;    /* 40px */
+  --space-12:  3rem;      /* 48px */
+  --space-16:  4rem;      /* 64px */
+  --space-20:  5rem;      /* 80px */
+  --space-24:  6rem;      /* 96px */
+  --space-32:  8rem;      /* 128px */
 
-  /* === SPACING SYSTEM === (waise hi rakha — aapke pages depend karte hain) */
-  --space-0: 0;
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-7: 1.75rem;
-  --space-8: 2rem;
-  --space-10: 2.5rem;
-  --space-12: 3rem;
-  --space-16: 4rem;
-  --space-20: 5rem;
-  --space-24: 6rem;
-  --space-32: 8rem;
-
-  /* === BORDER RADIUS === (sabko chhota kiya → "soft app/AI" feel hata)
-     Naam same, par values minimal. Bade rounded cards ab clean dikhenge. */
+  /* ============================================
+     BORDER RADIUS
+     ============================================ */
   --radius-none: 0;
-  --radius-sm: 0.125rem;   /* 2px */
-  --radius-md: 0.1875rem;  /* 3px */
-  --radius-lg: 0.25rem;    /* 4px */
-  --radius-xl: 0.3125rem;  /* 5px */
-  --radius-2xl: 0.375rem;  /* 6px */
-  --radius-3xl: 0.5rem;    /* 8px */
+  --radius-sm:   0.125rem;  /* 2px - Government sharp feel */
+  --radius-md:   0.25rem;   /* 4px */
+  --radius-lg:   0.5rem;    /* 8px */
+  --radius-xl:   0.75rem;   /* 12px */
+  --radius-2xl:  1rem;      /* 16px */
   --radius-full: 9999px;
 
-  /* === TRANSITIONS === (thode slow/natural, bounce hata) */
-  --transition-fast: 140ms ease;
-  --transition-base: 180ms ease;
-  --transition-slow: 260ms ease;
-  --transition-slower: 360ms ease;
+  /* ============================================
+     SHADOWS - Subtle, not dramatic
+     ============================================ */
+  --shadow-xs:  0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm:  0 1px 3px 0 rgb(0 0 0 / 0.1), 
+                0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md:  0 4px 6px -1px rgb(0 0 0 / 0.1), 
+                0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg:  0 10px 15px -3px rgb(0 0 0 / 0.1), 
+                0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl:  0 20px 25px -5px rgb(0 0 0 / 0.1), 
+                0 8px 10px -6px rgb(0 0 0 / 0.1);
+  /* Blue tinted shadow - brand feel */
+  --shadow-brand: 0 4px 14px 0 rgb(26 86 219 / 0.15);
 
-  /* === EASING FUNCTIONS === (bounce ko soft kiya) */
-  --ease-linear: cubic-bezier(0, 0, 1, 1);
-  --ease-in: cubic-bezier(0.4, 0, 1, 1);
-  --ease-out: cubic-bezier(0, 0, 0.2, 1);
-  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-smooth: cubic-bezier(0.25, 0.1, 0.25, 1);
-  --ease-bounce: cubic-bezier(0.25, 0.1, 0.25, 1);   /* bounce → smooth */
+  /* ============================================
+     TRANSITIONS
+     ============================================ */
+  --transition-fast:   150ms ease;
+  --transition-base:   200ms ease;
+  --transition-slow:   300ms ease;
+  --transition-slower: 500ms ease;
 
-  /* === TYPOGRAPHY === */
-  /* Body sans — Inter rehne diya (clean, readable). */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  /* Display → SERIF. Yahi sabse bada "university/human" signal hai.
-     System serif fallback diye hain; chahein to next/font se 'Lora' add kar sakte hain. */
-  --font-display: 'Lora', 'Georgia', 'Iowan Old Style', 'Times New Roman', serif;
-  --font-mono: 'Fira Code', 'Courier New', monospace;
+  /* ============================================
+     Z-INDEX SCALE
+     ============================================ */
+  --z-below:    -1;
+  --z-base:      0;
+  --z-raised:   10;
+  --z-dropdown: 100;
+  --z-sticky:   200;
+  --z-fixed:    300;
+  --z-modal:    400;
+  --z-toast:    500;
 
-  /* Font Sizes — bade sizes thode chhote kiye (giant hero AI-feel deta hai) */
-  --font-size-xs: 0.75rem;
-  --font-size-sm: 0.875rem;
-  --font-size-base: 1rem;
-  --font-size-lg: 1.125rem;
-  --font-size-xl: 1.25rem;
-  --font-size-2xl: 1.5rem;
-  --font-size-3xl: 1.75rem;    /* 30 → 28 */
-  --font-size-4xl: 2.125rem;   /* 36 → 34 */
-  --font-size-5xl: 2.625rem;   /* 48 → 42 */
-  --font-size-6xl: 3.25rem;    /* 60 → 52 */
-  --font-size-7xl: 3.75rem;    /* 72 → 60 */
+  /* ============================================
+     LAYOUT
+     ============================================ */
+  --container-max:   1200px;
+  --container-wide:  1400px;
+  --container-narrow: 800px;
+  --header-height:    72px;
+  --sidebar-width:    280px;
 
-  /* Font Weights (waise hi) */
-  --font-weight-light: 300;
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-  --font-weight-extrabold: 800;
-
-  /* Line Heights (body thoda zyada relaxed → readable/natural) */
-  --line-height-tight: 1.2;
-  --line-height-snug: 1.35;
-  --line-height-normal: 1.55;
-  --line-height-relaxed: 1.7;
-  --line-height-loose: 2;
-
-  /* Letter Spacing (headings ke liye thoda tight) */
-  --letter-spacing-tight: -0.01em;
-  --letter-spacing-normal: 0;
-  --letter-spacing-wide: 0.02em;
-
-  /* === CONTAINER WIDTHS === (waise hi) */
-  --container-sm: 640px;
-  --container-md: 768px;
-  --container-lg: 1024px;
-  --container-xl: 1180px;   /* thoda kam → content readable */
-  --container-2xl: 1320px;
-
-  /* === Z-INDEX SCALE === (waise hi) */
-  --z-base: 0;
-  --z-dropdown: 1000;
-  --z-sticky: 1020;
-  --z-fixed: 1030;
-  --z-modal-backdrop: 1040;
-  --z-modal: 1050;
-  --z-popover: 1060;
-  --z-tooltip: 1070;
-  --z-toast: 1080;
-
-  /* === BREAKPOINTS === */
-  --breakpoint-sm: 640px;
-  --breakpoint-md: 768px;
-  --breakpoint-lg: 1024px;
-  --breakpoint-xl: 1280px;
-  --breakpoint-2xl: 1536px;
-}
-
-/* Dark Mode Variables (warm dark, same naam) */
-[data-theme="dark"] {
-  --bg-page: #16150f;
-  --bg-surface: #1d1c15;
-  --bg-elevated: #23221a;
-  --bg-overlay: rgba(0, 0, 0, 0.7);
-  --bg-gradient-1: #2f4f6e;
-  --bg-gradient-2: #985f2e;
-  --bg-gradient-hero: #16150f;
-
-  --text-primary: #ecebde;
-  --text-secondary: #b6b4a6;
-  --text-tertiary: #8a887c;
-  --text-disabled: #6b6a60;
-  --text-inverse: #16150f;
-  --text-link: #9db8d8;
-  --text-link-hover: #c3d4ea;
-
-  --border-color: #34332b;
-  --border-color-light: #2a2922;
-  --border-color-dark: #45443a;
-  --border-light: #2a2922;
-
-  --shadow-xs: 0 1px 1px 0 rgba(0, 0, 0, 0.3);
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 2px 6px -1px rgba(0, 0, 0, 0.5);
-  --shadow-xl: 0 4px 10px -2px rgba(0, 0, 0, 0.55);
-  --shadow-2xl: 0 8px 20px -6px rgba(0, 0, 0, 0.6);
+  /* ============================================
+     SEMANTIC ALIASES 
+     (Use these in components, not raw colors)
+     ============================================ */
+  
+  /* Backgrounds */
+  --bg-page:      var(--color-gray-50);
+  --bg-surface:   #FFFFFF;
+  --bg-elevated:  var(--color-gray-50);
+  --bg-brand:     var(--color-primary-700);
+  --bg-accent:    var(--color-accent-500);
+  
+  /* Text */
+  --text-primary:   var(--color-gray-900);
+  --text-secondary: var(--color-gray-600);
+  --text-tertiary:  var(--color-gray-400);
+  --text-inverse:   #FFFFFF;
+  --text-brand:     var(--color-primary-600);
+  --text-accent:    var(--color-accent-600);
+  
+  /* Borders */
+  --border-light:  var(--color-gray-200);
+  --border-medium: var(--color-gray-300);
+  --border-heavy:  var(--color-gray-400);
+  --border-brand:  var(--color-primary-500);
 }

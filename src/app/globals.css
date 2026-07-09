@@ -16,6 +16,23 @@
    Custom CSS Architecture
    ========================================== */
 
+
+
+/* Problem          →  File
+─────────────────────────────────────
+Color change     →  variables.css
+Font change      →  variables.css + base.css  
+Button style     →  components.css (.btn)
+Card style       →  components.css (.card)
+Page width       →  layout.css (.container)
+Section spacing  →  layout.css (.section)
+Hero section     →  components.css (.hero)
+Animation        →  animations.css
+One-off style    →  utilities.css
+Footer           →  layout.css (.site-footer)
+Homepage hero    →  home/HeroSection.tsx (inline ya page-specific) */
+
+
 /* Custom CSS Architecture */
 @import "../styles/variables.css";
 @import "../styles/reset.css";
@@ -24,7 +41,10 @@
 @import "../styles/components.css";
 @import "../styles/utilities.css";
 @import "../styles/animations.css";
-@import "../styles/home.css";
+@import "../styles/hero-section.css";   /* ← ADD THIS */
+@import "../styles/trust-section.css";
+@import "../styles/student-benefits.css";
+@import "../styles/courses-preview.css";
 
 /* ==========================================
    CUSTOM SCROLLBAR (Global)

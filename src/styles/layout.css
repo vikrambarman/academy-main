@@ -1,296 +1,259 @@
-/* ==========================================
-   LAYOUT UTILITIES
-   ========================================== */
+/* src/styles/layout.css - PUBLIC LAYOUT */
 
-/* === CONTAINER SYSTEM === */
+/* ============================================
+   CONTAINER
+   ============================================ */
 
 .container {
-    width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: var(--space-4);
-    padding-right: var(--space-4);
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--space-6);
 }
 
-.container-sm {
-    max-width: var(--container-sm);
+.container--wide {
+  max-width: var(--container-wide);
 }
 
-.container-md {
-    max-width: var(--container-md);
+.container--narrow {
+  max-width: var(--container-narrow);
 }
 
-.container-lg {
-    max-width: var(--container-lg);
+@media (max-width: 768px) {
+  .container { padding-inline: var(--space-4); }
 }
 
-.container-xl {
-    max-width: var(--container-xl);
+/* ============================================
+   PUBLIC SITE STRUCTURE
+   ============================================ */
+
+.public-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-.container-2xl {
-    max-width: var(--container-2xl);
+.public-main {
+  flex: 1;
+  margin-top: 0;
 }
 
-.container-full {
-    max-width: 100%;
-}
-
-@media (min-width: 640px) {
-    .container {
-        padding-left: var(--space-6);
-        padding-right: var(--space-6);
-    }
-}
-
-@media (min-width: 1024px) {
-    .container {
-        padding-left: var(--space-8);
-        padding-right: var(--space-8);
-    }
-}
-
-/* === SECTION SPACING === */
+/* ============================================
+   SECTION SPACING
+   Government sites = generous whitespace
+   ============================================ */
 
 .section {
-    padding-top: var(--space-12);
-    padding-bottom: var(--space-12);
+  padding-block: var(--space-16);
 }
 
-.section-sm {
-    padding-top: var(--space-8);
-    padding-bottom: var(--space-8);
+.section--sm {
+  padding-block: var(--space-10);
 }
 
-.section-lg {
-    padding-top: var(--space-16);
-    padding-bottom: var(--space-16);
+.section--lg {
+  padding-block: var(--space-24);
 }
 
-.section-xl {
-    padding-top: var(--space-20);
-    padding-bottom: var(--space-20);
+/* Alternating section backgrounds */
+.section--white  { background: var(--bg-surface); }
+.section--gray   { background: var(--color-gray-50); }
+.section--brand  { background: var(--color-primary-700); color: white; }
+.section--accent { background: var(--color-accent-500); color: white; }
+
+/* ============================================
+   SECTION HEADER - Consistent heading style
+   (Har section me use karo)
+   ============================================ */
+
+.section-header {
+  text-align: center;
+  margin-bottom: var(--space-12);
 }
 
-@media (min-width: 768px) {
-    .section {
-        padding-top: var(--space-16);
-        padding-bottom: var(--space-16);
-    }
-
-    .section-lg {
-        padding-top: var(--space-24);
-        padding-bottom: var(--space-24);
-    }
-
-    .section-xl {
-        padding-top: var(--space-32);
-        padding-bottom: var(--space-32);
-    }
+.section-tag {
+  display: inline-block;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--color-accent-600);
+  background: var(--color-accent-50);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-3);
+  /*
+    ⚠️ AI-generated feel kyun aata hai?
+    Kyunki sab jaga gradient text, glow effects hote hain.
+    Ye simple solid tag zyada professional lagta hai.
+  */
 }
 
-/* === FLEXBOX UTILITIES === */
-
-.flex {
-    display: flex;
+.section-title {
+  font-family: var(--font-heading);
+  font-size: clamp(var(--text-2xl), 3vw, var(--text-4xl));
+  font-weight: var(--font-bold);
+  color: var(--color-gray-900);
+  margin-bottom: var(--space-4);
+  line-height: var(--leading-tight);
 }
 
-.inline-flex {
-    display: inline-flex;
+.section-title span {
+  /* Important words underline karo - gradient nahi */
+  text-decoration: underline;
+  text-decoration-color: var(--color-accent-400);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 6px;
 }
 
-.flex-row {
-    flex-direction: row;
+.section-subtitle {
+  font-size: var(--text-lg);
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin-inline: auto;
+  line-height: var(--leading-relaxed);
 }
 
-.flex-col {
-    flex-direction: column;
+/* ============================================
+   DIVIDER - Document section separator
+   ============================================ */
+
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-12);
 }
 
-.flex-wrap {
-    flex-wrap: wrap;
+.section-divider__line {
+  flex: 1;
+  height: 2px;
+  background: var(--border-light);
 }
 
-.flex-nowrap {
-    flex-wrap: nowrap;
+.section-divider__icon {
+  width: 40px;
+  height: 40px;
+  background: var(--color-primary-700);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: white;
+  font-size: var(--text-lg);
 }
 
-.items-start {
-    align-items: flex-start;
+/* ============================================
+   GRID SYSTEMS
+   ============================================ */
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-8);
 }
 
-.items-center {
-    align-items: center;
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-6);
 }
 
-.items-end {
-    align-items: flex-end;
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-6);
 }
 
-.items-stretch {
-    align-items: stretch;
+@media (max-width: 1024px) {
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(2, 1fr); }
 }
 
-.justify-start {
-    justify-content: flex-start;
+@media (max-width: 640px) {
+  .grid-4,
+  .grid-3,
+  .grid-2 { grid-template-columns: 1fr; }
 }
 
-.justify-center {
-    justify-content: center;
+/* ============================================
+   FOOTER
+   ============================================ */
+
+.site-footer {
+  background: var(--color-primary-900);
+  color: var(--color-gray-300);
+  padding-block: var(--space-16) var(--space-8);
 }
 
-.justify-end {
-    justify-content: flex-end;
+.site-footer__grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: var(--space-8);
+  margin-bottom: var(--space-12);
 }
 
-.justify-between {
-    justify-content: space-between;
+.site-footer__logo {
+  font-family: var(--font-heading);
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: white;
+  margin-bottom: var(--space-4);
 }
 
-.justify-around {
-    justify-content: space-around;
+.site-footer__tagline {
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--color-gray-400);
 }
 
-.gap-1 {
-    gap: var(--space-1);
+.site-footer__heading {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: white;
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-2);
+  border-bottom: 2px solid var(--color-accent-500);
+  display: inline-block;
 }
 
-.gap-2 {
-    gap: var(--space-2);
+.site-footer__links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
-.gap-3 {
-    gap: var(--space-3);
+.site-footer__links li { margin-bottom: var(--space-2); }
+
+.site-footer__links a {
+  color: var(--color-gray-400);
+  text-decoration: none;
+  font-size: var(--text-sm);
+  transition: color var(--transition-fast);
 }
 
-.gap-4 {
-    gap: var(--space-4);
+.site-footer__links a:hover {
+  color: var(--color-accent-400);
 }
 
-.gap-5 {
-    gap: var(--space-5);
+.site-footer__bottom {
+  border-top: 1px solid var(--color-gray-800);
+  padding-top: var(--space-8);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--text-sm);
+  color: var(--color-gray-500);
 }
 
-.gap-6 {
-    gap: var(--space-6);
+@media (max-width: 1024px) {
+  .site-footer__grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
-.gap-8 {
-    gap: var(--space-8);
-}
-
-/* === GRID UTILITIES === */
-
-.grid {
-    display: grid;
-}
-
-.grid-cols-1 {
-    grid-template-columns: repeat(1, 1fr);
-}
-
-.grid-cols-2 {
-    grid-template-columns: repeat(2, 1fr);
-}
-
-.grid-cols-3 {
-    grid-template-columns: repeat(3, 1fr);
-}
-
-.grid-cols-4 {
-    grid-template-columns: repeat(4, 1fr);
-}
-
-@media (min-width: 768px) {
-    .md\:grid-cols-2 {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .md\:grid-cols-3 {
-        grid-template-columns: repeat(3, 1fr);
-    }
-
-    .md\:grid-cols-4 {
-        grid-template-columns: repeat(4, 1fr);
-    }
-}
-
-@media (min-width: 1024px) {
-    .lg\:grid-cols-3 {
-        grid-template-columns: repeat(3, 1fr);
-    }
-
-    .lg\:grid-cols-4 {
-        grid-template-columns: repeat(4, 1fr);
-    }
-}
-
-/* === POSITIONING === */
-
-.relative {
-    position: relative;
-}
-
-.absolute {
-    position: absolute;
-}
-
-.fixed {
-    position: fixed;
-}
-
-.sticky {
-    position: sticky;
-}
-
-/* === DISPLAY === */
-
-.block {
-    display: block;
-}
-
-.inline-block {
-    display: inline-block;
-}
-
-.hidden {
-    display: none;
-}
-
-@media (min-width: 768px) {
-    .md\:block {
-        display: block;
-    }
-
-    .md\:hidden {
-        display: none;
-    }
-}
-
-@media (min-width: 1024px) {
-    .lg\:block {
-        display: block;
-    }
-
-    .lg\:hidden {
-        display: none;
-    }
-}
-
-/* === OVERFLOW === */
-
-.overflow-hidden {
-    overflow: hidden;
-}
-
-.overflow-auto {
-    overflow: auto;
-}
-
-.overflow-x-hidden {
-    overflow-x: hidden;
-}
-
-.overflow-y-auto {
-    overflow-y: auto;
+@media (max-width: 640px) {
+  .site-footer__grid { grid-template-columns: 1fr; }
+  .site-footer__bottom { flex-direction: column; gap: var(--space-4); }
 }

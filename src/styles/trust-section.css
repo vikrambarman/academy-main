@@ -1,0 +1,501 @@
+/* ============================================
+   src/styles/trust-section.css
+
+   TrustSection - Public Homepage
+   Hero ke baad wala section
+
+   Import: globals.css me add karo
+   @import "../styles/trust-section.css";
+   ============================================ */
+
+/* ============================================
+   SECTION BASE
+   ============================================ */
+
+.trust-section {
+  background: var(--color-gray-50);
+  padding: 5rem 0 4rem;
+  border-bottom: 1px solid var(--border-light);
+  position: relative;
+}
+
+.trust-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* ============================================
+   SECTION HEADER
+   ============================================ */
+
+.trust-header {
+  text-align: center;
+  max-width: 640px;
+  margin: 0 auto 3.5rem;
+}
+
+/* Tag */
+.trust-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent-600);
+  background: var(--color-accent-50);
+  border: 1px solid var(--color-accent-200);
+  padding: 0.375rem 0.875rem;
+  border-radius: 20px;
+  margin-bottom: 1.25rem;
+}
+
+.trust-tag-dot {
+  width: 5px;
+  height: 5px;
+  background: var(--color-accent-500);
+  border-radius: 50%;
+}
+
+/* Title */
+.trust-title {
+  font-family: var(--font-poppins, var(--font-primary));
+  font-size: clamp(1.875rem, 4vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-gray-900);
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.trust-title-accent {
+  color: var(--color-primary-700);
+  /* Underline - handwritten feel */
+  text-decoration: underline;
+  text-decoration-color: var(--color-primary-200);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 6px;
+}
+
+/* Subtitle */
+.trust-subtitle {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--color-gray-600);
+  margin: 0;
+  max-width: none;
+}
+
+/* ============================================
+   3 TRUST CARDS
+   ============================================ */
+
+.trust-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Card Base */
+.trust-card {
+  background: #ffffff;
+  border: 1px solid var(--color-gray-200);
+  border-top: 3px solid;
+  padding: 1.75rem;
+  transition: box-shadow 0.2s ease;
+}
+
+.trust-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+/* Blue accent card */
+.trust-card--blue {
+  border-top-color: var(--color-primary-700);
+}
+
+/* Orange accent card */
+.trust-card--orange {
+  border-top-color: var(--color-accent-500);
+}
+
+/* Card Top Row */
+.trust-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+/* Card Icon */
+.trust-card-icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  background: var(--color-primary-50);
+  border: 1px solid var(--color-primary-100);
+  color: var(--color-primary-700);
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.trust-card--orange .trust-card-icon {
+  background: var(--color-accent-50);
+  border-color: var(--color-accent-100);
+  color: var(--color-accent-600);
+}
+
+/* Card Tag */
+.trust-card-tag {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-gray-500);
+  background: var(--color-gray-100);
+  padding: 0.25rem 0.625rem;
+  border-radius: 20px;
+}
+
+/* Card Title */
+.trust-card-title {
+  font-family: var(--font-poppins, var(--font-primary));
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--color-gray-900);
+  line-height: 1.3;
+  margin-bottom: 0.875rem;
+}
+
+/* Card Description */
+.trust-card-desc {
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: var(--color-gray-600);
+  margin-bottom: 1.25rem;
+  max-width: none;
+}
+
+/* Card Points */
+.trust-card-points {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  border-top: 1px solid var(--color-gray-100);
+  padding-top: 1.25rem;
+}
+
+.trust-card-point {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 0.8125rem;
+  color: var(--color-gray-700);
+  font-weight: 500;
+  margin: 0;
+}
+
+.trust-card-point svg {
+  color: var(--color-primary-600);
+  flex-shrink: 0;
+}
+
+.trust-card--orange .trust-card-point svg {
+  color: var(--color-accent-500);
+}
+
+/* ============================================
+   FOUNDER STRIP
+   ============================================ */
+
+.trust-founder {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.75rem 2rem;
+  background: var(--color-primary-800);
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+/* Founder Photo */
+.trust-founder-photo {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+  background: var(--color-primary-600);
+}
+
+.trust-founder-img {
+  object-fit: cover;
+  object-position: center top;
+}
+
+/* Founder Content */
+.trust-founder-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.trust-founder-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.trust-founder-name {
+  font-family: var(--font-poppins, var(--font-primary));
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.trust-founder-role {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.65);
+  font-weight: 500;
+}
+
+.trust-founder-quote {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
+  font-style: italic;
+  margin: 0;
+  max-width: none;
+}
+
+/* Founder CTA */
+.trust-founder-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: var(--color-accent-500);
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 3px;
+  flex-shrink: 0;
+  transition: background 0.2s ease;
+  white-space: nowrap;
+}
+
+.trust-founder-cta:hover {
+  background: var(--color-accent-600);
+  color: #ffffff;
+}
+
+/* ============================================
+   RECOGNITION STRIP
+   ============================================ */
+
+.trust-recognitions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  background: #ffffff;
+  border: 1px solid var(--color-gray-200);
+  flex-wrap: wrap;
+}
+
+/* Label */
+.trust-recognitions-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-gray-500);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.trust-recognitions-label svg {
+  color: var(--color-primary-600);
+}
+
+/* Divider between label and pills */
+.trust-recognitions-label::after {
+  content: "";
+  display: block;
+  width: 1px;
+  height: 20px;
+  background: var(--color-gray-200);
+  margin-left: 0.75rem;
+}
+
+/* Pills */
+.trust-recognitions-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+}
+
+.trust-rec-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-gray-700);
+  background: var(--color-gray-50);
+  border: 1px solid var(--color-gray-200);
+  padding: 0.375rem 0.75rem;
+  border-radius: 20px;
+  transition: all 0.15s ease;
+}
+
+.trust-rec-pill:hover {
+  border-color: var(--color-primary-300);
+  color: var(--color-primary-700);
+  background: var(--color-primary-50);
+}
+
+.trust-rec-pill svg {
+  color: var(--color-success-500);
+}
+
+/* ============================================
+   RESPONSIVE - TABLET (max-width: 1024px)
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .trust-cards {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .trust-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 1.5rem;
+  }
+
+  /* Card top spans full width */
+  .trust-card-top {
+    grid-column: 1 / -1;
+  }
+
+  /* Card points right column */
+  .trust-card-points {
+    border-top: none;
+    padding-top: 0;
+    border-left: 1px solid var(--color-gray-100);
+    padding-left: 1.5rem;
+  }
+
+  .trust-founder {
+    gap: 1.25rem;
+  }
+}
+
+/* ============================================
+   RESPONSIVE - MOBILE (max-width: 768px)
+   ============================================ */
+
+@media (max-width: 768px) {
+  .trust-section {
+    padding: 3.5rem 0 3rem;
+  }
+
+  .trust-container {
+    padding: 0 1rem;
+  }
+
+  .trust-header {
+    margin-bottom: 2.5rem;
+  }
+
+  /* Cards back to single column */
+  .trust-card {
+    display: block;
+    padding: 1.5rem;
+  }
+
+  .trust-card-points {
+    border-top: 1px solid var(--color-gray-100);
+    padding-top: 1.25rem;
+    border-left: none;
+    padding-left: 0;
+  }
+
+  /* Founder strip */
+  .trust-founder {
+    padding: 1.5rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .trust-founder-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .trust-founder-cta {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Recognition strip */
+  .trust-recognitions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem;
+  }
+
+  .trust-recognitions-label::after {
+    display: none;
+  }
+}
+
+/* ============================================
+   RESPONSIVE - SMALL MOBILE (max-width: 480px)
+   ============================================ */
+
+@media (max-width: 480px) {
+  .trust-title {
+    font-size: 1.75rem;
+  }
+
+  .trust-card-title {
+    font-size: 1rem;
+  }
+
+  .trust-rec-pill {
+    font-size: 0.6875rem;
+    padding: 0.3125rem 0.625rem;
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .trust-card,
+  .trust-rec-pill,
+  .trust-founder-cta {
+    transition: none;
+  }
+}

@@ -1,104 +1,227 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import {
-  Bot,
   BookOpen,
   Award,
-  Sparkles,
+  Bot,
   CheckCircle,
   ArrowRight,
-  Zap,
+  ArrowLeft,
   Lock,
-  Globe,
-  Brain,
-  GraduationCap,
   ShieldCheck,
+  Clock,
   Layers,
-  Target,
+  Users,
+  Monitor,
+  Zap,
 } from "lucide-react";
 
-/* All data from your ORIGINAL component — nothing invented. */
-
-const lmsFeatures = [
-  { icon: BookOpen, text: "Course practice modules" },
-  { icon: Brain, text: "AI-powered doubt clearing" },
-  { icon: Zap, text: "Progress tracking dashboard" },
-  { icon: GraduationCap, text: "Certificate preparation guides" },
-];
-
-const aiFeatures = [
-  { icon: Globe, text: "Available to all public visitors" },
-  { icon: Brain, text: "Instant answers to course queries" },
-  { icon: Lock, text: "Deeper access for enrolled students" },
-  { icon: Sparkles, text: "Smart study recommendations" },
-];
-
-const certFeatures = [
-  "Skill India aligned programs",
-  "DigiLocker digital verification",
-  "GSDM authorized certificates",
-  "Verifiable via enrollment number",
-];
-
-const trustStrip = [
-  { icon: BookOpen, val: "Lifetime", lbl: "LMS Access" },
-  { icon: Bot, val: "24/7", lbl: "AI Support (Soon)" },
-  { icon: Award, val: "100%", lbl: "Verified Certificates" },
-  { icon: Target, val: "Free", lbl: "Admission Guidance" },
+// ✅ Genuine benefits - carousel slides
+const benefits = [
+  {
+    id: "lms",
+    tag: "On Admission",
+    tagColor: "green",
+    icon: BookOpen,
+    accentColor: "blue",
+    title: "Lifetime LMS Access",
+    subtitle: "Learn anytime, anywhere — no expiry",
+    description:
+      "Every enrolled student gets permanent access to our Learning Management System. Study at your own pace, revisit any concept anytime — no renewal fee, ever.",
+    features: [
+      { icon: BookOpen, text: "Course study materials & notes" },
+      { icon: Layers, text: "Chapter-wise practice modules" },
+      { icon: Clock, text: "Learn at your own pace, anytime" },
+      { icon: Award, text: "Certificate preparation guides" },
+    ],
+    stat: { value: "Lifetime", label: "Free Access" },
+    cta: { label: "Student Login", href: "/student/login" },
+    visual: "lms",
+  },
+  {
+    id: "cert",
+    tag: "Govt. Recognized",
+    tagColor: "blue",
+    icon: Award,
+    accentColor: "orange",
+    title: "Verified Certificates",
+    subtitle: "Accepted across India for jobs & education",
+    description:
+      "Our certificates are government-recognized and digitally verifiable via DigiLocker and enrollment number — giving you credentials that employers and institutions trust.",
+    features: [
+      { icon: ShieldCheck, text: "Skill India aligned programs" },
+      { icon: CheckCircle, text: "DigiLocker digital verification" },
+      { icon: Award, text: "GSDM authorized certificates" },
+      { icon: Zap, text: "Verifiable via enrollment number" },
+    ],
+    stat: { value: "100%", label: "Verifiable" },
+    cta: { label: "Verify Certificate", href: "/verify-certificate" },
+    visual: "cert",
+  },
+  {
+    id: "lab",
+    tag: "Modern Facility",
+    tagColor: "orange",
+    icon: Monitor,
+    accentColor: "blue",
+    title: "Modern Computer Labs",
+    subtitle: "Hands-on training with real software",
+    description:
+      "Learn on modern computers with industry-standard software. Every course includes dedicated lab hours so you build real skills, not just theoretical knowledge.",
+    features: [
+      { icon: Monitor, text: "Latest computers & hardware" },
+      { icon: Layers, text: "Industry-standard software tools" },
+      { icon: Users, text: "Small batch, personal attention" },
+      { icon: BookOpen, text: "Project-based learning approach" },
+    ],
+    stat: { value: "25+", label: "Courses" },
+    cta: { label: "View Courses", href: "/courses" },
+    visual: "lab",
+  },
+  {
+    id: "guidance",
+    tag: "Free of Cost",
+    tagColor: "green",
+    icon: Users,
+    accentColor: "orange",
+    title: "Free Admission Guidance",
+    subtitle: "We help you choose the right course",
+    description:
+      "Not sure which course is right for you? Our counselors provide free one-on-one guidance to help you pick the best program based on your goals and background.",
+    features: [
+      { icon: Users, text: "One-on-one counseling session" },
+      { icon: BookOpen, text: "Course comparison & advice" },
+      { icon: Clock, text: "Flexible batch timing options" },
+      { icon: CheckCircle, text: "Fee structure & EMI options" },
+    ],
+    stat: { value: "Free", label: "Counseling" },
+    cta: { label: "Book Counseling", href: "/enquiry" },
+    visual: "guidance",
+  },
+  {
+    id: "ai",
+    tag: "Coming Soon",
+    tagColor: "muted",
+    icon: Bot,
+    accentColor: "muted",
+    title: "AI Learning Assistant",
+    subtitle: "Your 24/7 doubt-clearing companion",
+    description:
+      "We are building an AI-powered assistant that will help students clear doubts instantly, get personalized study recommendations, and stay on track — available anytime.",
+    features: [
+      { icon: Bot, text: "Instant doubt clearing, 24/7" },
+      { icon: Zap, text: "Smart study recommendations" },
+      { icon: Layers, text: "Progress tracking dashboard" },
+      { icon: Lock, text: "Deeper access for enrolled students" },
+    ],
+    stat: { value: "Soon", label: "Launching" },
+    cta: { label: "Know More", href: "/about" },
+    visual: "ai",
+  },
 ];
 
 export default function StudentBenefits() {
+  const [current, setCurrent] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [direction, setDirection] = useState<"next" | "prev">("next");
+
+  const total = benefits.length;
+
+  const goTo = useCallback(
+    (index: number, dir: "next" | "prev" = "next") => {
+      if (isAnimating) return;
+      setIsAnimating(true);
+      setDirection(dir);
+      setCurrent(index);
+      setTimeout(() => setIsAnimating(false), 500);
+    },
+    [isAnimating]
+  );
+
+  const goNext = useCallback(() => {
+    goTo((current + 1) % total, "next");
+  }, [current, total, goTo]);
+
+  const goPrev = useCallback(() => {
+    goTo((current - 1 + total) % total, "prev");
+  }, [current, total, goTo]);
+
+  // Auto play
+  useEffect(() => {
+    const timer = setInterval(goNext, 5000);
+    return () => clearInterval(timer);
+  }, [goNext]);
+
+  const slide = benefits[current];
+  const Icon = slide.icon;
+
   return (
-    <>
-      <style>{styles}</style>
+    <section className="sb-section">
+      {/* Top Color Strip */}
+      <div className="sb-strip-top" aria-hidden="true">
+        <div className="sb-strip-inner">
+          {benefits.map((b, i) => (
+            <span
+              key={b.id}
+              className={`sb-strip-label ${
+                i === current ? "sb-strip-label--active" : ""
+              }`}
+            >
+              {b.title}
+            </span>
+          ))}
+        </div>
+      </div>
 
-      <section className="sb-section" aria-labelledby="sb-heading">
-        <div className="sb-wrap">
-          {/* ── Header ── */}
-          <div className="sb-header">
-            <div className="sb-badge">
-              <span className="sb-badge-dot" aria-hidden="true" />
-              Student Benefits
-            </div>
-            <h2 id="sb-heading" className="sb-title">
-              Everything You Get as a{" "}
-              <span className="sb-title-em">Shivshakti Student</span>
-            </h2>
-            <p className="sb-subtitle">
-              From AI-powered learning assistance to lifetime LMS access and
-              government-recognized certifications — we invest in your success beyond
-              the classroom.
-            </p>
-          </div>
+      {/* Main Carousel Section */}
+      <div className="sb-main">
+        {/* Left Arrow */}
+        <button
+          className="sb-arrow sb-arrow--left"
+          onClick={goPrev}
+          aria-label="Previous benefit"
+        >
+          <ArrowLeft size={20} strokeWidth={2.5} />
+        </button>
 
-          {/* ── Main 3-pillar layout ── */}
-          <div className="sb-grid">
-            {/* Pillar 1 — LMS (large, left) */}
-            <div className="sb-card sb-card-lms">
-              <div className="sb-card-top">
-                <div className="sb-icon sb-icon-blue">
-                  <BookOpen size={24} strokeWidth={1.6} />
+        {/* Slide Content */}
+        <div className="sb-container">
+          <div
+            className={`sb-slide sb-slide--${direction} ${
+              isAnimating ? "sb-slide--animating" : ""
+            }`}
+          >
+            {/* LEFT - Content */}
+            <div className="sb-content">
+              {/* Tag */}
+              <span className={`sb-tag sb-tag--${slide.tagColor}`}>
+                {slide.tag}
+              </span>
+
+              {/* Icon + Title */}
+              <div className="sb-title-row">
+                <div className={`sb-icon sb-icon--${slide.accentColor}`}>
+                  <Icon size={28} strokeWidth={1.8} />
                 </div>
-                <span className="sb-tag">
-                  <span className="sb-tag-dot" aria-hidden="true" />
-                  On Admission
-                </span>
+                <div>
+                  <h2 className="sb-title">{slide.title}</h2>
+                  <p className="sb-subtitle">{slide.subtitle}</p>
+                </div>
               </div>
 
-              <h3 className="sb-card-title">Lifetime LMS Access</h3>
-              <p className="sb-card-desc">
-                Every student who enrolls gets permanent access to our Learning
-                Management System — no expiry, no renewal fee. Learn at your own pace,
-                revisit concepts anytime.
-              </p>
+              {/* Description */}
+              <p className="sb-description">{slide.description}</p>
 
-              <ul className="sb-feat-list">
-                {lmsFeatures.map((f) => {
-                  const Icon = f.icon;
+              {/* Features */}
+              <ul className="sb-features">
+                {slide.features.map((f) => {
+                  const FIcon = f.icon;
                   return (
-                    <li key={f.text} className="sb-feat-item">
-                      <span className="sb-feat-icon">
-                        <Icon size={14} strokeWidth={1.8} />
+                    <li key={f.text} className="sb-feature">
+                      <span className={`sb-feature-icon sb-feature-icon--${slide.accentColor}`}>
+                        <FIcon size={14} strokeWidth={2} />
                       </span>
                       <span>{f.text}</span>
                     </li>
@@ -106,414 +229,192 @@ export default function StudentBenefits() {
                 })}
               </ul>
 
-              {/* LMS preview mockup */}
-              <div className="sb-lms-mock" aria-hidden="true">
-                <div className="sb-mock-bar">
-                  <span className="sb-mock-dot" />
-                  <span className="sb-mock-dot" />
-                  <span className="sb-mock-dot" />
-                  <span className="sb-mock-url">lms.shivshakti.edu</span>
-                </div>
-                <div className="sb-mock-body">
-                  <div className="sb-mock-sidebar">
-                    <div className="sb-mock-nav-item sb-mock-nav-active" />
-                    <div className="sb-mock-nav-item" />
-                    <div className="sb-mock-nav-item" />
-                    <div className="sb-mock-nav-item" />
-                  </div>
-                  <div className="sb-mock-content">
-                    <div className="sb-mock-heading" />
-                    <div className="sb-mock-progress">
-                      <div className="sb-mock-progress-fill" />
-                    </div>
-                    <div className="sb-mock-row" />
-                    <div className="sb-mock-row sb-mock-row-short" />
-                    <div className="sb-mock-modules">
-                      <div className="sb-mock-module sb-module-done">✓ Module 1</div>
-                      <div className="sb-mock-module sb-module-active">▶ Module 2</div>
-                      <div className="sb-mock-module">○ Module 3</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="sb-card-footer">
-                <span className="sb-foot-note">
-                  <Lock size={12} strokeWidth={2} />
-                  Activates automatically on course admission
-                </span>
-              </div>
+              {/* CTA */}
+              <Link
+                href={slide.cta.href}
+                className={`sb-cta sb-cta--${slide.accentColor}`}
+              >
+                {slide.cta.label}
+                <ArrowRight size={16} strokeWidth={2.5} />
+              </Link>
             </div>
 
-            {/* Right column — stacked */}
-            <div className="sb-right-col">
-              {/* Pillar 2 — AI Assistant */}
-              <div className="sb-card sb-card-ai">
-                <div className="sb-card-top">
-                  <div className="sb-icon sb-icon-orange">
-                    <Bot size={22} strokeWidth={1.6} />
-                  </div>
-                  <span className="sb-tag sb-tag-soon">
-                    <Sparkles size={10} strokeWidth={2} />
-                    Coming Soon
-                  </span>
-                </div>
-
-                <h3 className="sb-card-title">AI Learning Assistant</h3>
-                <p className="sb-card-desc">
-                  Our AI assistant clears doubts instantly — available 24/7 for public
-                  visitors, with deeper course-specific guidance for enrolled students.
-                </p>
-
-                <ul className="sb-feat-list">
-                  {aiFeatures.map((f) => {
-                    const Icon = f.icon;
-                    return (
-                      <li key={f.text} className="sb-feat-item">
-                        <span className="sb-feat-icon sb-feat-icon-orange">
-                          <Icon size={13} strokeWidth={1.8} />
-                        </span>
-                        <span>{f.text}</span>
-                      </li>
-                    );
-                  })}
-                </ul>
-
-                {/* AI Chat preview */}
-                <div className="sb-ai-mock" aria-hidden="true">
-                  <div className="sb-ai-msg sb-ai-msg-user">
-                    What courses are available for beginners?
-                  </div>
-                  <div className="sb-ai-msg sb-ai-msg-bot">
-                    <span className="sb-ai-bot-dot" />
-                    <span>
-                      We offer DCA, Basic Computer &amp; Tally — perfect for beginners
-                      with no prior experience needed!
-                    </span>
-                  </div>
-                  <div className="sb-ai-typing" aria-label="typing">
-                    <span /><span /><span />
-                  </div>
-                </div>
+            {/* RIGHT - Visual */}
+            <div className="sb-visual">
+              {/* Stat Box */}
+              <div className={`sb-stat-box sb-stat-box--${slide.accentColor}`}>
+                <div className="sb-stat-value">{slide.stat.value}</div>
+                <div className="sb-stat-label">{slide.stat.label}</div>
               </div>
 
-              {/* Pillar 3 — Certificates */}
-              <div className="sb-card sb-card-cert">
-                <div className="sb-card-top">
-                  <div className="sb-icon sb-icon-green">
-                    <Award size={22} strokeWidth={1.6} />
-                  </div>
-                  <span className="sb-tag">
-                    <span className="sb-tag-dot" aria-hidden="true" />
-                    Govt. Recognized
-                  </span>
-                </div>
-
-                <h3 className="sb-card-title">Verified Certificates</h3>
-
-                <div className="sb-cert-grid">
-                  {certFeatures.map((c) => (
-                    <div key={c} className="sb-cert-item">
-                      <CheckCircle size={14} strokeWidth={2} className="sb-cert-check" />
-                      <span>{c}</span>
+              {/* Visual based on slide type */}
+              {slide.visual === "lms" && (
+                <div className="sb-visual-lms" aria-hidden="true">
+                  <div className="sb-browser-bar">
+                    <div className="sb-browser-dots">
+                      <span /><span /><span />
                     </div>
-                  ))}
-                </div>
-
-                {/* Certificate preview strip */}
-                <div className="sb-cert-mock" aria-hidden="true">
-                  <div className="sb-cert-mock-left">
-                    <ShieldCheck size={30} strokeWidth={1.3} className="sb-cert-shield" />
+                    <div className="sb-browser-url">
+                      student.shivshakticomputer.in
+                    </div>
                   </div>
-                  <div className="sb-cert-mock-right">
-                    <div className="sb-cert-name" />
-                    <div className="sb-cert-course" />
-                    <div className="sb-cert-meta">
-                      <span className="sb-cert-badge">DigiLocker ✓</span>
-                      <span className="sb-cert-badge">GSDM ✓</span>
+                  <div className="sb-browser-body">
+                    <div className="sb-browser-sidebar">
+                      <div className="sb-nav-item sb-nav-item--active" />
+                      <div className="sb-nav-item" />
+                      <div className="sb-nav-item" />
+                      <div className="sb-nav-item" />
+                    </div>
+                    <div className="sb-browser-content">
+                      <div className="sb-content-heading" />
+                      <div className="sb-content-progress">
+                        <div className="sb-content-fill" />
+                      </div>
+                      <div className="sb-content-line" />
+                      <div className="sb-content-line sb-content-line--short" />
+                      <div className="sb-modules">
+                        <div className="sb-module sb-module--done">✓ Module 1</div>
+                        <div className="sb-module sb-module--active">▶ Module 2</div>
+                        <div className="sb-module">○ Module 3</div>
+                      </div>
                     </div>
                   </div>
                 </div>
+              )}
 
-                <a href="/courses" className="sb-cert-link">
-                  View all courses
-                  <ArrowRight size={14} strokeWidth={2} className="sb-link-arrow" />
-                </a>
-              </div>
+              {slide.visual === "cert" && (
+                <div className="sb-visual-cert" aria-hidden="true">
+                  <div className="sb-cert-card">
+                    <ShieldCheck size={40} strokeWidth={1.3} className="sb-cert-shield" />
+                    <div className="sb-cert-content">
+                      <div className="sb-cert-title-line" />
+                      <div className="sb-cert-name-line" />
+                      <div className="sb-cert-course-line" />
+                      <div className="sb-cert-tags">
+                        <span>DigiLocker ✓</span>
+                        <span>GSDM ✓</span>
+                        <span>Skill India ✓</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {slide.visual === "lab" && (
+                <div className="sb-visual-lab" aria-hidden="true">
+                  <div className="sb-lab-grid">
+                    {[1, 2, 3, 4, 5, 6].map((n) => (
+                      <div key={n} className="sb-lab-item">
+                        <Monitor
+                          size={24}
+                          strokeWidth={1.5}
+                          className="sb-lab-icon"
+                        />
+                        <div className="sb-lab-label">PC {n}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="sb-lab-caption">
+                    Modern Computer Lab — Shivshakti Academy
+                  </div>
+                </div>
+              )}
+
+              {slide.visual === "guidance" && (
+                <div className="sb-visual-guidance" aria-hidden="true">
+                  <div className="sb-guidance-card">
+                    <div className="sb-guidance-avatar">V</div>
+                    <div className="sb-guidance-content">
+                      <div className="sb-guidance-name">Vikram Sir</div>
+                      <div className="sb-guidance-role">
+                        Founder & Lead Instructor
+                      </div>
+                      <div className="sb-guidance-msg">
+                        "We personally guide every student to find the right
+                        course for their career goals."
+                      </div>
+                    </div>
+                  </div>
+                  <div className="sb-guidance-tags">
+                    <span>Free Counseling</span>
+                    <span>Career Guidance</span>
+                    <span>Course Selection</span>
+                  </div>
+                </div>
+              )}
+
+              {slide.visual === "ai" && (
+                <div className="sb-visual-ai" aria-hidden="true">
+                  <div className="sb-ai-preview">
+                    <div className="sb-ai-header">
+                      <Bot size={16} strokeWidth={2} />
+                      <span>AI Assistant</span>
+                      <span className="sb-ai-soon-badge">Coming Soon</span>
+                    </div>
+                    <div className="sb-ai-msg sb-ai-msg--user">
+                      Which course is best for me?
+                    </div>
+                    <div className="sb-ai-msg sb-ai-msg--bot">
+                      <span className="sb-ai-dot" />
+                      Based on your background, DCA would be perfect to start!
+                    </div>
+                    <div className="sb-ai-input">
+                      <span>Ask anything...</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* ── Bottom trust strip ── */}
-          <div className="sb-trust-strip">
-            {trustStrip.map((s) => {
-              const Icon = s.icon;
-              return (
-                <div key={s.lbl} className="sb-trust-item">
-                  <span className="sb-trust-icon">
-                    <Icon size={20} strokeWidth={1.6} />
-                  </span>
-                  <div className="sb-trust-text">
-                    <div className="sb-trust-val">{s.val}</div>
-                    <div className="sb-trust-lbl">{s.lbl}</div>
-                  </div>
-                </div>
-              );
-            })}
+          {/* Dots Navigation */}
+          <div className="sb-dots">
+            {benefits.map((b, i) => (
+              <button
+                key={b.id}
+                className={`sb-dot ${i === current ? "sb-dot--active" : ""}`}
+                onClick={() => goTo(i, i > current ? "next" : "prev")}
+                aria-label={`Go to ${b.title}`}
+              />
+            ))}
+          </div>
+
+          {/* Slide counter */}
+          <div className="sb-counter">
+            <span className="sb-counter-current">
+              {String(current + 1).padStart(2, "0")}
+            </span>
+            <span className="sb-counter-sep">/</span>
+            <span className="sb-counter-total">
+              {String(total).padStart(2, "0")}
+            </span>
           </div>
         </div>
-      </section>
-    </>
+
+        {/* Right Arrow */}
+        <button
+          className="sb-arrow sb-arrow--right"
+          onClick={goNext}
+          aria-label="Next benefit"
+        >
+          <ArrowRight size={20} strokeWidth={2.5} />
+        </button>
+      </div>
+
+      {/* Bottom Color Strip */}
+      <div className="sb-strip-bottom" aria-hidden="true">
+        <div className="sb-strip-inner">
+          <span>Lifetime LMS</span>
+          <span className="sb-strip-sep">•</span>
+          <span>Verified Certificates</span>
+          <span className="sb-strip-sep">•</span>
+          <span>Modern Labs</span>
+          <span className="sb-strip-sep">•</span>
+          <span>Free Guidance</span>
+          <span className="sb-strip-sep">•</span>
+          <span>AI Assistant (Soon)</span>
+        </div>
+      </div>
+    </section>
   );
 }
-
-const styles = `
-/* ==========================================
-   STUDENT BENEFITS — Clean University style
-   Uses global tokens. Flat cards, hairline borders, calm.
-   ========================================== */
-
-.sb-section {
-  position: relative;
-  padding: var(--space-24) var(--space-6);
-  background: var(--bg-page);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.sb-wrap { position: relative; max-width: 1180px; margin: 0 auto; }
-
-/* ── Header (left aligned) ── */
-.sb-header { max-width: 660px; margin: 0 0 var(--space-12); }
-.sb-badge {
-  display: inline-flex; align-items: center; gap: var(--space-2);
-  font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold);
-  color: var(--color-accent-600); letter-spacing: 0.12em; text-transform: uppercase;
-  margin-bottom: var(--space-3);
-}
-.sb-badge-dot { width: 6px; height: 6px; background: var(--color-accent-500); border-radius: 50%; }
-.sb-title {
-  font-family: var(--font-display);
-  font-size: clamp(1.6rem, 3.6vw, 2.25rem);
-  font-weight: var(--font-weight-semibold);
-  line-height: 1.2; letter-spacing: -0.015em;
-  color: var(--text-primary); margin-bottom: var(--space-3);
-}
-.sb-title-em { color: var(--color-primary-700); }
-.sb-subtitle { font-size: var(--font-size-base); line-height: 1.7; color: var(--text-secondary); margin: 0; }
-
-/* ── Main grid ── */
-.sb-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-5);
-  margin-bottom: var(--space-5);
-  align-items: start;
-}
-.sb-right-col { display: flex; flex-direction: column; gap: var(--space-5); }
-
-/* ── Card base ── */
-.sb-card {
-  position: relative;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-color);
-  border-top: 2px solid var(--color-primary-600);
-  border-radius: var(--radius-lg);
-  padding: var(--space-8);
-  transition: border-color var(--transition-base);
-}
-.sb-card:hover { border-color: var(--color-gray-300); }
-.sb-card-lms { border-top-color: var(--color-primary-600); }
-.sb-card-ai { border-top-color: var(--color-accent-500); }
-.sb-card-cert { border-top-color: var(--color-success); }
-.sb-card:hover.sb-card-lms { border-top-color: var(--color-primary-600); }
-.sb-card:hover.sb-card-ai { border-top-color: var(--color-accent-500); }
-.sb-card:hover.sb-card-cert { border-top-color: var(--color-success); }
-
-.sb-card-top {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: var(--space-5);
-}
-
-/* Icons — uniform sober treatment */
-.sb-icon {
-  width: 46px; height: 46px;
-  border-radius: var(--radius-md);
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  border: 1px solid var(--border-color);
-}
-.sb-icon-blue { background: var(--color-primary-50); color: var(--color-primary-600); }
-.sb-icon-orange { background: var(--color-accent-50); color: var(--color-accent-600); }
-.sb-icon-green { background: var(--color-success-light); color: var(--color-success-dark); }
-
-/* Tags */
-.sb-tag {
-  display: inline-flex; align-items: center; gap: var(--space-1);
-  padding: var(--space-1) var(--space-3);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--text-secondary);
-}
-.sb-tag-soon { color: var(--color-accent-700); }
-.sb-tag-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--color-success); }
-
-/* Title / desc */
-.sb-card-title {
-  font-family: var(--font-display);
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-  letter-spacing: -0.01em;
-  margin-bottom: var(--space-3);
-}
-.sb-card-desc { font-size: var(--font-size-sm); line-height: 1.7; color: var(--text-secondary); margin: 0 0 var(--space-5); }
-
-/* Feature list */
-.sb-feat-list { list-style: none; padding: 0; margin: 0 0 var(--space-6); display: flex; flex-direction: column; gap: var(--space-2); }
-.sb-feat-item { display: flex; align-items: center; gap: var(--space-3); font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: 0; }
-.sb-feat-icon {
-  width: 24px; height: 24px;
-  border-radius: var(--radius-sm);
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  background: var(--color-primary-50); color: var(--color-primary-600);
-}
-.sb-feat-icon-orange { background: var(--color-accent-50); color: var(--color-accent-600); }
-
-/* ── LMS Mockup ── */
-.sb-lms-mock {
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
-  overflow: hidden;
-  margin-bottom: var(--space-5);
-  background: var(--bg-surface);
-}
-.sb-mock-bar {
-  display: flex; align-items: center; gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  background: var(--color-gray-100);
-  border-bottom: 1px solid var(--border-color);
-}
-.sb-mock-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-gray-300); flex-shrink: 0; }
-.sb-mock-url { font-size: 0.6rem; color: var(--text-tertiary); margin-left: var(--space-2); font-family: var(--font-mono); }
-.sb-mock-body { display: flex; height: 120px; }
-.sb-mock-sidebar {
-  width: 48px; background: var(--bg-elevated);
-  border-right: 1px solid var(--border-color);
-  padding: var(--space-3) var(--space-2);
-  display: flex; flex-direction: column; gap: var(--space-2);
-}
-.sb-mock-nav-item { height: 6px; border-radius: var(--radius-full); background: var(--color-gray-200); }
-.sb-mock-nav-active { background: var(--color-primary-300); }
-.sb-mock-content { flex: 1; padding: var(--space-3); display: flex; flex-direction: column; gap: var(--space-2); }
-.sb-mock-heading { height: 8px; width: 60%; background: var(--color-gray-300); border-radius: var(--radius-full); }
-.sb-mock-progress { height: 4px; background: var(--color-gray-200); border-radius: var(--radius-full); overflow: hidden; }
-.sb-mock-progress-fill { height: 100%; width: 65%; background: var(--color-primary-400); border-radius: var(--radius-full); }
-.sb-mock-row { height: 5px; background: var(--color-gray-100); border-radius: var(--radius-full); }
-.sb-mock-row-short { width: 70%; }
-.sb-mock-modules { display: flex; flex-direction: column; gap: 3px; margin-top: auto; }
-.sb-mock-module { font-size: 0.55rem; padding: 2px var(--space-2); border-radius: var(--radius-sm); color: var(--text-tertiary); background: var(--color-gray-100); }
-.sb-module-done { background: var(--color-success-light); color: var(--color-success-dark); }
-.sb-module-active { background: var(--color-primary-50); color: var(--color-primary-600); font-weight: var(--font-weight-medium); }
-
-/* Card footer */
-.sb-card-footer { padding-top: var(--space-4); border-top: 1px solid var(--border-color); }
-.sb-foot-note { display: flex; align-items: center; gap: var(--space-2); font-size: var(--font-size-xs); color: var(--text-tertiary); }
-
-/* ── AI Chat Mock ── */
-.sb-ai-mock {
-  margin-top: var(--space-4);
-  padding: var(--space-4);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  display: flex; flex-direction: column; gap: var(--space-3);
-}
-.sb-ai-msg { font-size: 0.72rem; line-height: 1.5; padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); max-width: 90%; }
-.sb-ai-msg-user { background: var(--color-primary-50); color: var(--color-primary-700); border: 1px solid var(--color-primary-100); align-self: flex-end; margin-left: auto; }
-.sb-ai-msg-bot { display: flex; align-items: flex-start; gap: var(--space-2); background: var(--bg-elevated); color: var(--text-secondary); border: 1px solid var(--border-color); }
-.sb-ai-bot-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-accent-400); flex-shrink: 0; margin-top: 3px; }
-.sb-ai-typing { display: flex; align-items: center; gap: 3px; padding: var(--space-2) var(--space-3); width: fit-content; background: var(--bg-elevated); border: 1px solid var(--border-color); border-radius: var(--radius-md); }
-.sb-ai-typing span { width: 5px; height: 5px; border-radius: 50%; background: var(--color-gray-400); animation: sb-typing 1.2s ease-in-out infinite; }
-.sb-ai-typing span:nth-child(2) { animation-delay: 0.2s; }
-.sb-ai-typing span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes sb-typing { 0%,80%,100% { transform: translateY(0); opacity: 0.4; } 40% { transform: translateY(-3px); opacity: 1; } }
-
-/* ── Cert section ── */
-.sb-cert-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin-bottom: var(--space-5); }
-.sb-cert-item { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--font-size-xs); color: var(--text-secondary); line-height: 1.4; }
-.sb-cert-check { color: var(--color-success); flex-shrink: 0; margin-top: 1px; }
-.sb-cert-mock {
-  display: flex; align-items: center; gap: var(--space-4);
-  padding: var(--space-4);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  margin-bottom: var(--space-5);
-}
-.sb-cert-mock-left { flex-shrink: 0; }
-.sb-cert-shield { color: var(--color-success); }
-.sb-cert-mock-right { flex: 1; display: flex; flex-direction: column; gap: var(--space-2); }
-.sb-cert-name { height: 7px; width: 70%; background: var(--color-gray-300); border-radius: var(--radius-full); }
-.sb-cert-course { height: 5px; width: 50%; background: var(--color-gray-200); border-radius: var(--radius-full); }
-.sb-cert-meta { display: flex; gap: var(--space-2); }
-.sb-cert-badge {
-  display: inline-block; padding: 2px var(--space-2);
-  background: var(--color-success-light); color: var(--color-success-dark);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-full); font-size: 0.58rem; font-weight: var(--font-weight-semibold);
-}
-.sb-cert-link { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); color: var(--color-primary-600); text-decoration: none; }
-.sb-cert-link:hover { color: var(--color-primary-700); }
-.sb-link-arrow { transition: transform var(--transition-fast); }
-.sb-cert-link:hover .sb-link-arrow { transform: translateX(3px); }
-
-/* ── Trust strip ── */
-.sb-trust-strip {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-.sb-trust-item {
-  display: flex; align-items: center; gap: var(--space-3);
-  padding: var(--space-6) var(--space-5);
-}
-.sb-trust-item + .sb-trust-item { border-left: 1px solid var(--border-color); }
-.sb-trust-icon {
-  width: 38px; height: 38px;
-  border-radius: var(--radius-md);
-  background: var(--color-primary-50);
-  color: var(--color-primary-600);
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.sb-trust-val {
-  font-family: var(--font-display);
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-primary-700);
-  line-height: 1;
-}
-.sb-trust-lbl { font-size: var(--font-size-xs); color: var(--text-tertiary); line-height: 1.3; margin-top: 2px; }
-
-/* ── Responsive ── */
-@media (max-width: 1024px) {
-  .sb-grid { grid-template-columns: 1fr; }
-  .sb-trust-strip { grid-template-columns: repeat(2, 1fr); }
-  .sb-trust-item:nth-child(odd) { border-left: none; }
-  .sb-trust-item:nth-child(3), .sb-trust-item:nth-child(4) { border-top: 1px solid var(--border-color); }
-}
-@media (max-width: 768px) {
-  .sb-section { padding: var(--space-16) var(--space-4); }
-  .sb-cert-grid { grid-template-columns: 1fr; }
-}
-@media (max-width: 480px) {
-  .sb-trust-strip { grid-template-columns: 1fr 1fr; }
-  .sb-card { padding: var(--space-6); }
-  .sb-lms-mock { display: none; }
-}
-`;

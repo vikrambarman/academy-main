@@ -1,116 +1,135 @@
-/* ==========================================
-   ANIMATIONS & KEYFRAMES
-   RETUNED → calm. Same class naam, par motion subtle/short.
-   Infinite float/bounce/heavy slides ko gentle kiya — yeh "AI/landing"
-   feel ka bada source the. Functionality (spinner, skeleton) same.
-   ========================================== */
+/* src/styles/animations.css */
 
-/* === KEYFRAMES (movement distances kam kiye → soft) === */
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+/*
+  ⚠️ RULE: AI-generated feel se bachne ke liye:
+  - Koi floating animations nahi
+  - Koi glowing/pulsing nahi  
+  - Koi dramatic bouncing nahi
+  - Sirf: fade, slide (subtle), scale (minimal)
+*/
 
-@keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes slideInLeft { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
-@keyframes slideInRight { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
-@keyframes scaleUp { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
-@keyframes scaleDown { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.98); } }
+/* ============================================
+   KEYFRAMES
+   ============================================ */
 
-@keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-/* Bounce/float ab bahut halke (ya effectively still) */
-@keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
-@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-@keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
-@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
-@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-
-@keyframes slideInUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-@keyframes slideOutDown { from { transform: translateY(0); opacity: 1; } to { transform: translateY(20px); opacity: 0; } }
-@keyframes zoomIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
-@keyframes zoomOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.96); } }
-@keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-@keyframes ripple { 0% { transform: scale(0); opacity: 0.6; } 100% { transform: scale(3); opacity: 0; } }
-
-/* === ANIMATION UTILITY CLASSES (naam same) === */
-.animate-fade-in { animation: fadeIn var(--transition-slow) var(--ease-out) forwards; }
-.animate-fade-out { animation: fadeOut var(--transition-slow) var(--ease-out) forwards; }
-.animate-slide-up { animation: slideUp var(--transition-slow) var(--ease-out) forwards; }
-.animate-slide-down { animation: slideDown var(--transition-slow) var(--ease-out) forwards; }
-.animate-slide-in-left { animation: slideInLeft var(--transition-slow) var(--ease-out) forwards; }
-.animate-slide-in-right { animation: slideInRight var(--transition-slow) var(--ease-out) forwards; }
-.animate-scale-up { animation: scaleUp var(--transition-base) var(--ease-out) forwards; }
-.animate-scale-down { animation: scaleDown var(--transition-base) var(--ease-out) forwards; }
-
-/* Infinite "attention" animations ko effectively bandh kiya — calm site.
-   (Class rehne diye taaki JSX na toote, par motion negligible.) */
-.animate-bounce { animation: none; }
-.animate-float { animation: none; }
-.animate-pulse { animation: pulse 2.5s ease-in-out infinite; }   /* loading hint ke liye theek */
-.animate-spin { animation: spin 0.8s linear infinite; }          /* spinner ke liye zaroori */
-.animate-shimmer {
-  animation: shimmer 2s linear infinite;
-  background: linear-gradient(90deg, var(--color-gray-100) 0%, var(--color-gray-200) 20%, var(--color-gray-100) 40%, var(--color-gray-100) 100%);
-  background-size: 1000px 100%;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
-.animate-shake { animation: shake 0.4s ease-in-out; }
-.animate-zoom-in { animation: zoomIn var(--transition-base) var(--ease-out) forwards; }
-.animate-zoom-out { animation: zoomOut var(--transition-base) var(--ease-out) forwards; }
-.animate-rotate { animation: rotate 2s linear infinite; }
 
-/* === DELAYS === */
-.animation-delay-100 { animation-delay: 100ms; }
-.animation-delay-200 { animation-delay: 200ms; }
-.animation-delay-300 { animation-delay: 300ms; }
-.animation-delay-500 { animation-delay: 500ms; }
-
-/* === TRANSITIONS === */
-.transition-all { transition: all var(--transition-base); }
-.transition-colors { transition: background-color var(--transition-base), border-color var(--transition-base), color var(--transition-base); }
-.transition-opacity { transition: opacity var(--transition-base); }
-.transition-transform { transition: transform var(--transition-base); }
-.transition-fast { transition-duration: var(--transition-fast); }
-.transition-slow { transition-duration: var(--transition-slow); }
-
-/* === HOVER EFFECTS === (lift/scale → subtle border/colour, calm) */
-.hover-lift { transition: border-color var(--transition-base); }
-.hover-lift:hover { transform: none; box-shadow: none; border-color: var(--color-gray-300); }
-.hover-scale { transition: none; }
-.hover-scale:hover { transform: none; }
-.hover-brightness { transition: opacity var(--transition-base); }
-.hover-brightness:hover { opacity: 0.9; }
-
-/* === LOADING STATES === (kept functional) */
-.skeleton {
-  background: linear-gradient(90deg, var(--color-gray-100) 0%, var(--color-gray-200) 50%, var(--color-gray-100) 100%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
-  border-radius: var(--radius-md);
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Page load animation */
+@keyframes pageLoad {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Spinner */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Subtle pulse - sirf dot indicators ke liye */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+/* ============================================
+   UTILITY ANIMATION CLASSES
+   ============================================ */
+
+.animate-fade-in {
+  animation: fadeIn var(--transition-slow) ease-out both;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out both;
+}
+
+.animate-slide-left {
+  animation: slideInLeft 0.4s ease-out both;
+}
+
+.animate-slide-right {
+  animation: slideInRight 0.4s ease-out both;
+}
+
+/* Stagger delay classes */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+
+/* Spinner */
 .spinner {
-  width: 36px; height: 36px;
-  border: 3px solid var(--color-gray-200);
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-light);
   border-top-color: var(--color-primary-600);
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 0.6s linear infinite;
 }
-.spinner-sm { width: 18px; height: 18px; border-width: 2px; }
-.spinner-lg { width: 56px; height: 56px; border-width: 5px; }
 
-/* === STAGGER === (gentle) */
-.stagger-item { opacity: 0; animation: slideUp var(--transition-slow) var(--ease-out) forwards; }
-.stagger-item:nth-child(1) { animation-delay: 60ms; }
-.stagger-item:nth-child(2) { animation-delay: 120ms; }
-.stagger-item:nth-child(3) { animation-delay: 180ms; }
-.stagger-item:nth-child(4) { animation-delay: 240ms; }
-.stagger-item:nth-child(5) { animation-delay: 300ms; }
-.stagger-item:nth-child(6) { animation-delay: 360ms; }
+/* ============================================
+   REDUCED MOTION SUPPORT
+   ============================================ */
 
-/* === SCROLL / PAGE === */
-.scroll-reveal { opacity: 0; transform: translateY(12px); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
-.scroll-reveal.revealed { opacity: 1; transform: translateY(0); }
-.page-enter { opacity: 0; transform: translateY(8px); }
-.page-enter-active { opacity: 1; transform: translateY(0); transition: opacity 260ms, transform 260ms; }
-.page-exit { opacity: 1; }
-.page-exit-active { opacity: 0; transition: opacity 260ms; }
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
