@@ -1,0 +1,777 @@
+/* ============================================
+   src/styles/course-detail.css
+   Course Detail Page
+
+   Import: globals.css me add karo
+   @import "../styles/course-detail.css";
+   ============================================ */
+
+/* ============================================
+   ROOT
+   ============================================ */
+
+.cd-root {
+  background: var(--bg-page);
+  min-height: 100vh;
+  padding-bottom: 5rem;
+}
+
+/* ============================================
+   BREADCRUMB
+   ============================================ */
+
+.cd-breadcrumb {
+  padding: 1.25rem 0 0;
+  background: white;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.cd-breadcrumb-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.cd-breadcrumb-link {
+  font-size: var(--text-sm);
+  color: var(--color-gray-500);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.cd-breadcrumb-link:hover {
+  color: var(--color-primary-600);
+}
+
+.cd-breadcrumb-sep {
+  font-size: var(--text-sm);
+  color: var(--color-gray-300);
+}
+
+.cd-breadcrumb-current {
+  font-size: var(--text-sm);
+  color: var(--color-gray-800);
+  font-weight: var(--font-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 280px;
+}
+
+/* ============================================
+   BANNER
+   ============================================ */
+
+.cd-banner-wrap {
+  background: var(--color-gray-900);
+  padding: 0;
+}
+
+.cd-banner-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 0;
+}
+
+.cd-banner {
+  position: relative;
+  height: 400px;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  overflow: hidden;
+  background: var(--color-gray-800);
+}
+
+.cd-banner-img {
+  object-fit: cover;
+}
+
+.cd-banner-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: var(--color-primary-900);
+}
+
+.cd-banner-placeholder span {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Gradient overlay */
+.cd-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(10, 15, 35, 0.92) 0%,
+    rgba(10, 15, 35, 0.3) 55%,
+    transparent 100%
+  );
+}
+
+/* Bottom content */
+.cd-banner-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem 2.5rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.cd-banner-left {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Level badge */
+.cd-banner-level {
+  display: inline-block;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.25rem 0.875rem;
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.875rem;
+}
+
+/* Title */
+.cd-banner-title {
+  font-family: var(--font-heading);
+  font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+  font-weight: var(--font-bold);
+  color: white;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+/* Pills */
+.cd-banner-pills {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.cd-banner-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: white;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.cd-banner-pill svg {
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+/* ============================================
+   MAIN LAYOUT — 2 column
+   ============================================ */
+
+.cd-layout {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+/* ============================================
+   LEFT — Content Area
+   ============================================ */
+
+.cd-content {
+  min-width: 0;
+}
+
+/* Section */
+.cd-section {
+  margin-bottom: 2.5rem;
+}
+
+.cd-section-header {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.cd-section-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-900);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+/* Designed For grid */
+.cd-designed-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.875rem;
+}
+
+.cd-designed-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  font-size: var(--text-sm);
+  color: var(--color-gray-800);
+  line-height: 1.6;
+  transition: border-color 0.2s ease;
+}
+
+.cd-designed-item:hover {
+  border-color: var(--color-primary-200);
+}
+
+.cd-designed-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--color-primary-500);
+  border-radius: 50%;
+  margin-top: 0.375rem;
+  flex-shrink: 0;
+}
+
+/* Career grid */
+.cd-career-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.875rem;
+}
+
+.cd-career-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  background: white;
+  border: 1px solid var(--border-light);
+  border-left: 3px solid var(--color-primary-600);
+  border-radius: var(--radius-md);
+  padding: 0.875rem 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cd-career-item:hover {
+  border-color: var(--color-primary-300);
+  border-left-color: var(--color-primary-600);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.cd-career-item-text {
+  font-size: var(--text-sm);
+  color: var(--color-gray-800);
+  line-height: 1.4;
+}
+
+.cd-career-item-arrow {
+  color: var(--color-primary-500);
+  flex-shrink: 0;
+}
+
+/* Syllabus */
+.cd-syllabus {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.cd-module {
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.cd-module-head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--color-gray-50);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.cd-module-num {
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--color-primary-600);
+  min-width: 32px;
+  flex-shrink: 0;
+}
+
+.cd-module-name {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-900);
+  flex: 1;
+}
+
+.cd-module-count {
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--color-gray-500);
+  background: white;
+  border: 1px solid var(--border-light);
+  padding: 0.2rem 0.625rem;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.cd-topics {
+  padding: 1rem 1.25rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem 1.5rem;
+}
+
+.cd-topic {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--text-sm);
+  color: var(--color-gray-600);
+}
+
+.cd-topic-dot {
+  width: 5px;
+  height: 5px;
+  background: var(--color-primary-400);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Back link */
+.cd-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-gray-600);
+  text-decoration: none;
+  padding: 0.625rem 1.25rem;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  transition: border-color 0.2s ease, color 0.2s ease;
+  margin-top: 1rem;
+}
+
+.cd-back:hover {
+  color: var(--color-primary-700);
+  border-color: var(--color-primary-300);
+}
+
+/* ============================================
+   RIGHT — SIDEBAR
+   ============================================ */
+
+.cd-sidebar {
+  position: sticky;
+  top: 110px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Info Card */
+.cd-info-card {
+  background: white;
+  border: 1px solid var(--border-light);
+  border-top: 3px solid var(--color-primary-700);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.cd-info-card-head {
+  padding: 1rem 1.5rem;
+  background: var(--color-gray-50);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.cd-info-card-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-900);
+  margin: 0;
+}
+
+.cd-info-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.cd-info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.cd-info-row:last-child {
+  border-bottom: none;
+}
+
+.cd-info-row-icon {
+  width: 36px;
+  height: 36px;
+  background: var(--color-primary-50);
+  border: 1px solid var(--color-primary-100);
+  border-radius: var(--radius-md);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: var(--color-primary-600);
+}
+
+.cd-info-row-label {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-gray-500);
+  margin-bottom: 0.25rem;
+}
+
+.cd-info-row-value {
+  font-size: var(--text-sm);
+  color: var(--color-gray-800);
+  line-height: 1.5;
+}
+
+/* Enroll CTA */
+.cd-info-card-cta {
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid var(--border-light);
+  background: var(--color-gray-50);
+}
+
+.cd-enroll-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.875rem;
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  background: var(--color-accent-500);
+  color: white;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  font-weight: var(--font-semibold);
+  border: 2px solid var(--color-accent-500);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.cd-enroll-btn:hover {
+  background: var(--color-accent-600);
+  border-color: var(--color-accent-600);
+  color: white;
+}
+
+.cd-enroll-btn svg {
+  flex-shrink: 0;
+}
+
+.cd-enroll-btn span {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.125rem;
+  font-size: var(--text-sm);
+}
+
+.cd-enroll-btn small {
+  font-size: var(--text-xs);
+  font-weight: var(--font-normal);
+  opacity: 0.85;
+}
+
+/* Programs Card */
+.cd-programs-card {
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.cd-programs-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background: var(--color-gray-50);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.cd-programs-card-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-900);
+  margin: 0;
+}
+
+.cd-programs-card-count {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  padding: 0.2rem 0.625rem;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-50);
+  color: var(--color-primary-700);
+  border: 1px solid var(--color-primary-100);
+}
+
+.cd-programs-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.cd-program-item {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.cd-program-item:last-child {
+  border-bottom: none;
+}
+
+.cd-program-item-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.625rem;
+}
+
+.cd-program-item-code {
+  font-size: 0.5625rem;
+  font-weight: var(--font-bold);
+  padding: 0.2rem 0.625rem;
+  border-radius: var(--radius-sm);
+  color: white;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+}
+
+.cd-program-item-name {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-900);
+}
+
+.cd-program-item-cert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: var(--text-xs);
+  color: var(--color-gray-600);
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+.cd-program-item-cert-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-primary-400);
+  flex-shrink: 0;
+  margin-top: 0.3125rem;
+}
+
+.cd-program-item-cert-issuer {
+  opacity: 0.7;
+}
+
+.cd-program-item-bodies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+/* Body pills */
+.cd-body-pill {
+  font-size: 0.5625rem;
+  font-weight: var(--font-semibold);
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--color-gray-50);
+  color: var(--color-gray-600);
+  border: 1px solid var(--border-light);
+  letter-spacing: 0.04em;
+}
+
+/* Recognized Strip */
+.cd-recognized-strip {
+  padding: 1rem 1.5rem;
+  background: var(--color-gray-50);
+  border-top: 1px solid var(--border-light);
+}
+
+.cd-recognized-strip-label {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-gray-500);
+  margin-bottom: 0.5rem;
+}
+
+.cd-recognized-strip-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+/* ============================================
+   RESPONSIVE — TABLET (max-width: 1024px)
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .cd-layout {
+    grid-template-columns: 1fr 320px;
+    gap: 2rem;
+  }
+}
+
+/* ============================================
+   RESPONSIVE — MOBILE (max-width: 900px)
+   ============================================ */
+
+@media (max-width: 900px) {
+  .cd-layout {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 1.5rem 1rem;
+  }
+
+  .cd-sidebar {
+    position: static;
+    order: -1;
+  }
+
+  .cd-banner {
+    height: 300px;
+  }
+
+  .cd-banner-bottom {
+    padding: 1.5rem;
+  }
+
+  .cd-topics {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   RESPONSIVE — MOBILE (max-width: 768px)
+   ============================================ */
+
+@media (max-width: 768px) {
+  .cd-breadcrumb-inner {
+    padding: 0 1rem 1rem;
+  }
+
+  .cd-banner-container {
+    padding: 1rem 1rem 0;
+  }
+}
+
+/* ============================================
+   RESPONSIVE — SMALL MOBILE (max-width: 560px)
+   ============================================ */
+
+@media (max-width: 560px) {
+  .cd-banner {
+    height: 220px;
+  }
+
+  .cd-banner-pills {
+    display: none;
+  }
+
+  .cd-banner-bottom {
+    padding: 1rem 1.25rem;
+  }
+
+  .cd-banner-title {
+    font-size: clamp(1.25rem, 5vw, 1.625rem);
+  }
+
+  .cd-designed-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cd-career-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .cd-breadcrumb-current {
+    max-width: 160px;
+  }
+}
+
+/* ============================================
+   RESPONSIVE — EXTRA SMALL (max-width: 480px)
+   ============================================ */
+
+@media (max-width: 480px) {
+  .cd-career-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cd-section-title {
+    font-size: var(--text-lg);
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .cd-designed-item,
+  .cd-career-item,
+  .cd-back,
+  .cd-enroll-btn {
+    transition: none;
+  }
+}

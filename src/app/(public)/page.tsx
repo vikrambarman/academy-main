@@ -1,7 +1,6 @@
 import CoursesPreview from "@/app/(public)/home/CoursesPreview";
 import FAQSection from "@/app/(public)/home/FAQSection";
 import HomeCTA from "@/app/(public)/home/HomeCTA";
-import HowItWorks from "@/app/(public)/home/HowItWorks";
 import Notices from "@/app/(public)/home/Notices";
 import HeroSection from "@/app/(public)/home/HeroSection";
 import PartnersAndCertifications from "@/app/(public)/home/PartnersAndCertifications";
@@ -74,9 +73,6 @@ export default function HomePage() {
 
       {/* Featured Courses */}
       <CoursesPreview />
-
-      {/* How It Works Process */}
-      <HowItWorks />
 
       {/* Certifications & Partners */}
       <PartnersAndCertifications />

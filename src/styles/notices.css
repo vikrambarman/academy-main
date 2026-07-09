@@ -1,0 +1,318 @@
+/* ============================================
+   src/styles/notices.css
+   Notices — Homepage Section
+
+   Import: globals.css me add karo
+   @import "../styles/notices.css";
+   ============================================ */
+
+/* ============================================
+   SECTION BASE — Full width
+   ============================================ */
+
+.not-section {
+  position: relative;
+  width: 100%;
+  border-bottom: 1px solid var(--border-light);
+}
+
+/* ============================================
+   TOP BAR — Full width colored header
+   Accent-first gradient (different from VisitUs)
+   ============================================ */
+
+.not-topbar {
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--color-accent-600) 0%,
+    var(--color-accent-500) 30%,
+    var(--color-primary-700) 70%,
+    var(--color-primary-900) 100%
+  );
+  border-bottom: 3px solid var(--color-primary-600);
+  padding: 1.25rem 0;
+}
+
+.not-topbar-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.not-topbar-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* Tag */
+.not-topbar-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.not-topbar-tag svg {
+  flex-shrink: 0;
+}
+
+/* Title */
+.not-topbar-title {
+  font-family: var(--font-heading);
+  font-size: clamp(1.25rem, 2.5vw, 1.625rem);
+  font-weight: var(--font-bold);
+  color: white;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+/* View All Button */
+.not-viewall-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: var(--radius-md);
+  transition: background 0.2s ease, border-color 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.not-viewall-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: white;
+}
+
+.not-viewall-btn svg {
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.not-viewall-btn:hover svg {
+  transform: translateX(3px);
+}
+
+/* ============================================
+   BODY — Contained grid
+   ============================================ */
+
+.not-body {
+  background: var(--color-gray-50);
+  padding: 2.5rem 0;
+}
+
+.not-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* ============================================
+   NOTICES GRID — 3 columns desktop
+   ============================================ */
+
+.not-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+/* ============================================
+   NOTICE CARD
+   ============================================ */
+
+.not-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  padding: 1.5rem;
+  background: white;
+  border: 1px solid var(--border-light);
+  border-top: 3px solid var(--color-primary-600);
+  border-radius: var(--radius-lg);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.not-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+/* Card Meta — date + category */
+.not-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.875rem;
+  flex-wrap: wrap;
+}
+
+.not-card-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+}
+
+.not-card-date svg {
+  color: var(--color-gray-400);
+  flex-shrink: 0;
+}
+
+.not-card-cat {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.625rem;
+  border-radius: var(--radius-full);
+  color: var(--color-primary-700);
+  background: var(--color-primary-50);
+  border: 1px solid var(--color-primary-100);
+  white-space: nowrap;
+}
+
+.not-card-cat svg {
+  flex-shrink: 0;
+}
+
+/* Card Title */
+.not-card-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  line-height: 1.4;
+  color: var(--color-gray-900);
+  margin-bottom: 0.75rem;
+}
+
+/* Card Excerpt */
+.not-card-excerpt {
+  font-size: var(--text-sm);
+  line-height: 1.65;
+  color: var(--color-gray-600);
+  margin: 0 0 1rem;
+  flex: 1;
+  max-width: none;
+  /* 3 lines clamp */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Read More */
+.not-card-readmore {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-primary-600);
+  margin-top: auto;
+}
+
+.not-card-readmore svg {
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.not-card:hover .not-card-readmore svg {
+  transform: translateX(3px);
+}
+
+/* ============================================
+   RESPONSIVE — TABLET (max-width: 1024px)
+   ============================================ */
+
+@media (max-width: 1024px) {
+  /* Grid: 3 → 2 col */
+  .not-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ============================================
+   RESPONSIVE — MOBILE (max-width: 768px)
+   ============================================ */
+
+@media (max-width: 768px) {
+  .not-topbar-inner {
+    padding: 0 1rem;
+    gap: 1rem;
+  }
+
+  .not-body {
+    padding: 2rem 0;
+  }
+
+  .not-container {
+    padding: 0 1rem;
+  }
+
+  /* Grid: 2 → 1 col */
+  .not-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* View all button — full width */
+  .not-viewall-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ============================================
+   RESPONSIVE — SMALL MOBILE (max-width: 480px)
+   ============================================ */
+
+@media (max-width: 480px) {
+  .not-topbar {
+    padding: 1rem 0;
+  }
+
+  .not-topbar-title {
+    font-size: 1.125rem;
+  }
+
+  .not-card {
+    padding: 1.25rem;
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .not-card,
+  .not-viewall-btn,
+  .not-viewall-btn svg,
+  .not-card-readmore svg {
+    transition: none;
+  }
+}

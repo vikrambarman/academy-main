@@ -1,0 +1,736 @@
+/* ============================================
+   src/styles/partners-certifications.css
+   PartnersAndCertifications — Full Width Design
+
+   Import: globals.css me add karo
+   @import "../styles/partners-certifications.css";
+   ============================================ */
+
+/* ============================================
+   SECTION BASE
+   Full width — no container on section itself
+   ============================================ */
+
+.pac-section {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  /* No padding here — strips handle top/bottom */
+}
+
+/* ============================================
+   TOP STRIP — ~50px colorful scrolling bar
+   Blue → Saffron gradient background
+   ============================================ */
+
+.pac-strip-top {
+  width: 100%;
+  height: 48px;
+  background: linear-gradient(
+    90deg,
+    var(--color-primary-900) 0%,
+    var(--color-primary-700) 40%,
+    var(--color-accent-600) 70%,
+    var(--color-accent-500) 100%
+  );
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Scrolling ticker inner */
+.pac-strip-top-inner {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  white-space: nowrap;
+  /* Seamless scroll — content duplicated in JSX */
+  animation: pac-scroll 22s linear infinite;
+  padding-left: 2rem;
+}
+
+@keyframes pac-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.pac-strip-top-inner span {
+  font-size: 0.75rem;
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.92);
+  white-space: nowrap;
+}
+
+.pac-strip-sep {
+  color: rgba(255, 255, 255, 0.35) !important;
+  font-weight: var(--font-normal) !important;
+  letter-spacing: 0 !important;
+}
+
+/* ============================================
+   MAIN BODY — Colored background
+   Deep blue gradient — not plain white/gray
+   ============================================ */
+
+.pac-body {
+  background: linear-gradient(
+    160deg,
+    var(--color-primary-900) 0%,
+    var(--color-primary-800) 50%,
+    var(--color-primary-700) 100%
+  );
+  padding: 4rem 0 4.5rem;
+  position: relative;
+}
+
+/* Subtle texture overlay */
+.pac-body::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(
+      circle at 15% 30%,
+      rgba(255, 255, 255, 0.03) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 85% 70%,
+      rgba(234, 88, 12, 0.06) 0%,
+      transparent 50%
+    );
+  pointer-events: none;
+}
+
+.pac-container {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* ============================================
+   SECTION HEADER — Center, white text on dark
+   ============================================ */
+
+.pac-header {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 3rem;
+}
+
+/* Tag */
+.pac-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent-400);
+  background: rgba(234, 88, 12, 0.15);
+  border: 1px solid rgba(234, 88, 12, 0.3);
+  padding: 0.375rem 0.875rem;
+  border-radius: 20px;
+  margin-bottom: 1.25rem;
+}
+
+.pac-tag-dot {
+  width: 5px;
+  height: 5px;
+  background: var(--color-accent-400);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Title — white on dark bg */
+.pac-title {
+  font-family: var(--font-heading);
+  font-size: clamp(1.875rem, 4vw, 2.75rem);
+  font-weight: var(--font-bold);
+  line-height: 1.2;
+  color: #ffffff;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.pac-title-accent {
+  color: var(--color-accent-400);
+  text-decoration: underline;
+  text-decoration-color: rgba(234, 88, 12, 0.4);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 6px;
+}
+
+/* Subtitle */
+.pac-subtitle {
+  font-size: var(--text-base);
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+  max-width: none;
+}
+
+/* ============================================
+   UNIVERSITY PARTNER BANNER
+   White card on dark bg — stands out
+   ============================================ */
+
+.pac-uni-banner {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 2.5rem;
+  align-items: center;
+  background: #ffffff;
+  border-left: 5px solid var(--color-accent-500);
+  padding: 2rem 2.25rem;
+  margin-bottom: 3rem;
+  /* Subtle shadow on dark bg */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+/* Left — Icon block */
+.pac-uni-icon-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.625rem;
+  flex-shrink: 0;
+}
+
+.pac-uni-icon {
+  width: 80px;
+  height: 80px;
+  display: grid;
+  place-items: center;
+  background: var(--color-primary-700);
+  color: white;
+  border-radius: var(--radius-md);
+}
+
+.pac-uni-icon-label {
+  font-size: 0.625rem;
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-gray-500);
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* Center — Content */
+.pac-uni-content {
+  min-width: 0;
+}
+
+.pac-uni-eyebrow {
+  display: inline-block;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-primary-700);
+  background: var(--color-primary-50);
+  border: 1px solid var(--color-primary-100);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  margin-bottom: 0.75rem;
+}
+
+.pac-uni-name {
+  font-family: var(--font-heading);
+  font-size: clamp(1.125rem, 2.5vw, 1.5rem);
+  font-weight: var(--font-bold);
+  color: var(--color-gray-900);
+  line-height: 1.25;
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.01em;
+}
+
+.pac-uni-mode {
+  font-size: var(--text-sm);
+  color: var(--color-accent-600);
+  font-weight: var(--font-medium);
+  margin-bottom: 0.75rem;
+  max-width: none;
+}
+
+.pac-uni-desc {
+  font-size: var(--text-sm);
+  line-height: 1.7;
+  color: var(--color-gray-600);
+  margin-bottom: 1rem;
+  max-width: 60ch;
+}
+
+/* Degree Pills */
+.pac-uni-programs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.625rem;
+}
+
+.pac-uni-program {
+  display: inline-block;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--color-primary-700);
+  background: var(--color-primary-50);
+  border: 1px solid var(--color-primary-200);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.02em;
+}
+
+.pac-uni-via {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+  font-style: italic;
+  margin: 0;
+}
+
+/* Right — CTA column */
+.pac-uni-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  min-width: 180px;
+  padding: 1.25rem 1.5rem;
+  background: var(--color-gray-50);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.pac-uni-check {
+  color: var(--color-success-500);
+}
+
+.pac-uni-action-text {
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--color-gray-600);
+  margin: 0;
+  max-width: none;
+}
+
+.pac-uni-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--color-accent-500);
+  color: white;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  white-space: nowrap;
+  border: 2px solid var(--color-accent-500);
+  width: 100%;
+  justify-content: center;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.pac-uni-btn:hover {
+  background: var(--color-accent-600);
+  border-color: var(--color-accent-600);
+  color: white;
+}
+
+.pac-uni-btn svg {
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.pac-uni-btn:hover svg {
+  transform: translateX(3px);
+}
+
+/* ============================================
+   GRID EYEBROW LABEL
+   ============================================ */
+
+.pac-grid-label {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.pac-grid-eyebrow {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pac-grid-line {
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ============================================
+   AFFILIATIONS GRID — 3 col
+   Semi-transparent cards on dark bg
+   ============================================ */
+
+.pac-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+/* Card */
+.pac-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 3px solid;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pac-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Blue top border */
+.pac-card--blue {
+  border-top-color: var(--color-primary-400);
+}
+
+/* Orange top border */
+.pac-card--orange {
+  border-top-color: var(--color-accent-400);
+}
+
+/* Card Top Row */
+.pac-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+/* Card Icon */
+.pac-card-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.pac-card--orange .pac-card-icon {
+  background: rgba(234, 88, 12, 0.2);
+  border-color: rgba(234, 88, 12, 0.3);
+  color: var(--color-accent-300);
+}
+
+/* Card Badge */
+.pac-card-badge {
+  font-size: 0.6875rem;
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+/* Card Title */
+.pac-card-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: #ffffff;
+  margin-bottom: 0.625rem;
+  line-height: 1.35;
+}
+
+/* Card Description */
+.pac-card-desc {
+  font-size: var(--text-sm);
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.65);
+  margin: 0;
+  flex: 1;
+  max-width: none;
+}
+
+/* ============================================
+   BOTTOM STRIP — ~50px dark trust bar
+   Full width, dark bg with icons
+   ============================================ */
+
+.pac-strip-bottom {
+  width: 100%;
+  background: var(--color-primary-900);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0 1.5rem;
+  /* Fixed height ~50px */
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+}
+
+.pac-strip-bottom-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 0;
+}
+
+/* Label */
+.pac-strip-bottom-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pac-strip-bottom-label svg {
+  color: #86efac;
+}
+
+/* Separator */
+.pac-strip-bottom-sep {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.12);
+  flex-shrink: 0;
+}
+
+/* Marks wrapper */
+.pac-strip-bottom-marks {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 2rem;
+  flex: 1;
+}
+
+/* Individual mark */
+.pac-strip-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: rgba(255, 255, 255, 0.8);
+  white-space: nowrap;
+}
+
+.pac-strip-mark svg {
+  color: var(--color-accent-400);
+  flex-shrink: 0;
+}
+
+/* ============================================
+   RESPONSIVE — TABLET (max-width: 1024px)
+   ============================================ */
+
+@media (max-width: 1024px) {
+  /* Grid: 3 → 2 col */
+  .pac-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* University banner: 3 → 2 col */
+  .pac-uni-banner {
+    grid-template-columns: auto 1fr;
+    gap: 1.75rem;
+  }
+
+  /* CTA spans full width */
+  .pac-uni-action {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 1.25rem;
+    text-align: left;
+    min-width: unset;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--border-light);
+    border-radius: 0;
+    background: var(--color-accent-50);
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+  }
+
+  .pac-uni-check {
+    display: none;
+  }
+
+  .pac-uni-btn {
+    width: auto;
+    flex-shrink: 0;
+  }
+}
+
+/* ============================================
+   RESPONSIVE — MOBILE (max-width: 768px)
+   ============================================ */
+
+@media (max-width: 768px) {
+  .pac-body {
+    padding: 3rem 0 3.5rem;
+  }
+
+  .pac-container {
+    padding: 0 1rem;
+  }
+
+  .pac-header {
+    margin-bottom: 2rem;
+  }
+
+  /* University banner: single column */
+  .pac-uni-banner {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    padding: 1.5rem;
+    border-left-width: 4px;
+  }
+
+  .pac-uni-icon-wrap {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .pac-uni-icon {
+    width: 56px;
+    height: 56px;
+  }
+
+  .pac-uni-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .pac-uni-action {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    gap: 0.75rem;
+    border-top: 1px solid var(--border-light) !important;
+    border-left: none !important;
+    padding: 1.25rem !important;
+    background: var(--color-accent-50) !important;
+  }
+
+  .pac-uni-check {
+    display: block !important;
+  }
+
+  .pac-uni-btn {
+    width: 100%;
+  }
+
+  /* Bottom strip — wrap */
+  .pac-strip-bottom-inner {
+    gap: 0.875rem;
+  }
+
+  .pac-strip-bottom-sep {
+    display: none;
+  }
+
+  .pac-strip-bottom-marks {
+    gap: 0.5rem 1.25rem;
+  }
+}
+
+/* ============================================
+   RESPONSIVE — SMALL MOBILE (max-width: 640px)
+   ============================================ */
+
+@media (max-width: 640px) {
+  /* Grid: 2 → 1 col */
+  .pac-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pac-title {
+    font-size: 1.75rem;
+  }
+
+  /* Top strip — slower scroll on small */
+  .pac-strip-top-inner {
+    animation-duration: 18s;
+  }
+
+  /* Bottom strip — smaller font */
+  .pac-strip-mark {
+    font-size: var(--text-xs);
+  }
+}
+
+/* ============================================
+   RESPONSIVE — EXTRA SMALL (max-width: 480px)
+   ============================================ */
+
+@media (max-width: 480px) {
+  .pac-strip-top {
+    height: 40px;
+  }
+
+  .pac-strip-top-inner span {
+    font-size: 0.6875rem;
+  }
+
+  .pac-uni-programs {
+    gap: 0.375rem;
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .pac-strip-top-inner {
+    animation: none;
+  }
+
+  .pac-card,
+  .pac-uni-btn,
+  .pac-uni-btn svg {
+    transition: none;
+  }
+}

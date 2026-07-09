@@ -45,6 +45,16 @@ Homepage hero    →  home/HeroSection.tsx (inline ya page-specific) */
 @import "../styles/trust-section.css";
 @import "../styles/student-benefits.css";
 @import "../styles/courses-preview.css";
+@import "../styles/partners-certifications.css";
+@import "../styles/why-choose-us.css";
+@import "../styles/student-reviews.css";
+@import "../styles/visit-us.css";
+@import "../styles/notices.css";
+@import "../styles/faq-section.css";
+@import "../styles/home-cta.css";
+@import "../styles/footer.css";
+@import "../styles/courses-list.css";
+@import "../styles/course-detail.css";
 
 /* ==========================================
    CUSTOM SCROLLBAR (Global)

@@ -1,0 +1,488 @@
+/* ============================================
+   src/styles/why-choose-us.css
+   WhyChooseUs — Homepage Section
+
+   Import: globals.css me add karo
+   @import "../styles/why-choose-us.css";
+   
+   ⚠️ NO top/bottom strips — Partners section
+   ke bottom strip se collision avoid karne ke liye
+   ============================================ */
+
+/* ============================================
+   SECTION BASE
+   Simple white section with decorative accents
+   ============================================ */
+
+.wcu-section {
+  background: white;
+  padding: 5rem 0 5rem;
+  position: relative;
+  border-bottom: 1px solid var(--border-light);
+}
+
+/* Decorative corner accents — subtle, not overpowering */
+.wcu-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(
+    circle at center,
+    var(--color-primary-50) 0%,
+    transparent 70%
+  );
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.wcu-section::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(
+    circle at center,
+    var(--color-accent-50) 0%,
+    transparent 70%
+  );
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.wcu-container {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* ============================================
+   SECTION HEADER — Left aligned
+   ============================================ */
+
+.wcu-header {
+  max-width: 640px;
+  margin-bottom: 3.5rem;
+}
+
+/* Tag */
+.wcu-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent-600);
+  background: var(--color-accent-50);
+  border: 1px solid var(--color-accent-200);
+  padding: 0.375rem 0.875rem;
+  border-radius: 20px;
+  margin-bottom: 1.25rem;
+}
+
+.wcu-tag-dot {
+  width: 5px;
+  height: 5px;
+  background: var(--color-accent-500);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Title */
+.wcu-title {
+  font-family: var(--font-heading);
+  font-size: clamp(1.875rem, 4vw, 2.75rem);
+  font-weight: var(--font-bold);
+  line-height: 1.2;
+  color: var(--color-gray-900);
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+/* Accent word — primary blue underline */
+.wcu-title-accent {
+  color: var(--color-primary-700);
+  text-decoration: underline;
+  text-decoration-color: var(--color-primary-200);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 6px;
+}
+
+/* Subtitle */
+.wcu-subtitle {
+  font-size: var(--text-base);
+  line-height: 1.7;
+  color: var(--color-gray-600);
+  margin: 0;
+  max-width: none;
+}
+
+/* ============================================
+   TWO COLUMN LAYOUT
+   Left: Features (wider)
+   Right: Sticky panel (narrower)
+   ============================================ */
+
+.wcu-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 3rem;
+  align-items: start;
+}
+
+/* ============================================
+   LEFT — FEATURE LIST
+   Numbered items, clean document feel
+   ============================================ */
+
+.wcu-features {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Feature Item */
+.wcu-feature-item {
+  display: grid;
+  grid-template-columns: 36px 48px 1fr;
+  gap: 1.25rem;
+  align-items: start;
+  padding: 1.5rem 1.25rem;
+  border-bottom: 1px solid var(--border-light);
+  transition: background 0.2s ease;
+}
+
+.wcu-feature-item:first-child {
+  border-top: 1px solid var(--border-light);
+}
+
+.wcu-feature-item:hover {
+  background: var(--color-gray-50);
+}
+
+/* Number — decorative, fades on hover */
+.wcu-feat-num {
+  font-family: var(--font-heading);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  color: var(--color-gray-300);
+  padding-top: 0.75rem;
+  text-align: right;
+  user-select: none;
+}
+
+.wcu-feature-item:hover .wcu-feat-num {
+  color: var(--color-primary-400);
+}
+
+/* Icon */
+.wcu-feat-icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  background: var(--color-primary-50);
+  border: 1px solid var(--color-primary-100);
+  color: var(--color-primary-700);
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+/* Content */
+.wcu-feat-content {
+  padding-top: 0.25rem;
+}
+
+.wcu-feat-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-900);
+  margin-bottom: 0.5rem;
+  line-height: 1.35;
+}
+
+.wcu-feat-desc {
+  font-size: var(--text-sm);
+  line-height: 1.65;
+  color: var(--color-gray-600);
+  margin: 0;
+  max-width: none;
+}
+
+/* ============================================
+   RIGHT — STICKY PANEL
+   Blue panel that sticks while scrolling
+   ============================================ */
+
+.wcu-sidebar {
+  position: sticky;
+  top: 100px;
+  /* Agar header fixed hai toh uske neeche stick hoga */
+}
+
+.wcu-panel {
+  background: linear-gradient(
+    160deg,
+    var(--color-primary-800) 0%,
+    var(--color-primary-700) 100%
+  );
+  border: 1px solid var(--color-primary-600);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  box-shadow: 0 8px 24px rgba(26, 86, 219, 0.15);
+}
+
+/* Lead text */
+.wcu-panel-lead {
+  font-size: var(--text-sm);
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 1.5rem;
+  max-width: none;
+}
+
+/* Highlights */
+.wcu-panel-highlights {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.wcu-hl-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+}
+
+.wcu-hl-check {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #86efac;
+  /* Light green checkmark on dark */
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.wcu-hl-title {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: white;
+  margin-bottom: 0.25rem;
+  line-height: 1.3;
+}
+
+.wcu-hl-desc {
+  font-size: var(--text-xs);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.65);
+  margin: 0;
+  max-width: none;
+}
+
+/* Divider */
+.wcu-panel-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 1.5rem 0;
+}
+
+/* Mini Stats — 2 column grid kyunki 3rd stat removed */
+.wcu-panel-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.wcu-stat-item {
+  text-align: center;
+  padding: 0.875rem 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-md);
+}
+
+.wcu-stat-val {
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--color-accent-400);
+  line-height: 1;
+  margin-bottom: 0.375rem;
+}
+
+.wcu-stat-lbl {
+  font-size: 0.6875rem;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.02em;
+}
+
+/* CTA Button */
+.wcu-panel-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  background: var(--color-accent-500);
+  color: white;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--color-accent-500);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.wcu-panel-cta:hover {
+  background: var(--color-accent-600);
+  border-color: var(--color-accent-600);
+  color: white;
+}
+
+.wcu-panel-cta svg {
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.wcu-panel-cta:hover svg {
+  transform: translateX(3px);
+}
+
+/* Location note */
+.wcu-panel-note {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: var(--text-xs);
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 0;
+  max-width: none;
+}
+
+/* ============================================
+   RESPONSIVE — TABLET (max-width: 1024px)
+   ============================================ */
+
+@media (max-width: 1024px) {
+  /* Grid: narrower sidebar */
+  .wcu-grid {
+    grid-template-columns: 1fr 320px;
+    gap: 2.5rem;
+  }
+
+  .wcu-panel {
+    padding: 1.75rem;
+  }
+}
+
+/* ============================================
+   RESPONSIVE — MOBILE (max-width: 768px)
+   ============================================ */
+
+@media (max-width: 768px) {
+  .wcu-section {
+    padding: 3.5rem 0 3.5rem;
+  }
+
+  .wcu-container {
+    padding: 0 1rem;
+  }
+
+  .wcu-header {
+    margin-bottom: 2.5rem;
+  }
+
+  /* Grid: single column, sidebar first */
+  .wcu-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .wcu-sidebar {
+    position: static;
+    order: -1;
+    /* Sidebar shows first on mobile */
+  }
+
+  .wcu-panel {
+    padding: 1.5rem;
+  }
+
+  /* Feature items — compact on mobile */
+  .wcu-feature-item {
+    grid-template-columns: 28px 44px 1fr;
+    gap: 1rem;
+    padding: 1.25rem 1rem;
+  }
+
+  .wcu-feat-num {
+    font-size: 0.6875rem;
+  }
+
+  .wcu-feat-icon {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* ============================================
+   RESPONSIVE — SMALL MOBILE (max-width: 640px)
+   ============================================ */
+
+@media (max-width: 640px) {
+  .wcu-title {
+    font-size: 1.75rem;
+  }
+
+  /* Hide number on very small screens */
+  .wcu-feat-num {
+    display: none;
+  }
+
+  .wcu-feature-item {
+    grid-template-columns: 44px 1fr;
+    gap: 1rem;
+  }
+}
+
+/* ============================================
+   RESPONSIVE — EXTRA SMALL (max-width: 480px)
+   ============================================ */
+
+@media (max-width: 480px) {
+  .wcu-feat-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .wcu-feat-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .wcu-feature-item,
+  .wcu-panel-cta,
+  .wcu-panel-cta svg {
+    transition: none;
+  }
+}
