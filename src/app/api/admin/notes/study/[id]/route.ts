@@ -44,6 +44,7 @@ export async function GET(
                 courseSlug:  note.courseSlug,
                 isPublished: note.isPublished,
                 updatedAt:   note.updatedAt,
+                contentType: (note.contentType || "markdown") as "markdown" | "html",  // ← ADD
             },
             content: note.content || "",
         });

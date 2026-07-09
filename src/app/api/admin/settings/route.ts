@@ -15,7 +15,7 @@ const ALLOWED_FIELDS = [
     "website", "googleMapUrl", "whatsapp",
     "facebook", "instagram", "youtube",
     "logoUrl", "faviconUrl",
-    "notifyOnEnquiry", "notifyOnContact", "notifyOnEnrollment",
+    "notifyOnEnquiry", "notifyOnContact", "notifyOnEnrollment", "globalNotesCSS",   // ← NEW
 ] as const;
 
 /* -------------------- GET -------------------- */

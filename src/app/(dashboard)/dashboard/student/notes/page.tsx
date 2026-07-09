@@ -5,10 +5,11 @@ import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
-import "highlight.js/styles/github-dark.css";
 import { BookOpen, ChevronRight, Search, CheckCheck, Printer, X } from "lucide-react";
+import NoteIframeRenderer from "@/components/lms/NoteIframeRanderer";
+import NoteRenderer from "@/components/lms/NoteRenderer";
 
-interface NoteItem   { _id: string; title: string; topicSlug: string; order: number; updatedAt: string; }
+interface NoteItem { _id: string; title: string; topicSlug: string; order: number; updatedAt: string; }
 interface ModuleItem { moduleName: string; moduleSlug: string; notes: NoteItem[]; }
 interface CourseData { courseName: string; courseSlug: string; modules: ModuleItem[]; }
 type ProgressMap = Record<string, boolean>;
@@ -23,22 +24,22 @@ function printNote(title: string, moduleName: string, content: string) {
     function mdToHtml(md: string): string {
         const lines = md.split("\n");
         let html = "", inCode = false, codeLang = "", codeLines: string[] = [], inList = false, listType = "";
-        const escHtml = (s: string) => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-        const inlineFmt = (s: string) => s.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/\*(.+?)\*/g,"<em>$1</em>").replace(/`(.+?)`/g,"<code>$1</code>").replace(/\[(.+?)\]\((.+?)\)/g,'<a href="$2">$1</a>');
-        const closeList = () => { if (inList) { html += listType==="ul"?"</ul>":"</ol>"; inList=false; listType=""; } };
+        const escHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const inlineFmt = (s: string) => s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\*(.+?)\*/g, "<em>$1</em>").replace(/`(.+?)`/g, "<code>$1</code>").replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>');
+        const closeList = () => { if (inList) { html += listType === "ul" ? "</ul>" : "</ol>"; inList = false; listType = ""; } };
         for (const line of lines) {
-            if (line.startsWith("```")) { if (!inCode) { closeList(); inCode=true; codeLang=line.slice(3).trim(); codeLines=[]; } else { html+=`<pre><code class="language-${codeLang}">${escHtml(codeLines.join("\n"))}</code></pre>`; inCode=false; codeLines=[]; codeLang=""; } continue; }
+            if (line.startsWith("```")) { if (!inCode) { closeList(); inCode = true; codeLang = line.slice(3).trim(); codeLines = []; } else { html += `<pre><code class="language-${codeLang}">${escHtml(codeLines.join("\n"))}</code></pre>`; inCode = false; codeLines = []; codeLang = ""; } continue; }
             if (inCode) { codeLines.push(line); continue; }
-            if (line.startsWith("#### ")) { closeList(); html+=`<h4>${inlineFmt(line.slice(5))}</h4>`; continue; }
-            if (line.startsWith("### "))  { closeList(); html+=`<h3>${inlineFmt(line.slice(4))}</h3>`; continue; }
-            if (line.startsWith("## "))   { closeList(); html+=`<h2>${inlineFmt(line.slice(3))}</h2>`; continue; }
-            if (line.startsWith("# "))    { closeList(); html+=`<h1>${inlineFmt(line.slice(2))}</h1>`; continue; }
-            if (line.startsWith("> "))    { closeList(); html+=`<blockquote>${inlineFmt(line.slice(2))}</blockquote>`; continue; }
-            if (/^[-*_]{3,}$/.test(line.trim())) { closeList(); html+="<hr/>"; continue; }
-            if (line.match(/^[-*+] /))   { if (!inList||listType!=="ul") { if(inList)closeList(); html+="<ul>"; inList=true; listType="ul"; } html+=`<li>${inlineFmt(line.slice(2))}</li>`; continue; }
-            if (/^\d+\. /.test(line))    { if (!inList||listType!=="ol") { if(inList)closeList(); html+="<ol>"; inList=true; listType="ol"; } html+=`<li>${inlineFmt(line.replace(/^\d+\.\s*/,""))}</li>`; continue; }
-            if (line.trim()==="")        { closeList(); html+="<br/>"; continue; }
-            closeList(); html+=`<p>${inlineFmt(line)}</p>`;
+            if (line.startsWith("#### ")) { closeList(); html += `<h4>${inlineFmt(line.slice(5))}</h4>`; continue; }
+            if (line.startsWith("### ")) { closeList(); html += `<h3>${inlineFmt(line.slice(4))}</h3>`; continue; }
+            if (line.startsWith("## ")) { closeList(); html += `<h2>${inlineFmt(line.slice(3))}</h2>`; continue; }
+            if (line.startsWith("# ")) { closeList(); html += `<h1>${inlineFmt(line.slice(2))}</h1>`; continue; }
+            if (line.startsWith("> ")) { closeList(); html += `<blockquote>${inlineFmt(line.slice(2))}</blockquote>`; continue; }
+            if (/^[-*_]{3,}$/.test(line.trim())) { closeList(); html += "<hr/>"; continue; }
+            if (line.match(/^[-*+] /)) { if (!inList || listType !== "ul") { if (inList) closeList(); html += "<ul>"; inList = true; listType = "ul"; } html += `<li>${inlineFmt(line.slice(2))}</li>`; continue; }
+            if (/^\d+\. /.test(line)) { if (!inList || listType !== "ol") { if (inList) closeList(); html += "<ol>"; inList = true; listType = "ol"; } html += `<li>${inlineFmt(line.replace(/^\d+\.\s*/, ""))}</li>`; continue; }
+            if (line.trim() === "") { closeList(); html += "<br/>"; continue; }
+            closeList(); html += `<p>${inlineFmt(line)}</p>`;
         }
         closeList(); return html;
     }
@@ -64,29 +65,31 @@ function printNote(title: string, moduleName: string, content: string) {
 </style></head><body>
   <div class="header"><div class="academy">Shivshakti Computer Academy</div><div class="module-label">${moduleName}</div><h1>${title}</h1></div>
   <div class="content">${mdToHtml(content)}</div>
-  <div class="footer"><span>Shivshakti Computer Academy</span><span>Printed: ${new Date().toLocaleDateString("en-IN",{day:"numeric",month:"long",year:"numeric"})}</span></div>
+  <div class="footer"><span>Shivshakti Computer Academy</span><span>Printed: ${new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</span></div>
   <script>document.fonts.ready.then(()=>setTimeout(()=>window.print(),600));</script>
 </body></html>`);
     win.document.close();
 }
 
 export default function StudentNotesPage() {
-    const [data,           setData]           = useState<CourseData[]>([]);
-    const [loading,        setLoading]        = useState(true);
-    const [selectedNote,   setSelectedNote]   = useState<NoteItem | null>(null);
-    const [noteContent,    setNoteContent]    = useState("");
-    const [noteTitle,      setNoteTitle]      = useState("");
-    const [noteMeta,       setNoteMeta]       = useState<{ moduleName:string; updatedAt:string } | null>(null);
+    const [data, setData] = useState<CourseData[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [selectedNote, setSelectedNote] = useState<NoteItem | null>(null);
+    const [noteContent, setNoteContent] = useState("");
+    const [noteTitle, setNoteTitle] = useState("");
+    const [noteMeta, setNoteMeta] = useState<{ moduleName: string; updatedAt: string } | null>(null);
     const [contentLoading, setContentLoading] = useState(false);
-    const [openModules,    setOpenModules]    = useState<Set<string>>(new Set());
-    const [progress,       setProgress]       = useState<ProgressMap>({});
-    const [searchQuery,    setSearchQuery]    = useState("");
-    const [sidebarOpen,    setSidebarOpen]    = useState(false);   // mobile sidebar state
+    const [openModules, setOpenModules] = useState<Set<string>>(new Set());
+    const [progress, setProgress] = useState<ProgressMap>({});
+    const [searchQuery, setSearchQuery] = useState("");
+    const [sidebarOpen, setSidebarOpen] = useState(false);   // mobile sidebar state
+    const [noteContentType, setNoteContentType] = useState<"markdown" | "html">("markdown");
+    const [globalCss, setGlobalCss] = useState("");
     const articleRef = useRef<HTMLElement>(null);
 
-    const totalNotes   = data.reduce((s, c) => s + c.modules.reduce((ms, m) => ms + m.notes.length, 0), 0);
-    const readCount    = Object.values(progress).filter(Boolean).length;
-    const progressPct  = totalNotes > 0 ? Math.round((readCount / totalNotes) * 100) : 0;
+    const totalNotes = data.reduce((s, c) => s + c.modules.reduce((ms, m) => ms + m.notes.length, 0), 0);
+    const readCount = Object.values(progress).filter(Boolean).length;
+    const progressPct = totalNotes > 0 ? Math.round((readCount / totalNotes) * 100) : 0;
 
     useEffect(() => { setProgress(loadProgress()); }, []);
 
@@ -103,6 +106,13 @@ export default function StudentNotesPage() {
             })
             .catch(console.error)
             .finally(() => setLoading(false));
+    }, []);
+
+    useEffect(() => {
+        fetch("/api/public/notes-css")
+            .then(r => r.json())
+            .then(d => setGlobalCss(d.css || ""))
+            .catch(console.error);
     }, []);
 
     const markRead = useCallback((noteId: string) => {
@@ -123,18 +133,19 @@ export default function StudentNotesPage() {
         if (window.innerWidth < 769) setSidebarOpen(false);
         try {
             const res = await fetchWithAuth(`/api/student/notes/${note._id}`);
-            const d   = await res.json();
+            const d = await res.json();
             if (res.ok) {
                 setNoteContent(d.content || "");
+                setNoteContentType(d.note.contentType || "markdown");  // ← setNoteContent ke baad
                 setNoteTitle(d.note.title);
                 setNoteMeta({ moduleName: d.note.moduleName, updatedAt: d.note.updatedAt });
                 markRead(note._id);
-                setTimeout(() => articleRef.current?.scrollTo({ top:0, behavior:"smooth" }), 50);
+                setTimeout(() => articleRef.current?.scrollTo({ top: 0, behavior: "smooth" }), 50);
             } else {
                 setNoteContent(`> ❌ ${d.error || "Note load nahi hua"}`);
             }
         } catch { setNoteContent("> ❌ Network error"); }
-        finally  { setContentLoading(false); }
+        finally { setContentLoading(false); }
     }
 
     function toggleModule(key: string) {
@@ -430,14 +441,14 @@ export default function StudentNotesPage() {
                     <div className="snp-sb-head">
                         <div className="snp-sb-top">
                             <div className="snp-sb-title">
-                                <div className="snp-sb-title-icon"><BookOpen size={13}/></div>
+                                <div className="snp-sb-title-icon"><BookOpen size={13} /></div>
                                 Study Notes
                             </div>
-                            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                                 <div className="snp-sb-meta">{totalNotes} notes</div>
                                 {/* Close btn — mobile */}
                                 <button className="snp-sb-close-btn" onClick={() => setSidebarOpen(false)} aria-label="Close sidebar">
-                                    <X size={13}/>
+                                    <X size={13} />
                                 </button>
                             </div>
                         </div>
@@ -452,28 +463,28 @@ export default function StudentNotesPage() {
                             </div>
                             <div className="snp-progress-track">
                                 <div className="snp-progress-fill" style={{
-                                    width:`${progressPct}%`,
+                                    width: `${progressPct}%`,
                                     background: progressPct === 100
                                         ? "linear-gradient(90deg,var(--sp-success),#4ade80)"
                                         : "linear-gradient(90deg,var(--sp-accent),var(--sp-accent2))"
-                                }}/>
+                                }} />
                             </div>
                         </div>
 
                         {/* Search */}
                         <div className="snp-search-wrap">
-                            <Search size={12} className="snp-search-icon"/>
+                            <Search size={12} className="snp-search-icon" />
                             <input className="snp-search" type="text" placeholder="Search notes..."
-                                value={searchQuery} onChange={e => setSearchQuery(e.target.value)}/>
+                                value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
                         </div>
                     </div>
 
                     {/* Scroll area */}
                     <div className="snp-sb-scroll">
                         {loading ? (
-                            <div style={{ padding:"20px 14px", display:"flex", flexDirection:"column", gap:8 }}>
-                                {[80,65,90,55].map((w, i) => (
-                                    <div key={i} style={{ height:10, width:`${w}%`, background:"var(--sp-hover)", borderRadius:6, animation:"snpSkel 1.5s ease-in-out infinite" }}/>
+                            <div style={{ padding: "20px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
+                                {[80, 65, 90, 55].map((w, i) => (
+                                    <div key={i} style={{ height: 10, width: `${w}%`, background: "var(--sp-hover)", borderRadius: 6, animation: "snpSkel 1.5s ease-in-out infinite" }} />
                                 ))}
                             </div>
                         ) : filteredData.length === 0 ? (
@@ -484,10 +495,10 @@ export default function StudentNotesPage() {
                         ) : filteredData.map(course => (
                             <div key={course.courseSlug}>
                                 <div className="snp-course-label">
-                                    <span className="snp-course-badge"><BookOpen size={8}/> {course.courseName}</span>
+                                    <span className="snp-course-badge"><BookOpen size={8} /> {course.courseName}</span>
                                 </div>
                                 {course.modules.map(mod => {
-                                    const key    = `${course.courseSlug}-${mod.moduleSlug}`;
+                                    const key = `${course.courseSlug}-${mod.moduleSlug}`;
                                     const isOpen = openModules.has(key);
                                     const modRead = mod.notes.filter(n => progress[n._id]).length;
                                     const modDone = modRead === mod.notes.length && mod.notes.length > 0;
@@ -495,14 +506,14 @@ export default function StudentNotesPage() {
                                         <div key={key}>
                                             <button className="snp-module-btn" onClick={() => toggleModule(key)}>
                                                 <div className="snp-module-left">
-                                                    <ChevronRight size={12} className={`snp-module-chevron ${isOpen ? "open" : ""}`}/>
+                                                    <ChevronRight size={12} className={`snp-module-chevron ${isOpen ? "open" : ""}`} />
                                                     {mod.moduleName}
                                                 </div>
                                                 <span className={`snp-module-progress ${modDone ? "done" : ""}`}>{modRead}/{mod.notes.length}</span>
                                             </button>
                                             {isOpen && mod.notes.map(note => {
                                                 const isActive = selectedNote?._id === note._id;
-                                                const isRead   = !!progress[note._id];
+                                                const isRead = !!progress[note._id];
                                                 const dotClass = isActive ? "active" : isRead ? "read" : "unread";
                                                 return (
                                                     <button key={note._id} className={`snp-note-item ${isActive ? "active" : ""}`} onClick={() => loadNote(note)}>
@@ -527,13 +538,13 @@ export default function StudentNotesPage() {
                         <div className="snp-topbar-left">
                             {/* Sidebar toggle button */}
                             <button className="snp-menu-btn" onClick={() => setSidebarOpen(o => !o)} aria-label="Toggle notes sidebar">
-                                <BookOpen size={14}/>
+                                <BookOpen size={14} />
                             </button>
                             {/* Breadcrumb — only shown when note selected */}
                             {selectedNote && noteMeta && (
                                 <div className="snp-breadcrumb">
-                                    <span style={{ whiteSpace:"nowrap", flexShrink:0 }}>{noteMeta.moduleName}</span>
-                                    <ChevronRight size={11} style={{ flexShrink:0 }}/>
+                                    <span style={{ whiteSpace: "nowrap", flexShrink: 0 }}>{noteMeta.moduleName}</span>
+                                    <ChevronRight size={11} style={{ flexShrink: 0 }} />
                                     <span className="snp-breadcrumb-cur">{noteTitle}</span>
                                 </div>
                             )}
@@ -552,12 +563,12 @@ export default function StudentNotesPage() {
                                             saveProgress(next); return next;
                                         });
                                     }}>
-                                    <CheckCheck size={12}/>
+                                    <CheckCheck size={12} />
                                     <span className="snp-btn-label">{selectedNote && progress[selectedNote._id] ? "Read ✓" : "Mark Read"}</span>
                                 </button>
                                 <button className="snp-btn"
                                     onClick={() => noteMeta && printNote(noteTitle, noteMeta.moduleName, noteContent)}>
-                                    <Printer size={12}/>
+                                    <Printer size={12} />
                                     <span className="snp-btn-label">Print</span>
                                 </button>
                             </div>
@@ -567,7 +578,7 @@ export default function StudentNotesPage() {
                     {/* Content */}
                     {!selectedNote ? (
                         <div className="snp-empty">
-                            <div className="snp-empty-icon"><BookOpen size={28}/></div>
+                            <div className="snp-empty-icon"><BookOpen size={28} /></div>
                             <div className="snp-empty-title">Select a note</div>
                             <div className="snp-empty-sub">Choose any topic from the sidebar to start reading</div>
                             {totalNotes > 0 && (
@@ -578,7 +589,7 @@ export default function StudentNotesPage() {
                                 </div>
                             )}
                             {/* On mobile, hint to open sidebar */}
-                            <button className="snp-empty-hint snp-no-print" style={{ marginTop:8, cursor:"pointer", border:"none" }}
+                            <button className="snp-empty-hint snp-no-print" style={{ marginTop: 8, cursor: "pointer", border: "none" }}
                                 onClick={() => setSidebarOpen(true)}>
                                 📚 Browse notes
                             </button>
@@ -586,60 +597,42 @@ export default function StudentNotesPage() {
 
                     ) : contentLoading ? (
                         <div className="snp-loader">
-                            <div className="snp-spinner"/>
+                            <div className="snp-spinner" />
                             <span className="snp-loader-text">Loading note…</span>
                         </div>
 
                     ) : (
-                        <div className="snp-fade-in" style={{ display:"flex", flexDirection:"column", flex:1 }}>
+                        <div className="snp-fade-in" style={{ display: "flex", flexDirection: "column", flex: 1 }}>
                             <article className="snp-article">
                                 <div className="snp-article-header">
-                                    <div className="snp-article-module"><BookOpen size={9}/> {noteMeta?.moduleName}</div>
+                                    <div className="snp-article-module"><BookOpen size={9} /> {noteMeta?.moduleName}</div>
                                     <div className="snp-article-title">{noteTitle}</div>
                                     <div className="snp-article-meta">
                                         {noteMeta && (
-                                            <span>Updated {new Date(noteMeta.updatedAt).toLocaleDateString("en-IN",{day:"numeric",month:"long",year:"numeric"})}</span>
+                                            <span>Updated {new Date(noteMeta.updatedAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</span>
                                         )}
                                         {selectedNote && progress[selectedNote._id] && (
                                             <>
-                                                <div className="snp-article-meta-dot"/>
-                                                <span className="snp-article-read-badge"><CheckCheck size={9}/> Completed</span>
+                                                <div className="snp-article-meta-dot" />
+                                                <span className="snp-article-read-badge"><CheckCheck size={9} /> Completed</span>
                                             </>
                                         )}
                                     </div>
                                 </div>
 
-                                <div className="snp-note-content">
-                                    <ReactMarkdown
-                                        remarkPlugins={[remarkGfm]}
-                                        rehypePlugins={[rehypeHighlight]}
-                                        components={{
-                                            code({ className, children, ...props }: any) {
-                                                return <code className={className} {...props}>{children}</code>;
-                                            },
-                                            pre({ children }: any) {
-                                                return (
-                                                    <div style={{ position:"relative" }} className="snp-no-print">
-                                                        <pre>{children}</pre>
-                                                        <button
-                                                            onClick={() => {
-                                                                const text = (children as any)?.props?.children;
-                                                                if (typeof text === "string") navigator.clipboard.writeText(text);
-                                                            }}
-                                                            style={{ position:"absolute", top:10, right:10, padding:"3px 8px", borderRadius:6, background:"rgba(255,255,255,0.1)", color:"#94a3b8", border:"none", cursor:"pointer", fontSize:10, fontWeight:600, fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
-                                                            Copy
-                                                        </button>
-                                                    </div>
-                                                );
-                                            },
-                                            table({ children }: any) {
-                                                return <div style={{ overflowX:"auto", margin:"1rem 0" }}><table>{children}</table></div>;
-                                            },
-                                        }}
-                                    >
-                                        {noteContent}
-                                    </ReactMarkdown>
-                                </div>
+                                {noteContentType === "html" ? (
+                                    <NoteIframeRenderer
+                                        content={noteContent}
+                                        contentType="html"
+                                        globalCss={globalCss}
+                                    />
+                                ) : (
+                                    <NoteRenderer
+                                        content={noteContent}
+                                        contentType="markdown"
+                                        className="snp-note-content"
+                                    />
+                                )}
 
                                 {/* Footer */}
                                 <div className="snp-article-footer snp-no-print">
@@ -647,15 +640,15 @@ export default function StudentNotesPage() {
                                     <button
                                         className="snp-complete-btn"
                                         style={selectedNote && progress[selectedNote._id]
-                                            ? { background:"rgba(34,197,94,0.12)", color:"var(--sp-success)", borderColor:"rgba(34,197,94,0.25)" }
-                                            : { background:"var(--sp-active-bg)", color:"var(--sp-active-fg)", borderColor:"var(--sp-border2)" }
+                                            ? { background: "rgba(34,197,94,0.12)", color: "var(--sp-success)", borderColor: "rgba(34,197,94,0.25)" }
+                                            : { background: "var(--sp-active-bg)", color: "var(--sp-active-fg)", borderColor: "var(--sp-border2)" }
                                         }
                                         onClick={() => {
                                             if (!selectedNote) return;
                                             const next = { ...progress, [selectedNote._id]: true };
                                             saveProgress(next); setProgress(next);
                                         }}>
-                                        <CheckCheck size={13}/>
+                                        <CheckCheck size={13} />
                                         {selectedNote && progress[selectedNote._id] ? "Note Complete!" : "Mark Complete"}
                                     </button>
                                 </div>

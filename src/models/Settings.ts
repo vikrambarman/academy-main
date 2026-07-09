@@ -17,6 +17,7 @@ export interface ISettings extends Document {
     notifyOnEnquiry: boolean;
     notifyOnContact: boolean;
     notifyOnEnrollment: boolean;
+    globalNotesCSS: string;   // ← NEW: sabhi notes mein apply hone wala CSS
 }
 
 const settingsSchema = new Schema<ISettings>(
@@ -37,6 +38,7 @@ const settingsSchema = new Schema<ISettings>(
         notifyOnEnquiry:    { type: Boolean, default: true },
         notifyOnContact:    { type: Boolean, default: true },
         notifyOnEnrollment: { type: Boolean, default: true },
+        globalNotesCSS: { type: String, default: "" },   // ← NEW
     },
     { timestamps: true }
 );

@@ -4,11 +4,12 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
-import "highlight.js/styles/github-dark.css";
 import {
     BookOpen, ChevronRight, Search, Printer,
     X, FileText, Eye, EyeOff, RefreshCw
 } from "lucide-react";
+import NoteIframeRenderer from "@/components/lms/NoteIframeRanderer";
+import NoteRenderer from "@/components/lms/NoteRenderer";
 
 interface NoteItem {
     _id: string; title: string; topicSlug: string;
@@ -73,6 +74,8 @@ export default function TeacherNotesPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [showDraft, setShowDraft] = useState(true);
+    const [noteContentType, setNoteContentType] = useState<"markdown" | "html">("markdown");
+    const [globalCss, setGlobalCss] = useState("");
     const articleRef = useRef<HTMLElement>(null);
 
     // Courses load karo
@@ -82,6 +85,13 @@ export default function TeacherNotesPage() {
             .then(d => setCourses(d.courses || []))
             .catch(console.error)
             .finally(() => setLoadingCourses(false));
+    }, []);
+
+    useEffect(() => {
+        fetch("/api/public/notes-css")
+            .then(r => r.json())
+            .then(d => setGlobalCss(d.css || ""))
+            .catch(console.error);
     }, []);
 
     // Course select hone pe notes load karo
@@ -126,6 +136,7 @@ export default function TeacherNotesPage() {
             const d = await res.json();
             if (res.ok) {
                 setNoteContent(d.content || "");
+                setNoteContentType(d.note.contentType || "markdown");
                 setNoteTitle(d.note.title);
                 setNoteMeta({
                     moduleName: d.note.moduleName,
@@ -421,42 +432,19 @@ export default function TeacherNotesPage() {
                                     </div>
 
                                     {/* Markdown content */}
-                                    <div className="tn-note-content">
-                                        <ReactMarkdown
-                                            remarkPlugins={[remarkGfm]}
-                                            rehypePlugins={[rehypeHighlight]}
-                                            components={{
-                                                code({ className, children, ...props }: any) {
-                                                    return <code className={className} {...props}>{children}</code>;
-                                                },
-                                                pre({ children }: any) {
-                                                    return (
-                                                        <div style={{ position: "relative" }} className="tn-no-print">
-                                                            <pre>{children}</pre>
-                                                            <button
-                                                                onClick={() => {
-                                                                    const text = (children as any)?.props?.children;
-                                                                    if (typeof text === "string") navigator.clipboard.writeText(text);
-                                                                }}
-                                                                style={{ position: "absolute", top: 10, right: 10, padding: "3px 8px", borderRadius: 6, background: "rgba(255,255,255,0.1)", color: "#94a3b8", border: "none", cursor: "pointer", fontSize: 10, fontWeight: 600, fontFamily: "'Plus Jakarta Sans',sans-serif" }}
-                                                            >
-                                                                Copy
-                                                            </button>
-                                                        </div>
-                                                    );
-                                                },
-                                                table({ children }: any) {
-                                                    return (
-                                                        <div style={{ overflowX: "auto", margin: "1rem 0" }}>
-                                                            <table>{children}</table>
-                                                        </div>
-                                                    );
-                                                },
-                                            }}
-                                        >
-                                            {noteContent}
-                                        </ReactMarkdown>
-                                    </div>
+                                    {noteContentType === "html" ? (
+                                        <NoteIframeRenderer
+                                            content={noteContent}
+                                            contentType="html"
+                                            globalCss={globalCss}
+                                        />
+                                    ) : (
+                                        <NoteRenderer
+                                            content={noteContent}
+                                            contentType="markdown"
+                                            className="tn-note-content"
+                                        />
+                                    )}
 
                                     {/* Footer */}
                                     <div className="tn-article-footer tn-no-print">
