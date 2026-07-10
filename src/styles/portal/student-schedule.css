@@ -1,0 +1,573 @@
+/* ============================================
+   STUDENT SCHEDULE / TIMETABLE PAGE
+   ============================================ */
+
+.st-root {
+  font-family:    var(--portal-font);
+  color:          var(--sp-text);
+  display:        flex;
+  flex-direction: column;
+  gap:            var(--portal-space-5);
+  max-width:      860px;
+  margin:         0 auto;
+  padding-bottom: var(--portal-space-10);
+}
+
+/* ── Page header ── */
+.st-page-header {
+  margin-bottom: var(--portal-space-1);
+}
+
+.st-title {
+  font-size:      clamp(1.2rem, 2.5vw, 1.5rem);
+  font-weight:    700;
+  color:          var(--sp-text);
+  letter-spacing: -0.02em;
+  line-height:    1.2;
+  margin:         0 0 var(--portal-space-1);
+}
+
+.st-sub {
+  font-size:   var(--portal-text-sm);
+  color:       var(--sp-muted);
+  margin:      0;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+/* ============================================
+   COURSE TABS (multi-course switcher)
+   ============================================ */
+
+.st-course-tabs {
+  display:   flex;
+  gap:       var(--portal-space-2);
+  flex-wrap: wrap;
+}
+
+.st-course-tab {
+  font-family:   var(--portal-font);
+  font-size:     var(--portal-text-sm);
+  font-weight:   600;
+  padding:       var(--portal-space-2) var(--portal-space-4);
+  border-radius: var(--portal-radius-full);
+  border:        1px solid var(--sp-border);
+  background:    var(--sp-surface);
+  color:         var(--sp-muted);
+  cursor:        pointer;
+  transition:
+    background   var(--portal-transition-fast),
+    border-color var(--portal-transition-fast),
+    color        var(--portal-transition-fast);
+  white-space:   nowrap;
+}
+
+.st-course-tab:hover {
+  background:   var(--sp-hover);
+  border-color: var(--sp-border2);
+  color:        var(--sp-text);
+}
+
+.st-course-tab--active {
+  background:   var(--sp-active-bg);
+  color:        var(--sp-active-fg);
+  border-color: var(--sp-border2);
+}
+
+/* ============================================
+   INFO BAR (course name + validity dates)
+   ============================================ */
+
+.st-info-bar {
+  display:       flex;
+  align-items:   center;
+  gap:           var(--portal-space-4);
+  flex-wrap:     wrap;
+  background:    var(--sp-hover);
+  border:        1px solid var(--sp-border);
+  border-radius: var(--portal-radius-lg);
+  padding:       var(--portal-space-3) var(--portal-space-4);
+}
+
+.st-info-course {
+  display:     flex;
+  align-items: center;
+  gap:         var(--portal-space-2);
+  font-size:   var(--portal-text-sm);
+  font-weight: 700;
+  color:       var(--sp-text);
+  flex:        1;
+  min-width:   0;
+}
+
+.st-info-dates {
+  display:     flex;
+  align-items: center;
+  gap:         var(--portal-space-2);
+  font-size:   11px;
+  color:       var(--sp-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   DAY SELECTOR ROW
+   ============================================ */
+
+.st-day-row {
+  display:    flex;
+  gap:        var(--portal-space-2);
+  overflow-x: auto;
+  padding-bottom: 4px;
+
+  /* Hide scrollbar */
+  scrollbar-width: none;
+}
+
+.st-day-row::-webkit-scrollbar { display: none; }
+
+.st-day-btn {
+  flex-shrink:     0;
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  gap:             var(--portal-space-1);
+  min-width:       54px;
+  padding:         var(--portal-space-3) var(--portal-space-2);
+  border-radius:   var(--portal-radius-lg);
+  border:          1px solid var(--sp-border);
+  background:      var(--sp-surface);
+  cursor:          pointer;
+  position:        relative;
+  transition:
+    background   var(--portal-transition-fast),
+    border-color var(--portal-transition-fast),
+    box-shadow   var(--portal-transition-fast);
+  font-family:     var(--portal-font);
+}
+
+.st-day-btn:hover:not(.st-day-btn--active) {
+  border-color: var(--sp-border2);
+  background:   var(--sp-hover);
+}
+
+.st-day-btn--active {
+  box-shadow: var(--portal-shadow-sm);
+}
+
+.st-day-btn--empty {
+  opacity: 0.4;
+}
+
+/* Day short label */
+.st-day-short {
+  font-size:   11px;
+  font-weight: 700;
+  color:       inherit;
+  line-height: 1;
+}
+
+/* Today indicator dot */
+.st-today-dot {
+  position:      absolute;
+  top:           6px;
+  right:         8px;
+  width:         5px;
+  height:        5px;
+  border-radius: var(--portal-radius-full);
+}
+
+/* Slot count badge */
+.st-day-count {
+  font-size:     9px;
+  font-weight:   800;
+  padding:       2px var(--portal-space-2);
+  border-radius: var(--portal-radius-full);
+  line-height:   1.5;
+}
+
+/* ============================================
+   ACTIVE DAY LABEL
+   ============================================ */
+
+.st-day-label {
+  font-size:   clamp(1rem, 2vw, 1.15rem);
+  font-weight: 700;
+  display:     flex;
+  align-items: center;
+  gap:         var(--portal-space-3);
+  letter-spacing: -0.01em;
+}
+
+/* "Today" pill tag */
+.st-today-tag {
+  font-family:    var(--portal-font);
+  font-size:      10px;
+  font-weight:    700;
+  padding:        2px var(--portal-space-3);
+  border-radius:  var(--portal-radius-full);
+  background:     var(--sp-active-bg);
+  color:          var(--sp-active-fg);
+  border:         1px solid var(--sp-border2);
+  letter-spacing: 0.03em;
+}
+
+/* ============================================
+   SLOT CARDS
+   ============================================ */
+
+.st-slots {
+  display:        flex;
+  flex-direction: column;
+  gap:            var(--portal-space-3);
+}
+
+.st-slot-card {
+  background:    var(--sp-surface);
+  border:        1px solid var(--sp-border);
+  border-left:   3px solid;
+  border-radius: var(--portal-radius-lg);
+  padding:       var(--portal-space-4) var(--portal-space-5);
+  display:       flex;
+  align-items:   flex-start;
+  gap:           var(--portal-space-4);
+  transition:    box-shadow var(--portal-transition-base);
+}
+
+.st-slot-card:hover {
+  box-shadow: var(--portal-shadow-md);
+}
+
+/* ── Time column ── */
+.st-slot-time {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  gap:            var(--portal-space-1);
+  flex-shrink:    0;
+  min-width:      64px;
+}
+
+.st-time-start {
+  font-size:            12px;
+  font-weight:          700;
+  font-variant-numeric: tabular-nums;
+  line-height:          1;
+}
+
+.st-time-line {
+  width:         1px;
+  height:        20px;
+  border-radius: 1px;
+}
+
+.st-time-end {
+  font-size:            11px;
+  color:                var(--sp-muted);
+  font-weight:          500;
+  font-variant-numeric: tabular-nums;
+  line-height:          1;
+}
+
+/* ── Slot body ── */
+.st-slot-body {
+  flex:      1;
+  min-width: 0;
+}
+
+.st-slot-subject {
+  font-size:     var(--portal-text-base);
+  font-weight:   700;
+  color:         var(--sp-text);
+  margin-bottom: var(--portal-space-2);
+  letter-spacing: -0.01em;
+}
+
+/* Meta chips row */
+.st-slot-meta {
+  display:   flex;
+  flex-wrap: wrap;
+  gap:       var(--portal-space-2);
+}
+
+.st-meta-chip {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           4px;
+  font-size:     10px;
+  font-weight:   600;
+  padding:       3px var(--portal-space-3);
+  border-radius: var(--portal-radius-full);
+  background:    var(--sp-hover);
+  border:        1px solid var(--sp-border);
+  color:         var(--sp-subtext);
+  white-space:   nowrap;
+}
+
+/* ── Slot number badge ── */
+.st-slot-num {
+  width:           28px;
+  height:          28px;
+  border-radius:   var(--portal-radius-md);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  font-size:       11px;
+  font-weight:     800;
+  flex-shrink:     0;
+  line-height:     1;
+}
+
+/* ============================================
+   EMPTY / NO SLOTS STATE
+   ============================================ */
+
+.st-no-slots {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             var(--portal-space-3);
+  padding:         var(--portal-space-10);
+  font-size:       var(--portal-text-sm);
+  color:           var(--sp-muted);
+  background:      var(--sp-hover);
+  border:          1px dashed var(--sp-border);
+  border-radius:   var(--portal-radius-lg);
+}
+
+/* ============================================
+   WEEKLY OVERVIEW GRID
+   ============================================ */
+
+.st-overview {
+  background:    var(--sp-surface);
+  border:        1px solid var(--sp-border);
+  border-radius: var(--portal-radius-xl);
+  overflow:      hidden;
+}
+
+.st-overview-title {
+  font-size:      10px;
+  font-weight:    700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color:          var(--sp-muted);
+  padding:        var(--portal-space-3) var(--portal-space-4);
+  border-bottom:  1px solid var(--sp-border);
+  background:     var(--sp-hover);
+}
+
+.st-overview-grid {
+  display:               grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap:                   0;
+}
+
+/* Overview column (per day) */
+.st-ov-col {
+  padding:        var(--portal-space-3) var(--portal-space-2);
+  border-right:   1px solid var(--sp-border);
+  display:        flex;
+  flex-direction: column;
+  gap:            var(--portal-space-1);
+  cursor:         pointer;
+  transition:     background var(--portal-transition-fast);
+  min-width:      0;
+}
+
+.st-ov-col:last-child {
+  border-right: none;
+}
+
+.st-ov-col:hover {
+  background: var(--sp-hover);
+}
+
+.st-ov-col--active {
+  background: var(--sp-active-bg);
+}
+
+/* Day header in overview */
+.st-ov-day {
+  font-size:      10px;
+  font-weight:    800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color:          var(--sp-muted);
+  margin-bottom:  var(--portal-space-1);
+  display:        flex;
+  align-items:    center;
+  gap:            4px;
+  white-space:    nowrap;
+}
+
+/* Today dot in overview */
+.st-ov-today-dot {
+  width:         5px;
+  height:        5px;
+  border-radius: var(--portal-radius-full);
+  flex-shrink:   0;
+}
+
+/* Empty day in overview */
+.st-ov-empty {
+  font-size:  10px;
+  color:      var(--sp-border2);
+  text-align: center;
+  padding:    var(--portal-space-1) 0;
+}
+
+/* Slot mini card in overview */
+.st-ov-slot {
+  border-radius: var(--portal-radius-sm);
+  border:        1px solid;
+  padding:       4px var(--portal-space-2);
+  overflow:      hidden;
+}
+
+.st-ov-slot-name {
+  font-size:     9px;
+  font-weight:   700;
+  white-space:   nowrap;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+  line-height:   1.3;
+}
+
+.st-ov-slot-time {
+  font-size:            8px;
+  opacity:              0.7;
+  margin-top:           2px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================
+   LOADER
+   ============================================ */
+
+.st-loader {
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  min-height:      320px;
+  gap:             var(--portal-space-3);
+}
+
+.st-spinner {
+  width:            28px;
+  height:           28px;
+  border:           3px solid var(--sp-border);
+  border-top-color: var(--sp-accent);
+  border-radius:    var(--portal-radius-full);
+  animation:        stSpin 0.7s linear infinite;
+}
+
+@keyframes stSpin {
+  to { transform: rotate(360deg); }
+}
+
+.st-loader__text {
+  font-size: var(--portal-text-sm);
+  color:     var(--sp-muted);
+}
+
+/* ============================================
+   EMPTY STATE (no timetable)
+   ============================================ */
+
+.st-empty {
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  min-height:      280px;
+  text-align:      center;
+  padding:         var(--portal-space-10);
+  gap:             var(--portal-space-3);
+}
+
+.st-empty__icon {
+  opacity:       0.15;
+  color:         var(--sp-text);
+  margin-bottom: var(--portal-space-1);
+}
+
+.st-empty__title {
+  font-size:     clamp(1rem, 2vw, 1.2rem);
+  font-weight:   700;
+  color:         var(--sp-text);
+  letter-spacing: -0.01em;
+}
+
+.st-empty__sub {
+  font-size:  var(--portal-text-sm);
+  color:      var(--sp-muted);
+  max-width:  280px;
+  line-height: 1.65;
+  margin:     0;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .st-overview-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* 3rd col group ke baad border-right hata do */
+  .st-ov-col:nth-child(3) {
+    border-right: none;
+  }
+
+  /* Bottom row ke liye border-bottom */
+  .st-ov-col:nth-child(-n + 3) {
+    border-bottom: 1px solid var(--sp-border);
+  }
+}
+
+@media (max-width: 640px) {
+  .st-slot-card {
+    padding: var(--portal-space-3) var(--portal-space-4);
+    gap:     var(--portal-space-3);
+  }
+
+  .st-slot-time {
+    min-width: 52px;
+  }
+
+  .st-day-btn {
+    min-width:  46px;
+    padding:    var(--portal-space-2) var(--portal-space-2);
+  }
+
+  .st-info-bar {
+    flex-direction: column;
+    align-items:    flex-start;
+    gap:            var(--portal-space-2);
+  }
+
+  .st-info-dates {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 400px) {
+  .st-overview-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .st-ov-col:nth-child(3) {
+    border-right: 1px solid var(--sp-border);
+  }
+
+  .st-ov-col:nth-child(2n) {
+    border-right: none;
+  }
+
+  .st-ov-col:nth-child(-n + 4) {
+    border-bottom: 1px solid var(--sp-border);
+  }
+}

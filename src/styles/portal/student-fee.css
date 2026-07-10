@@ -1,0 +1,702 @@
+/* src/styles/portal/student-fee.css */
+
+/* ============================================
+   STUDENT FEE LEDGER PAGE
+   ============================================ */
+
+.sfl-root {
+  font-family: var(--portal-font);
+  color:       var(--sp-text);
+}
+
+.sfl-root * {
+  box-sizing: border-box;
+}
+
+/* ============================================
+   PAGE HEADER
+   ============================================ */
+
+.sfl-page-header {
+  margin-bottom: var(--portal-space-5);
+}
+
+.sfl-page-title {
+  font-size:     clamp(1.2rem, 2.5vw, 1.5rem);
+  font-weight:   700;
+  color:         var(--sp-text);
+  display:       flex;
+  align-items:   center;
+  gap:           var(--portal-space-3);
+  margin-bottom: var(--portal-space-1);
+  letter-spacing: -0.02em;
+}
+
+.sfl-page-sub {
+  font-size:   var(--portal-text-sm);
+  color:       var(--sp-muted);
+  font-weight: 400;
+}
+
+/* ============================================
+   SUMMARY STAT CARDS (4-col grid)
+   ============================================ */
+
+.sfl-summary {
+  display:               grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap:                   var(--portal-space-3);
+  margin-bottom:         var(--portal-space-5);
+}
+
+.sfl-stat {
+  background:    var(--sp-surface);
+  border:        1px solid var(--sp-border);
+  border-radius: var(--portal-radius-lg);
+  padding:       var(--portal-space-4) var(--portal-space-5);
+  position:      relative;
+  overflow:      hidden;
+  transition:
+    box-shadow var(--portal-transition-base),
+    transform var(--portal-transition-base);
+}
+
+.sfl-stat:hover {
+  box-shadow: var(--portal-shadow-sm);
+  transform:  translateY(-1px);
+}
+
+/* Colored top line */
+.sfl-stat::before {
+  content:  '';
+  position: absolute;
+  top:      0;
+  left:     0;
+  right:    0;
+  height:   3px;
+}
+
+.sfl-stat--blue::before  {
+  background: linear-gradient(90deg, var(--sp-accent), var(--sp-accent2));
+}
+.sfl-stat--green::before {
+  background: linear-gradient(90deg, #059669, #34D399);
+}
+.sfl-stat--red::before   {
+  background: linear-gradient(90deg, #DC2626, #F87171);
+}
+
+/* Icon */
+.sfl-stat-icon {
+  width:           32px;
+  height:          32px;
+  border-radius:   var(--portal-radius-md);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  margin-bottom:   var(--portal-space-3);
+}
+
+.sfl-stat-icon--blue  { background: var(--sp-active-bg);          color: var(--sp-accent2); }
+.sfl-stat-icon--green { background: rgb(34 197 94 / 0.12);         color: var(--sp-success); }
+.sfl-stat-icon--red   { background: rgb(239 68 68 / 0.12);         color: var(--sp-danger);  }
+
+/* Label & value */
+.sfl-stat-label {
+  font-size:      10px;
+  font-weight:    700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color:          var(--sp-muted);
+  margin-bottom:  var(--portal-space-1);
+}
+
+.sfl-stat-val {
+  font-size:     1.35rem;
+  font-weight:   700;
+  color:         var(--sp-text);
+  line-height:   1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.sfl-stat-val--green { color: var(--sp-success); }
+.sfl-stat-val--red   { color: var(--sp-danger);  }
+
+/* ============================================
+   OVERALL PROGRESS BAR
+   ============================================ */
+
+.sfl-overall {
+  background:    var(--sp-surface);
+  border:        1px solid var(--sp-border);
+  border-radius: var(--portal-radius-lg);
+  padding:       var(--portal-space-4) var(--portal-space-5);
+  margin-bottom: var(--portal-space-5);
+}
+
+.sfl-overall-row {
+  display:         flex;
+  justify-content: space-between;
+  align-items:     center;
+  margin-bottom:   var(--portal-space-3);
+}
+
+.sfl-overall-label {
+  font-size:   var(--portal-text-sm);
+  font-weight: 600;
+  color:       var(--sp-subtext);
+}
+
+.sfl-overall-pct {
+  font-size:   1.1rem;
+  font-weight: 700;
+  color:       var(--sp-accent2);
+  font-variant-numeric: tabular-nums;
+}
+
+.sfl-overall-track {
+  height:        8px;
+  background:    var(--sp-border);
+  border-radius: var(--portal-radius-full);
+  overflow:      hidden;
+}
+
+.sfl-overall-fill {
+  height:        100%;
+  background:    linear-gradient(
+    90deg,
+    var(--sp-accent),
+    var(--sp-accent2)
+  );
+  border-radius: var(--portal-radius-full);
+  transition:    width 1s cubic-bezier(.4, 0, .2, 1);
+}
+
+/* ============================================
+   SECTION LABEL
+   ============================================ */
+
+.sfl-section-label {
+  font-size:      var(--portal-text-xs);
+  font-weight:    700;
+  color:          var(--sp-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  display:        flex;
+  align-items:    center;
+  gap:            var(--portal-space-2);
+  margin-bottom:  var(--portal-space-3);
+}
+
+.sfl-section-label::after {
+  content:    '';
+  flex:       1;
+  height:     1px;
+  background: var(--sp-border);
+}
+
+/* ============================================
+   ENROLLMENT ACCORDION CARDS
+   ============================================ */
+
+.sfl-enrollment {
+  background:    var(--sp-surface);
+  border:        1px solid var(--sp-border);
+  border-radius: var(--portal-radius-xl);
+  overflow:      hidden;
+  margin-bottom: var(--portal-space-3);
+  transition:
+    box-shadow var(--portal-transition-base),
+    border-color var(--portal-transition-base);
+}
+
+.sfl-enrollment:hover {
+  box-shadow:   var(--portal-shadow-sm);
+  border-color: var(--sp-border2);
+}
+
+/* Header (clickable) */
+.sfl-enroll-head {
+  padding:         var(--portal-space-4) var(--portal-space-5);
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  gap:             var(--portal-space-3);
+  cursor:          pointer;
+  border-bottom:   1px solid transparent;
+  transition:
+    background var(--portal-transition-fast),
+    border-color var(--portal-transition-fast);
+}
+
+.sfl-enrollment.open .sfl-enroll-head {
+  background:          var(--sp-hover);
+  border-bottom-color: var(--sp-border);
+}
+
+.sfl-course-name {
+  font-size:     var(--portal-text-base);
+  font-weight:   700;
+  color:         var(--sp-text);
+  margin-bottom: 2px;
+  letter-spacing: -0.01em;
+}
+
+.sfl-course-auth {
+  font-size:  11px;
+  color:      var(--sp-muted);
+  font-weight: 500;
+}
+
+.sfl-enroll-head-right {
+  display:     flex;
+  align-items: center;
+  gap:         var(--portal-space-3);
+  flex-shrink: 0;
+}
+
+/* Payment status badges */
+.sfl-status-badge {
+  display:        inline-flex;
+  align-items:    center;
+  gap:            var(--portal-space-1);
+  font-size:      10px;
+  font-weight:    700;
+  padding:        3px var(--portal-space-3);
+  border-radius:  var(--portal-radius-full);
+  border:         1px solid;
+  white-space:    nowrap;
+}
+
+.sfl-status-badge--paid {
+  background:   rgb(34 197 94 / 0.12);
+  color:        var(--sp-success);
+  border-color: rgb(34 197 94 / 0.25);
+}
+
+.sfl-status-badge--due {
+  background:   rgb(239 68 68 / 0.12);
+  color:        var(--sp-danger);
+  border-color: rgb(239 68 68 / 0.25);
+}
+
+/* Chevron toggle button */
+.sfl-chevron {
+  width:           28px;
+  height:          28px;
+  border-radius:   var(--portal-radius-md);
+  border:          1px solid var(--sp-border);
+  background:      transparent;
+  cursor:          pointer;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  color:           var(--sp-muted);
+  transition:
+    background var(--portal-transition-fast),
+    color var(--portal-transition-fast);
+}
+
+.sfl-chevron:hover {
+  background: var(--sp-hover);
+  color:      var(--sp-accent2);
+}
+
+/* ── Expanded body ── */
+.sfl-enroll-body {
+  padding: var(--portal-space-5);
+}
+
+/* ── Franchise info strip ── */
+.sfl-franchise-strip {
+  border-radius: var(--portal-radius-md);
+  padding:       var(--portal-space-3) var(--portal-space-4);
+  margin-bottom: var(--portal-space-4);
+  display:       flex;
+  align-items:   center;
+  gap:           var(--portal-space-3);
+  flex-wrap:     wrap;
+  border:        1px solid;
+}
+
+.sfl-franchise-strip--own {
+  background:   rgb(245 158 11 / 0.06);
+  border-color: rgb(245 158 11 / 0.2);
+}
+
+.sfl-franchise-strip--external {
+  background:   rgb(26 86 219 / 0.06);
+  border-color: rgb(26 86 219 / 0.15);
+}
+
+.sfl-franchise-name {
+  font-size:   var(--portal-text-sm);
+  font-weight: 700;
+  color:       var(--sp-text);
+}
+
+.sfl-franchise-cert {
+  font-size: 11px;
+  color:     var(--sp-muted);
+}
+
+.sfl-franchise-id {
+  font-size: 11px;
+  color:     var(--sp-subtext);
+}
+
+.sfl-franchise-id-mono {
+  font-family: var(--portal-font-mono);
+  color:       var(--sp-text);
+}
+
+/* ── Fee KPI grid ── */
+.sfl-fee-grid {
+  display:               grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:                   var(--portal-space-3);
+  margin-bottom:         var(--portal-space-4);
+}
+
+.sfl-fee-cell {
+  background:    var(--sp-hover);
+  border:        1px solid var(--sp-border);
+  border-radius: var(--portal-radius-md);
+  padding:       var(--portal-space-3) var(--portal-space-4);
+}
+
+.sfl-fee-cell-label {
+  font-size:      9px;
+  font-weight:    700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color:          var(--sp-muted);
+  margin-bottom:  var(--portal-space-1);
+}
+
+.sfl-fee-cell-val {
+  font-size:   var(--portal-text-lg);
+  font-weight: 700;
+  color:       var(--sp-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.sfl-fee-cell-val--green { color: var(--sp-success); }
+.sfl-fee-cell-val--red   { color: var(--sp-danger);  }
+
+/* ── Progress bar ── */
+.sfl-prog-row {
+  display:         flex;
+  justify-content: space-between;
+  align-items:     center;
+  margin-bottom:   var(--portal-space-2);
+}
+
+.sfl-prog-lbl {
+  font-size:   var(--portal-text-sm);
+  font-weight: 600;
+  color:       var(--sp-subtext);
+}
+
+.sfl-prog-pct {
+  font-size:   var(--portal-text-sm);
+  font-weight: 700;
+  color:       var(--sp-accent2);
+  font-variant-numeric: tabular-nums;
+}
+
+.sfl-prog-track {
+  height:        6px;
+  background:    var(--sp-border);
+  border-radius: var(--portal-radius-full);
+  overflow:      hidden;
+  margin-bottom: var(--portal-space-5);
+}
+
+.sfl-prog-fill {
+  height:        100%;
+  background:    linear-gradient(
+    90deg,
+    var(--sp-accent),
+    var(--sp-accent2)
+  );
+  border-radius: var(--portal-radius-full);
+  transition:    width 0.8s cubic-bezier(.4, 0, .2, 1);
+}
+
+/* ── Payment records table ── */
+.sfl-pay-title {
+  font-size:      10px;
+  font-weight:    700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color:          var(--sp-muted);
+  margin-bottom:  var(--portal-space-3);
+  display:        flex;
+  align-items:    center;
+  gap:            var(--portal-space-2);
+}
+
+.sfl-pay-table {
+  border:        1px solid var(--sp-border);
+  border-radius: var(--portal-radius-lg);
+  overflow:      hidden;
+}
+
+.sfl-pay-thead {
+  display:               grid;
+  grid-template-columns: 1fr 1fr 1.4fr auto;
+  padding:               var(--portal-space-2) var(--portal-space-4);
+  background:            var(--sp-hover);
+  border-bottom:         1px solid var(--sp-border);
+  font-size:             9px;
+  font-weight:           700;
+  letter-spacing:        0.08em;
+  text-transform:        uppercase;
+  color:                 var(--sp-muted);
+  gap:                   var(--portal-space-2);
+}
+
+.sfl-pay-row {
+  display:               grid;
+  grid-template-columns: 1fr 1fr 1.4fr auto;
+  padding:               var(--portal-space-3) var(--portal-space-4);
+  gap:                   var(--portal-space-2);
+  border-bottom:         1px solid var(--sp-border);
+  align-items:           center;
+  transition:            background var(--portal-transition-fast);
+}
+
+.sfl-pay-row:last-child { border-bottom: none; }
+.sfl-pay-row:hover      { background: var(--sp-hover); }
+
+.sfl-pay-amount {
+  font-size:   var(--portal-text-sm);
+  font-weight: 700;
+  color:       var(--sp-success);
+  font-variant-numeric: tabular-nums;
+}
+
+.sfl-pay-date {
+  font-size:   var(--portal-text-sm);
+  color:       var(--sp-subtext);
+  display:     flex;
+  align-items: center;
+  gap:         var(--portal-space-1);
+}
+
+.sfl-pay-remark {
+  font-size: 10px;
+  color:     var(--sp-muted);
+}
+
+/* Receipt pill */
+.sfl-receipt-pill {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           var(--portal-space-1);
+  font-size:     10px;
+  font-weight:   600;
+  color:         var(--sp-accent2);
+  background:    var(--sp-active-bg);
+  border:        1px solid var(--sp-border2);
+  padding:       3px var(--portal-space-2);
+  border-radius: var(--portal-radius-md);
+  white-space:   nowrap;
+  font-family:   var(--portal-font-mono);
+}
+
+.sfl-no-pay {
+  padding:    var(--portal-space-5);
+  text-align: center;
+  font-size:  var(--portal-text-sm);
+  color:      var(--sp-muted);
+}
+
+/* ============================================
+   RECENT ACTIVITY TIMELINE
+   ============================================ */
+
+.sfl-timeline-card {
+  background:    var(--sp-surface);
+  border:        1px solid var(--sp-border);
+  border-radius: var(--portal-radius-xl);
+  padding:       var(--portal-space-2) var(--portal-space-5);
+}
+
+.sfl-timeline {
+  display:        flex;
+  flex-direction: column;
+}
+
+.sfl-tl-item {
+  display:       flex;
+  gap:           var(--portal-space-4);
+  align-items:   flex-start;
+  padding:       var(--portal-space-4) 0;
+  border-bottom: 1px solid var(--sp-border);
+  transition:    background var(--portal-transition-fast);
+}
+
+.sfl-tl-item:last-child {
+  border-bottom: none;
+}
+
+.sfl-tl-icon {
+  width:           34px;
+  height:          34px;
+  border-radius:   var(--portal-radius-md);
+  flex-shrink:     0;
+  background:      var(--sp-active-bg);
+  border:          1px solid var(--sp-border2);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  color:           var(--sp-accent2);
+  margin-top:      1px;
+}
+
+.sfl-tl-content {
+  flex:      1;
+  min-width: 0;
+}
+
+.sfl-tl-amount {
+  font-size:     var(--portal-text-base);
+  font-weight:   700;
+  color:         var(--sp-success);
+  margin-bottom: 3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.sfl-tl-meta {
+  font-size:  11px;
+  color:      var(--sp-muted);
+  display:    flex;
+  gap:        var(--portal-space-3);
+  flex-wrap:  wrap;
+  align-items: center;
+}
+
+.sfl-tl-date {
+  margin-left: auto;
+  font-size:   11px;
+  color:       var(--sp-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+
+.sfl-empty {
+  background:    var(--sp-surface);
+  border:        1px solid var(--sp-border);
+  border-radius: var(--portal-radius-xl);
+  padding:       var(--portal-space-10) var(--portal-space-6);
+  text-align:    center;
+}
+
+.sfl-empty-icon {
+  width:           44px;
+  height:          44px;
+  background:      var(--sp-hover);
+  border-radius:   var(--portal-radius-lg);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  margin:          0 auto var(--portal-space-3);
+  color:           var(--sp-accent2);
+}
+
+.sfl-empty-text {
+  font-size: var(--portal-text-sm);
+  color:     var(--sp-muted);
+}
+
+/* ============================================
+   LOADER / ERROR
+   ============================================ */
+
+.sfl-loader {
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  padding:         var(--portal-space-12) 0;
+  gap:             var(--portal-space-4);
+}
+
+.sfl-spinner {
+  width:         36px;
+  height:        36px;
+  border:        3px solid var(--sp-border);
+  border-top-color: var(--sp-accent2);
+  border-radius: var(--portal-radius-full);
+  animation:     sflSpin 0.7s linear infinite;
+}
+
+@keyframes sflSpin {
+  to { transform: rotate(360deg); }
+}
+
+.sfl-loader-text {
+  font-size: var(--portal-text-sm);
+  color:     var(--sp-muted);
+}
+
+.sfl-error-text {
+  text-align: center;
+  padding:    var(--portal-space-12) 0;
+  font-size:  var(--portal-text-sm);
+  color:      var(--sp-danger);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 900px) {
+  .sfl-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .sfl-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .sfl-fee-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Payment table — show only Amount + Date on mobile */
+  .sfl-pay-thead,
+  .sfl-pay-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .sfl-pay-thead > span:nth-child(3),
+  .sfl-pay-thead > span:nth-child(4),
+  .sfl-pay-row > div:nth-child(3),
+  .sfl-pay-row > div:nth-child(4) {
+    display: none;
+  }
+
+  .sfl-enroll-head {
+    padding: var(--portal-space-4);
+  }
+
+  .sfl-enroll-body {
+    padding: var(--portal-space-4);
+  }
+}
+
+@media (max-width: 480px) {
+  .sfl-summary {
+    grid-template-columns: 1fr;
+  }
+}

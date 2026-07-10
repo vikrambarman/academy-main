@@ -56,6 +56,25 @@ Homepage hero    →  home/HeroSection.tsx (inline ya page-specific) */
 @import "../styles/courses-list.css";
 @import "../styles/course-detail.css";
 
+
+/* Portal Styles */
+@import "../styles/portal/portal-variables.css";
+@import "../styles/portal/portal-layout.css";
+@import "../styles/portal/portal-components.css";
+@import "../styles/portal/portal-utilities.css";
+
+/* Student Portal */
+@import "../styles/portal/student-portal.css";
+@import "../styles/portal/student-dashboard.css";
+@import "../styles/portal/student-profile.css";    /* ← ADD */
+@import "../styles/portal/student-attendance.css";   /* ← ADD */
+@import "../styles/portal/student-fee.css";          /* ← ADD */
+@import "../styles/portal/student-certificates.css";
+@import "../styles/portal/student-notes.css";
+@import "../styles/portal/student-notices.css";
+@import "../styles/portal/student-change-password.css";
+@import "../styles/portal/student-schedule.css";
+
 /* ==========================================
    CUSTOM SCROLLBAR (Global)
    ========================================== */

@@ -1,0 +1,188 @@
+/* src/styles/portal/portal-variables.css */
+
+/*
+  ============================================
+  PORTAL DESIGN TOKENS
+  - Public se alag - darker, denser, functional
+  - Public = warm/welcoming, Portal = clean/professional
+  ============================================
+*/
+
+:root {
+  /* ==========================================
+     PORTAL SIDEBAR COLORS
+     ========================================== */
+
+  /* Admin - Deep slate (authority feel) */
+  --portal-admin-sidebar-bg:      #0F172A;  /* slate-900 */
+  --portal-admin-sidebar-border:  #1E293B;  /* slate-800 */
+  --portal-admin-accent:          #3B82F6;  /* blue-500 */
+  --portal-admin-accent-hover:    #2563EB;  /* blue-600 */
+  --portal-admin-accent-subtle:   #1E3A8A1A; /* blue-900/10 */
+
+  /* Student - Teal/Green (learning/growth feel) */
+  --portal-student-sidebar-bg:    #0C1A16;  /* dark green */
+  --portal-student-sidebar-border:#14532D;
+  --portal-student-accent:        #10B981;  /* emerald-500 */
+  --portal-student-accent-hover:  #059669;  /* emerald-600 */
+  --portal-student-accent-subtle: #10B9811A;
+
+  /* Teacher - Purple (expertise feel) */
+  --portal-teacher-sidebar-bg:    #13111C;
+  --portal-teacher-sidebar-border:#2D2460;
+  --portal-teacher-accent:        #8B5CF6;  /* violet-500 */
+  --portal-teacher-accent-hover:  #7C3AED;  /* violet-600 */
+  --portal-teacher-accent-subtle: #8B5CF61A;
+
+  /* ==========================================
+     SHARED PORTAL COLORS
+     ========================================== */
+
+  /* Sidebar text */
+  --portal-sidebar-text:          #94A3B8;  /* slate-400 */
+  --portal-sidebar-text-active:   #F8FAFC;  /* slate-50 */
+  --portal-sidebar-text-hover:    #CBD5E1;  /* slate-300 */
+  --portal-sidebar-icon:          #64748B;  /* slate-500 */
+
+  /* Main content area */
+  --portal-bg:                    #F8FAFC;  /* slate-50 */
+  --portal-surface:               #FFFFFF;
+  --portal-surface-hover:         #F1F5F9;  /* slate-100 */
+  --portal-border:                #E2E8F0;  /* slate-200 */
+  --portal-border-hover:          #CBD5E1;  /* slate-300 */
+
+  /* Topbar */
+  --portal-topbar-bg:             #FFFFFF;
+  --portal-topbar-border:         #E2E8F0;
+  --portal-topbar-height:         64px;
+
+  /* Sidebar */
+  --portal-sidebar-width:         260px;
+  --portal-sidebar-width-collapsed: 68px;
+
+  /* ==========================================
+     PORTAL TYPOGRAPHY
+     ========================================== */
+
+  --portal-font:          'Inter', system-ui, sans-serif;
+  --portal-font-mono:     'JetBrains Mono', 'Courier New', monospace;
+
+  /* Portal text scale - slightly tighter than public */
+  --portal-text-xs:    0.6875rem;  /* 11px */
+  --portal-text-sm:    0.8125rem;  /* 13px */
+  --portal-text-base:  0.9375rem;  /* 15px */
+  --portal-text-lg:    1.0625rem;  /* 17px */
+  --portal-text-xl:    1.1875rem;  /* 19px */
+  --portal-text-2xl:   1.375rem;   /* 22px */
+  --portal-text-3xl:   1.75rem;    /* 28px */
+
+  /* ==========================================
+     PORTAL SEMANTIC TEXT COLORS
+     ========================================== */
+
+  --portal-text-primary:    #0F172A;  /* slate-900 */
+  --portal-text-secondary:  #475569;  /* slate-600 */
+  --portal-text-tertiary:   #94A3B8;  /* slate-400 */
+  --portal-text-inverse:    #F8FAFC;
+
+  /* ==========================================
+     STATUS COLORS (Portal-specific)
+     ========================================== */
+
+  --portal-success:         #10B981;
+  --portal-success-bg:      #ECFDF5;
+  --portal-success-border:  #6EE7B7;
+
+  --portal-warning:         #F59E0B;
+  --portal-warning-bg:      #FFFBEB;
+  --portal-warning-border:  #FCD34D;
+
+  --portal-error:           #EF4444;
+  --portal-error-bg:        #FEF2F2;
+  --portal-error-border:    #FCA5A5;
+
+  --portal-info:            #3B82F6;
+  --portal-info-bg:         #EFF6FF;
+  --portal-info-border:     #93C5FD;
+
+  /* ==========================================
+     PORTAL SPACING (Denser than public)
+     ========================================== */
+
+  --portal-space-1:   0.25rem;   /* 4px */
+  --portal-space-2:   0.5rem;    /* 8px */
+  --portal-space-3:   0.75rem;   /* 12px */
+  --portal-space-4:   1rem;      /* 16px */
+  --portal-space-5:   1.25rem;   /* 20px */
+  --portal-space-6:   1.5rem;    /* 24px */
+  --portal-space-8:   2rem;      /* 32px */
+  --portal-space-10:  2.5rem;    /* 40px */
+  --portal-space-12:  3rem;      /* 48px */
+
+  /* ==========================================
+     PORTAL BORDER RADIUS
+     (Slightly more rounded than public)
+     ========================================== */
+
+  --portal-radius-sm:   0.25rem;   /* 4px */
+  --portal-radius-md:   0.5rem;    /* 8px */
+  --portal-radius-lg:   0.75rem;   /* 12px */
+  --portal-radius-xl:   1rem;      /* 16px */
+  --portal-radius-full: 9999px;
+
+  /* ==========================================
+     PORTAL SHADOWS
+     ========================================== */
+
+  --portal-shadow-xs:  0 1px 2px 0 rgb(0 0 0 / 0.04);
+  --portal-shadow-sm:  0 1px 3px 0 rgb(0 0 0 / 0.08),
+                       0 1px 2px -1px rgb(0 0 0 / 0.08);
+  --portal-shadow-md:  0 4px 6px -1px rgb(0 0 0 / 0.08),
+                       0 2px 4px -2px rgb(0 0 0 / 0.08);
+  --portal-shadow-lg:  0 10px 15px -3px rgb(0 0 0 / 0.08),
+                       0 4px 6px -4px rgb(0 0 0 / 0.08);
+
+  /* Colored shadows for stat cards */
+  --portal-shadow-blue:    0 4px 14px 0 rgb(59 130 246 / 0.15);
+  --portal-shadow-green:   0 4px 14px 0 rgb(16 185 129 / 0.15);
+  --portal-shadow-violet:  0 4px 14px 0 rgb(139 92 246 / 0.15);
+  --portal-shadow-orange:  0 4px 14px 0 rgb(249 115 22 / 0.15);
+
+  /* ==========================================
+     TRANSITIONS
+     ========================================== */
+
+  --portal-transition-fast:   120ms ease;
+  --portal-transition-base:   200ms ease;
+  --portal-transition-slow:   300ms ease;
+
+  /* ==========================================
+     Z-INDEX (Portal layers)
+     ========================================== */
+
+  --portal-z-content:   1;
+  --portal-z-sidebar:   50;
+  --portal-z-topbar:    60;
+  --portal-z-dropdown:  100;
+  --portal-z-modal:     200;
+  --portal-z-toast:     300;
+}
+
+/* ==========================================
+   DARK MODE - Portal auto-dark support
+   ========================================== */
+
+[data-theme="dark"] {
+  --portal-bg:              #0F172A;
+  --portal-surface:         #1E293B;
+  --portal-surface-hover:   #334155;
+  --portal-border:          #334155;
+  --portal-border-hover:    #475569;
+
+  --portal-topbar-bg:       #1E293B;
+  --portal-topbar-border:   #334155;
+
+  --portal-text-primary:    #F1F5F9;
+  --portal-text-secondary:  #94A3B8;
+  --portal-text-tertiary:   #475569;
+}

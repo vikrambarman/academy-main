@@ -1,0 +1,1189 @@
+/* src/styles/portal/student-notes.css */
+/* ============================================
+   CSS CUSTOM PROPERTIES - Notes Page
+   ============================================ */
+
+.snp-root {
+  --sp-bg:          var(--portal-bg);
+  --sp-surface:     var(--portal-surface);
+  --sp-text:        var(--portal-text-primary);
+  --sp-subtext:     var(--portal-text-secondary);
+  --sp-muted:       var(--portal-text-tertiary);
+  --sp-border:      var(--portal-border);
+  --sp-border2:     var(--portal-border-hover);
+  --sp-hover:       var(--portal-surface-hover);
+
+  --sp-accent:      var(--portal-student-accent);
+  --sp-accent2:     #34D399;
+  --sp-accent-glow: rgb(16 185 129 / 0.12);
+
+  --sp-active-bg:   var(--portal-student-accent-subtle);
+  --sp-active-fg:   #065F46;
+
+  --sp-success:     var(--portal-success);
+  --sp-bg-sidebar:  var(--portal-student-sidebar-bg);
+
+  /* Code block specific */
+  --sp-code-bg:        #0d1117;
+  --sp-code-text:      #e6edf3;
+  --sp-code-border:    #30363d;
+  --sp-code-header-bg: #161b22;
+}
+
+[data-theme="dark"] .snp-root {
+  --sp-bg:        var(--portal-bg);
+  --sp-surface:   var(--portal-surface);
+  --sp-text:      var(--portal-text-primary);
+  --sp-subtext:   var(--portal-text-secondary);
+  --sp-muted:     var(--portal-text-tertiary);
+  --sp-border:    var(--portal-border);
+  --sp-border2:   var(--portal-border-hover);
+  --sp-hover:     var(--portal-surface-hover);
+  --sp-active-bg: rgb(16 185 129 / 0.1);
+  --sp-active-fg: #6EE7B7;
+}
+
+/* ============================================
+   LAYOUT SHELL
+   ============================================ */
+
+.snp-root {
+  display: flex;
+  height: calc(100vh - var(--portal-topbar-height) - var(--portal-space-12));
+  min-height: 0;
+  font-family: var(--portal-font);
+  color: var(--sp-text);
+  border-radius: var(--portal-radius-xl);
+  border: 1px solid var(--portal-border);
+  background: var(--sp-surface);
+  overflow: hidden;
+  position: relative;
+}
+
+/* ============================================
+   SIDEBAR
+   ============================================ */
+
+.snp-sidebar {
+  width: 272px;
+  flex-shrink: 0;
+  background: var(--sp-surface);
+  border-right: 1px solid var(--sp-border);
+  display: flex;
+  flex-direction: column;
+  transition:
+    width var(--portal-transition-slow),
+    transform var(--portal-transition-slow);
+  overflow: hidden;
+  z-index: var(--portal-z-sidebar);
+}
+
+.snp-sidebar.collapsed {
+  width: 0;
+  border-right: none;
+}
+
+@media (max-width: 768px) {
+  .snp-sidebar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 280px !important;
+    box-shadow: var(--portal-shadow-lg);
+    transform: translateX(-100%);
+    background: var(--sp-surface);
+  }
+
+  .snp-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+}
+
+/* ============================================
+   SIDEBAR HEADER
+   ============================================ */
+
+.snp-sb-head {
+  padding: var(--portal-space-4) var(--portal-space-4) var(--portal-space-3);
+  border-bottom: 1px solid var(--sp-border);
+  flex-shrink: 0;
+}
+
+.snp-sb-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--portal-space-3);
+}
+
+.snp-sb-title {
+  font-size: var(--portal-text-sm);
+  font-weight: 700;
+  color: var(--sp-text);
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-2);
+  letter-spacing: -0.01em;
+}
+
+.snp-sb-title-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--portal-radius-md);
+  background: var(--sp-active-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sp-accent);
+  flex-shrink: 0;
+}
+
+.snp-sb-meta {
+  font-size: var(--portal-text-xs);
+  color: var(--sp-muted);
+  font-weight: 400;
+}
+
+.snp-sb-close-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--portal-radius-md);
+  border: 1px solid var(--sp-border);
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sp-muted);
+  transition:
+    background var(--portal-transition-fast),
+    color var(--portal-transition-fast);
+}
+
+.snp-sb-close-btn:hover {
+  background: var(--sp-hover);
+  color: var(--sp-text);
+}
+
+/* ============================================
+   PROGRESS BAR
+   ============================================ */
+
+.snp-progress-wrap {
+  margin-bottom: var(--portal-space-3);
+}
+
+.snp-progress-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--portal-text-xs);
+  font-weight: 600;
+  margin-bottom: var(--portal-space-1);
+  color: var(--sp-muted);
+}
+
+.snp-progress-pct {
+  font-size: var(--portal-text-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.snp-progress-track {
+  width: 100%;
+  height: 5px;
+  background: var(--sp-border);
+  border-radius: var(--portal-radius-full);
+  overflow: hidden;
+}
+
+.snp-progress-fill {
+  height: 100%;
+  border-radius: var(--portal-radius-full);
+  background: var(--sp-accent);
+  transition: width 0.5s cubic-bezier(.4, 0, .2, 1);
+}
+
+/* ============================================
+   SEARCH
+   ============================================ */
+
+.snp-search-wrap {
+  position: relative;
+}
+
+.snp-search-icon {
+  position: absolute;
+  left: var(--portal-space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--sp-muted);
+  pointer-events: none;
+}
+
+.snp-search {
+  font-family: var(--portal-font);
+  width: 100%;
+  font-size: var(--portal-text-sm);
+  padding: var(--portal-space-2) var(--portal-space-3)
+           var(--portal-space-2) var(--portal-space-8);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--portal-radius-md);
+  background: var(--sp-bg);
+  color: var(--sp-text);
+  outline: none;
+  height: 36px;
+  transition:
+    border-color var(--portal-transition-fast),
+    box-shadow var(--portal-transition-fast);
+}
+
+.snp-search:focus {
+  border-color: var(--sp-accent);
+  box-shadow: 0 0 0 3px var(--sp-accent-glow);
+}
+
+.snp-search::placeholder { color: var(--sp-muted); }
+
+/* ============================================
+   SIDEBAR SCROLL AREA
+   ============================================ */
+
+.snp-sb-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--portal-space-2) 0 var(--portal-space-6);
+  scrollbar-width: thin;
+  scrollbar-color: var(--sp-border) transparent;
+}
+
+.snp-sb-scroll::-webkit-scrollbar { width: 3px; }
+.snp-sb-scroll::-webkit-scrollbar-thumb {
+  background: var(--sp-border);
+  border-radius: var(--portal-radius-full);
+}
+
+/* ============================================
+   COURSE / MODULE / NOTE TREE
+   ============================================ */
+
+.snp-course-label {
+  padding: var(--portal-space-2) var(--portal-space-4) var(--portal-space-1);
+}
+
+.snp-course-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--portal-space-1);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px var(--portal-space-3);
+  border-radius: var(--portal-radius-full);
+  background: var(--sp-active-bg);
+  color: var(--sp-active-fg);
+  border: 1px solid var(--sp-border);
+}
+
+.snp-module-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--portal-space-2) var(--portal-space-4);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--portal-font);
+  font-size: var(--portal-text-xs);
+  font-weight: 700;
+  color: var(--sp-subtext);
+  letter-spacing: 0.03em;
+  text-align: left;
+  transition:
+    color var(--portal-transition-fast),
+    background var(--portal-transition-fast);
+}
+
+.snp-module-btn:hover {
+  background: var(--sp-hover);
+  color: var(--sp-text);
+}
+
+.snp-module-left {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-2);
+}
+
+.snp-module-chevron {
+  color: var(--sp-muted);
+  transition: transform var(--portal-transition-base);
+  flex-shrink: 0;
+}
+
+.snp-module-chevron.open { transform: rotate(90deg); }
+
+.snp-module-progress {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--sp-muted);
+  background: var(--sp-hover);
+  padding: 2px var(--portal-space-2);
+  border-radius: var(--portal-radius-full);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.snp-module-progress.done {
+  background: rgb(16 185 129 / 0.12);
+  color: var(--sp-success);
+}
+
+/* Note items */
+.snp-note-item {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-2);
+  padding: var(--portal-space-2) var(--portal-space-4) var(--portal-space-2) 28px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  font-family: var(--portal-font);
+  border-right: 3px solid transparent;
+  transition:
+    background var(--portal-transition-fast),
+    border-color var(--portal-transition-fast);
+}
+
+.snp-note-item:hover { background: var(--sp-hover); }
+
+.snp-note-item.active {
+  background: var(--sp-active-bg);
+  border-right-color: var(--sp-accent);
+}
+
+.snp-note-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: var(--portal-radius-full);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.snp-note-dot.read   { background: rgb(16 185 129 / 0.12); color: var(--sp-success); }
+.snp-note-dot.active { background: var(--sp-active-bg); color: var(--sp-accent); }
+.snp-note-dot.unread { background: var(--sp-hover); color: var(--sp-muted); }
+
+.snp-note-label {
+  font-size: var(--portal-text-sm);
+  line-height: 1.4;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.snp-note-label.active { color: var(--sp-active-fg); font-weight: 600; }
+.snp-note-label.read   { color: var(--sp-muted); }
+.snp-note-label.unread { color: var(--sp-subtext); }
+
+/* ============================================
+   TOPBAR
+   ============================================ */
+
+.snp-topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--portal-z-dropdown);
+  background: var(--sp-surface);
+  border-bottom: 1px solid var(--sp-border);
+  padding: var(--portal-space-2) var(--portal-space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--portal-space-3);
+  flex-shrink: 0;
+}
+
+.snp-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-3);
+  min-width: 0;
+}
+
+.snp-menu-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--portal-radius-md);
+  border: 1px solid var(--sp-border);
+  background: var(--sp-surface);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sp-subtext);
+  flex-shrink: 0;
+  transition:
+    background var(--portal-transition-fast),
+    color var(--portal-transition-fast),
+    border-color var(--portal-transition-fast);
+}
+
+.snp-menu-btn:hover {
+  background: var(--sp-hover);
+  color: var(--sp-accent);
+  border-color: var(--sp-border2);
+}
+
+.snp-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-1);
+  font-size: var(--portal-text-xs);
+  color: var(--sp-muted);
+  min-width: 0;
+}
+
+.snp-breadcrumb-cur {
+  color: var(--sp-subtext);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.snp-action-btns {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-2);
+}
+
+.snp-btn {
+  font-family: var(--portal-font);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--portal-space-1);
+  font-size: var(--portal-text-xs);
+  font-weight: 600;
+  padding: var(--portal-space-1) var(--portal-space-3);
+  border-radius: var(--portal-radius-md);
+  cursor: pointer;
+  border: 1px solid var(--sp-border);
+  background: var(--sp-surface);
+  color: var(--sp-muted);
+  height: 30px;
+  transition:
+    background var(--portal-transition-fast),
+    border-color var(--portal-transition-fast),
+    color var(--portal-transition-fast);
+  white-space: nowrap;
+}
+
+.snp-btn:hover {
+  background: var(--sp-hover);
+  border-color: var(--sp-border2);
+  color: var(--sp-accent);
+}
+
+.snp-btn.read {
+  background: rgb(16 185 129 / 0.1);
+  border-color: rgb(16 185 129 / 0.25);
+  color: var(--sp-success);
+}
+
+.snp-btn.read:hover { background: rgb(16 185 129 / 0.18); }
+
+.snp-btn-label { display: inline; }
+
+@media (max-width: 480px) {
+  .snp-btn-label { display: none; }
+}
+
+/* ============================================
+   MAIN AREA
+   ============================================ */
+
+.snp-main {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;       /* ← horizontal scroll band */
+  display: flex;
+  flex-direction: column;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sp-border) transparent;
+  min-width: 0;             /* ← flex child ko shrink hone do */
+}
+
+.snp-main::-webkit-scrollbar { width: 4px; }
+.snp-main::-webkit-scrollbar-thumb {
+  background: var(--sp-border);
+  border-radius: var(--portal-radius-full);
+}
+
+/* ============================================
+   ARTICLE
+   ============================================ */
+
+.snp-article {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: var(--portal-space-6) var(--portal-space-5) var(--portal-space-12);
+  width: 100%;
+  /* ⚠️ overflow-x yahan nahi — code block bahar nikal sakti hai */
+  min-width: 0;
+}
+
+@media (max-width: 480px) {
+  .snp-article {
+    padding: var(--portal-space-4) var(--portal-space-4) var(--portal-space-10);
+  }
+}
+
+.snp-article-header {
+  margin-bottom: var(--portal-space-5);
+  padding-bottom: var(--portal-space-5);
+  border-bottom: 1px solid var(--sp-border);
+}
+
+.snp-article-module {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--portal-space-1);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px var(--portal-space-3);
+  border-radius: var(--portal-radius-full);
+  background: var(--sp-active-bg);
+  color: var(--sp-active-fg);
+  border: 1px solid var(--sp-border);
+  margin-bottom: var(--portal-space-3);
+}
+
+.snp-article-title {
+  font-size: clamp(var(--portal-text-xl), 3vw, var(--portal-text-3xl));
+  font-weight: 700;
+  color: var(--sp-text);
+  line-height: 1.2;
+  margin-bottom: var(--portal-space-3);
+  letter-spacing: -0.02em;
+}
+
+.snp-article-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-3);
+  flex-wrap: wrap;
+  font-size: var(--portal-text-xs);
+  color: var(--sp-muted);
+}
+
+.snp-article-meta-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--sp-border2);
+  flex-shrink: 0;
+}
+
+.snp-article-read-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--portal-space-1);
+  font-size: 10px;
+  font-weight: 700;
+  background: rgb(16 185 129 / 0.1);
+  color: var(--sp-success);
+  border: 1px solid rgb(16 185 129 / 0.25);
+  padding: 2px var(--portal-space-2);
+  border-radius: var(--portal-radius-full);
+}
+
+.snp-article-footer {
+  margin-top: var(--portal-space-10);
+  padding-top: var(--portal-space-4);
+  border-top: 1px solid var(--sp-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--portal-text-xs);
+  color: var(--sp-muted);
+  flex-wrap: wrap;
+  gap: var(--portal-space-3);
+}
+
+.snp-complete-btn {
+  font-family: var(--portal-font);
+  font-size: var(--portal-text-sm);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--portal-space-2);
+  padding: var(--portal-space-2) var(--portal-space-4);
+  border-radius: var(--portal-radius-md);
+  cursor: pointer;
+  border: 1px solid;
+  transition:
+    background var(--portal-transition-fast),
+    box-shadow var(--portal-transition-fast);
+}
+
+.snp-complete-btn:hover { box-shadow: var(--portal-shadow-sm); }
+
+/* ============================================
+   NOTE CONTENT — MARKDOWN RENDERED OUTPUT
+   ============================================ */
+
+.snp-note-content {
+  font-family: var(--portal-font);
+  font-size: var(--portal-text-base);
+  color: var(--sp-subtext);
+  line-height: 1.8;
+  /* ⚠️ overflow nahi dena yahan — code blocks bahar nikal sakti hain */
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Lists — reset override */
+.snp-note-content ul {
+  list-style-type: disc !important;
+  padding-left: 1.6rem !important;
+  margin: 0.6rem 0 1rem !important;
+}
+
+.snp-note-content ol {
+  list-style-type: decimal !important;
+  padding-left: 1.6rem !important;
+  margin: 0.6rem 0 1rem !important;
+}
+
+.snp-note-content li {
+  display: list-item !important;
+  margin-bottom: 0.4rem !important;
+  color: var(--sp-subtext) !important;
+  font-size: var(--portal-text-base) !important;
+  line-height: 1.75 !important;
+}
+
+.snp-note-content ul ul {
+  list-style-type: circle !important;
+  margin: 0.25rem 0 0.25rem 1rem !important;
+}
+
+.snp-note-content ul ul ul { list-style-type: square !important; }
+.snp-note-content ol ol   { list-style-type: lower-alpha !important; }
+
+/* Headings */
+.snp-note-content h1 {
+  font-size: var(--portal-text-2xl);
+  font-weight: 700;
+  margin: 1.8rem 0 0.7rem;
+  color: var(--sp-text);
+  letter-spacing: -0.02em;
+  border-bottom: 2px solid var(--sp-border);
+  padding-bottom: var(--portal-space-2);
+}
+
+.snp-note-content h2 {
+  font-size: var(--portal-text-xl);
+  font-weight: 700;
+  margin: 1.5rem 0 0.6rem;
+  color: var(--sp-text);
+  position: relative;
+  padding-left: 14px;
+}
+
+.snp-note-content h2::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--sp-accent);
+  border-radius: 2px;
+}
+
+.snp-note-content h3 {
+  font-size: var(--portal-text-lg);
+  font-weight: 700;
+  margin: 1.3rem 0 0.5rem;
+  color: var(--sp-text);
+}
+
+.snp-note-content h4 {
+  font-size: var(--portal-text-base);
+  font-weight: 600;
+  margin: 1.1rem 0 0.4rem;
+  color: var(--sp-subtext);
+}
+
+/* Paragraphs */
+.snp-note-content p {
+  margin-bottom: 0.85rem;
+  line-height: 1.85;
+  color: var(--sp-subtext);
+  font-size: var(--portal-text-base);
+  max-width: 100%; /* parent ki max-width override karo */
+}
+
+.snp-note-content strong { font-weight: 700; color: var(--sp-text); }
+.snp-note-content em     { font-style: italic; color: var(--sp-muted); }
+
+.snp-note-content a {
+  color: var(--sp-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.snp-note-content a:hover { color: var(--sp-accent2); }
+
+.snp-note-content hr {
+  border: none;
+  border-top: 1px solid var(--sp-border);
+  margin: 1.6rem 0;
+}
+
+/* Blockquote */
+.snp-note-content .snp-blockquote,
+.snp-note-content blockquote {
+  border-left: 4px solid var(--sp-accent);
+  background: var(--sp-active-bg);
+  padding: var(--portal-space-3) var(--portal-space-4);
+  margin: 1.2rem 0;
+  border-radius: 0 var(--portal-radius-md) var(--portal-radius-md) 0;
+  color: var(--sp-active-fg);
+  font-size: var(--portal-text-sm);
+}
+
+/* ============================================
+   INLINE CODE
+   ============================================ */
+
+.snp-note-content .snp-inline-code,
+.snp-note-content code:not(pre code) {
+  font-family: var(--portal-font-mono);
+  font-size: 0.84em;
+  background: var(--sp-active-bg);
+  color: var(--sp-accent);
+  padding: 2px 7px;
+  border-radius: var(--portal-radius-sm);
+  border: 1px solid var(--sp-border);
+  white-space: nowrap;
+}
+
+/* ============================================
+   CODE BLOCK WRAPPER — THE MAIN FIX
+   ============================================ */
+
+/*
+  ⚠️ Problem tha:
+  - .snp-article max-width:780px tha aur overflow:hidden tha
+  - pre block usse bahar nahi ja sakta tha
+  - Code right side se cut ho raha tha
+
+  ✅ Fix:
+  - .snp-code-block-wrapper ko full-bleed banao
+  - pre ke andar horizontal scroll allow karo
+  - word-break: keep-all — code ko wrap mat karo
+*/
+
+.snp-note-content .snp-code-block-wrapper {
+  margin: 1.2rem 0;
+  border-radius: var(--portal-radius-lg);
+  overflow: hidden;           /* ← rounded corners ke liye */
+  border: 1px solid var(--sp-code-border);
+  background: var(--sp-code-bg);
+  /* Full width — parent ke constraints se bahar */
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Language label header */
+.snp-note-content .snp-code-lang-label {
+  display: flex;
+  align-items: center;
+  padding: 6px var(--portal-space-4);
+  background: var(--sp-code-header-bg);
+  border-bottom: 1px solid var(--sp-code-border);
+  font-family: var(--portal-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: #7d8590;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Pre block — scrollable, no wrap */
+.snp-note-content .snp-code-pre,
+.snp-note-content pre {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: var(--sp-code-bg) !important;
+  border-radius: 0 !important;
+  border: none !important;
+  overflow-x: auto !important;    /* ← horizontal scroll */
+  overflow-y: visible !important;
+  max-height: 480px;              /* ← bahut lamba code scroll karo */
+  overflow-y: auto;
+
+  /* Custom scrollbar for code blocks */
+  scrollbar-width: thin;
+  scrollbar-color: #30363d var(--sp-code-bg);
+}
+
+.snp-note-content .snp-code-pre::-webkit-scrollbar,
+.snp-note-content pre::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.snp-note-content .snp-code-pre::-webkit-scrollbar-track,
+.snp-note-content pre::-webkit-scrollbar-track {
+  background: var(--sp-code-bg);
+}
+
+.snp-note-content .snp-code-pre::-webkit-scrollbar-thumb,
+.snp-note-content pre::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: var(--portal-radius-full);
+}
+
+/* Code inside pre */
+.snp-note-content pre code,
+.snp-note-content .snp-code-pre code {
+  font-family: var(--portal-font-mono) !important;
+  font-size: 0.85rem !important;
+  line-height: 1.7 !important;
+  color: var(--sp-code-text) !important;
+  background: transparent !important;
+  border: none !important;
+  padding: var(--portal-space-4) var(--portal-space-5) !important;
+  display: block !important;
+  white-space: pre !important;     /* ← code wrap nahi hoga */
+  word-break: keep-all !important; /* ← code break nahi hoga */
+  min-width: max-content;          /* ← full width content */
+  tab-size: 2;
+}
+
+/* ============================================
+   SYNTAX HIGHLIGHTING — rehype-highlight
+   GitHub Dark theme
+   ============================================ */
+
+/* Base text */
+.snp-note-content .hljs {
+  background: var(--sp-code-bg) !important;
+  color: #e6edf3 !important;
+}
+
+/* Comments */
+.snp-note-content .hljs-comment,
+.snp-note-content .hljs-quote {
+  color: #8b949e !important;
+  font-style: italic;
+}
+
+/* Keywords */
+.snp-note-content .hljs-keyword,
+.snp-note-content .hljs-selector-tag,
+.snp-note-content .hljs-addition {
+  color: #ff7b72 !important;
+  font-weight: 600;
+}
+
+/* Strings */
+.snp-note-content .hljs-string,
+.snp-note-content .hljs-attribute,
+.snp-note-content .hljs-template-variable,
+.snp-note-content .hljs-addition {
+  color: #a5d6ff !important;
+}
+
+/* Numbers */
+.snp-note-content .hljs-number,
+.snp-note-content .hljs-literal {
+  color: #79c0ff !important;
+}
+
+/* Functions */
+.snp-note-content .hljs-title,
+.snp-note-content .hljs-title.function_ {
+  color: #d2a8ff !important;
+}
+
+/* Class names */
+.snp-note-content .hljs-title.class_,
+.snp-note-content .hljs-class .hljs-title {
+  color: #ffa657 !important;
+}
+
+/* Variables, params */
+.snp-note-content .hljs-variable,
+.snp-note-content .hljs-params {
+  color: #e6edf3 !important;
+}
+
+/* Tags (HTML/JSX) */
+.snp-note-content .hljs-tag {
+  color: #7ee787 !important;
+}
+
+/* Attributes */
+.snp-note-content .hljs-attr {
+  color: #79c0ff !important;
+}
+
+/* Built-ins */
+.snp-note-content .hljs-built_in {
+  color: #ffa657 !important;
+}
+
+/* Type annotations */
+.snp-note-content .hljs-type {
+  color: #ffa657 !important;
+}
+
+/* CSS properties */
+.snp-note-content .hljs-property {
+  color: #79c0ff !important;
+}
+
+/* CSS values */
+.snp-note-content .hljs-selector-class,
+.snp-note-content .hljs-selector-id {
+  color: #7ee787 !important;
+}
+
+/* Operators, punctuation */
+.snp-note-content .hljs-operator,
+.snp-note-content .hljs-punctuation {
+  color: #e6edf3 !important;
+  opacity: 0.7;
+}
+
+/* Deletion */
+.snp-note-content .hljs-deletion {
+  color: #ffa198 !important;
+  background: rgba(255, 123, 114, 0.1);
+}
+
+/* ============================================
+   TABLES
+   ============================================ */
+
+/* Scroll wrapper — wide tables ke liye */
+.snp-note-content .snp-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  margin: 1rem 0;
+  border-radius: var(--portal-radius-md);
+  border: 1px solid var(--sp-border);
+
+  scrollbar-width: thin;
+  scrollbar-color: var(--sp-border) transparent;
+}
+
+.snp-note-content .snp-table-wrapper::-webkit-scrollbar { height: 4px; }
+.snp-note-content .snp-table-wrapper::-webkit-scrollbar-thumb {
+  background: var(--sp-border);
+  border-radius: var(--portal-radius-full);
+}
+
+.snp-note-content .snp-table,
+.snp-note-content table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--portal-text-sm);
+  white-space: nowrap; /* table rows wrap nahi hongi */
+}
+
+.snp-note-content th {
+  background: var(--sp-bg-sidebar);
+  color: #fff;
+  padding: var(--portal-space-3) var(--portal-space-4);
+  text-align: left;
+  font-weight: 600;
+  font-size: var(--portal-text-xs);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.snp-note-content td {
+  padding: var(--portal-space-2) var(--portal-space-4);
+  border-bottom: 1px solid var(--sp-border);
+  color: var(--sp-subtext);
+}
+
+.snp-note-content tr:last-child td { border-bottom: none; }
+.snp-note-content tr:nth-child(even) td { background: var(--sp-hover); }
+
+/* ============================================
+   NOTE IMAGE
+   ============================================ */
+
+.snp-note-content .snp-note-img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--portal-radius-md);
+  border: 1px solid var(--sp-border);
+  margin: 1rem 0;
+}
+
+/* ============================================
+   MOBILE OVERLAY
+   ============================================ */
+
+.snp-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  z-index: calc(var(--portal-z-sidebar) - 1);
+  backdrop-filter: blur(2px);
+  cursor: pointer;
+}
+
+@media (min-width: 769px) {
+  .snp-overlay { display: none !important; }
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+
+.snp-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  text-align: center;
+  padding: var(--portal-space-10) var(--portal-space-6);
+  gap: var(--portal-space-3);
+}
+
+.snp-empty-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--portal-radius-xl);
+  background: var(--sp-active-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sp-accent);
+  margin-bottom: var(--portal-space-2);
+}
+
+.snp-empty-title {
+  font-size: var(--portal-text-lg);
+  font-weight: 700;
+  color: var(--sp-text);
+  letter-spacing: -0.01em;
+}
+
+.snp-empty-sub {
+  font-size: var(--portal-text-sm);
+  color: var(--sp-muted);
+  max-width: 260px;
+  line-height: 1.65;
+}
+
+.snp-empty-hint {
+  font-size: var(--portal-text-sm);
+  font-weight: 500;
+  padding: var(--portal-space-2) var(--portal-space-4);
+  border-radius: var(--portal-radius-md);
+  background: var(--sp-active-bg);
+  color: var(--sp-active-fg);
+  border: 1px solid var(--sp-border);
+  cursor: pointer;
+  transition: background var(--portal-transition-fast);
+}
+
+.snp-empty-hint:hover { background: rgb(16 185 129 / 0.18); }
+
+/* ============================================
+   LOADER
+   ============================================ */
+
+.snp-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: var(--portal-space-3);
+  padding: var(--portal-space-10);
+}
+
+.snp-spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid var(--sp-border);
+  border-top-color: var(--sp-accent);
+  border-radius: 50%;
+  animation: snpSpin 0.7s linear infinite;
+}
+
+.snp-loader-text {
+  font-size: var(--portal-text-sm);
+  color: var(--sp-muted);
+}
+
+.snp-sb-empty {
+  padding: var(--portal-space-8) var(--portal-space-4);
+  text-align: center;
+}
+
+.snp-sb-empty-emoji {
+  font-size: 1.75rem;
+  margin-bottom: var(--portal-space-2);
+}
+
+.snp-sb-empty-text {
+  font-size: var(--portal-text-xs);
+  color: var(--sp-muted);
+  line-height: 1.6;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes snpFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes snpSpin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes snpSkel {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.9; }
+}
+
+.snp-fade-in {
+  animation: snpFadeIn 0.25s ease forwards;
+}
+
+/* ============================================
+   PRINT
+   ============================================ */
+
+@media print {
+  .snp-no-print { display: none !important; }
+}

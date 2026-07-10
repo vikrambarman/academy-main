@@ -1,0 +1,791 @@
+/* src/styles/portal/student-portal.css */
+
+/* ============================================
+   STUDENT PORTAL — CSS CUSTOM PROPERTIES
+   Portal variables ke upar build karta hai
+   ============================================ */
+
+/* Dark mode (default) */
+.sp-root {
+  /* Backgrounds */
+  --sp-bg:          #0B1628;
+  --sp-surface:     #112040;
+  --sp-surface2:    #162848;
+  --sp-border:      #1E3560;
+  --sp-border2:     #2A4A80;
+
+  /* Brand accent — blue */
+  --sp-accent:      var(--portal-student-accent, #1A56DB);
+  --sp-accent2:     #3B82F6;
+  --sp-accent-glow: rgb(26 86 219 / 0.12);
+
+  /* Text */
+  --sp-text:        #E8F0FE;
+  --sp-subtext:     #94A3B8;
+  --sp-muted:       #4E6585;
+
+  /* States */
+  --sp-hover:       rgb(26 86 219 / 0.07);
+  --sp-active-bg:   rgb(26 86 219 / 0.16);
+  --sp-active-fg:   #60A5FA;
+
+  /* Semantic */
+  --sp-danger:      #EF4444;
+  --sp-success:     #22C55E;
+  --sp-warn:        #F59E0B;
+
+  /* Layout */
+  --sp-sb-w:        240px;
+  --sp-sb-w-col:    64px;
+  --sp-top-h:       58px;
+  --sp-strip-h:     40px;
+}
+
+/* Light mode */
+.sp-root.light {
+  --sp-bg:          #EFF6FF;
+  --sp-surface:     #FFFFFF;
+  --sp-surface2:    #F8FAFC;
+  --sp-border:      #BFDBFE;
+  --sp-border2:     #93C5FD;
+  --sp-accent:      #1A56DB;
+  --sp-accent2:     #3B82F6;
+  --sp-accent-glow: rgb(26 86 219 / 0.08);
+  --sp-text:        #0F172A;
+  --sp-subtext:     #475569;
+  --sp-muted:       #94A3B8;
+  --sp-hover:       #EFF6FF;
+  --sp-active-bg:   #DBEAFE;
+  --sp-active-fg:   #1D4ED8;
+  --sp-danger:      #DC2626;
+  --sp-success:     #059669;
+  --sp-warn:        #D97706;
+}
+
+/* ============================================
+   ROOT SHELL
+   ============================================ */
+
+.sp-root {
+  font-family:  var(--portal-font);
+  background:   var(--sp-bg);
+  color:        var(--sp-text);
+  min-height:   100vh;
+}
+
+.sp-root * {
+  box-sizing: border-box;
+}
+
+/* ============================================
+   SIDEBAR
+   ============================================ */
+
+.sp-sidebar {
+  position:   fixed;
+  top:        0;
+  left:       0;
+  z-index:    var(--portal-z-sidebar);
+  height:     100vh;
+  width:      var(--sp-sb-w);
+  background: var(--sp-surface);
+  border-right: 1px solid var(--sp-border);
+  display:    flex;
+  flex-direction: column;
+  transition:
+    width var(--portal-transition-slow),
+    transform var(--portal-transition-slow);
+
+  /* Top accent line */
+  border-top: 3px solid var(--sp-accent);
+}
+
+.sp-sidebar.collapsed {
+  width: var(--sp-sb-w-col);
+}
+
+@media (max-width: 1023px) {
+  .sp-sidebar {
+    transform: translateX(-100%);
+    box-shadow: var(--portal-shadow-lg);
+  }
+
+  .sp-sidebar.mobile-open {
+    transform: translateX(0);
+    width: var(--sp-sb-w) !important;
+  }
+}
+
+/* ── Brand row ── */
+.sp-brand {
+  height:      var(--sp-top-h);
+  padding:     0 var(--portal-space-4);
+  display:     flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--sp-border);
+  flex-shrink: 0;
+}
+
+.sp-brand-logo {
+  display:     flex;
+  align-items: center;
+  gap:         var(--portal-space-3);
+  overflow:    hidden;
+  min-width:   0;
+}
+
+.sp-brand-icon {
+  width:         34px;
+  height:        34px;
+  border-radius: var(--portal-radius-md);
+  flex-shrink:   0;
+  background:    linear-gradient(135deg, var(--sp-accent), var(--sp-accent2));
+  display:       flex;
+  align-items:   center;
+  justify-content: center;
+  font-size:     15px;
+  font-weight:   700;
+  color:         #fff;
+  letter-spacing: -0.02em;
+}
+
+.sp-brand-name {
+  font-size:   13px;
+  font-weight: 700;
+  color:       var(--sp-text);
+  white-space: nowrap;
+  overflow:    hidden;
+  letter-spacing: -0.01em;
+  transition:  opacity var(--portal-transition-base),
+               width var(--portal-transition-base);
+}
+
+.sp-sidebar.collapsed .sp-brand-name {
+  opacity: 0;
+  width:   0;
+}
+
+/* Collapse toggle */
+.sp-collapse-btn {
+  width:         26px;
+  height:        26px;
+  border-radius: var(--portal-radius-md);
+  border:        1px solid var(--sp-border);
+  background:    transparent;
+  cursor:        pointer;
+  display:       flex;
+  align-items:   center;
+  justify-content: center;
+  color:         var(--sp-muted);
+  flex-shrink:   0;
+  transition:
+    background var(--portal-transition-fast),
+    color var(--portal-transition-fast),
+    transform var(--portal-transition-base);
+}
+
+.sp-collapse-btn:hover {
+  background: var(--sp-hover);
+  color:      var(--sp-accent2);
+}
+
+.sp-sidebar.collapsed .sp-collapse-btn {
+  transform: rotate(180deg);
+}
+
+/* ── Student card (sidebar) ── */
+.sp-student-card {
+  margin:        var(--portal-space-3) var(--portal-space-3);
+  padding:       var(--portal-space-3);
+  background:    var(--sp-hover);
+  border:        1px solid var(--sp-border);
+  border-radius: var(--portal-radius-lg);
+  display:       flex;
+  align-items:   center;
+  gap:           var(--portal-space-3);
+  overflow:      hidden;
+  flex-shrink:   0;
+  transition:    padding var(--portal-transition-base);
+}
+
+.sp-student-info {
+  overflow:   hidden;
+  flex:       1;
+  min-width:  0;
+  transition: opacity var(--portal-transition-base);
+}
+
+.sp-student-name {
+  font-size:     var(--portal-text-xs);
+  font-weight:   700;
+  color:         var(--sp-text);
+  white-space:   nowrap;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+}
+
+.sp-student-id {
+  font-size:  10px;
+  color:      var(--sp-muted);
+  margin-top: 2px;
+}
+
+.sp-sidebar.collapsed .sp-student-card {
+  padding:         var(--portal-space-2);
+  justify-content: center;
+}
+
+.sp-sidebar.collapsed .sp-student-info {
+  display: none;
+}
+
+/* ── Navigation ── */
+.sp-nav {
+  flex:           1;
+  overflow-y:     auto;
+  padding:        var(--portal-space-2) var(--portal-space-3) var(--portal-space-6);
+  scrollbar-width: none;
+}
+
+.sp-nav::-webkit-scrollbar { display: none; }
+
+.sp-nav-section {
+  margin-bottom: var(--portal-space-5);
+}
+
+.sp-nav-section-title {
+  font-size:       10px;
+  font-weight:     700;
+  letter-spacing:  0.1em;
+  text-transform:  uppercase;
+  color:           var(--sp-muted);
+  padding:         0 var(--portal-space-3);
+  margin-bottom:   var(--portal-space-2);
+  white-space:     nowrap;
+  overflow:        hidden;
+  transition:
+    opacity var(--portal-transition-base),
+    height var(--portal-transition-base);
+}
+
+.sp-sidebar.collapsed .sp-nav-section-title {
+  opacity:  0;
+  height:   0;
+  margin:   0;
+  overflow: hidden;
+}
+
+/* Nav link item */
+.sp-nav-item {
+  display:        flex;
+  align-items:    center;
+  gap:            var(--portal-space-3);
+  padding:        var(--portal-space-2) var(--portal-space-3);
+  border-radius:  var(--portal-radius-md);
+  font-size:      var(--portal-text-sm);
+  font-weight:    500;
+  color:          var(--sp-subtext);
+  text-decoration: none;
+  cursor:         pointer;
+  white-space:    nowrap;
+  overflow:       hidden;
+  margin-bottom:  2px;
+  position:       relative;
+  border:         1px solid transparent;
+  transition:
+    background var(--portal-transition-fast),
+    color var(--portal-transition-fast),
+    border-color var(--portal-transition-fast);
+}
+
+.sp-nav-item:hover:not(.disabled) {
+  background: var(--sp-hover);
+  color:      var(--sp-text);
+}
+
+/* Active state */
+.sp-nav-item.active {
+  background:  var(--sp-active-bg);
+  color:       var(--sp-active-fg);
+  font-weight: 600;
+  border-color: rgb(26 86 219 / 0.2);
+}
+
+/* Active left indicator */
+.sp-nav-item.active::before {
+  content:      '';
+  position:     absolute;
+  left:         0;
+  top:          50%;
+  transform:    translateY(-50%);
+  width:        3px;
+  height:       60%;
+  border-radius: 0 3px 3px 0;
+  background:   var(--sp-accent2);
+}
+
+.sp-nav-item.disabled {
+  opacity: 0.4;
+  cursor:  not-allowed;
+  pointer-events: none;
+}
+
+/* Icon */
+.sp-nav-icon {
+  width:      18px;
+  height:     18px;
+  flex-shrink: 0;
+  opacity:    0.8;
+  transition: opacity var(--portal-transition-fast);
+}
+
+.sp-nav-item:hover .sp-nav-icon,
+.sp-nav-item.active .sp-nav-icon {
+  opacity: 1;
+}
+
+/* Label */
+.sp-nav-label {
+  flex:       1;
+  overflow:   hidden;
+  transition: opacity var(--portal-transition-base),
+              width var(--portal-transition-base);
+}
+
+.sp-sidebar.collapsed .sp-nav-label {
+  opacity:  0;
+  width:    0;
+  overflow: hidden;
+}
+
+/* Badge (Soon, New etc.) */
+.sp-nav-badge {
+  font-size:     9px;
+  font-weight:   700;
+  color:         var(--sp-muted);
+  background:    var(--sp-border);
+  padding:       2px var(--portal-space-2);
+  border-radius: var(--portal-radius-full);
+  flex-shrink:   0;
+  letter-spacing: 0.05em;
+}
+
+.sp-sidebar.collapsed .sp-nav-badge {
+  display: none;
+}
+
+/* ── Logout area ── */
+.sp-sb-logout {
+  padding:     var(--portal-space-3);
+  border-top:  1px solid var(--sp-border);
+  flex-shrink: 0;
+}
+
+.sp-sb-logout-btn {
+  display:        flex;
+  align-items:    center;
+  gap:            var(--portal-space-3);
+  width:          100%;
+  padding:        var(--portal-space-2) var(--portal-space-3);
+  border-radius:  var(--portal-radius-md);
+  border:         none;
+  background:     transparent;
+  cursor:         pointer;
+  font-family:    var(--portal-font);
+  font-size:      var(--portal-text-sm);
+  font-weight:    500;
+  color:          var(--sp-danger);
+  white-space:    nowrap;
+  overflow:       hidden;
+  transition:     background var(--portal-transition-fast);
+}
+
+.sp-sb-logout-btn:hover {
+  background: rgb(239 68 68 / 0.08);
+}
+
+.sp-sidebar.collapsed .sp-sb-logout-btn {
+  justify-content: center;
+  padding: var(--portal-space-2);
+}
+
+.sp-sidebar.collapsed .sp-sb-logout-label {
+  display: none;
+}
+
+/* ============================================
+   AVATAR
+   ============================================ */
+
+.sp-avatar {
+  border-radius: var(--portal-radius-full);
+  overflow:      hidden;
+  flex-shrink:   0;
+  display:       block;
+}
+
+.sp-avatar img {
+  width:       100%;
+  height:      100%;
+  object-fit:  cover;
+  display:     block;
+}
+
+.sp-avatar-fallback {
+  width:           100%;
+  height:          100%;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  background:      linear-gradient(
+    135deg,
+    var(--sp-accent),
+    var(--sp-accent2)
+  );
+  color:       #fff;
+  font-weight: 700;
+  font-family: var(--portal-font);
+}
+
+/* ============================================
+   MAIN BODY
+   ============================================ */
+
+.sp-body {
+  margin-left: var(--sp-sb-w);
+  min-height:  100vh;
+  display:     flex;
+  flex-direction: column;
+  transition:  margin-left var(--portal-transition-slow);
+}
+
+.sp-body.collapsed {
+  margin-left: var(--sp-sb-w-col);
+}
+
+@media (max-width: 1023px) {
+  .sp-body,
+  .sp-body.collapsed {
+    margin-left: 0;
+  }
+}
+
+/* ============================================
+   TOPBAR
+   ============================================ */
+
+.sp-topbar {
+  height:      var(--sp-top-h);
+  background:  var(--sp-surface);
+  border-bottom: 1px solid var(--sp-border);
+  padding:     0 var(--portal-space-5);
+  display:     flex;
+  align-items: center;
+  justify-content: space-between;
+  position:    sticky;
+  top:         0;
+  z-index:     var(--portal-z-topbar);
+  flex-shrink: 0;
+}
+
+.sp-topbar-left {
+  display:     flex;
+  align-items: center;
+  gap:         var(--portal-space-3);
+}
+
+/* Mobile menu toggle */
+.sp-mobile-toggle {
+  display:         none;
+  width:           34px;
+  height:          34px;
+  border-radius:   var(--portal-radius-md);
+  border:          1px solid var(--sp-border);
+  background:      transparent;
+  cursor:          pointer;
+  align-items:     center;
+  justify-content: center;
+  color:           var(--sp-subtext);
+  transition:
+    background var(--portal-transition-fast),
+    color var(--portal-transition-fast);
+}
+
+.sp-mobile-toggle:hover {
+  background: var(--sp-hover);
+  color:      var(--sp-accent2);
+}
+
+@media (max-width: 1023px) {
+  .sp-mobile-toggle { display: flex; }
+}
+
+/* Breadcrumb */
+.sp-breadcrumb {
+  display:     flex;
+  align-items: center;
+  gap:         var(--portal-space-2);
+  font-size:   var(--portal-text-sm);
+  font-weight: 500;
+  color:       var(--sp-muted);
+}
+
+.sp-breadcrumb-current {
+  color:       var(--sp-text);
+  font-weight: 600;
+}
+
+/* Topbar right */
+.sp-topbar-right {
+  display:     flex;
+  align-items: center;
+  gap:         var(--portal-space-2);
+}
+
+/* Icon buttons */
+.sp-topbar-icon-btn {
+  width:           34px;
+  height:          34px;
+  border-radius:   var(--portal-radius-md);
+  border:          1px solid var(--sp-border);
+  background:      transparent;
+  cursor:          pointer;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  color:           var(--sp-subtext);
+  position:        relative;
+  transition:
+    background var(--portal-transition-fast),
+    color var(--portal-transition-fast);
+}
+
+.sp-topbar-icon-btn:hover {
+  background: var(--sp-hover);
+  color:      var(--sp-accent2);
+}
+
+/* Notification dot */
+.sp-notif-dot {
+  position:      absolute;
+  top:           8px;
+  right:         8px;
+  width:         6px;
+  height:        6px;
+  border-radius: var(--portal-radius-full);
+  background:    var(--sp-accent2);
+  border:        1.5px solid var(--sp-surface);
+}
+
+/* ── Profile trigger button ── */
+.sp-profile-trigger {
+  display:      flex;
+  align-items:  center;
+  gap:          var(--portal-space-2);
+  padding:      5px var(--portal-space-3) 5px 5px;
+  border:       1px solid var(--sp-border);
+  border-radius: var(--portal-radius-lg);
+  background:   transparent;
+  cursor:       pointer;
+  font-family:  var(--portal-font);
+  transition:
+    background var(--portal-transition-fast),
+    border-color var(--portal-transition-fast);
+}
+
+.sp-profile-trigger:hover {
+  background:   var(--sp-hover);
+  border-color: var(--sp-border2);
+}
+
+.sp-profile-name {
+  font-size:   var(--portal-text-xs);
+  font-weight: 700;
+  color:       var(--sp-text);
+  white-space: nowrap;
+}
+
+.sp-profile-id {
+  font-size:  10px;
+  color:      var(--sp-muted);
+  margin-top: 1px;
+}
+
+/* ── Profile dropdown ── */
+.sp-profile-dropdown {
+  position:      absolute;
+  right:         0;
+  top:           calc(100% + var(--portal-space-2));
+  width:         220px;
+  background:    var(--sp-surface);
+  border:        1px solid var(--sp-border);
+  border-radius: var(--portal-radius-xl);
+  box-shadow:    var(--portal-shadow-lg);
+  overflow:      hidden;
+  z-index:       var(--portal-z-dropdown);
+  animation:     spDropIn var(--portal-transition-base);
+}
+
+@keyframes spDropIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.sp-dd-header {
+  padding:        var(--portal-space-4) var(--portal-space-4);
+  border-bottom:  1px solid var(--sp-border);
+  background:     var(--sp-hover);
+}
+
+.sp-dd-name {
+  font-size:   var(--portal-text-sm);
+  font-weight: 700;
+  color:       var(--sp-text);
+}
+
+.sp-dd-id {
+  font-size:  11px;
+  color:      var(--sp-muted);
+  margin-top: var(--portal-space-1);
+}
+
+.sp-dd-item {
+  display:        flex;
+  align-items:    center;
+  gap:            var(--portal-space-3);
+  padding:        var(--portal-space-3) var(--portal-space-4);
+  font-size:      var(--portal-text-sm);
+  font-weight:    500;
+  color:          var(--sp-subtext);
+  text-decoration: none;
+  background:     none;
+  border:         none;
+  width:          100%;
+  cursor:         pointer;
+  font-family:    var(--portal-font);
+  text-align:     left;
+  transition:     background var(--portal-transition-fast),
+                  color var(--portal-transition-fast);
+}
+
+.sp-dd-item:hover {
+  background: var(--sp-hover);
+  color:      var(--sp-text);
+}
+
+.sp-dd-item.danger        { color: var(--sp-danger); }
+.sp-dd-item.danger:hover  { background: rgb(239 68 68 / 0.08); }
+
+/* ============================================
+   INFO STRIP (Below topbar)
+   ============================================ */
+
+.sp-info-strip {
+  height:       var(--sp-strip-h);
+  background:   var(--sp-surface);
+  border-bottom: 1px solid var(--sp-border);
+  padding:      0 var(--portal-space-5);
+  display:      flex;
+  align-items:  center;
+  flex-shrink:  0;
+  overflow-x:   auto;
+  scrollbar-width: none;
+}
+
+.sp-info-strip::-webkit-scrollbar { display: none; }
+
+.sp-info-chip {
+  display:     flex;
+  align-items: center;
+  gap:         var(--portal-space-2);
+  padding:     0 var(--portal-space-4);
+  height:      100%;
+  border-right: 1px solid var(--sp-border);
+  font-size:   11px;
+  font-weight: 400;
+  color:       var(--sp-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.sp-info-chip:first-child { padding-left: 0; }
+.sp-info-chip:last-child  { border-right: none; }
+
+.sp-info-chip-icon {
+  width:      16px;
+  height:     16px;
+  flex-shrink: 0;
+  color:      var(--sp-accent2);
+  opacity:    0.8;
+}
+
+.sp-info-chip-val {
+  font-weight:  600;
+  color:        var(--sp-text);
+  margin-left:  var(--portal-space-1);
+}
+
+.sp-info-chip-val.danger  { color: var(--sp-danger); }
+.sp-info-chip-val.success { color: var(--sp-success); }
+
+/* ============================================
+   MAIN CONTENT AREA
+   ============================================ */
+
+.sp-content {
+  flex:        1;
+  overflow-y:  auto;
+  padding:     var(--portal-space-6);
+  background:  var(--sp-bg);
+  scrollbar-width: thin;
+  scrollbar-color: var(--sp-border) transparent;
+}
+
+.sp-content::-webkit-scrollbar       { width: 4px; }
+.sp-content::-webkit-scrollbar-track { background: transparent; }
+.sp-content::-webkit-scrollbar-thumb {
+  background:    var(--sp-border);
+  border-radius: var(--portal-radius-full);
+}
+
+.sp-content-inner {
+  max-width: 1200px;
+  margin:    0 auto;
+}
+
+/* ============================================
+   MOBILE OVERLAY
+   ============================================ */
+
+.sp-overlay {
+  position:        fixed;
+  inset:           0;
+  background:      rgb(15 23 42 / 0.65);
+  z-index:         calc(var(--portal-z-sidebar) - 1);
+  backdrop-filter: blur(3px);
+  animation:       spFadeIn var(--portal-transition-base);
+}
+
+@keyframes spFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 640px) {
+  .sp-content {
+    padding: var(--portal-space-4);
+  }
+
+  .sp-topbar {
+    padding: 0 var(--portal-space-4);
+  }
+
+  .sp-info-strip {
+    padding: 0 var(--portal-space-4);
+  }
+}

@@ -1,0 +1,228 @@
+/* src/styles/portal/portal-utilities.css */
+
+/* ============================================
+   PORTAL-SPECIFIC UTILITIES
+   ============================================ */
+
+/* Data display */
+.portal-key-value {
+    display: flex;
+    flex-direction: column;
+    gap: var(--portal-space-1);
+}
+
+.portal-key-value__key {
+    font-size: var(--portal-text-xs);
+    font-weight: 600;
+    color: var(--portal-text-tertiary);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.portal-key-value__value {
+    font-size: var(--portal-text-sm);
+    font-weight: 500;
+    color: var(--portal-text-primary);
+}
+
+/* Divider */
+.portal-divider {
+    border: none;
+    border-top: 1px solid var(--portal-border);
+    margin: var(--portal-space-5) 0;
+}
+
+/* Scrollable panel */
+.portal-scroll-y {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--portal-border) transparent;
+}
+
+/* Text utilities */
+.portal-text-xs {
+    font-size: var(--portal-text-xs);
+}
+
+.portal-text-sm {
+    font-size: var(--portal-text-sm);
+}
+
+.portal-text-base {
+    font-size: var(--portal-text-base);
+}
+
+.portal-text-lg {
+    font-size: var(--portal-text-lg);
+}
+
+.portal-text-primary {
+    color: var(--portal-text-primary);
+}
+
+.portal-text-secondary {
+    color: var(--portal-text-secondary);
+}
+
+.portal-text-muted {
+    color: var(--portal-text-tertiary);
+}
+
+.portal-text-success {
+    color: var(--portal-success);
+}
+
+.portal-text-error {
+    color: var(--portal-error);
+}
+
+.portal-text-warning {
+    color: var(--portal-warning);
+}
+
+/* Font weight */
+.portal-font-medium {
+    font-weight: 500;
+}
+
+.portal-font-semibold {
+    font-weight: 600;
+}
+
+.portal-font-bold {
+    font-weight: 700;
+}
+
+/* Spacing */
+.portal-mb-3 {
+    margin-bottom: var(--portal-space-3);
+}
+
+.portal-mb-4 {
+    margin-bottom: var(--portal-space-4);
+}
+
+.portal-mb-6 {
+    margin-bottom: var(--portal-space-6);
+}
+
+.portal-mt-4 {
+    margin-top: var(--portal-space-4);
+}
+
+.portal-mt-6 {
+    margin-top: var(--portal-space-6);
+}
+
+.portal-gap-3 {
+    gap: var(--portal-space-3);
+}
+
+.portal-gap-4 {
+    gap: var(--portal-space-4);
+}
+
+/* Flex helpers */
+.portal-flex {
+    display: flex;
+}
+
+.portal-flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.portal-flex-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.portal-flex-start {
+    display: flex;
+    align-items: center;
+    gap: var(--portal-space-3);
+}
+
+.portal-flex-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.portal-flex-wrap {
+    flex-wrap: wrap;
+}
+
+.portal-flex-1 {
+    flex: 1;
+}
+
+/* Surface */
+.portal-surface {
+    background: var(--portal-surface);
+    border: 1px solid var(--portal-border);
+    border-radius: var(--portal-radius-lg);
+}
+
+/* Empty state */
+.portal-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--portal-space-12) var(--portal-space-6);
+    text-align: center;
+    gap: var(--portal-space-3);
+}
+
+.portal-empty-state__icon {
+    font-size: 3rem;
+    opacity: 0.3;
+}
+
+.portal-empty-state__title {
+    font-size: var(--portal-text-base);
+    font-weight: 600;
+    color: var(--portal-text-primary);
+}
+
+.portal-empty-state__desc {
+    font-size: var(--portal-text-sm);
+    color: var(--portal-text-tertiary);
+    max-width: 320px;
+}
+
+/* Truncate */
+.portal-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Print */
+@media print {
+
+    .portal-sidebar,
+    .portal-topbar,
+    .portal-no-print {
+        display: none !important;
+    }
+
+    .portal-body {
+        margin-left: 0 !important;
+    }
+}
+
+/* Responsive hide */
+@media (max-width: 768px) {
+    .portal-hide-mobile {
+        display: none;
+    }
+}
+
+@media (min-width: 769px) {
+    .portal-show-mobile-only {
+        display: none;
+    }
+}

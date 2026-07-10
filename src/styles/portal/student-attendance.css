@@ -1,0 +1,608 @@
+/* src/styles/portal/student-attendance.css */
+
+/* ============================================
+   STUDENT ATTENDANCE PAGE
+   ============================================ */
+
+.sap-root {
+  font-family:    var(--portal-font);
+  color:          var(--sp-text);
+  display:        flex;
+  flex-direction: column;
+  gap:            var(--portal-space-5);
+  max-width:      1100px;
+  margin:         0 auto;
+  padding-bottom: var(--portal-space-10);
+}
+
+/* ── Page header ── */
+.sap-page-header {
+  display:        flex;
+  flex-direction: column;
+  gap:            var(--portal-space-1);
+}
+
+.sap-title {
+  font-size:     clamp(1.3rem, 2.5vw, 1.65rem);
+  font-weight:   700;
+  color:         var(--sp-text);
+  margin:        0;
+  letter-spacing: -0.02em;
+}
+
+.sap-sub {
+  font-size: var(--portal-text-sm);
+  color:     var(--sp-muted);
+  margin:    0;
+}
+
+/* ============================================
+   COURSE TABS
+   ============================================ */
+
+.sap-tabs {
+  display:  flex;
+  gap:      var(--portal-space-2);
+  flex-wrap: wrap;
+}
+
+.sap-tab {
+  font-family:   var(--portal-font);
+  font-size:     var(--portal-text-sm);
+  font-weight:   600;
+  padding:       var(--portal-space-2) var(--portal-space-4);
+  border-radius: var(--portal-radius-full);
+  border:        1px solid var(--sp-border);
+  background:    var(--sp-surface);
+  color:         var(--sp-muted);
+  cursor:        pointer;
+  transition:
+    background var(--portal-transition-fast),
+    color var(--portal-transition-fast),
+    border-color var(--portal-transition-fast);
+  white-space:   nowrap;
+}
+
+.sap-tab:hover:not(.active) {
+  border-color: var(--sp-border2);
+  color:        var(--sp-text);
+  background:   var(--sp-hover);
+}
+
+.sap-tab.active {
+  background:   var(--sp-active-bg);
+  color:        var(--sp-active-fg);
+  border-color: var(--sp-border2);
+  font-weight:  700;
+}
+
+/* ============================================
+   SUMMARY SECTION
+   ============================================ */
+
+.sap-summary {
+  display:  flex;
+  gap:      var(--portal-space-4);
+  flex-wrap: wrap;
+}
+
+/* ── Circular ring card ── */
+.sap-ring-card {
+  flex:          1;
+  min-width:     240px;
+  border:        1px solid;
+  border-radius: var(--portal-radius-xl);
+  padding:       var(--portal-space-5) var(--portal-space-6);
+  display:       flex;
+  align-items:   center;
+  gap:           var(--portal-space-5);
+  transition:    box-shadow var(--portal-transition-base);
+}
+
+.sap-ring-card:hover {
+  box-shadow: var(--portal-shadow-sm);
+}
+
+.sap-ring-wrap {
+  position:    relative;
+  flex-shrink: 0;
+  width:       100px;
+  height:      100px;
+}
+
+.sap-ring-svg {
+  display: block;
+}
+
+.sap-ring-track {
+  /* static track circle */
+}
+
+.sap-ring-fill {
+  transition: stroke-dashoffset 0.9s cubic-bezier(.4, 0, .2, 1);
+}
+
+.sap-ring-center {
+  position: absolute;
+  inset:    0;
+  display:  flex;
+  align-items:     center;
+  justify-content: center;
+  flex-direction:  column;
+  gap:             2px;
+}
+
+.sap-ring-pct {
+  font-size:   1.35rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Ring info text */
+.sap-ring-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.sap-ring-label {
+  font-size:     var(--portal-text-sm);
+  font-weight:   700;
+  color:         var(--sp-text);
+  margin-bottom: var(--portal-space-1);
+  letter-spacing: -0.01em;
+}
+
+.sap-ring-course {
+  font-size:     var(--portal-text-xs);
+  color:         var(--sp-muted);
+  margin-bottom: var(--portal-space-2);
+  white-space:   nowrap;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+}
+
+.sap-ring-total {
+  font-size:  var(--portal-text-xs);
+  color:      var(--sp-subtext);
+}
+
+/* Warning pill */
+.sap-warn-pill {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           var(--portal-space-1);
+  font-size:     10px;
+  font-weight:   700;
+  color:         var(--sp-danger);
+  background:    rgb(239 68 68 / 0.08);
+  border:        1px solid rgb(239 68 68 / 0.2);
+  padding:       3px var(--portal-space-3);
+  border-radius: var(--portal-radius-md);
+  margin-top:    var(--portal-space-2);
+}
+
+/* ── Stats grid (2x2) ── */
+.sap-stat-grid {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;
+  gap:                   var(--portal-space-3);
+  flex:                  1;
+  min-width:             200px;
+  align-content:         start;
+}
+
+.sap-stat-card {
+  border:        1px solid;
+  border-radius: var(--portal-radius-lg);
+  padding:       var(--portal-space-4);
+  display:       flex;
+  flex-direction: column;
+  gap:           var(--portal-space-1);
+  transition:
+    box-shadow var(--portal-transition-base),
+    transform var(--portal-transition-base);
+}
+
+.sap-stat-card:hover {
+  box-shadow: var(--portal-shadow-xs);
+  transform:  translateY(-1px);
+}
+
+.sap-stat-val {
+  font-size:   1.5rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.sap-stat-label {
+  font-size:      9px;
+  font-weight:    700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color:          var(--sp-muted);
+}
+
+/* ============================================
+   RECORDS CARD
+   ============================================ */
+
+.sap-records-card {
+  background:    var(--sp-surface);
+  border:        1px solid var(--sp-border);
+  border-radius: var(--portal-radius-xl);
+  overflow:      hidden;
+}
+
+/* ── Month navigator ── */
+.sap-month-nav {
+  display:       flex;
+  align-items:   center;
+  gap:           var(--portal-space-3);
+  padding:       var(--portal-space-3) var(--portal-space-5);
+  border-bottom: 1px solid var(--sp-border);
+  background:    var(--sp-hover);
+}
+
+.sap-nav-btn {
+  width:           30px;
+  height:          30px;
+  border-radius:   var(--portal-radius-md);
+  border:          1px solid var(--sp-border);
+  background:      var(--sp-surface);
+  cursor:          pointer;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  color:           var(--sp-muted);
+  flex-shrink:     0;
+  transition:
+    background var(--portal-transition-fast),
+    border-color var(--portal-transition-fast),
+    color var(--portal-transition-fast);
+}
+
+.sap-nav-btn:hover:not(:disabled) {
+  border-color: var(--sp-border2);
+  color:        var(--sp-accent2);
+  background:   var(--sp-surface);
+}
+
+.sap-nav-btn:disabled {
+  opacity: 0.3;
+  cursor:  not-allowed;
+}
+
+.sap-month-label {
+  display:     flex;
+  align-items: center;
+  gap:         var(--portal-space-2);
+  font-size:   var(--portal-text-sm);
+  font-weight: 700;
+  color:       var(--sp-text);
+  flex:        1;
+  letter-spacing: -0.01em;
+}
+
+.sap-month-count {
+  font-size:   10px;
+  color:       var(--sp-muted);
+  font-weight: 600;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Month chips (mini summary) ── */
+.sap-month-chips {
+  display:       flex;
+  gap:           var(--portal-space-2);
+  flex-wrap:     wrap;
+  padding:       var(--portal-space-3) var(--portal-space-5);
+  border-bottom: 1px solid var(--sp-border);
+}
+
+.sap-chip {
+  font-size:     10px;
+  font-weight:   700;
+  padding:       3px var(--portal-space-3);
+  border-radius: var(--portal-radius-full);
+  border:        1px solid;
+  letter-spacing: 0.03em;
+}
+
+/* ============================================
+   TABLE HEADER & ROWS
+   ============================================ */
+
+/*
+  Columns:
+  1. Date         — 1.4fr
+  2. Status       — 100px
+  3. In → Out     — 140px
+  4. Duration     — 80px
+  5. Marked Via   — 90px
+
+  Total = responsive grid
+*/
+
+.sap-thead {
+  display:               grid;
+  grid-template-columns: 1.4fr 100px 140px 80px 90px;
+  gap:                   var(--portal-space-2);
+  padding:               var(--portal-space-2) var(--portal-space-5);
+  background:            var(--sp-hover);
+  font-size:             9px;
+  font-weight:           700;
+  text-transform:        uppercase;
+  letter-spacing:        0.1em;
+  color:                 var(--sp-muted);
+  border-bottom:         1px solid var(--sp-border);
+}
+
+.sap-row {
+  display:               grid;
+  grid-template-columns: 1.4fr 100px 140px 80px 90px;
+  gap:                   var(--portal-space-2);
+  padding:               var(--portal-space-3) var(--portal-space-5);
+  border-top:            1px solid var(--sp-border);
+  align-items:           center;
+  transition:            background var(--portal-transition-fast);
+}
+
+.sap-row:hover {
+  background: var(--sp-hover);
+}
+
+/* ── Column: Date ── */
+.sap-col-date {
+  font-size:   var(--portal-text-sm);
+  color:       var(--sp-subtext);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ── Column: Status badge ── */
+.sap-col-status {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           var(--portal-space-1);
+  font-size:     10px;
+  font-weight:   700;
+  padding:       3px var(--portal-space-3);
+  border-radius: var(--portal-radius-full);
+  border:        1px solid;
+  width:         fit-content;
+  letter-spacing: 0.03em;
+  white-space:   nowrap;
+}
+
+/* ── Column: In → Out time ── */
+.sap-col-time {
+  /* grid cell */
+}
+
+.sap-time-row {
+  display:     flex;
+  align-items: center;
+  gap:         var(--portal-space-1);
+  font-size:   11px;
+  color:       var(--sp-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.sap-time-in,
+.sap-time-out {
+  display:     flex;
+  align-items: center;
+  gap:         3px;
+}
+
+.sap-time-arrow {
+  color:   var(--sp-muted);
+  opacity: 0.5;
+  font-size: 10px;
+}
+
+/* ── Column: Duration badge ── */
+.sap-col-duration {
+  /* grid cell */
+}
+
+.sap-duration-badge {
+  display:       inline-flex;
+  align-items:   center;
+  font-size:     10px;
+  font-weight:   700;
+  padding:       3px var(--portal-space-2);
+  border-radius: var(--portal-radius-md);
+  background:    var(--sp-active-bg);
+  color:         var(--sp-active-fg);
+  border:        1px solid var(--sp-border2);
+  font-variant-numeric: tabular-nums;
+  white-space:   nowrap;
+}
+
+/* ── Column: Marked Via badge ── */
+.sap-col-marked {
+  /* grid cell */
+}
+
+.sap-marked-badge {
+  font-size:     9px;
+  font-weight:   700;
+  padding:       3px var(--portal-space-2);
+  border-radius: var(--portal-radius-md);
+  border:        1px solid;
+  display:       inline-flex;
+  align-items:   center;
+  gap:           3px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space:   nowrap;
+}
+
+.sap-marked-badge--qr {
+  background:   rgb(99 102 241 / 0.1);
+  color:        var(--sp-accent2);
+  border-color: rgb(99 102 241 / 0.25);
+}
+
+.sap-marked-badge--manual {
+  background:   rgb(107 114 128 / 0.1);
+  color:        var(--sp-muted);
+  border-color: var(--sp-border);
+}
+
+/* ── Text muted (dash placeholder) ── */
+.sap-dash {
+  color:     var(--sp-muted);
+  font-size: 11px;
+}
+
+/* ============================================
+   EMPTY / NO RECORDS
+   ============================================ */
+
+.sap-no-records {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             var(--portal-space-2);
+  padding:         var(--portal-space-8) var(--portal-space-6);
+  font-size:       var(--portal-text-sm);
+  color:           var(--sp-muted);
+}
+
+/* Full page empty */
+.sap-empty-state {
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  min-height:      280px;
+  text-align:      center;
+  padding:         var(--portal-space-10);
+  gap:             var(--portal-space-3);
+}
+
+.sap-empty-icon {
+  opacity: 0.15;
+  color:   var(--sp-text);
+}
+
+.sap-empty-title {
+  font-size:   1.2rem;
+  font-weight: 700;
+  color:       var(--sp-text);
+  letter-spacing: -0.01em;
+}
+
+.sap-empty-sub {
+  font-size: var(--portal-text-sm);
+  color:     var(--sp-muted);
+}
+
+/* ============================================
+   LOADER
+   ============================================ */
+
+.sap-loader {
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  padding:         var(--portal-space-12) 0;
+  gap:             var(--portal-space-4);
+}
+
+.sap-spinner {
+  width:         36px;
+  height:        36px;
+  border:        3px solid var(--sp-border);
+  border-top-color: var(--sp-accent2);
+  border-radius: var(--portal-radius-full);
+  animation:     sapSpin 0.7s linear infinite;
+}
+
+@keyframes sapSpin {
+  to { transform: rotate(360deg); }
+}
+
+.sap-loader-text {
+  font-size: var(--portal-text-sm);
+  color:     var(--sp-muted);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 900px) {
+  .sap-summary {
+    flex-direction: column;
+  }
+
+  .sap-stat-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  /* Hide Duration + Marked Via on tablet */
+  .sap-thead,
+  .sap-row {
+    grid-template-columns: 1.2fr 90px 120px;
+  }
+
+  .sap-col-duration,
+  .sap-col-marked {
+    display: none;
+  }
+
+  /* Duration + Marked hidden — col headers bhi */
+  .sap-thead span:nth-child(4),
+  .sap-thead span:nth-child(5) {
+    display: none;
+  }
+
+  .sap-ring-card {
+    flex-direction: column;
+    align-items:    flex-start;
+  }
+
+  .sap-stat-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .sap-month-nav {
+    padding: var(--portal-space-3) var(--portal-space-4);
+  }
+
+  .sap-thead,
+  .sap-row {
+    padding-inline: var(--portal-space-4);
+  }
+}
+
+@media (max-width: 500px) {
+  /* Hide In→Out on mobile — only Date + Status */
+  .sap-thead,
+  .sap-row {
+    grid-template-columns: 1fr 85px;
+  }
+
+  .sap-col-time {
+    display: none;
+  }
+
+  .sap-thead span:nth-child(3) {
+    display: none;
+  }
+
+  .sap-stat-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

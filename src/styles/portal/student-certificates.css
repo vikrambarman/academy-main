@@ -1,0 +1,597 @@
+/* ============================================
+   STUDENT CERTIFICATES PAGE
+   student-portal.css ke sp-root variables
+   pe depend karta hai
+   ============================================ */
+
+/* ── Root wrapper ── */
+.sc-root {
+  font-family:    var(--portal-font);
+  color:          var(--sp-text);
+  display:        flex;
+  flex-direction: column;
+  gap:            0;
+  max-width:      900px;
+  margin:         0 auto;
+  padding-bottom: var(--portal-space-10);
+}
+
+/* ── Page header ── */
+.sc-page-header {
+  margin-bottom: var(--portal-space-5);
+}
+
+.sc-page-title {
+  font-size:      clamp(1.2rem, 2.5vw, 1.5rem);
+  font-weight:    700;
+  color:          var(--sp-text);
+  display:        flex;
+  align-items:    center;
+  gap:            var(--portal-space-3);
+  margin-bottom:  var(--portal-space-1);
+  letter-spacing: -0.02em;
+  line-height:    1.2;
+}
+
+.sc-page-sub {
+  font-size:   var(--portal-text-sm);
+  color:       var(--sp-muted);
+  margin:      0;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+/* ============================================
+   SUMMARY STAT CARDS
+   ============================================ */
+
+.sc-summary {
+  display:               grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:                   var(--portal-space-4);
+  margin-bottom:         var(--portal-space-6);
+}
+
+.sc-stat {
+  background:    var(--sp-surface);
+  border:        1px solid var(--sp-border);
+  border-radius: var(--portal-radius-lg);
+  padding:       var(--portal-space-4) var(--portal-space-5);
+  position:      relative;
+  overflow:      hidden;
+  transition:
+    box-shadow var(--portal-transition-base),
+    transform  var(--portal-transition-base);
+}
+
+.sc-stat:hover {
+  box-shadow: var(--portal-shadow-sm);
+  transform:  translateY(-1px);
+}
+
+/* Colored top border */
+.sc-stat::before {
+  content:  '';
+  position: absolute;
+  top:      0;
+  left:     0;
+  right:    0;
+  height:   3px;
+}
+
+.sc-stat--blue::before {
+  background: linear-gradient(90deg, var(--sp-accent), var(--sp-accent2));
+}
+
+.sc-stat--green::before {
+  background: linear-gradient(90deg, #059669, #34D399);
+}
+
+.sc-stat--amber::before {
+  background: linear-gradient(90deg, #D97706, #FBBF24);
+}
+
+/* Stat icon */
+.sc-stat__icon {
+  width:           34px;
+  height:          34px;
+  border-radius:   var(--portal-radius-md);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  margin-bottom:   var(--portal-space-3);
+  flex-shrink:     0;
+}
+
+.sc-stat__icon--blue {
+  background: var(--sp-active-bg);
+  color:      var(--sp-accent2);
+}
+
+.sc-stat__icon--green {
+  background: rgba(34, 197, 94, 0.12);
+  color:      var(--sp-success);
+}
+
+.sc-stat__icon--amber {
+  background: rgba(245, 158, 11, 0.12);
+  color:      var(--sp-warn);
+}
+
+/* Stat label + value */
+.sc-stat__label {
+  font-size:      10px;
+  font-weight:    700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color:          var(--sp-muted);
+  margin-bottom:  var(--portal-space-1);
+}
+
+.sc-stat__value {
+  font-size:              1.6rem;
+  font-weight:            800;
+  color:                  var(--sp-text);
+  line-height:            1;
+  letter-spacing:         -0.03em;
+  font-variant-numeric:   tabular-nums;
+}
+
+.sc-stat__value--green { color: var(--sp-success); }
+.sc-stat__value--amber { color: var(--sp-warn); }
+
+/* ============================================
+   SECTION LABEL
+   ============================================ */
+
+.sc-section-label {
+  font-size:      var(--portal-text-xs);
+  font-weight:    700;
+  color:          var(--sp-muted);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  display:        flex;
+  align-items:    center;
+  gap:            var(--portal-space-2);
+  margin-bottom:  var(--portal-space-4);
+}
+
+.sc-section-label::after {
+  content:    '';
+  flex:       1;
+  height:     1px;
+  background: var(--sp-border);
+}
+
+/* ============================================
+   CERTIFICATE CARD
+   ============================================ */
+
+.sc-cert-card {
+  background:    var(--sp-surface);
+  border:        1px solid var(--sp-border);
+  border-radius: var(--portal-radius-xl);
+  overflow:      hidden;
+  margin-bottom: var(--portal-space-4);
+  transition:
+    box-shadow    var(--portal-transition-base),
+    border-color  var(--portal-transition-base);
+}
+
+.sc-cert-card:hover {
+  box-shadow:   var(--portal-shadow-md);
+  border-color: var(--sp-border2);
+}
+
+/* ── Card header band ── */
+.sc-cert-band {
+  padding:        var(--portal-space-4) var(--portal-space-5);
+  display:        flex;
+  align-items:    center;
+  justify-content: space-between;
+  gap:            var(--portal-space-3);
+  flex-wrap:      wrap;
+  border-bottom:  1px solid var(--sp-border);
+}
+
+.sc-cert-band--franchise {
+  background: var(--sp-active-bg);
+}
+
+.sc-cert-band--own {
+  background: rgba(245, 158, 11, 0.06);
+}
+
+.sc-cert-band--legacy {
+  background: var(--sp-active-bg);
+}
+
+.sc-cert-band-left {
+  display:     flex;
+  align-items: center;
+  gap:         var(--portal-space-3);
+}
+
+/* Authority icon box */
+.sc-auth-icon {
+  width:           40px;
+  height:          40px;
+  border-radius:   var(--portal-radius-md);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  flex-shrink:     0;
+  font-family:     var(--portal-font-mono);
+  font-size:       11px;
+  font-weight:     800;
+  color:           #fff;
+  letter-spacing:  -0.02em;
+}
+
+.sc-auth-icon--franchise { background: var(--sp-accent); }
+.sc-auth-icon--own       { background: var(--sp-warn); }
+
+/* Course name + authority name */
+.sc-cert-band-title {
+  font-size:     var(--portal-text-base);
+  font-weight:   700;
+  color:         var(--sp-text);
+  margin-bottom: 2px;
+  letter-spacing: -0.01em;
+}
+
+.sc-cert-band-auth {
+  font-size:   11px;
+  color:       var(--sp-muted);
+  font-weight: 500;
+}
+
+/* ── Card body ── */
+.sc-cert-body {
+  padding: var(--portal-space-5);
+}
+
+/* ── Pending notice ── */
+.sc-pending-notice {
+  display:       flex;
+  gap:           var(--portal-space-3);
+  align-items:   flex-start;
+  background:    rgba(245, 158, 11, 0.08);
+  border:        1px solid rgba(245, 158, 11, 0.22);
+  border-radius: var(--portal-radius-lg);
+  padding:       var(--portal-space-4);
+  margin-bottom: var(--portal-space-4);
+  font-size:     var(--portal-text-sm);
+  color:         var(--sp-warn);
+  line-height:   1.65;
+}
+
+.sc-pending-notice__icon {
+  flex-shrink: 0;
+  margin-top:  2px;
+}
+
+/* ── Registered body pills ── */
+.sc-reg-bodies {
+  display:       flex;
+  flex-wrap:     wrap;
+  gap:           var(--portal-space-2);
+  margin-bottom: var(--portal-space-4);
+}
+
+.sc-reg-pill {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           4px;
+  font-size:     10px;
+  font-weight:   700;
+  padding:       3px var(--portal-space-3);
+  border-radius: var(--portal-radius-full);
+  letter-spacing: 0.03em;
+}
+
+.sc-reg-pill--body {
+  background:   rgba(34, 197, 94, 0.10);
+  color:        var(--sp-success);
+  border:       1px solid rgba(34, 197, 94, 0.22);
+}
+
+.sc-reg-pill--institute {
+  background:   rgba(245, 158, 11, 0.10);
+  color:        var(--sp-warn);
+  border:       1px solid rgba(245, 158, 11, 0.22);
+}
+
+/* ── Info grid ── */
+.sc-info-grid {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;
+  gap:                   var(--portal-space-3);
+  margin-bottom:         var(--portal-space-4);
+}
+
+.sc-info-cell {
+  background:    var(--sp-hover);
+  border:        1px solid var(--sp-border);
+  border-radius: var(--portal-radius-md);
+  padding:       var(--portal-space-3) var(--portal-space-4);
+}
+
+.sc-info-cell__label {
+  font-size:      9px;
+  font-weight:    700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color:          var(--sp-muted);
+  margin-bottom:  var(--portal-space-1);
+}
+
+.sc-info-cell__value {
+  font-size:   var(--portal-text-sm);
+  font-weight: 600;
+  color:       var(--sp-text);
+  line-height: 1.4;
+}
+
+.sc-info-cell__value--mono {
+  font-family: var(--portal-font-mono);
+  font-size:   12px;
+}
+
+/* ── Sub-section label (Benefits, Steps) ── */
+.sc-sub-label {
+  font-size:      10px;
+  font-weight:    700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color:          var(--sp-muted);
+  margin-bottom:  var(--portal-space-2);
+}
+
+/* ── Benefits list ── */
+.sc-benefits {
+  display:       flex;
+  flex-direction: column;
+  gap:           var(--portal-space-2);
+  margin-bottom: var(--portal-space-4);
+}
+
+.sc-benefit-item {
+  display:     flex;
+  align-items: flex-start;
+  gap:         var(--portal-space-2);
+  font-size:   var(--portal-text-sm);
+  color:       var(--sp-subtext);
+  line-height: 1.55;
+}
+
+.sc-benefit-item__icon {
+  color:       var(--sp-success);
+  flex-shrink: 0;
+  margin-top:  2px;
+}
+
+/* ── Verification steps ── */
+.sc-steps {
+  display:       flex;
+  flex-direction: column;
+  gap:           var(--portal-space-2);
+  margin-bottom: var(--portal-space-4);
+}
+
+.sc-step {
+  display:     flex;
+  align-items: flex-start;
+  gap:         var(--portal-space-3);
+  font-size:   var(--portal-text-sm);
+  color:       var(--sp-subtext);
+  line-height: 1.55;
+}
+
+.sc-step__num {
+  width:           22px;
+  height:          22px;
+  border-radius:   var(--portal-radius-full);
+  flex-shrink:     0;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  font-size:       10px;
+  font-weight:     700;
+  background:      var(--sp-active-bg);
+  color:           var(--sp-accent2);
+  border:          1px solid var(--sp-border2);
+  margin-top:      1px;
+}
+
+/* ── Action buttons row ── */
+.sc-actions {
+  display:   flex;
+  gap:       var(--portal-space-2);
+  flex-wrap: wrap;
+  margin-top: var(--portal-space-4);
+}
+
+.sc-btn-primary {
+  display:         inline-flex;
+  align-items:     center;
+  gap:             var(--portal-space-2);
+  font-family:     var(--portal-font);
+  font-size:       var(--portal-text-sm);
+  font-weight:     600;
+  color:           #fff;
+  background:      var(--sp-accent);
+  border:          none;
+  border-radius:   var(--portal-radius-md);
+  padding:         var(--portal-space-2) var(--portal-space-4);
+  cursor:          pointer;
+  text-decoration: none;
+  transition:      opacity var(--portal-transition-fast),
+                   box-shadow var(--portal-transition-fast);
+  white-space:     nowrap;
+}
+
+.sc-btn-primary:hover {
+  opacity:    0.88;
+  box-shadow: var(--portal-shadow-blue);
+  color:      #fff;
+}
+
+.sc-btn-secondary {
+  display:         inline-flex;
+  align-items:     center;
+  gap:             var(--portal-space-2);
+  font-family:     var(--portal-font);
+  font-size:       var(--portal-text-sm);
+  font-weight:     500;
+  color:           var(--sp-subtext);
+  background:      var(--sp-surface);
+  border:          1px solid var(--sp-border);
+  border-radius:   var(--portal-radius-md);
+  padding:         var(--portal-space-2) var(--portal-space-4);
+  cursor:          pointer;
+  text-decoration: none;
+  transition:
+    background     var(--portal-transition-fast),
+    border-color   var(--portal-transition-fast),
+    color          var(--portal-transition-fast);
+  white-space:     nowrap;
+}
+
+.sc-btn-secondary:hover {
+  background:   var(--sp-hover);
+  border-color: var(--sp-border2);
+  color:        var(--sp-text);
+}
+
+/* ── Status badges ── */
+.sc-badge {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           var(--portal-space-1);
+  font-size:     11px;
+  font-weight:   700;
+  padding:       4px var(--portal-space-3);
+  border-radius: var(--portal-radius-full);
+  white-space:   nowrap;
+}
+
+.sc-badge--issued {
+  background:   rgba(34, 197, 94, 0.12);
+  color:        var(--sp-success);
+  border:       1px solid rgba(34, 197, 94, 0.25);
+}
+
+.sc-badge--pending {
+  background:   rgba(245, 158, 11, 0.12);
+  color:        var(--sp-warn);
+  border:       1px solid rgba(245, 158, 11, 0.25);
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+
+.sc-empty {
+  background:    var(--sp-surface);
+  border:        1px solid var(--sp-border);
+  border-radius: var(--portal-radius-xl);
+  padding:       var(--portal-space-12) var(--portal-space-6);
+  text-align:    center;
+}
+
+.sc-empty__icon {
+  width:           50px;
+  height:          50px;
+  background:      var(--sp-hover);
+  border-radius:   var(--portal-radius-xl);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  margin:          0 auto var(--portal-space-4);
+  color:           var(--sp-accent2);
+}
+
+.sc-empty__title {
+  font-size:     var(--portal-text-base);
+  font-weight:   700;
+  color:         var(--sp-text);
+  margin-bottom: var(--portal-space-2);
+}
+
+.sc-empty__sub {
+  font-size:  var(--portal-text-sm);
+  color:      var(--sp-muted);
+  max-width:  300px;
+  margin:     0 auto;
+  line-height: 1.65;
+}
+
+/* ============================================
+   LOADER
+   ============================================ */
+
+.sc-loader {
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  padding:         var(--portal-space-12) 0;
+  gap:             var(--portal-space-4);
+}
+
+.sc-spinner {
+  width:         34px;
+  height:        34px;
+  border:        3px solid var(--sp-border);
+  border-top-color: var(--sp-accent2);
+  border-radius: var(--portal-radius-full);
+  animation:     scSpin 0.7s linear infinite;
+}
+
+@keyframes scSpin {
+  to { transform: rotate(360deg); }
+}
+
+.sc-loader__text {
+  font-size: var(--portal-text-sm);
+  color:     var(--sp-muted);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 640px) {
+  .sc-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .sc-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sc-cert-band {
+    padding: var(--portal-space-3) var(--portal-space-4);
+  }
+
+  .sc-cert-body {
+    padding: var(--portal-space-4);
+  }
+
+  .sc-cert-band-title {
+    font-size: var(--portal-text-sm);
+  }
+}
+
+@media (max-width: 400px) {
+  .sc-actions {
+    flex-direction: column;
+  }
+
+  .sc-btn-primary,
+  .sc-btn-secondary {
+    width:           100%;
+    justify-content: center;
+  }
+}

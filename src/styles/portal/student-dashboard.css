@@ -1,0 +1,785 @@
+/* src/styles/portal/student-dashboard.css */
+
+/* ============================================
+   STUDENT DASHBOARD PAGE
+   ============================================ */
+
+.sd-root {
+  font-family: var(--portal-font);
+  color:       var(--sp-text);
+}
+
+/* ============================================
+   WELCOME HERO CARD
+   ============================================ */
+
+.sd-welcome {
+  background:    linear-gradient(
+    135deg,
+    var(--sp-accent) 0%,
+    var(--sp-accent2) 100%
+  );
+  border-radius: var(--portal-radius-xl);
+  padding:       var(--portal-space-6) var(--portal-space-8);
+  display:       flex;
+  align-items:   center;
+  justify-content: space-between;
+  gap:           var(--portal-space-5);
+  flex-wrap:     wrap;
+  margin-bottom: var(--portal-space-5);
+  position:      relative;
+  overflow:      hidden;
+}
+
+/* Decorative circles */
+.sd-welcome::before {
+  content:       '';
+  position:      absolute;
+  right:         -40px;
+  top:           -40px;
+  width:         200px;
+  height:        200px;
+  background:    rgb(255 255 255 / 0.06);
+  border-radius: var(--portal-radius-full);
+  pointer-events: none;
+}
+
+.sd-welcome::after {
+  content:       '';
+  position:      absolute;
+  right:         80px;
+  bottom:        -60px;
+  width:         140px;
+  height:        140px;
+  background:    rgb(255 255 255 / 0.04);
+  border-radius: var(--portal-radius-full);
+  pointer-events: none;
+}
+
+.sd-welcome-left {
+  display:     flex;
+  align-items: center;
+  gap:         var(--portal-space-4);
+  z-index:     1;
+}
+
+.sd-welcome-greeting {
+  font-size:      10px;
+  font-weight:    600;
+  color:          rgb(255 255 255 / 0.55);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom:  var(--portal-space-1);
+}
+
+.sd-welcome-name {
+  font-size:     clamp(1.2rem, 2.5vw, 1.5rem);
+  font-weight:   700;
+  color:         #fff;
+  line-height:   1.2;
+  margin-bottom: var(--portal-space-2);
+  letter-spacing: -0.02em;
+}
+
+.sd-welcome-meta {
+  display:     flex;
+  align-items: center;
+  gap:         var(--portal-space-3);
+  flex-wrap:   wrap;
+}
+
+.sd-welcome-id {
+  font-size: 11px;
+  color:     rgb(255 255 255 / 0.5);
+}
+
+.sd-welcome-right {
+  z-index:    1;
+  text-align: right;
+}
+
+.sd-welcome-stat-label {
+  font-size:      10px;
+  color:          rgb(255 255 255 / 0.45);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom:  var(--portal-space-1);
+}
+
+.sd-welcome-stat-val {
+  font-size:   1.8rem;
+  font-weight: 800;
+  color:       #fff;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Status badge ── */
+.sd-status-badge {
+  display:        inline-flex;
+  align-items:    center;
+  gap:            var(--portal-space-1);
+  font-size:      10px;
+  font-weight:    700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding:        3px var(--portal-space-3);
+  border-radius:  var(--portal-radius-full);
+}
+
+.sd-status-badge__dot {
+  width:         6px;
+  height:        6px;
+  border-radius: var(--portal-radius-full);
+  flex-shrink:   0;
+}
+
+/* ============================================
+   ALERT BANNERS
+   ============================================ */
+
+.sd-banner {
+  display:       flex;
+  align-items:   flex-start;
+  gap:           var(--portal-space-3);
+  border-radius: var(--portal-radius-lg);
+  padding:       var(--portal-space-4) var(--portal-space-5);
+  font-size:     var(--portal-text-sm);
+  font-weight:   500;
+  line-height:   1.65;
+  margin-bottom: var(--portal-space-5);
+  border:        1px solid;
+}
+
+.sd-banner--success {
+  background:   rgb(34 197 94 / 0.08);
+  border-color: rgb(34 197 94 / 0.2);
+  color:        #4ADE80;
+}
+
+.sd-banner--warn {
+  background:   rgb(245 158 11 / 0.08);
+  border-color: rgb(245 158 11 / 0.2);
+  color:        #FCD34D;
+}
+
+/* ============================================
+   STAT CARDS (3-col grid)
+   ============================================ */
+
+.sd-stats {
+  display:               grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:                   var(--portal-space-4);
+  margin-bottom:         var(--portal-space-6);
+}
+
+.sd-stat-card {
+  background:    var(--sp-surface);
+  border:        1px solid var(--sp-border);
+  border-radius: var(--portal-radius-lg);
+  padding:       var(--portal-space-4) var(--portal-space-5);
+  position:      relative;
+  overflow:      hidden;
+  transition:
+    box-shadow var(--portal-transition-base),
+    transform var(--portal-transition-base);
+}
+
+.sd-stat-card:hover {
+  box-shadow: var(--portal-shadow-md);
+  transform:  translateY(-1px);
+}
+
+/* Colored top line */
+.sd-stat-card::before {
+  content:       '';
+  position:      absolute;
+  top:           0;
+  left:          0;
+  right:         0;
+  height:        3px;
+}
+
+.sd-stat-card.blue::before  {
+  background: linear-gradient(90deg, var(--sp-accent), var(--sp-accent2));
+}
+.sd-stat-card.green::before {
+  background: linear-gradient(90deg, #059669, #34D399);
+}
+.sd-stat-card.red::before   {
+  background: linear-gradient(90deg, #DC2626, #F87171);
+}
+
+/* Stat icon */
+.sd-stat-icon {
+  width:           36px;
+  height:          36px;
+  border-radius:   var(--portal-radius-md);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  margin-bottom:   var(--portal-space-3);
+}
+
+.sd-stat-icon.blue  { background: rgb(26 86 219 / 0.12); color: var(--sp-accent2); }
+.sd-stat-icon.green { background: rgb(34 197 94 / 0.12);  color: #22C55E; }
+.sd-stat-icon.red   { background: rgb(239 68 68 / 0.12);  color: #EF4444; }
+
+/* Label & value */
+.sd-stat-label {
+  font-size:      10px;
+  font-weight:    700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color:          var(--sp-muted);
+  margin-bottom:  var(--portal-space-1);
+}
+
+.sd-stat-val {
+  font-size:     1.6rem;
+  font-weight:   700;
+  color:         var(--sp-text);
+  line-height:   1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.sd-stat-val.green { color: #22C55E; }
+.sd-stat-val.red   { color: #EF4444; }
+
+/* ============================================
+   SECTION TITLE
+   ============================================ */
+
+.sd-section-title {
+  font-size:      var(--portal-text-xs);
+  font-weight:    700;
+  color:          var(--sp-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  display:        flex;
+  align-items:    center;
+  gap:            var(--portal-space-2);
+  margin-bottom:  var(--portal-space-4);
+}
+
+/* Line after title */
+.sd-section-title::after {
+  content:    '';
+  flex:       1;
+  height:     1px;
+  background: var(--sp-border);
+}
+
+/* ============================================
+   ENROLLMENT CARDS
+   ============================================ */
+
+.sd-enroll-card {
+  background:    var(--sp-surface);
+  border:        1px solid var(--sp-border);
+  border-radius: var(--portal-radius-xl);
+  overflow:      hidden;
+  margin-bottom: var(--portal-space-4);
+  transition:
+    box-shadow var(--portal-transition-base),
+    border-color var(--portal-transition-base);
+}
+
+.sd-enroll-card:hover {
+  box-shadow:   var(--portal-shadow-md);
+  border-color: var(--sp-border2);
+}
+
+/* Card header (clickable) */
+.sd-enroll-header {
+  padding:         var(--portal-space-4) var(--portal-space-5);
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  gap:             var(--portal-space-3);
+  cursor:          pointer;
+  border-bottom:   1px solid transparent;
+  transition:
+    background var(--portal-transition-fast),
+    border-color var(--portal-transition-fast);
+}
+
+.sd-enroll-card.expanded .sd-enroll-header {
+  border-bottom-color: var(--sp-border);
+  background:          var(--sp-hover);
+}
+
+.sd-course-name {
+  font-size:   var(--portal-text-base);
+  font-weight: 700;
+  color:       var(--sp-text);
+  margin-bottom: 2px;
+  letter-spacing: -0.01em;
+}
+
+.sd-course-auth {
+  font-size: 11px;
+  color:     var(--sp-muted);
+  font-weight: 500;
+}
+
+.sd-enroll-header-right {
+  display:     flex;
+  align-items: center;
+  gap:         var(--portal-space-3);
+  flex-shrink: 0;
+}
+
+/* Expand/collapse toggle */
+.sd-chevron-btn {
+  width:           28px;
+  height:          28px;
+  border-radius:   var(--portal-radius-md);
+  border:          1px solid var(--sp-border);
+  background:      transparent;
+  cursor:          pointer;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  color:           var(--sp-muted);
+  transition:
+    background var(--portal-transition-fast),
+    color var(--portal-transition-fast);
+}
+
+.sd-chevron-btn:hover {
+  background: var(--sp-hover);
+  color:      var(--sp-accent2);
+}
+
+/* ── Card body (expanded) ── */
+.sd-enroll-body {
+  padding: var(--portal-space-5) var(--portal-space-5);
+}
+
+/* ── Franchise Strip ── */
+.sd-franchise-strip {
+  border-radius: var(--portal-radius-lg);
+  padding:       var(--portal-space-3) var(--portal-space-4);
+  margin-bottom: var(--portal-space-5);
+  border:        1px solid;
+}
+
+.sd-franchise-strip--external {
+  background:   rgb(26 86 219 / 0.06);
+  border-color: rgb(26 86 219 / 0.18);
+}
+
+.sd-franchise-strip--own {
+  background:   rgb(245 158 11 / 0.06);
+  border-color: rgb(245 158 11 / 0.18);
+}
+
+.sd-franchise-header {
+  display:       flex;
+  align-items:   center;
+  gap:           var(--portal-space-2);
+  margin-bottom: var(--portal-space-2);
+  flex-wrap:     wrap;
+}
+
+.sd-franchise-code {
+  font-size:      9px;
+  font-weight:    800;
+  letter-spacing: 0.08em;
+  padding:        3px var(--portal-space-2);
+  border-radius:  var(--portal-radius-sm);
+  color:          #fff;
+}
+
+.sd-franchise-name {
+  font-size:   var(--portal-text-sm);
+  font-weight: 700;
+  color:       var(--sp-text);
+}
+
+.sd-franchise-own-tag {
+  font-size:   10px;
+  color:       var(--sp-warn);
+  font-weight: 600;
+}
+
+/* Registered body pills */
+.sd-registered-bodies {
+  display:       flex;
+  flex-wrap:     wrap;
+  gap:           var(--portal-space-1);
+  margin-bottom: var(--portal-space-2);
+}
+
+.sd-reg-body-pill {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           3px;
+  font-size:     9px;
+  font-weight:   700;
+  padding:       2px var(--portal-space-2);
+  border-radius: var(--portal-radius-full);
+  background:    rgb(34 197 94 / 0.1);
+  color:         var(--sp-success);
+  border:        1px solid rgb(34 197 94 / 0.2);
+}
+
+/* Cert type info box */
+.sd-cert-type-box {
+  display:       flex;
+  align-items:   flex-start;
+  gap:           var(--portal-space-2);
+  padding:       var(--portal-space-2) var(--portal-space-3);
+  background:    var(--sp-surface);
+  border-radius: var(--portal-radius-md);
+  border:        1px solid var(--sp-border);
+  margin-top:    var(--portal-space-2);
+}
+
+.sd-cert-type-name {
+  font-size:     11px;
+  font-weight:   700;
+  color:         var(--sp-text);
+  margin-bottom: 2px;
+}
+
+.sd-cert-type-meta {
+  font-size: 10px;
+  color:     var(--sp-muted);
+}
+
+.sd-external-id {
+  margin-top: var(--portal-space-2);
+  font-size:  11px;
+  color:      var(--sp-subtext);
+}
+
+/* ── Mini KPI row ── */
+.sd-mini-kpi {
+  display:               grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:                   var(--portal-space-3);
+  margin-bottom:         var(--portal-space-5);
+}
+
+.sd-mini-kpi-item {
+  background:    var(--sp-hover);
+  border:        1px solid var(--sp-border);
+  border-radius: var(--portal-radius-md);
+  padding:       var(--portal-space-3) var(--portal-space-4);
+}
+
+.sd-mini-kpi-label {
+  font-size:      9px;
+  font-weight:    700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color:          var(--sp-muted);
+  margin-bottom:  var(--portal-space-1);
+}
+
+.sd-mini-kpi-val {
+  font-size:     var(--portal-text-lg);
+  font-weight:   700;
+  color:         var(--sp-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.sd-mini-kpi-val.green { color: var(--sp-success); }
+.sd-mini-kpi-val.red   { color: var(--sp-danger); }
+
+/* ── Fee progress bar ── */
+.sd-progress-row {
+  display:         flex;
+  justify-content: space-between;
+  align-items:     center;
+  margin-bottom:   var(--portal-space-2);
+}
+
+.sd-progress-label {
+  font-size:   var(--portal-text-sm);
+  font-weight: 600;
+  color:       var(--sp-subtext);
+}
+
+.sd-progress-pct {
+  font-size:   var(--portal-text-sm);
+  font-weight: 700;
+  color:       var(--sp-accent2);
+  font-variant-numeric: tabular-nums;
+}
+
+.sd-progress-track {
+  height:        7px;
+  background:    var(--sp-border);
+  border-radius: var(--portal-radius-full);
+  overflow:      hidden;
+  margin-bottom: var(--portal-space-5);
+}
+
+.sd-progress-fill {
+  height:        100%;
+  background:    linear-gradient(
+    90deg,
+    var(--sp-accent),
+    var(--sp-accent2)
+  );
+  border-radius: var(--portal-radius-full);
+  transition:    width 0.8s cubic-bezier(.4, 0, .2, 1);
+}
+
+/* ── Certificate row ── */
+.sd-cert-row {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  flex-wrap:       wrap;
+  gap:             var(--portal-space-3);
+  margin-bottom:   var(--portal-space-5);
+}
+
+.sd-cert-label {
+  font-size:      10px;
+  font-weight:    700;
+  color:          var(--sp-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom:  var(--portal-space-1);
+}
+
+.sd-verify-link {
+  display:         inline-flex;
+  align-items:     center;
+  gap:             var(--portal-space-2);
+  font-size:       var(--portal-text-sm);
+  font-weight:     600;
+  color:           var(--sp-accent2);
+  text-decoration: none;
+  padding:         var(--portal-space-2) var(--portal-space-4);
+  border:          1px solid var(--sp-border2);
+  border-radius:   var(--portal-radius-md);
+  transition:
+    background var(--portal-transition-fast),
+    box-shadow var(--portal-transition-fast);
+}
+
+.sd-verify-link:hover {
+  background:  var(--sp-hover);
+  box-shadow:  var(--portal-shadow-sm);
+}
+
+/* ── Payment history ── */
+.sd-payments-title {
+  font-size:      10px;
+  font-weight:    700;
+  color:          var(--sp-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom:  var(--portal-space-3);
+  display:        flex;
+  align-items:    center;
+  gap:            var(--portal-space-2);
+}
+
+.sd-payment-list {
+  display:       flex;
+  flex-direction: column;
+  border:        1px solid var(--sp-border);
+  border-radius: var(--portal-radius-lg);
+  overflow:      hidden;
+}
+
+.sd-payment-row {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  padding:         var(--portal-space-3) var(--portal-space-4);
+  gap:             var(--portal-space-3);
+  border-bottom:   1px solid var(--sp-border);
+  transition:      background var(--portal-transition-fast);
+}
+
+.sd-payment-row:last-child { border-bottom: none; }
+.sd-payment-row:hover      { background: var(--sp-hover); }
+
+.sd-payment-left {
+  display:     flex;
+  align-items: center;
+  gap:         var(--portal-space-3);
+}
+
+.sd-payment-icon {
+  width:           30px;
+  height:          30px;
+  border-radius:   var(--portal-radius-md);
+  background:      rgb(26 86 219 / 0.1);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  color:           var(--sp-accent2);
+  flex-shrink:     0;
+}
+
+.sd-payment-amount {
+  font-size:   var(--portal-text-sm);
+  font-weight: 700;
+  color:       var(--sp-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.sd-payment-receipt {
+  font-size:  10px;
+  color:      var(--sp-muted);
+  margin-top: 2px;
+  font-family: var(--portal-font-mono);
+}
+
+.sd-payment-remark {
+  font-size:  10px;
+  color:      var(--sp-subtext);
+  margin-top: 2px;
+}
+
+.sd-payment-date {
+  font-size:   11px;
+  font-weight: 500;
+  color:       var(--sp-subtext);
+  flex-shrink: 0;
+}
+
+.sd-no-payments {
+  padding:    var(--portal-space-5);
+  text-align: center;
+  font-size:  var(--portal-text-sm);
+  color:      var(--sp-muted);
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+
+.sd-empty {
+  background:    var(--sp-surface);
+  border:        1px solid var(--sp-border);
+  border-radius: var(--portal-radius-xl);
+  padding:       var(--portal-space-12) var(--portal-space-6);
+  text-align:    center;
+}
+
+.sd-empty-icon {
+  width:           52px;
+  height:          52px;
+  background:      rgb(26 86 219 / 0.1);
+  border-radius:   var(--portal-radius-xl);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  margin:          0 auto var(--portal-space-4);
+  color:           var(--sp-accent2);
+}
+
+.sd-empty-title {
+  font-size:     var(--portal-text-base);
+  font-weight:   700;
+  color:         var(--sp-text);
+  margin-bottom: var(--portal-space-2);
+}
+
+.sd-empty-sub {
+  font-size:  var(--portal-text-sm);
+  color:      var(--sp-muted);
+  max-width:  320px;
+  margin:     0 auto;
+  line-height: 1.65;
+}
+
+/* ============================================
+   CERT BADGE VARIANTS
+   ============================================ */
+
+.sd-cert-badge {
+  display:        inline-flex;
+  align-items:    center;
+  gap:            var(--portal-space-1);
+  font-size:      11px;
+  font-weight:    600;
+  padding:        4px var(--portal-space-3);
+  border-radius:  var(--portal-radius-full);
+}
+
+.sd-cert-badge--issued  {
+  background: rgb(34 197 94 / 0.1);
+  color:      #4ADE80;
+}
+.sd-cert-badge--passed  {
+  background: rgb(34 197 94 / 0.08);
+  color:      #4ADE80;
+}
+.sd-cert-badge--pending {
+  background: rgb(26 86 219 / 0.1);
+  color:      var(--sp-accent2);
+}
+.sd-cert-badge--default {
+  background: rgb(100 116 139 / 0.1);
+  color:      #94A3B8;
+}
+
+/* ============================================
+   LOADER
+   ============================================ */
+
+.sd-loader {
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  padding:         var(--portal-space-12) 0;
+  gap:             var(--portal-space-4);
+}
+
+.sd-spinner {
+  width:         36px;
+  height:        36px;
+  border:        3px solid var(--sp-border);
+  border-top-color: var(--sp-accent2);
+  border-radius: var(--portal-radius-full);
+  animation:     sdSpin 0.7s linear infinite;
+}
+
+@keyframes sdSpin {
+  to { transform: rotate(360deg); }
+}
+
+.sd-loader-text {
+  font-size: var(--portal-text-sm);
+  color:     var(--sp-muted);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 640px) {
+  .sd-stats    { grid-template-columns: 1fr; }
+  .sd-mini-kpi { grid-template-columns: 1fr; }
+
+  .sd-welcome {
+    flex-direction: column;
+    align-items:    flex-start;
+    padding:        var(--portal-space-5);
+  }
+
+  .sd-welcome-right { text-align: left; }
+
+  .sd-enroll-header {
+    padding: var(--portal-space-4);
+  }
+
+  .sd-enroll-body {
+    padding: var(--portal-space-4);
+  }
+}
