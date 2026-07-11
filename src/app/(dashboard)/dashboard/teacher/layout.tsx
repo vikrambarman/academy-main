@@ -4,280 +4,144 @@ import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import {
-    LayoutDashboard, CalendarCheck, Clock,
-    BookOpen, LogOut, Menu, X, ChevronRight, GraduationCap,
-    Key
+  LayoutDashboard, CalendarCheck,
+  Clock, BookOpen, LogOut,
+  Menu, X, ChevronRight,
+  GraduationCap, Key,
 } from "lucide-react";
 import { PortalThemeToggle } from "@/components/ThemeToggle";
 
 const NAV = [
-    { href: "/dashboard/teacher", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/dashboard/teacher/attendance", label: "Attendance", icon: CalendarCheck },
-    { href: "/dashboard/teacher/attendance/hourly-code", label: "Hourly Code", icon: Key }, // ← NEW
-    { href: "/dashboard/teacher/timetable", label: "Timetable", icon: Clock },
-    { href: "/dashboard/teacher/notes", label: "Study Notes", icon: BookOpen },
+  { href: "/dashboard/teacher",                       label: "Dashboard",   icon: LayoutDashboard },
+  { href: "/dashboard/teacher/attendance",             label: "Attendance",  icon: CalendarCheck   },
+  { href: "/dashboard/teacher/attendance/hourly-code", label: "Hourly Code", icon: Key             },
+  { href: "/dashboard/teacher/timetable",              label: "Timetable",   icon: Clock           },
+  { href: "/dashboard/teacher/notes",                  label: "Study Notes", icon: BookOpen        },
 ];
 
-export default function TeacherLayout({ children }: { children: React.ReactNode }) {
-    const pathname = usePathname();
-    const router = useRouter();
-    const [open, setOpen] = useState(false);
-    const [teacher, setTeacher] = useState<{ name: string; employeeId: string } | null>(null);
+export default function TeacherLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const pathname = usePathname();
+  const router   = useRouter();
+  const [open,    setOpen]    = useState(false);
+  const [teacher, setTeacher] = useState<{
+    name: string; employeeId: string;
+  } | null>(null);
 
-    useEffect(() => {
-        fetchWithAuth("/api/teacher/me")
-            .then(r => r.json())
-            .then(d => setTeacher(d.teacher))
-            .catch(() => { });
-    }, []);
+  useEffect(() => {
+    fetchWithAuth("/api/teacher/me")
+      .then((r) => r.json())
+      .then((d) => setTeacher(d.teacher))
+      .catch(() => {});
+  }, []);
 
-    const handleLogout = async () => {
-        await fetch("/api/auth/logout", { method: "POST" });
-        router.push("/teacher/login");
-    };
+  /* Close sidebar on route change */
+  useEffect(() => { setOpen(false); }, [pathname]);
 
-    const active = (href: string) =>
-        href === "/dashboard/teacher" ? pathname === href : pathname.startsWith(href);
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/teacher/login");
+  };
 
-    return (
-        <>
-            <style>{css}</style>
-            <div className="lay-root">
+  const isActive = (href: string) =>
+    href === "/dashboard/teacher"
+      ? pathname === href
+      : pathname.startsWith(href);
 
-                {/* Sidebar */}
-                <aside className={`lay-sidebar ${open ? "open" : ""}`}>
-                    <div className="lay-sidebar-inner">
-                        <div className="lay-brand">
-                            <div className="lay-brand-icon"><GraduationCap size={18} /></div>
-                            <div>
-                                <div className="lay-brand-name">Shivshakti Computer Academy</div>
-                                <div className="lay-brand-role">Teacher Portal</div>
-                            </div>
-                        </div>
+  const currentLabel =
+    NAV.find((n) => isActive(n.href))?.label ?? "Teacher Portal";
 
-                        {teacher && (
-                            <div className="lay-profile">
-                                <div className="lay-profile-av">{teacher.name?.charAt(0).toUpperCase()}</div>
-                                <div>
-                                    <div className="lay-profile-name">{teacher.name}</div>
-                                    <div className="lay-profile-id">{teacher.employeeId}</div>
-                                </div>
-                            </div>
-                        )}
+  return (
+    <div className="tp-root" id="tp-root">
 
-                        <nav className="lay-nav">
-                            {NAV.map(({ href, label, icon: Icon }) => (
-                                <a key={href} href={href}
-                                    className={`lay-nav-item ${active(href) ? "active" : ""}`}
-                                    onClick={() => setOpen(false)}>
-                                    <Icon size={16} />
-                                    <span>{label}</span>
-                                    {active(href) && <ChevronRight size={11} className="lay-arrow" />}
-                                </a>
-                            ))}
-                        </nav>
+      {/* ── Sidebar ── */}
+      <aside className={`tp-sidebar ${open ? "tp-sidebar--open" : ""}`}>
+        <div className="tp-sidebar-inner">
 
-                        <button className="lay-logout" onClick={handleLogout}>
-                            <LogOut size={14} /> <span>Logout</span>
-                        </button>
-                    </div>
-                </aside>
-
-                {open && <div className="lay-overlay" onClick={() => setOpen(false)} />}
-
-                {/* Main */}
-                <div className="lay-main">
-                    <header className="lay-topbar">
-                        <span className="lay-topbar-title">
-                            {NAV.find(n => active(n.href))?.label ?? "Teacher Portal"}
-                        </span>
-                        <div style={{ marginLeft: "auto" }}>
-                            <PortalThemeToggle rootClass="lay-root" storageKey="teacher-portal-theme" />
-                        </div>
-                    </header>
-                    <main className="lay-content">{children}</main>
-                </div>
+          <div className="tp-brand">
+            <div className="tp-brand__icon">
+              <GraduationCap size={18} />
             </div>
-        </>
-    );
-}
+            <div>
+              <div className="tp-brand__name">
+                Shivshakti Computer Academy
+              </div>
+              <div className="tp-brand__role">Teacher Portal</div>
+            </div>
+          </div>
 
-const css = `
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap');
-*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+          {teacher && (
+            <div className="tp-profile">
+              <div className="tp-profile__avatar">
+                {teacher.name?.charAt(0).toUpperCase()}
+              </div>
+              <div style={{ minWidth: 0, overflow: "hidden" }}>
+                <div className="tp-profile__name">{teacher.name}</div>
+                <div className="tp-profile__id">{teacher.employeeId}</div>
+              </div>
+            </div>
+          )}
 
-/* ── Teacher Portal Variables — Dark (default) ── */
-.lay-root {
-    --tp-bg:          #042F2E;
-    --tp-surface:     #0D3B37;
-    --tp-surface2:    #134E4A;
-    --tp-border:      #134E4A;
-    --tp-border2:     #1A6B65;
-    --tp-accent:      #0F766E;
-    --tp-accent2:     #14B8A6;
-    --tp-accent-glow: rgba(20,184,166,0.10);
-    --tp-accent-b:    rgba(20,184,166,0.22);
-    --tp-text:        #CCFBF1;
-    --tp-subtext:     #94A3B8;
-    --tp-muted:       #64748B;
-    --tp-danger:      #EF4444;
-    --tp-success:     #22C55E;
-    --tp-warn:        #F59E0B;
-    --tp-sb-w:        240px;
-}
+          <nav className="tp-nav">
+            {NAV.map(({ href, label, icon: Icon }) => (
+              <a
+                key={href}
+                href={href}
+                className={`tp-nav-item ${
+                  isActive(href) ? "tp-nav-item--active" : ""
+                }`}
+              >
+                <Icon size={16} className="tp-nav-item__icon" />
+                <span className="tp-nav-item__label">{label}</span>
+                {isActive(href) && (
+                  <ChevronRight size={11} className="tp-nav-item__arrow" />
+                )}
+              </a>
+            ))}
+          </nav>
 
-/* ── Light mode override ── */
-.lay-root.light {
-    --tp-bg:          #F0FDFA;
-    --tp-surface:     #FFFFFF;
-    --tp-surface2:    #F0FDFA;
-    --tp-border:      #99F6E4;
-    --tp-border2:     #5EEAD4;
-    --tp-accent:      #0F766E;
-    --tp-accent2:     #0D9488;
-    --tp-accent-glow: rgba(15,118,110,0.08);
-    --tp-accent-b:    rgba(15,118,110,0.22);
-    --tp-text:        #0F172A;
-    --tp-subtext:     #475569;
-    --tp-muted:       #94A3B8;
-    --tp-danger:      #DC2626;
-    --tp-success:     #059669;
-    --tp-warn:        #D97706;
-}
+          <div className="tp-sidebar-footer">
+            <button className="tp-logout" onClick={handleLogout}>
+              <LogOut size={14} />
+              <span>Logout</span>
+            </button>
+          </div>
+        </div>
+      </aside>
 
-.lay-root {
-    display: flex; min-height: 100vh;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    color: var(--tp-text);
-    background: var(--tp-bg);
-}
+      {open && (
+        <div className="tp-overlay" onClick={() => setOpen(false)} />
+      )}
 
-/* Sidebar */
-.lay-sidebar {
-    width: var(--tp-sb-w); flex-shrink: 0;
-    background: var(--tp-surface);
-    border-right: 1px solid var(--tp-border);
-    position: fixed; top: 0; left: 0; bottom: 0; z-index: 40;
-    transition: transform .24s ease;
-}
+      {/* ── Main body ── */}
+      <div className="tp-body">
+        <header className="tp-topbar">
+          <button
+            className="tp-menu-btn"
+            onClick={() => setOpen((o) => !o)}
+            aria-label="Toggle menu"
+          >
+            {open ? <X size={16} /> : <Menu size={16} />}
+          </button>
 
-/* Teal top accent */
-.lay-sidebar::after {
-    content: '';
-    position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, var(--tp-accent2), transparent);
-}
+          <div className="tp-topbar__left">
+            <span className="tp-topbar__dot" />
+            <span className="tp-topbar__title">{currentLabel}</span>
+          </div>
 
-.lay-sidebar-inner {
-    display: flex; flex-direction: column; height: 100%;
-    overflow-y: auto; scrollbar-width: none;
-}
+          <div className="tp-topbar__right">
+            <PortalThemeToggle
+              rootClass="tp-root"
+              storageKey="teacher-portal-theme"
+            />
+          </div>
+        </header>
 
-.lay-brand {
-    display: flex; align-items: center; gap: 11px;
-    padding: 22px 18px 16px;
-    border-bottom: 1px solid var(--tp-border);
+        <main className="tp-content">{children}</main>
+      </div>
+    </div>
+  );
 }
-.lay-brand-icon {
-    width: 34px; height: 34px; border-radius: 9px;
-    background: var(--tp-accent-glow);
-    border: 1px solid var(--tp-accent-b);
-    color: var(--tp-accent2);
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
-.lay-brand-name {
-    font-family: 'DM Serif Display', serif;
-    font-size: .92rem; color: var(--tp-text);
-}
-.lay-brand-role {
-    font-size: 9px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: .1em; color: var(--tp-accent2); margin-top: 1px;
-}
-
-.lay-profile {
-    display: flex; align-items: center; gap: 10px;
-    margin: 12px 10px 0; padding: 11px 12px;
-    background: var(--tp-accent-glow);
-    border: 1px solid var(--tp-accent-b);
-    border-radius: 11px;
-}
-.lay-profile-av {
-    width: 32px; height: 32px; border-radius: 50%;
-    background: var(--tp-accent2); color: var(--tp-bg);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 800; flex-shrink: 0;
-}
-.lay-profile-name { font-size: 12px; font-weight: 700; color: var(--tp-text); }
-.lay-profile-id   { font-size: 10px; color: var(--tp-accent2); margin-top: 1px; }
-
-.lay-nav {
-    display: flex; flex-direction: column; gap: 2px;
-    padding: 14px 8px; flex: 1;
-}
-.lay-nav-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 9px 12px; border-radius: 9px;
-    font-size: 13px; font-weight: 600; color: var(--tp-muted);
-    text-decoration: none; transition: all .13s; position: relative;
-}
-.lay-nav-item:hover { background: var(--tp-accent-glow); color: var(--tp-text); }
-.lay-nav-item.active {
-    background: var(--tp-accent-glow);
-    color: var(--tp-accent2);
-    border: 1px solid var(--tp-accent-b);
-}
-/* Active left bar */
-.lay-nav-item.active::before {
-    content: '';
-    position: absolute; left: 0; top: 50%; transform: translateY(-50%);
-    width: 3px; height: 16px; border-radius: 2px;
-    background: var(--tp-accent2);
-}
-.lay-arrow { margin-left: auto; }
-
-.lay-logout {
-    display: flex; align-items: center; gap: 9px;
-    margin: 6px 8px 16px; padding: 9px 12px; border-radius: 9px;
-    background: transparent; border: 1px solid var(--tp-border);
-    color: var(--tp-muted);
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 13px; font-weight: 600; cursor: pointer; transition: all .13s;
-}
-.lay-logout:hover { border-color: #7f1d1d; color: #f87171; background: rgba(239,68,68,.06); }
-
-/* Main */
-.lay-main {
-    margin-left: var(--tp-sb-w); flex: 1;
-    display: flex; flex-direction: column; min-height: 100vh;
-}
-.lay-topbar {
-    display: flex;
-    align-items: center; 
-    gap: 12px;
-    padding: 13px 18px;
-    background: var(--tp-surface);
-    border-bottom: 1px solid var(--tp-border);
-    position: sticky; top: 0; z-index: 30;
-}
-.lay-menu-btn {
-    width: 32px; height: 32px; border-radius: 8px;
-    border: 1px solid var(--tp-border); background: transparent;
-    color: var(--tp-muted); cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-}
-.lay-topbar-title { font-size: 14px; font-weight: 700; color: var(--tp-text); }
-.lay-content { flex: 1; padding: 28px 32px; }
-.lay-overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,.6); z-index: 39; backdrop-filter: blur(2px);
-}
-
-@media (max-width: 768px) {
-    .lay-sidebar { transform: translateX(-100%); }
-    .lay-sidebar.open { transform: translateX(0); }
-    .lay-main { margin-left: 0; }
-    .lay-topbar { display: flex; }
-    .lay-overlay { display: block; }
-    .lay-content { padding: 18px 14px; }
-}
-`;

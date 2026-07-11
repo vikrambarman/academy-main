@@ -75,6 +75,12 @@ Homepage hero    →  home/HeroSection.tsx (inline ya page-specific) */
 @import "../styles/portal/student-change-password.css";
 @import "../styles/portal/student-schedule.css";
 
+
+/* Teacher Portal */
+@import "../styles/portal/teacher-portal.css";
+@import "../styles/portal/teacher-dashboard.css";
+@import "../styles/portal/teacher-attendance.css";
+
 /* ==========================================
    CUSTOM SCROLLBAR (Global)
    ========================================== */
