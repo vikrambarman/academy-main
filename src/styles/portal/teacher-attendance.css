@@ -1,24 +1,28 @@
-/* ============================================
-   TEACHER ATTENDANCE — Midnight Indigo Theme
-   ============================================ */
+/* ============================================================
+   TEACHER ATTENDANCE PAGE — Separate CSS File
+   Variables: --tp-* (teacher portal theme)
+   ============================================================ */
 
+/* ── Root container ── */
 .ta-root {
   display:        flex;
   flex-direction: column;
-  gap:            var(--portal-space-4);
-  max-width:      960px;
+  gap:            14px;
+  max-width:      1000px;
   margin:         0 auto;
-  padding-bottom: var(--portal-space-12);
-  font-family:    var(--portal-font);
-  color:          var(--tp-text);
+  padding-bottom: 80px;
+  font-family:    var(--portal-font, 'Plus Jakarta Sans', sans-serif);
+  color:          var(--tp-text, #e2e8f0);
 }
 
-/* ── Page header ── */
+/* ══════════════════════════════════════════
+   HEADER
+   ══════════════════════════════════════════ */
 .ta-header {
   display:         flex;
   align-items:     flex-start;
   justify-content: space-between;
-  gap:             var(--portal-space-3);
+  gap:             12px;
   flex-wrap:       wrap;
 }
 
@@ -26,38 +30,80 @@
   font-size:      clamp(1.3rem, 2.5vw, 1.65rem);
   font-weight:    700;
   color:          var(--tp-text);
-  margin:         0 0 var(--portal-space-1);
+  margin:         0 0 4px;
   letter-spacing: -0.02em;
   line-height:    1.2;
 }
 
 .ta-sub {
-  font-size:   var(--portal-text-sm);
+  font-size:   var(--portal-text-sm, 13px);
   color:       var(--tp-muted);
   margin:      0;
   font-weight: 400;
 }
 
-/* ── Toast ── */
+/* ══════════════════════════════════════════
+   TABS
+   ══════════════════════════════════════════ */
+.ta-tabs {
+  display:       flex;
+  gap:           4px;
+  background:    var(--tp-surface);
+  border:        1px solid var(--tp-border);
+  border-radius: var(--portal-radius-lg, 10px);
+  padding:       4px;
+}
+
+.ta-tab {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           5px;
+  padding:       7px 13px;
+  border-radius: var(--portal-radius-md, 7px);
+  border:        none;
+  cursor:        pointer;
+  font-family:   var(--portal-font);
+  font-size:     12px;
+  font-weight:   600;
+  color:         var(--tp-muted);
+  background:    transparent;
+  transition:    all var(--portal-transition-fast, 0.15s);
+  white-space:   nowrap;
+}
+
+.ta-tab--active {
+  background:  var(--tp-bg);
+  color:       var(--tp-accent2);
+  box-shadow:  0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ta-tab:hover:not(.ta-tab--active) {
+  color: var(--tp-subtext);
+}
+
+/* ══════════════════════════════════════════
+   TOAST
+   ══════════════════════════════════════════ */
 .ta-toast {
   position:      fixed;
-  top:           var(--portal-space-5);
-  right:         var(--portal-space-6);
-  z-index:       var(--portal-z-toast);
+  top:           var(--portal-space-5, 20px);
+  right:         var(--portal-space-6, 24px);
+  z-index:       var(--portal-z-toast, 9999);
   display:       flex;
   align-items:   center;
-  gap:           var(--portal-space-2);
-  font-size:     var(--portal-text-sm);
-  font-weight:   600;
-  padding:       var(--portal-space-3) var(--portal-space-5);
-  border-radius: var(--portal-radius-lg);
+  gap:           var(--portal-space-2, 8px);
+  font-size:     var(--portal-text-sm, 13px);
+  font-weight:   700;
+  padding:       var(--portal-space-3, 12px) var(--portal-space-5, 20px);
+  border-radius: var(--portal-radius-lg, 10px);
   box-shadow:    var(--portal-shadow-lg);
   animation:     taToastIn 0.22s ease;
+  font-family:   var(--portal-font);
 }
 
 @keyframes taToastIn {
   from { opacity: 0; transform: translateY(-8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0);    }
 }
 
 .ta-toast--success {
@@ -72,21 +118,87 @@
   border:     1px solid color-mix(in srgb, var(--tp-danger) 30%, transparent);
 }
 
-/* ── Filters ── */
+/* ══════════════════════════════════════════
+   COURSE CHIPS STRIP
+   ══════════════════════════════════════════ */
+.ta-course-strip {
+  display:       flex;
+  align-items:   center;
+  gap:           var(--portal-space-2, 8px);
+  flex-wrap:     wrap;
+  padding:       var(--portal-space-3, 12px) var(--portal-space-4, 16px);
+  background:    var(--tp-surface);
+  border:        1px solid var(--tp-border);
+  border-radius: var(--portal-radius-lg, 12px);
+}
+
+.ta-strip-label {
+  font-size:      10px;
+  font-weight:    700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color:          var(--tp-muted);
+  white-space:    nowrap;
+}
+
+.ta-chip {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           6px;
+  padding:       5px 12px;
+  border-radius: var(--portal-radius-full, 100px);
+  border:        1px solid var(--tp-border);
+  background:    transparent;
+  cursor:        pointer;
+  font-family:   var(--portal-font);
+  font-size:     11px;
+  font-weight:   600;
+  color:         var(--tp-muted);
+  transition:    all var(--portal-transition-fast, 0.14s);
+}
+
+.ta-chip:hover {
+  border-color: var(--tp-accent2);
+  color:        var(--tp-accent2);
+}
+
+.ta-chip--active {
+  border-color: var(--tp-accent2);
+  background:   color-mix(in srgb, var(--tp-accent2) 10%, transparent);
+  color:        var(--tp-accent2);
+}
+
+.ta-chip-badge {
+  font-size:     10px;
+  font-weight:   800;
+  padding:       1px 7px;
+  border-radius: var(--portal-radius-full, 100px);
+  background:    var(--tp-border);
+  color:         var(--tp-muted);
+}
+
+.ta-chip--active .ta-chip-badge {
+  background: color-mix(in srgb, var(--tp-accent2) 20%, transparent);
+  color:      var(--tp-accent2);
+}
+
+/* ══════════════════════════════════════════
+   FILTERS BAR
+   ══════════════════════════════════════════ */
 .ta-filters {
   display:       flex;
-  gap:           var(--portal-space-4);
+  gap:           var(--portal-space-4, 16px);
   flex-wrap:     wrap;
   background:    var(--tp-surface);
   border:        1px solid var(--tp-border);
-  border-radius: var(--portal-radius-lg);
-  padding:       var(--portal-space-4) var(--portal-space-5);
+  border-radius: var(--portal-radius-lg, 12px);
+  padding:       var(--portal-space-4, 16px) var(--portal-space-5, 20px);
 }
 
 .ta-field {
   display:        flex;
   flex-direction: column;
-  gap:            var(--portal-space-2);
+  gap:            var(--portal-space-2, 8px);
   flex:           1;
   min-width:      200px;
 }
@@ -102,18 +214,20 @@
   gap:            4px;
 }
 
-.ta-sel-wrap { position: relative; }
+.ta-sel-wrap {
+  position: relative;
+}
 
 .ta-select {
   width:         100%;
   appearance:    none;
   background:    var(--tp-bg);
   border:        1px solid var(--tp-border);
-  border-radius: var(--portal-radius-md);
-  padding:       var(--portal-space-2) 30px
-                 var(--portal-space-2) var(--portal-space-3);
+  border-radius: var(--portal-radius-md, 8px);
+  padding:       var(--portal-space-2, 8px) 30px
+                 var(--portal-space-2, 8px) var(--portal-space-3, 12px);
   font-family:   var(--portal-font);
-  font-size:     var(--portal-text-sm);
+  font-size:     var(--portal-text-sm, 13px);
   color:         var(--tp-text);
   cursor:        pointer;
   outline:       none;
@@ -127,11 +241,13 @@
   box-shadow:   0 0 0 3px var(--tp-accent-glow);
 }
 
-.ta-select option { background: var(--tp-surface); }
+.ta-select option {
+  background: var(--tp-surface);
+}
 
 .ta-sel-icon {
   position:       absolute;
-  right:          var(--portal-space-3);
+  right:          var(--portal-space-3, 12px);
   top:            50%;
   transform:      translateY(-50%);
   color:          var(--tp-muted);
@@ -141,10 +257,10 @@
 .ta-date-input {
   background:    var(--tp-bg);
   border:        1px solid var(--tp-border);
-  border-radius: var(--portal-radius-md);
-  padding:       var(--portal-space-2) var(--portal-space-3);
+  border-radius: var(--portal-radius-md, 8px);
+  padding:       var(--portal-space-2, 8px) var(--portal-space-3, 12px);
   font-family:   var(--portal-font);
-  font-size:     var(--portal-text-sm);
+  font-size:     var(--portal-text-sm, 13px);
   color:         var(--tp-text);
   outline:       none;
   height:        40px;
@@ -159,11 +275,13 @@
   box-shadow:   0 0 0 3px var(--tp-accent-glow);
 }
 
-/* ── Bulk mark ── */
+/* ══════════════════════════════════════════
+   BULK MARK BAR
+   ══════════════════════════════════════════ */
 .ta-mark-all {
   display:     flex;
   align-items: center;
-  gap:         var(--portal-space-2);
+  gap:         var(--portal-space-2, 8px);
   flex-wrap:   wrap;
 }
 
@@ -172,7 +290,7 @@
   font-weight:  700;
   color:        var(--tp-muted);
   white-space:  nowrap;
-  margin-right: var(--portal-space-1);
+  margin-right: var(--portal-space-1, 4px);
 }
 
 .ta-mark-btn {
@@ -182,17 +300,16 @@
   font-family:   var(--portal-font);
   font-size:     11px;
   font-weight:   700;
-  padding:       4px var(--portal-space-3);
-  border-radius: var(--portal-radius-full);
+  padding:       4px var(--portal-space-3, 12px);
+  border-radius: var(--portal-radius-full, 100px);
   border:        1px solid var(--tp-border);
   background:    transparent;
   color:         var(--tp-muted);
   cursor:        pointer;
-  transition:
-    background   var(--portal-transition-fast),
-    border-color var(--portal-transition-fast),
-    color        var(--portal-transition-fast);
   white-space:   nowrap;
+  transition:    background   var(--portal-transition-fast),
+                 border-color var(--portal-transition-fast),
+                 color        var(--portal-transition-fast);
 }
 
 .ta-mark-btn:hover {
@@ -200,33 +317,35 @@
   color:        var(--tp-subtext);
 }
 
-/* ── Summary ── */
+/* ══════════════════════════════════════════
+   SUMMARY BAR
+   ══════════════════════════════════════════ */
 .ta-summary {
   display:       flex;
   align-items:   center;
-  gap:           var(--portal-space-4);
+  gap:           var(--portal-space-4, 16px);
   flex-wrap:     wrap;
   background:    var(--tp-surface);
   border:        1px solid var(--tp-border);
-  border-radius: var(--portal-radius-lg);
-  padding:       var(--portal-space-3) var(--portal-space-5);
+  border-radius: var(--portal-radius-lg, 12px);
+  padding:       var(--portal-space-3, 12px) var(--portal-space-5, 20px);
 }
 
 .ta-sum-item {
   display:     flex;
   align-items: center;
-  gap:         var(--portal-space-2);
+  gap:         var(--portal-space-2, 8px);
 }
 
 .ta-sum-dot {
   width:         7px;
   height:        7px;
-  border-radius: var(--portal-radius-full);
+  border-radius: var(--portal-radius-full, 50%);
   flex-shrink:   0;
 }
 
 .ta-sum-val {
-  font-size:            var(--portal-text-base);
+  font-size:            var(--portal-text-base, 15px);
   font-weight:          800;
   font-variant-numeric: tabular-nums;
   line-height:          1;
@@ -241,88 +360,109 @@
 }
 
 .ta-sum-total {
-  margin-left:  auto;
-  display:      flex;
-  align-items:  center;
-  gap:          var(--portal-space-2);
-  font-size:    var(--portal-text-sm);
-  font-weight:  700;
-  color:        var(--tp-muted);
-  white-space:  nowrap;
+  margin-left: auto;
+  display:     flex;
+  align-items: center;
+  gap:         var(--portal-space-2, 8px);
+  font-size:   var(--portal-text-sm, 13px);
+  font-weight: 700;
+  color:       var(--tp-muted);
+  white-space: nowrap;
 }
 
-/* ── Student list ── */
+/* ══════════════════════════════════════════
+   MARK TAB — TABLE HEADER
+   ══════════════════════════════════════════ */
+.ta-table-head {
+  display:               grid;
+  grid-template-columns: 36px 1.4fr 1.6fr 100px 100px 1fr;
+  gap:                   10px;
+  padding:               10px 16px;
+  background:            var(--tp-bg);
+  border:                1px solid var(--tp-border);
+  border-radius:         var(--portal-radius-lg, 12px);
+  font-size:             9px;
+  font-weight:           700;
+  text-transform:        uppercase;
+  letter-spacing:        0.1em;
+  color:                 var(--tp-muted);
+}
+
+/* ══════════════════════════════════════════
+   STUDENT LIST — MARK TAB
+   ══════════════════════════════════════════ */
 .ta-list {
   display:        flex;
   flex-direction: column;
-  gap:            var(--portal-space-2);
+  gap:            6px;
 }
 
 .ta-row {
+  display:       grid;
+  grid-template-columns: 36px 1.4fr 1.6fr 100px 100px 1fr;
+  gap:           10px;
+  padding:       11px 16px;
   background:    var(--tp-surface);
   border:        1px solid var(--tp-border);
   border-left:   3px solid var(--tp-border);
-  border-radius: var(--portal-radius-lg);
-  padding:       var(--portal-space-3) var(--portal-space-4);
-  display:       flex;
-  align-items:   flex-start;
-  gap:           var(--portal-space-3);
-  flex-wrap:     wrap;
-  transition:
-    border-left-color var(--portal-transition-fast),
-    background        var(--portal-transition-fast);
+  border-radius: var(--portal-radius-lg, 10px);
+  align-items:   center;
+  transition:    background        var(--portal-transition-fast),
+                 border-left-color var(--portal-transition-fast);
 }
 
 .ta-row:hover {
   background: var(--tp-surface2);
 }
 
-.ta-row-left {
-  display:     flex;
-  align-items: center;
-  gap:         var(--portal-space-3);
-  flex:        1;
-  min-width:   200px;
+.ta-row--marked {
+  background: color-mix(in srgb, var(--tp-success) 3%, var(--tp-surface));
 }
 
-.ta-row-right {
-  display:        flex;
-  flex-direction: column;
-  gap:            var(--portal-space-2);
-  flex:           2;
-  min-width:      260px;
-}
-
+/* ── Serial number ── */
 .ta-sno {
   font-size:            11px;
   font-weight:          700;
   color:                var(--tp-muted);
-  min-width:            20px;
-  text-align:           right;
+  text-align:           center;
   flex-shrink:          0;
   font-variant-numeric: tabular-nums;
   font-family:          var(--portal-font-mono);
 }
 
+/* ── Student cell ── */
+.ta-row-student {
+  display:     flex;
+  align-items: center;
+  gap:         var(--portal-space-3, 12px);
+  flex-wrap:   nowrap;
+  min-width:   0;
+}
+
 .ta-avatar {
   width:           32px;
   height:          32px;
-  border-radius:   var(--portal-radius-full);
-  background:      var(--tp-accent-glow);
-  color:           var(--tp-accent3);
-  border:          1px solid var(--tp-accent-b);
+  border-radius:   var(--portal-radius-full, 50%);
+  flex-shrink:     0;
   display:         flex;
   align-items:     center;
   justify-content: center;
   font-size:       13px;
   font-weight:     800;
-  flex-shrink:     0;
+  background:      var(--tp-accent-glow);
+  color:           var(--tp-accent3);
+  border:          1px solid var(--tp-accent-b);
+  transition:      background var(--portal-transition-fast),
+                   color      var(--portal-transition-fast);
 }
 
-.ta-info   { flex: 1; min-width: 0; }
+.ta-info {
+  flex:      1;
+  min-width: 0;
+}
 
 .ta-name {
-  font-size:     var(--portal-text-sm);
+  font-size:     var(--portal-text-sm, 13px);
   font-weight:   700;
   color:         var(--tp-text);
   white-space:   nowrap;
@@ -339,15 +479,28 @@
 }
 
 .ta-pct {
-  font-size:            var(--portal-text-sm);
+  font-size:            var(--portal-text-sm, 13px);
   font-weight:          800;
   flex-shrink:          0;
   font-variant-numeric: tabular-nums;
 }
 
+.ta-marked-badge {
+  font-size:     9px;
+  font-weight:   700;
+  padding:       2px 7px;
+  border-radius: var(--portal-radius-full, 100px);
+  background:    color-mix(in srgb, var(--tp-success) 10%, transparent);
+  color:         var(--tp-success);
+  border:        1px solid color-mix(in srgb, var(--tp-success) 30%, transparent);
+  flex-shrink:   0;
+  white-space:   nowrap;
+}
+
+/* ── Status buttons ── */
 .ta-status-btns {
   display:   flex;
-  gap:       var(--portal-space-1);
+  gap:       var(--portal-space-1, 4px);
   flex-wrap: wrap;
 }
 
@@ -358,18 +511,17 @@
   font-family:   var(--portal-font);
   font-size:     11px;
   font-weight:   700;
-  padding:       4px var(--portal-space-3);
-  border-radius: var(--portal-radius-full);
+  padding:       5px var(--portal-space-3, 12px);
+  border-radius: var(--portal-radius-full, 100px);
   border:        1px solid var(--tp-border);
   background:    transparent;
   color:         var(--tp-muted);
   cursor:        pointer;
   white-space:   nowrap;
   line-height:   1;
-  transition:
-    background   var(--portal-transition-fast),
-    border-color var(--portal-transition-fast),
-    color        var(--portal-transition-fast);
+  transition:    background   var(--portal-transition-fast),
+                 border-color var(--portal-transition-fast),
+                 color        var(--portal-transition-fast);
 }
 
 .ta-status-btn:hover {
@@ -377,11 +529,44 @@
   color:        var(--tp-subtext);
 }
 
+/* ── Time inputs ── */
+.ta-time-cell {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+}
+
+.ta-time-input {
+  font-family:   var(--portal-font);
+  font-size:     11px;
+  font-weight:   600;
+  padding:       5px 8px;
+  width:         90px;
+  background:    var(--tp-bg);
+  border:        1px solid var(--tp-border);
+  border-radius: var(--portal-radius-md, 7px);
+  color:         var(--tp-text);
+  outline:       none;
+  transition:    border-color var(--portal-transition-fast),
+                 box-shadow   var(--portal-transition-fast);
+}
+
+.ta-time-input:focus {
+  border-color: var(--tp-accent2);
+  box-shadow:   0 0 0 2px var(--tp-accent-glow);
+}
+
+.ta-time-na {
+  font-size: 12px;
+  color:     var(--tp-muted);
+}
+
+/* ── Remark input ── */
 .ta-remark {
   background:    var(--tp-bg);
   border:        1px solid var(--tp-border);
-  border-radius: var(--portal-radius-md);
-  padding:       6px var(--portal-space-3);
+  border-radius: var(--portal-radius-md, 7px);
+  padding:       6px var(--portal-space-3, 12px);
   font-family:   var(--portal-font);
   font-size:     11px;
   color:         var(--tp-subtext);
@@ -397,56 +582,61 @@
   box-shadow:   0 0 0 2px var(--tp-accent-glow);
 }
 
-.ta-remark::placeholder { color: var(--tp-muted); }
+.ta-remark::placeholder {
+  color: var(--tp-muted);
+}
 
-/* ── Bottom sticky bar ── */
+/* ══════════════════════════════════════════
+   BOTTOM STICKY SAVE BAR
+   ══════════════════════════════════════════ */
 .ta-bottom-bar {
   display:         flex;
   align-items:     center;
   justify-content: space-between;
   flex-wrap:       wrap;
-  gap:             var(--portal-space-3);
-  padding:         var(--portal-space-3) var(--portal-space-5);
+  gap:             var(--portal-space-3, 12px);
+  padding:         var(--portal-space-3, 12px) var(--portal-space-5, 20px);
   background:      var(--tp-surface);
   border:          1px solid var(--tp-border);
-  border-radius:   var(--portal-radius-lg);
+  border-radius:   var(--portal-radius-lg, 12px);
   position:        sticky;
-  bottom:          var(--portal-space-4);
+  bottom:          var(--portal-space-4, 16px);
   box-shadow:      0 -4px 24px rgba(0, 0, 0, 0.25);
-  z-index:         var(--portal-z-raised);
+  z-index:         var(--portal-z-raised, 50);
 }
 
 .ta-bottom-info {
   display:     flex;
   align-items: center;
-  gap:         var(--portal-space-2);
-  font-size:   var(--portal-text-sm);
+  gap:         var(--portal-space-2, 8px);
+  font-size:   var(--portal-text-sm, 13px);
   font-weight: 600;
   color:       var(--tp-muted);
 }
 
-/* ── Save button ── */
+/* ══════════════════════════════════════════
+   SAVE BUTTON (header + bottom bar)
+   ══════════════════════════════════════════ */
 .ta-save-btn {
   display:       flex;
   align-items:   center;
-  gap:           var(--portal-space-2);
+  gap:           var(--portal-space-2, 8px);
   font-family:   var(--portal-font);
-  font-size:     var(--portal-text-sm);
+  font-size:     var(--portal-text-sm, 13px);
   font-weight:   700;
-  padding:       var(--portal-space-2) var(--portal-space-5);
-  border-radius: var(--portal-radius-full);
+  padding:       var(--portal-space-2, 8px) var(--portal-space-5, 20px);
+  border-radius: var(--portal-radius-full, 100px);
   border:        none;
   background:    linear-gradient(
-    135deg,
-    var(--tp-accent),
-    var(--tp-accent3)
-  );
+                   135deg,
+                   var(--tp-accent,  #6366f1),
+                   var(--tp-accent3, #a78bfa)
+                 );
   color:         #fff;
   cursor:        pointer;
   white-space:   nowrap;
-  transition:
-    opacity   var(--portal-transition-fast),
-    transform var(--portal-transition-fast);
+  transition:    opacity   var(--portal-transition-fast),
+                 transform var(--portal-transition-fast);
 }
 
 .ta-save-btn:hover:not(:disabled) {
@@ -461,43 +651,596 @@
   transform:      none;
 }
 
-/* ── Empty / loader ── */
+/* ══════════════════════════════════════════
+   KPI CARDS — Daily + Overview tabs
+   ══════════════════════════════════════════ */
+.ta-kpi-row {
+  display:               grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap:                   10px;
+}
+
+.ta-kpi-row--3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.ta-kpi {
+  background:   var(--tp-surface);
+  border:       1px solid var(--tp-border);
+  border-radius: var(--portal-radius-lg, 10px);
+  padding:       14px 16px;
+  border-left:   3px solid transparent;
+}
+
+.ta-kpi--accent { border-left-color: var(--tp-accent2, #818CF8); }
+.ta-kpi--green  { border-left-color: var(--tp-success, #22c55e); }
+.ta-kpi--red    { border-left-color: var(--tp-danger,  #ef4444); }
+
+.ta-kpi-label {
+  display:        flex;
+  align-items:    center;
+  gap:            5px;
+  font-size:      10px;
+  font-weight:    700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color:          var(--tp-muted);
+  margin-bottom:  4px;
+}
+
+.ta-kpi-val {
+  font-size:     1.3rem;
+  font-weight:   800;
+  color:         var(--tp-text);
+  line-height:   1;
+  margin-bottom: 3px;
+}
+
+.ta-kpi-sub {
+  font-size: 10px;
+  color:     var(--tp-muted);
+}
+
+/* ══════════════════════════════════════════
+   DAILY REGISTER TAB
+   ══════════════════════════════════════════ */
+.ta-daily-filter {
+  display:     flex;
+  align-items: center;
+  gap:         10px;
+  flex-wrap:   wrap;
+}
+
+.ta-daily-chips {
+  display:   flex;
+  gap:       6px;
+  flex-wrap: wrap;
+}
+
+/* ── Daily table wrapper ── */
+.ta-table-wrap {
+  background:    var(--tp-surface);
+  border:        1px solid var(--tp-border);
+  border-radius: var(--portal-radius-lg, 12px);
+  overflow:      hidden;
+}
+
+.ta-daily-head {
+  display:               grid;
+  grid-template-columns: 160px 70px 80px 70px 60px 70px 60px 1fr;
+  gap:                   8px;
+  padding:               10px 16px;
+  background:            var(--tp-bg);
+  border-bottom:         1px solid var(--tp-border);
+  font-size:             9px;
+  font-weight:           700;
+  text-transform:        uppercase;
+  letter-spacing:        0.1em;
+  color:                 var(--tp-muted);
+}
+
+.ta-daily-row {
+  display:               grid;
+  grid-template-columns: 160px 70px 80px 70px 60px 70px 60px 1fr;
+  gap:                   8px;
+  padding:               12px 16px;
+  border-top:            1px solid var(--tp-border);
+  align-items:           center;
+  transition:            background var(--portal-transition-fast);
+}
+
+.ta-daily-row:hover {
+  background: color-mix(in srgb, var(--tp-accent2) 4%, transparent);
+}
+
+.ta-daily-row--today {
+  background:  color-mix(in srgb, var(--tp-accent2) 4%, transparent);
+  border-left: 3px solid var(--tp-accent2);
+}
+
+.ta-daily-date {
+  display:        flex;
+  flex-direction: column;
+  gap:            3px;
+}
+
+.ta-daily-date-main {
+  font-size:   12px;
+  font-weight: 600;
+  color:       var(--tp-text);
+}
+
+.ta-today-badge {
+  font-size:     9px;
+  font-weight:   800;
+  padding:       1px 6px;
+  border-radius: var(--portal-radius-full, 100px);
+  background:    color-mix(in srgb, var(--tp-accent2) 12%, transparent);
+  color:         var(--tp-accent2);
+  border:        1px solid color-mix(in srgb, var(--tp-accent2) 20%, transparent);
+  width:         fit-content;
+}
+
+.ta-daily-cell {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+}
+
+.ta-daily-num {
+  font-size:   13px;
+  font-weight: 700;
+  color:       var(--tp-text);
+}
+
+.ta-daily-badge {
+  font-size:     11px;
+  font-weight:   700;
+  padding:       3px 10px;
+  border-radius: var(--portal-radius-full, 100px);
+  min-width:     32px;
+  text-align:    center;
+  display:       inline-block;
+}
+
+.ta-daily-pct {
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+}
+
+.ta-daily-bar-wrap {
+  flex:          1;
+  height:        5px;
+  background:    var(--tp-border);
+  border-radius: var(--portal-radius-full, 100px);
+  overflow:      hidden;
+}
+
+.ta-daily-bar {
+  height:        100%;
+  border-radius: var(--portal-radius-full, 100px);
+  transition:    width 0.4s ease;
+}
+
+.ta-daily-pct-label {
+  font-size:  11px;
+  font-weight: 700;
+  min-width:   34px;
+  text-align:  right;
+}
+
+/* ══════════════════════════════════════════
+   OVERVIEW TAB — FILTERS
+   ══════════════════════════════════════════ */
+.ta-ov-filters {
+  display:     flex;
+  align-items: center;
+  gap:         10px;
+  flex-wrap:   wrap;
+}
+
+.ta-search-wrap {
+  flex:      1;
+  max-width: 260px;
+}
+
+.ta-search {
+  width:         100%;
+  font-family:   var(--portal-font);
+  font-size:     var(--portal-text-sm, 13px);
+  padding:       9px 12px;
+  background:    var(--tp-surface);
+  border:        1px solid var(--tp-border);
+  border-radius: var(--portal-radius-md, 9px);
+  color:         var(--tp-text);
+  outline:       none;
+  transition:    border-color var(--portal-transition-fast),
+                 box-shadow   var(--portal-transition-fast);
+}
+
+.ta-search:focus {
+  border-color: var(--tp-accent2);
+  box-shadow:   0 0 0 3px var(--tp-accent-glow);
+}
+
+.ta-search::placeholder {
+  color: var(--tp-muted);
+}
+
+.ta-ov-select {
+  flex:          1;
+  max-width:     200px;
+  min-width:     140px;
+  font-family:   var(--portal-font);
+  font-size:     var(--portal-text-sm, 13px);
+  padding:       9px 12px;
+  background:    var(--tp-surface);
+  border:        1px solid var(--tp-border);
+  border-radius: var(--portal-radius-md, 8px);
+  color:         var(--tp-text);
+  outline:       none;
+  cursor:        pointer;
+  transition:    border-color var(--portal-transition-fast);
+}
+
+.ta-ov-select:focus {
+  border-color: var(--tp-accent2);
+}
+
+.ta-ov-count {
+  font-size: 11px;
+  color:     var(--tp-muted);
+}
+
+.ta-ov-count strong {
+  color: var(--tp-text);
+}
+
+/* ══════════════════════════════════════════
+   OVERVIEW TAB — TABLE
+   ══════════════════════════════════════════ */
+.ta-ov-head {
+  display:               grid;
+  grid-template-columns: 36px 1.6fr 1.2fr 70px 80px 70px 60px 1fr;
+  gap:                   8px;
+  padding:               10px 16px;
+  background:            var(--tp-bg);
+  border-bottom:         1px solid var(--tp-border);
+  font-size:             9px;
+  font-weight:           700;
+  text-transform:        uppercase;
+  letter-spacing:        0.1em;
+  color:                 var(--tp-muted);
+}
+
+.ta-ov-row {
+  display:               grid;
+  grid-template-columns: 36px 1.6fr 1.2fr 70px 80px 70px 60px 1fr;
+  gap:                   8px;
+  padding:               12px 16px;
+  border-top:            1px solid var(--tp-border);
+  align-items:           center;
+  cursor:                pointer;
+  transition:            background var(--portal-transition-fast);
+}
+
+.ta-ov-row:hover {
+  background: color-mix(in srgb, var(--tp-accent2) 4%, transparent);
+}
+
+.ta-ov-row--exp {
+  background: color-mix(in srgb, var(--tp-accent2) 6%, transparent);
+}
+
+.ta-ov-row--noatt {
+  opacity: 0.7;
+}
+
+.ta-ov-course {
+  font-size:   11px;
+  font-weight: 600;
+  color:       var(--tp-muted);
+  line-height: 1.4;
+}
+
+.ta-ov-num {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+}
+
+.ta-ov-total {
+  font-size:   13px;
+  font-weight: 700;
+  color:       var(--tp-text);
+}
+
+.ta-ov-none {
+  font-size: 12px;
+  color:     var(--tp-muted);
+}
+
+.ta-ov-badge {
+  font-size:     11px;
+  font-weight:   700;
+  padding:       3px 9px;
+  border-radius: var(--portal-radius-full, 100px);
+  border:        1px solid;
+  min-width:     28px;
+  text-align:    center;
+  display:       inline-block;
+}
+
+.ta-ov-badge--present {
+  background:   color-mix(in srgb, var(--tp-success) 10%, transparent);
+  color:        var(--tp-success);
+  border-color: color-mix(in srgb, var(--tp-success) 25%, transparent);
+}
+
+.ta-ov-badge--absent {
+  background:   color-mix(in srgb, var(--tp-danger) 10%, transparent);
+  color:        var(--tp-danger);
+  border-color: color-mix(in srgb, var(--tp-danger) 25%, transparent);
+}
+
+.ta-ov-badge--late {
+  background:   color-mix(in srgb, var(--tp-warn) 10%, transparent);
+  color:        var(--tp-warn);
+  border-color: color-mix(in srgb, var(--tp-warn) 25%, transparent);
+}
+
+/* ── Percentage cell ── */
+.ta-ov-pct {
+  display:     flex;
+  align-items: center;
+  gap:         6px;
+}
+
+.ta-pct-track {
+  flex:          1;
+  height:        4px;
+  background:    var(--tp-border);
+  border-radius: var(--portal-radius-full, 100px);
+  overflow:      hidden;
+}
+
+.ta-pct-fill {
+  height:        100%;
+  border-radius: var(--portal-radius-full, 100px);
+  transition:    width 0.4s ease;
+}
+
+.ta-ov-no-rec {
+  font-size:     9px;
+  font-weight:   700;
+  padding:       2px 7px;
+  border-radius: var(--portal-radius-sm, 6px);
+  background:    var(--tp-border);
+  color:         var(--tp-muted);
+}
+
+/* ══════════════════════════════════════════
+   OVERVIEW — EXPANDED ROW
+   ══════════════════════════════════════════ */
+.ta-ov-expanded {
+  background:    var(--tp-bg);
+  border-top:    1px solid var(--tp-border);
+  border-bottom: 1px solid var(--tp-border);
+  padding:       14px 16px 14px 60px;
+}
+
+.ta-ov-exp-header {
+  font-size:     11px;
+  font-weight:   700;
+  color:         var(--tp-text);
+  margin-bottom: 10px;
+}
+
+.ta-ov-exp-empty {
+  font-size: 12px;
+  color:     var(--tp-muted);
+  padding:   8px 0;
+}
+
+.ta-ov-rec-list {
+  display:        flex;
+  flex-direction: column;
+  gap:            6px;
+}
+
+.ta-ov-rec-row {
+  display:       flex;
+  align-items:   center;
+  gap:           10px;
+  padding:       6px 10px;
+  background:    var(--tp-surface);
+  border:        1px solid var(--tp-border);
+  border-radius: var(--portal-radius-md, 8px);
+  flex-wrap:     wrap;
+}
+
+.ta-ov-rec-date {
+  font-size:   11px;
+  font-weight: 600;
+  color:       var(--tp-subtext);
+  min-width:   130px;
+}
+
+.ta-ov-rec-status {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           4px;
+  font-size:     10px;
+  font-weight:   700;
+  padding:       3px 8px;
+  border-radius: var(--portal-radius-full, 100px);
+  border:        1px solid;
+}
+
+.ta-ov-rec-time {
+  font-size:   10px;
+  color:       var(--tp-muted);
+  font-family: var(--portal-font-mono, monospace);
+}
+
+.ta-ov-rec-via {
+  font-size:     9px;
+  font-weight:   600;
+  color:         var(--tp-muted);
+  padding:       2px 6px;
+  background:    var(--tp-border);
+  border-radius: var(--portal-radius-sm, 4px);
+}
+
+.ta-ov-rec-remark {
+  font-size:   10px;
+  color:       var(--tp-muted);
+  font-style:  italic;
+  margin-left: auto;
+}
+
+/* ══════════════════════════════════════════
+   PAGINATION
+   ══════════════════════════════════════════ */
+.ta-pag {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             10px;
+  padding:         12px;
+  border-top:      1px solid var(--tp-border);
+}
+
+.ta-pag-btn {
+  display:       flex;
+  align-items:   center;
+  gap:           4px;
+  padding:       6px 14px;
+  border-radius: var(--portal-radius-md, 8px);
+  border:        1px solid var(--tp-border);
+  background:    var(--tp-surface);
+  color:         var(--tp-muted);
+  font-size:     12px;
+  font-weight:   500;
+  cursor:        pointer;
+  font-family:   var(--portal-font);
+  transition:    border-color var(--portal-transition-fast),
+                 color        var(--portal-transition-fast);
+}
+
+.ta-pag-btn:hover:not(:disabled) {
+  border-color: var(--tp-accent2);
+  color:        var(--tp-accent2);
+}
+
+.ta-pag-btn:disabled {
+  opacity:        0.35;
+  cursor:         not-allowed;
+  pointer-events: none;
+}
+
+.ta-pag-info {
+  font-size: 12px;
+  color:     var(--tp-muted);
+}
+
+/* ══════════════════════════════════════════
+   EMPTY STATE + SPINNER
+   ══════════════════════════════════════════ */
 .ta-empty {
   display:         flex;
   flex-direction:  column;
   align-items:     center;
   justify-content: center;
-  gap:             var(--portal-space-3);
-  padding:         var(--portal-space-12);
-  font-size:       var(--portal-text-sm);
+  gap:             var(--portal-space-3, 12px);
+  padding:         var(--portal-space-12, 48px);
+  font-size:       var(--portal-text-sm, 13px);
   color:           var(--tp-muted);
   border:          1px dashed var(--tp-border);
-  border-radius:   var(--portal-radius-lg);
+  border-radius:   var(--portal-radius-lg, 12px);
   text-align:      center;
 }
 
 .ta-spinner {
-  width:            24px;
-  height:           24px;
-  border:           2px solid var(--tp-border);
+  width:         24px;
+  height:        24px;
+  border:        2px solid var(--tp-border);
   border-top-color: var(--tp-accent2);
-  border-radius:    var(--portal-radius-full);
-  animation:        taSpin 0.7s linear infinite;
+  border-radius: var(--portal-radius-full, 50%);
+  animation:     taSpin 0.7s linear infinite;
 }
 
 @keyframes taSpin {
   to { transform: rotate(360deg); }
 }
 
-/* ── Responsive ── */
+/* ══════════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════════ */
+@media (max-width: 960px) {
+  .ta-daily-head,
+  .ta-daily-row {
+    grid-template-columns: 120px 60px 70px 60px 1fr;
+  }
+
+  /* Holiday + Leave columns hide karo */
+  .ta-daily-head span:nth-child(6),
+  .ta-daily-head span:nth-child(7),
+  .ta-daily-row .ta-daily-cell:nth-child(6),
+  .ta-daily-row .ta-daily-cell:nth-child(7) {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .ta-ov-head,
+  .ta-ov-row {
+    grid-template-columns: 28px 1fr 80px 1fr;
+  }
+
+  /* Total, Present, Absent, Late columns hide karo */
+  .ta-ov-head span:nth-child(4),
+  .ta-ov-head span:nth-child(5),
+  .ta-ov-head span:nth-child(6),
+  .ta-ov-head span:nth-child(7),
+  .ta-ov-row .ta-ov-num:nth-child(4),
+  .ta-ov-row .ta-ov-num:nth-child(5),
+  .ta-ov-row .ta-ov-num:nth-child(6) {
+    display: none;
+  }
+}
+
 @media (max-width: 768px) {
+  .ta-kpi-row    { grid-template-columns: 1fr 1fr; }
+  .ta-kpi-row--3 { grid-template-columns: 1fr 1fr; }
   .ta-filters    { flex-direction: column; }
   .ta-field      { min-width: unset; }
+
+  /* Mark tab table — 2 column layout */
+  .ta-table-head {
+    display: none; /* Mobile pe header hide karo */
+  }
+
+  .ta-row {
+    grid-template-columns: 36px 1fr;
+    row-gap: 8px;
+  }
+
+  .ta-row .ta-status-btns,
+  .ta-row .ta-time-cell,
+  .ta-row .ta-remark {
+    grid-column: 2;
+  }
 }
 
 @media (max-width: 600px) {
-  .ta-row        { flex-direction: column; }
-  .ta-row-right  { min-width: 100%; }
+  .ta-tabs       { width: 100%; }
+  .ta-header     { flex-direction: column; }
   .ta-bottom-bar { flex-direction: column; align-items: stretch; }
   .ta-save-btn   { width: 100%; justify-content: center; }
+  .ta-ov-filters { flex-direction: column; }
+  .ta-search-wrap,
+  .ta-ov-select  { max-width: 100%; width: 100%; }
+  .ta-ov-expanded { padding-left: 16px; }
 }
