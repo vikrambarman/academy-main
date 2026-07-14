@@ -3,56 +3,105 @@
 // ============================================================
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import GalleryFilter from "./GalleryFilter";
 
-/* ─── Data (UNCHANGED) ─── */
+/* ─── Data (Add more photos here) ─── */
 const IMAGES = [
-  { src: "/images/gallery/classrooms/classroom1.jpeg", category: "classrooms", alt: "Computer lab classroom at Shivshakti Academy" },
-  { src: "/images/gallery/classrooms/classroom2.jpeg", category: "classrooms", alt: "Students in practical training session" },
-  { src: "/images/gallery/classrooms/classroom3.jpeg", category: "classrooms", alt: "Students in practical training session" },
-  { src: "/images/gallery/classrooms/classroom4.jpeg", category: "classrooms", alt: "Students in practical training session" },
-  { src: "/images/gallery/classrooms/classroom5.jpeg", category: "classrooms", alt: "Students in practical training session" },
-  { src: "/images/gallery/classrooms/classroom6.jpeg", category: "classrooms", alt: "Academy's Corridor at Shivshakti Academy" },
-  { src: "/images/gallery/events/event1.jpeg", category: "events", alt: "December 2025 Picnic" },
-  { src: "/images/gallery/events/event2.jpeg", category: "events", alt: "December 2025 Picnic" },
-  { src: "/images/gallery/events/event3.jpeg", category: "events", alt: "December 2025 Picnic" },
-  { src: "/images/gallery/events/event4.jpeg", category: "events", alt: "December 2025 Picnic" },
-  { src: "/images/gallery/events/event5.jpeg", category: "events", alt: "December 2025 Picnic" },
-  { src: "/images/gallery/events/event6.jpeg", category: "events", alt: "December 2025 Picnic" },
-  { src: "/images/gallery/events/event7.jpeg", category: "events", alt: "December 2025 Picnic" },
-  { src: "/images/gallery/events/event8.jpeg", category: "events", alt: "December 2025 Picnic" },
-  { src: "/images/gallery/events/event9.jpeg", category: "events", alt: "December 2025 Picnic" },
-  { src: "/images/gallery/events/event10.jpeg", category: "events", alt: "December 2025 Picnic" },
-  { src: "/images/gallery/events/event11.jpeg", category: "events", alt: "December 2025 Picnic" },
-  { src: "/images/gallery/events/event12.jpeg", category: "events", alt: "Students photo shoot" },
-  { src: "/images/gallery/events/event13.jpeg", category: "events", alt: "Students photo shoot" },
-  { src: "/images/gallery/events/event14.jpeg", category: "events", alt: "Reception Area" },
-  { src: "/images/gallery/events/event15.jpeg", category: "events", alt: "Saraswati Pooja 2026" },
-  { src: "/images/gallery/events/event16.jpeg", category: "events", alt: "Students photo shoot" },
-  { src: "/images/gallery/certificates/certificate1.jpeg", category: "certificates", alt: "Student receiving verified certificate" },
+  { src: "/images/gallery/classrooms/classroom1.jpeg", category: "classrooms", alt: "Computer lab classroom at Shivshakti Academy", size: "normal" },
+  { src: "/images/gallery/classrooms/classroom2.jpeg", category: "classrooms", alt: "Students in practical training session", size: "tall" },
+  { src: "/images/gallery/classrooms/classroom3.jpeg", category: "classrooms", alt: "Students working on computers", size: "normal" },
+  { src: "/images/gallery/classrooms/classroom4.jpeg", category: "classrooms", alt: "Computer lab with modern systems", size: "wide" },
+  { src: "/images/gallery/classrooms/classroom5.jpeg", category: "classrooms", alt: "Students in practical training session", size: "normal" },
+  { src: "/images/gallery/classrooms/classroom6.jpeg", category: "classrooms", alt: "Academy's Corridor at Shivshakti Academy", size: "normal" },
+  { src: "/images/gallery/events/event1.jpeg", category: "events", alt: "Annual Day Celebration 2025", size: "wide" },
+  { src: "/images/gallery/events/event2.jpeg", category: "events", alt: "Students performing on stage", size: "tall" },
+  { src: "/images/gallery/events/event3.jpeg", category: "events", alt: "Annual Day function", size: "normal" },
+  { src: "/images/gallery/events/event4.jpeg", category: "events", alt: "Picnic December 2025", size: "normal" },
+  { src: "/images/gallery/events/event5.jpeg", category: "events", alt: "Students group photo", size: "normal" },
+  { src: "/images/gallery/events/event6.jpeg", category: "events", alt: "Outdoor activity", size: "wide" },
+  { src: "/images/gallery/events/event7.jpeg", category: "events", alt: "Cultural program", size: "normal" },
+  { src: "/images/gallery/events/event8.jpeg", category: "events", alt: "Sports day event", size: "normal" },
+  { src: "/images/gallery/events/event9.jpeg", category: "events", alt: "Students celebration", size: "tall" },
+  { src: "/images/gallery/events/event10.jpeg", category: "events", alt: "Group activity", size: "normal" },
+  { src: "/images/gallery/events/event11.jpeg", category: "events", alt: "Annual function", size: "normal" },
+  { src: "/images/gallery/events/event12.jpeg", category: "events", alt: "Students photo shoot", size: "normal" },
+  { src: "/images/gallery/events/event13.jpeg", category: "events", alt: "Students photo shoot", size: "wide" },
+  { src: "/images/gallery/events/event14.jpeg", category: "events", alt: "Reception Area", size: "normal" },
+  { src: "/images/gallery/events/event15.jpeg", category: "events", alt: "Saraswati Pooja 2026", size: "tall" },
+  { src: "/images/gallery/events/event16.jpeg", category: "events", alt: "Students photo shoot", size: "normal" },
+  { src: "/images/gallery/certificates/certificate1.jpeg", category: "certificates", alt: "Student receiving verified certificate", size: "normal" },
+  { src: "/images/gallery/certificates/certificate2.jpeg", category: "certificates", alt: "Certificate distribution ceremony", size: "wide" },
+  { src: "/images/gallery/exams/exam1.jpeg", category: "exams", alt: "Examination hall", size: "normal" },
+  { src: "/images/gallery/exams/exam2.jpeg", category: "exams", alt: "Students taking exam", size: "tall" },
+  { src: "/images/gallery/exams/exam3.jpeg", category: "exams", alt: "Exam center", size: "normal" },
 ];
 
-const CATEGORIES = ["all", "classrooms", "events", "certificates"];
+const CATEGORIES = ["all", "classrooms", "events", "certificates", "exams"];
 
 /* ─── Icons ─── */
-const XIcon = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>);
-const ChevronLeftIcon = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>);
-const ChevronRightIcon = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>);
-const ZoomInIcon = () => (<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /><line x1="11" y1="8" x2="11" y2="14" /><line x1="8" y1="11" x2="14" y2="11" /></svg>);
+const XIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
+
+const ChevronLeftIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="15 18 9 12 15 6" />
+  </svg>
+);
+
+const ChevronRightIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="9 18 15 12 9 6" />
+  </svg>
+);
+
+const ZoomInIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8" />
+    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    <line x1="11" y1="8" x2="11" y2="14" />
+    <line x1="8" y1="11" x2="14" y2="11" />
+  </svg>
+);
+
+const ImageIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+    <circle cx="8.5" cy="8.5" r="1.5" />
+    <polyline points="21 15 16 10 5 21" />
+  </svg>
+);
 
 export default function GalleryGrid() {
   const [active, setActive] = useState("all");
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const filtered = active === "all" ? IMAGES : IMAGES.filter((img) => img.category === active);
 
   const counts: Record<string, number> = { all: IMAGES.length };
-  IMAGES.forEach((img) => { counts[img.category] = (counts[img.category] ?? 0) + 1; });
+  IMAGES.forEach((img) => {
+    counts[img.category] = (counts[img.category] ?? 0) + 1;
+  });
 
-  const openLightbox = (idx: number) => setLightboxIdx(idx);
-  const closeLightbox = useCallback(() => setLightboxIdx(null), []);
+  const openLightbox = (idx: number) => {
+    setLightboxIdx(idx);
+    document.body.style.overflow = "hidden";
+  };
+
+  const closeLightbox = useCallback(() => {
+    setLightboxIdx(null);
+    document.body.style.overflow = "";
+  }, []);
 
   const prev = useCallback(() => {
     setLightboxIdx((i) => (i === null ? null : (i - 1 + filtered.length) % filtered.length));
@@ -71,125 +120,159 @@ export default function GalleryGrid() {
     [closeLightbox, prev, next]
   );
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
+
+  if (!isMounted) {
+    return (
+      <div className="gl-layout">
+        <aside className="gl-sidebar">
+          <GalleryFilter
+            active={active}
+            setActive={setActive}
+            categories={CATEGORIES}
+            counts={counts}
+          />
+        </aside>
+        <div className="gl-grid-wrap">
+          <div className="gg-grid">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="gg-item" style={{ background: "var(--color-gray-200)" }} />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
-      <GalleryFilter
-        active={active}
-        setActive={(cat) => { setActive(cat); setLightboxIdx(null); }}
-        categories={CATEGORIES}
-        counts={counts}
-      />
+      <div className="gl-layout">
+        {/* ── SIDEBAR ── */}
+        <aside className="gl-sidebar" aria-label="Gallery filters">
+          <div className="gl-sidebar__title">Filter Photos</div>
 
-      {filtered.length === 0 ? (
-        <div className="gg-empty">No photos in this category yet.</div>
-      ) : (
-        <div className="gg-grid">
-          {filtered.map((img, idx) => (
-            <div
-              key={img.src}
-              className="gg-item"
-              onClick={() => openLightbox(idx)}
-              role="button"
-              tabIndex={0}
-              aria-label={`View ${img.alt}`}
-              onKeyDown={(e) => e.key === "Enter" && openLightbox(idx)}
-            >
-              <Image src={img.src} alt={img.alt} width={600} height={800} className="gg-item__img" />
-              <div className="gg-overlay" aria-hidden="true">
-                <span className="gg-overlay__pill">{img.category}</span>
-                <span className="gg-overlay__zoom"><ZoomInIcon /></span>
-              </div>
+          <div className="gl-sidebar__stats">
+            <div className="gl-sidebar__stat gl-sidebar__stat--total">
+              <span>Total Photos</span>
+              <span>{IMAGES.length}</span>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
 
-      {/* LIGHTBOX */}
+          <GalleryFilter
+            active={active}
+            setActive={(cat) => {
+              setActive(cat);
+              setLightboxIdx(null);
+            }}
+            categories={CATEGORIES}
+            counts={counts}
+          />
+
+          <div style={{ marginTop: "var(--space-5)", paddingTop: "var(--space-4)", borderTop: "1px solid var(--border-light)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", color: "var(--text-tertiary)", fontSize: "var(--text-xs)" }}>
+              <ImageIcon />
+              <span>Click any photo to enlarge</span>
+            </div>
+          </div>
+        </aside>
+
+        {/* ── GRID ── */}
+        <div className="gl-grid-wrap">
+          {filtered.length === 0 ? (
+            <div className="gg-empty">No photos in this category yet.</div>
+          ) : (
+            <div className="gg-grid">
+              {filtered.map((img, idx) => (
+                <div
+                  key={img.src}
+                  className={`gg-item ${img.size === "wide" ? "gg-item--wide" : ""} ${img.size === "tall" ? "gg-item--tall" : ""}`}
+                  onClick={() => openLightbox(idx)}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`View ${img.alt}`}
+                  onKeyDown={(e) => e.key === "Enter" && openLightbox(idx)}
+                >
+                  <Image
+                    src={img.src}
+                    alt={img.alt}
+                    width={600}
+                    height={800}
+                    className="gg-item__img"
+                    loading="lazy"
+                  />
+                  <div className="gg-overlay" aria-hidden="true">
+                    <div className="gg-overlay__info">
+                      <span className="gg-overlay__pill">{img.category}</span>
+                      <span className="gg-overlay__alt">{img.alt}</span>
+                    </div>
+                    <span className="gg-overlay__zoom">
+                      <ZoomInIcon />
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── LIGHTBOX ── */}
       {lightboxIdx !== null && (
-        <div className="gg-lb" onClick={closeLightbox} onKeyDown={handleKeyDown} role="dialog" aria-modal="true" aria-label="Image lightbox" tabIndex={-1}>
+        <div
+          className="gg-lb"
+          onClick={closeLightbox}
+          onKeyDown={handleKeyDown}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Image lightbox"
+          tabIndex={-1}
+        >
           <div className="gg-lb__inner" onClick={(e) => e.stopPropagation()}>
-            <button className="gg-lb__close" onClick={closeLightbox} aria-label="Close lightbox"><XIcon /></button>
+            <button
+              className="gg-lb__close"
+              onClick={closeLightbox}
+              aria-label="Close lightbox"
+            >
+              <XIcon />
+            </button>
             <div className="gg-lb__img-wrap">
-              <Image src={filtered[lightboxIdx].src} alt={filtered[lightboxIdx].alt} width={960} height={720} className="gg-lb__img" priority />
+              <Image
+                src={filtered[lightboxIdx].src}
+                alt={filtered[lightboxIdx].alt}
+                width={1200}
+                height={900}
+                className="gg-lb__img"
+                priority
+              />
             </div>
             <p className="gg-lb__caption">{filtered[lightboxIdx].alt}</p>
             <div className="gg-lb__nav">
-              <button className="gg-lb__nav-btn" onClick={prev} aria-label="Previous image"><ChevronLeftIcon /></button>
-              <span className="gg-lb__counter">{lightboxIdx + 1} / {filtered.length}</span>
-              <button className="gg-lb__nav-btn" onClick={next} aria-label="Next image"><ChevronRightIcon /></button>
+              <button
+                className="gg-lb__nav-btn"
+                onClick={prev}
+                aria-label="Previous image"
+              >
+                <ChevronLeftIcon />
+              </button>
+              <span className="gg-lb__counter">
+                {lightboxIdx + 1} / {filtered.length}
+              </span>
+              <button
+                className="gg-lb__nav-btn"
+                onClick={next}
+                aria-label="Next image"
+              >
+                <ChevronRightIcon />
+              </button>
             </div>
           </div>
         </div>
       )}
-
-      <style>{`
-/* ── GALLERY GRID — Clean University style ── */
-.gg-grid { columns: 1; gap: var(--space-3); }
-@media (min-width: 640px) { .gg-grid { columns: 2; } }
-@media (min-width: 1024px) { .gg-grid { columns: 3; } }
-
-.gg-item {
-  break-inside: avoid; margin-bottom: var(--space-3); position: relative;
-  border-radius: var(--radius-lg); overflow: hidden; cursor: pointer;
-  background: var(--color-gray-100); border: 1px solid var(--border-color);
-  transition: border-color var(--transition-base);
-}
-.gg-item:hover { border-color: var(--color-gray-300); }
-.gg-item__img { display: block; width: 100%; height: auto; object-fit: cover; }
-
-.gg-overlay {
-  position: absolute; inset: 0; opacity: 0;
-  display: flex; align-items: flex-end; justify-content: space-between;
-  padding: var(--space-4) var(--space-5);
-  background: linear-gradient(to top, rgba(20,21,15,0.7) 0%, transparent 55%);
-  transition: opacity var(--transition-base);
-}
-.gg-item:hover .gg-overlay { opacity: 1; }
-.gg-overlay__pill {
-  font-size: var(--font-size-xs); font-weight: var(--font-weight-medium);
-  letter-spacing: 0.08em; text-transform: uppercase; color: #fff;
-  background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
-  padding: 3px 10px; border-radius: var(--radius-full);
-}
-.gg-overlay__zoom {
-  width: 30px; height: 30px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); color: #fff;
-}
-
-.gg-empty { text-align: center; padding: var(--space-16) var(--space-6); font-size: var(--font-size-sm); color: var(--text-tertiary); }
-
-/* LIGHTBOX */
-@keyframes gg-lb-in { from { opacity: 0; } to { opacity: 1; } }
-.gg-lb {
-  position: fixed; inset: 0; z-index: var(--z-modal, 1050);
-  display: flex; align-items: center; justify-content: center; padding: var(--space-6);
-  background: rgba(10, 9, 6, 0.92); backdrop-filter: blur(8px);
-  animation: gg-lb-in 0.2s ease forwards;
-}
-.gg-lb__inner { position: relative; width: 100%; max-width: 960px; max-height: 85vh; display: flex; flex-direction: column; align-items: center; gap: var(--space-4); }
-.gg-lb__close {
-  position: absolute; top: calc(-1 * var(--space-4)); right: calc(-1 * var(--space-4));
-  width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10;
-  color: #fff; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); cursor: pointer;
-  transition: background var(--transition-fast);
-}
-.gg-lb__close:hover { background: rgba(255,255,255,0.2); }
-.gg-lb__img-wrap {
-  position: relative; width: 100%; display: flex; align-items: center; justify-content: center;
-  border-radius: var(--radius-md); overflow: hidden; background: #000; max-height: calc(85vh - 100px);
-}
-.gg-lb__img { object-fit: contain; width: 100%; max-height: calc(85vh - 100px); }
-.gg-lb__caption { font-size: var(--font-size-xs); color: rgba(255,255,255,0.6); text-align: center; margin: 0; }
-.gg-lb__nav { display: flex; align-items: center; gap: var(--space-4); }
-.gg-lb__nav-btn {
-  width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  color: #fff; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); cursor: pointer;
-  transition: background var(--transition-fast);
-}
-.gg-lb__nav-btn:hover { background: rgba(255,255,255,0.18); }
-.gg-lb__counter { font-size: var(--font-size-xs); color: rgba(255,255,255,0.6); min-width: 60px; text-align: center; }
-      `}</style>
     </>
   );
 }

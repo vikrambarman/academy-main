@@ -1,0 +1,387 @@
+/* src/styles/accreditation.css */
+
+/* ============================================
+   ACCREDITATION PAGE
+   Foundation variables pe dependent
+   ============================================ */
+
+.ac-root {
+  background: var(--bg-page);
+  min-height: 100vh;
+}
+
+/* ============================================
+   HERO
+   ============================================ */
+
+.ac-hero {
+  background: var(--color-primary-800);
+  padding-block: var(--space-20) var(--space-16);
+  position: relative;
+}
+
+.ac-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(
+      circle at 15% 50%,
+      rgba(255, 255, 255, 0.03) 0%,
+      transparent 50%
+    );
+  pointer-events: none;
+}
+
+.ac-hero__inner {
+  position: relative;
+  z-index: 1;
+}
+
+.ac-hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--color-accent-400);
+  margin-bottom: var(--space-4);
+}
+
+.ac-hero__eyebrow-line {
+  width: 24px;
+  height: 2px;
+  background: var(--color-accent-500);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.ac-hero__layout {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.ac-hero__title {
+  font-family: var(--font-heading);
+  font-size: clamp(var(--text-2xl), 3.6vw, var(--text-4xl));
+  font-weight: var(--font-bold);
+  color: white;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  margin: 0;
+}
+
+.ac-hero__title-em {
+  font-style: normal;
+  color: var(--color-accent-400);
+  text-decoration: underline;
+  text-decoration-color: var(--color-accent-500);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+}
+
+.ac-hero__desc {
+  font-size: var(--text-base);
+  color: var(--color-gray-300);
+  line-height: var(--leading-relaxed);
+  max-width: 420px;
+  margin: 0;
+}
+
+/* ============================================
+   BODY SECTION
+   ============================================ */
+
+.ac-body {
+  padding-block: var(--space-12) var(--space-24);
+}
+
+.ac-body__inner {
+  padding-top: var(--space-12);
+}
+
+/* ============================================
+   GRID
+   ============================================ */
+
+.ac-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-6);
+  margin-bottom: var(--space-8);
+}
+
+/* ============================================
+   ACCREDITATION CARD
+   ============================================ */
+
+.ac-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-top: 3px solid var(--color-primary-700);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition:
+    box-shadow var(--transition-base),
+    transform var(--transition-base);
+}
+
+.ac-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* ============================================
+   CARD LOGO ZONE
+   ============================================ */
+
+.ac-card__logo-zone {
+  background: var(--color-gray-50);
+  border-bottom: 1px solid var(--border-light);
+  padding: var(--space-8);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-5);
+}
+
+.ac-card__logo-wrap {
+  position: relative;
+  width: 100px;
+  height: 60px;
+  flex-shrink: 0;
+}
+
+.ac-card__logo-img {
+  object-fit: contain;
+  object-position: left center;
+}
+
+.ac-card__badge {
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  padding: 4px var(--space-3);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   CARD BODY
+   ============================================ */
+
+.ac-card__body {
+  padding: var(--space-8);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.ac-card__subtitle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--color-accent-600);
+  margin-bottom: var(--space-3);
+}
+
+.ac-card__subtitle-line {
+  width: 14px;
+  height: 2px;
+  background: var(--color-accent-500);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.ac-card__title {
+  font-family: var(--font-heading);
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-tight);
+  margin-bottom: var(--space-3);
+}
+
+.ac-card__desc {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+  margin-bottom: var(--space-6);
+}
+
+/* ============================================
+   CARD POINTS
+   ============================================ */
+
+.ac-card__points {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-top: auto;
+}
+
+.ac-card__point {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.ac-card__point:last-child {
+  border-bottom: none;
+}
+
+.ac-card__point-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-primary-50);
+  border: 1px solid var(--border-light);
+  color: var(--color-primary-700);
+  flex-shrink: 0;
+}
+
+/* ============================================
+   TRUST STRIP
+   ============================================ */
+
+.ac-strip {
+  position: relative;
+  background: var(--color-primary-800);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6) var(--space-8);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ac-strip__left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.ac-strip__icon {
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.ac-strip__title {
+  font-family: var(--font-heading);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: white;
+  line-height: var(--leading-snug);
+}
+
+.ac-strip__sub {
+  font-size: var(--text-xs);
+  color: rgba(255, 255, 255, 0.65);
+  margin-top: var(--space-1);
+}
+
+.ac-strip__pills {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.ac-strip__pill {
+  font-size: var(--text-xs);
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .ac-hero {
+    padding-block: var(--space-16) var(--space-10);
+  }
+
+  .ac-hero__layout {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+
+  .ac-hero__desc {
+    max-width: 100%;
+  }
+
+  .ac-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ac-strip {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: var(--space-6);
+  }
+
+  .ac-strip__pills {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .ac-hero {
+    padding-block: var(--space-12) var(--space-8);
+  }
+
+  .ac-body {
+    padding-bottom: var(--space-16);
+  }
+
+  .ac-card__logo-zone,
+  .ac-card__body {
+    padding: var(--space-6);
+  }
+
+  .ac-strip {
+    padding: var(--space-5);
+  }
+}

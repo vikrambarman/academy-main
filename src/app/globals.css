@@ -56,6 +56,16 @@ Homepage hero    →  home/HeroSection.tsx (inline ya page-specific) */
 @import "../styles/courses-list.css";
 @import "../styles/course-detail.css";
 @import "../styles/enquiry-popup.css";
+@import "../styles/enquiry.css";
+@import "../styles/contact.css";
+@import "../styles/about.css";
+@import "../styles/accreditation.css";
+@import "../styles/gallery.css";
+@import "../styles/affiliations.css";
+@import "../styles/legal.css";
+@import "../styles/verify.css";
+@import "../styles/notices.css";
+@import "../styles/faq.css";
 
 
 /* Portal Styles */

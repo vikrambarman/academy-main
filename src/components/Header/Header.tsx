@@ -9,6 +9,7 @@ import {
   Building2, Award, Camera, Handshake,
   Bell, ShieldCheck, HelpCircle,
   User, GraduationCap, Lock,
+  ChevronRight,
 } from "lucide-react";
 import styles from "./Header.module.css";
 
@@ -16,10 +17,12 @@ interface Notice {
   _id: string;
   title: string;
   slug: string;
+  category?: string; // ✅ optional — backward compatible
 }
 
 interface HeaderProps {
-  latestNotice?: Notice | null;
+  latestNotice?: Notice | null; // ✅ purana prop — as-is
+  notices?: Notice[];           // ✅ naya optional prop
 }
 
 const academyLinks = [
@@ -42,13 +45,24 @@ const portalLinks = [
   { href: "/admin/login", label: "Admin Portal", icon: <Lock size={15} /> },
 ];
 
-export default function Header({ latestNotice }: HeaderProps) {
+export default function Header({ latestNotice, notices = [] }: HeaderProps) {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileAccordion, setMobileAccordion] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(0);
   const headerRef = useRef<HTMLElement>(null);
+
+  // ✅ Notice rotation state
+  const [noticeIdx, setNoticeIdx] = useState(0);
+  const [noticeVisible, setNoticeVisible] = useState(true);
+  const [noticePaused, setNoticePaused] = useState(false);
+
+  // ✅ Backward compat: notices prop khali ho to latestNotice use karo
+  const noticeList: Notice[] =
+    notices.length > 0 ? notices : latestNotice ? [latestNotice] : [];
+
+  const currentNotice = noticeList[noticeIdx] ?? noticeList[0] ?? null;
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -63,7 +77,22 @@ export default function Header({ latestNotice }: HeaderProps) {
       window.removeEventListener("resize", measure);
       clearTimeout(t);
     };
-  }, [latestNotice]);
+  }, [latestNotice, notices]);
+
+  // ✅ Auto-rotate notices (sirf tab jab 1 se zyada ho, hover par pause)
+  useEffect(() => {
+    if (noticeList.length <= 1 || noticePaused) return;
+
+    const interval = setInterval(() => {
+      setNoticeVisible(false); // fade out
+      setTimeout(() => {
+        setNoticeIdx((prev) => (prev + 1) % noticeList.length);
+        setNoticeVisible(true); // fade in
+      }, 350);
+    }, 4500);
+
+    return () => clearInterval(interval);
+  }, [noticeList.length, noticePaused]);
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
@@ -90,7 +119,7 @@ export default function Header({ latestNotice }: HeaderProps) {
 
         {/* ============================================
             LAYER 1 - TOP BAR (Dark Blue)
-            Quick links + Portal access
+            Notice strip + Portal access
             ============================================ */}
         <div className={styles.topBar}>
           <div className={styles.container}>
@@ -98,22 +127,67 @@ export default function Header({ latestNotice }: HeaderProps) {
 
               {/* Left - Notice ticker or tagline */}
               <div className={styles.topBarLeft}>
-                {latestNotice ? (
-                  <div className={styles.noticeTicker}>
-                    <span className={styles.noticeLabel}>
-                      <span className={styles.noticeDot} />
-                      Notice
+                {currentNotice ? (
+                  <div
+                    className={styles.noticeTicker}
+                    onMouseEnter={() => setNoticePaused(true)}
+                    onMouseLeave={() => setNoticePaused(false)}
+                  >
+                    {/* Pulsing badge */}
+                    <span className={styles.noticeBadgeWrap}>
+                      <span className={styles.noticePulseRing} aria-hidden="true" />
+                      <span className={styles.noticeLabel}>
+                        <Bell size={10} strokeWidth={2.5} />
+                        Notice
+                      </span>
                     </span>
-                    <Link
-                      href={`/notices/${latestNotice.slug}`}
-                      className={styles.noticeText}
-                    >
-                      {latestNotice.title}
+
+                    {/* Animated text */}
+                    <div className={styles.noticeTextWrap}>
+                      <Link
+                        href={`/notices/${currentNotice.slug}`}
+                        className={`${styles.noticeText} ${
+                          noticeVisible
+                            ? styles.noticeTextIn
+                            : styles.noticeTextOut
+                        }`}
+                      >
+                        <ChevronRight size={13} className={styles.noticeArrow} />
+                        {currentNotice.title}
+                      </Link>
+                    </div>
+
+                    {/* Dot indicators — sirf multiple notices par */}
+                    {noticeList.length > 1 && (
+                      <div className={styles.noticeDots} role="tablist">
+                        {noticeList.map((n, i) => (
+                          <button
+                            key={n._id}
+                            className={`${styles.noticeDotBtn} ${
+                              i === noticeIdx ? styles.noticeDotActive : ""
+                            }`}
+                            onClick={() => {
+                              setNoticeVisible(false);
+                              setTimeout(() => {
+                                setNoticeIdx(i);
+                                setNoticeVisible(true);
+                              }, 300);
+                            }}
+                            aria-label={`Notice ${i + 1}: ${n.title}`}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    {/* View all */}
+                    <Link href="/notices" className={styles.noticeViewAll}>
+                      All Notices
+                      <ChevronRight size={11} />
                     </Link>
                   </div>
                 ) : (
                   <span className={styles.topBarTagline}>
-                    Ambikapur's Most Trusted Computer Academy
+                    Ambikapur&apos;s Most Trusted Computer Academy
                   </span>
                 )}
               </div>

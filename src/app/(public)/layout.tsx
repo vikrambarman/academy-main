@@ -7,15 +7,16 @@ import ScrollToTop from "@/components/common/scrollToTop";
 import EnquiryPopup from "./home/EnquiryPopup";
 
 
-async function getLatestNotice() {
+async function getTopNotices() {
   try {
     await connectDB();
-    const notice = await Notice.findOne({ isActive: true, isPublished: true })
+    const notices = await Notice.find({ isActive: true, isPublished: true })
       .sort({ createdAt: -1 })
+      .limit(5) // Top 5 notices
       .lean();
-    return notice ? JSON.parse(JSON.stringify(notice)) : null;
+    return notices ? JSON.parse(JSON.stringify(notices)) : [];
   } catch {
-    return null;
+    return [];
   }
 }
 
@@ -24,7 +25,9 @@ export default async function PublicLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const latestNotice = await getLatestNotice();
+  const notices = await getTopNotices();
+const latestNotice = notices[0] || null; // Backward compatibility
+
 
   return (
     // ✅ STICKY FIX: wrapper par koi overflow nahi.
@@ -32,7 +35,7 @@ export default async function PublicLayout({
     //    kabhi mat dena yahan, warna Header (sticky) tak nahi pahunchega.
     <div className="public-shell">
       {/* Header — sticky (Header.module.css me position: sticky) */}
-      <Header latestNotice={latestNotice} />
+      <Header notices={notices} latestNotice={latestNotice} />
 
       {/* Main content */}
       <main className={`public-main ${latestNotice ? "has-breaking-news" : ""}`}>

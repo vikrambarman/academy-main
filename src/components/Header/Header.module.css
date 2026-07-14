@@ -63,7 +63,10 @@
   white-space: nowrap;
 }
 
-/* Notice ticker */
+/* ============================================
+   NOTICE TICKER (Enhanced)
+   ============================================ */
+
 .noticeTicker {
   display: flex;
   align-items: center;
@@ -72,7 +75,31 @@
   flex: 1;
 }
 
+/* Badge + pulse ring */
+.noticeBadgeWrap {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.noticePulseRing {
+  position: absolute;
+  inset: -3px;
+  border-radius: 4px;
+  background: var(--color-accent-500);
+  opacity: 0;
+  animation: noticePulse 2.4s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes noticePulse {
+  0%   { opacity: 0.55; transform: scale(0.9); }
+  60%  { opacity: 0;    transform: scale(1.35); }
+  100% { opacity: 0;    transform: scale(1.35); }
+}
+
 .noticeLabel {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
@@ -85,33 +112,128 @@
   padding: 0.2rem 0.6rem;
   border-radius: 2px;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
-.noticeDot {
-  width: 5px;
-  height: 5px;
-  background: white;
-  border-radius: 50%;
-  animation: blink 1.5s ease-in-out infinite;
+/* Shimmer sweep on badge */
+.noticeLabel::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.35),
+    transparent
+  );
+  animation: noticeShimmer 3s ease-in-out infinite;
 }
 
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+@keyframes noticeShimmer {
+  0%        { left: -100%; }
+  50%, 100% { left: 150%; }
+}
+
+/* Text wrapper — animation clip */
+.noticeTextWrap {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .noticeText {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  max-width: 100%;
   font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.92);
   text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: color 0.2s;
+  transition: opacity 0.35s ease, transform 0.35s ease, color 0.2s;
+}
+
+.noticeTextIn {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.noticeTextOut {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 
 .noticeText:hover {
   color: var(--color-accent-400);
+}
+
+.noticeArrow {
+  flex-shrink: 0;
+  color: var(--color-accent-400);
+  animation: noticeArrowNudge 1.6s ease-in-out infinite;
+}
+
+@keyframes noticeArrowNudge {
+  0%, 100% { transform: translateX(0); }
+  50%      { transform: translateX(3px); }
+}
+
+/* Dot indicators */
+.noticeDots {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+
+.noticeDotBtn {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.3s ease;
+}
+
+.noticeDotBtn:hover {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.noticeDotActive {
+  background: var(--color-accent-400);
+  width: 16px;
+  border-radius: 3px;
+}
+
+/* View all link */
+.noticeViewAll {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  flex-shrink: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--color-accent-400);
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  transition: all 0.2s ease;
+}
+
+.noticeViewAll:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.35);
 }
 
 /* Right - Portal links */
@@ -683,7 +805,6 @@
     gap: 1rem;
   }
 
-  /* NavBar me burger dikhao */
   .navBar {
     display: block;
   }
@@ -712,6 +833,23 @@
     min-height: 34px;
   }
 
+  /* ✅ Notice strip compact on mobile */
+  .noticeViewAll {
+    display: none;
+  }
+
+  .noticeDots {
+    display: none;
+  }
+
+  .noticeText {
+    font-size: 0.75rem;
+  }
+
+  .noticeTicker {
+    gap: 0.5rem;
+  }
+
   /* Middle bar fix */
   .middleBar {
     padding: 0;
@@ -721,7 +859,6 @@
     min-height: 64px;
     padding: 0.625rem 0;
     gap: 0.75rem;
-    /* ✅ FIX: overflow hidden hatao */
     overflow: visible;
   }
 
@@ -738,7 +875,6 @@
   /* Logo compact */
   .logo {
     gap: 0.625rem;
-    /* ✅ min-width so it doesn't shrink too much */
     min-width: 0;
     flex: 1;
   }
@@ -755,7 +891,6 @@
 
   .logoName {
     font-size: 0.8125rem;
-    /* ✅ FIX: Long name wrap hone do */
     white-space: normal;
     line-height: 1.2;
   }
@@ -768,7 +903,7 @@
     font-size: 0.5625rem;
   }
 
-  /* ✅ FIX: CTA button cut nahi ho */
+  /* CTA button cut nahi ho */
   .ctaBtn {
     padding: 0.5rem 0.875rem;
     font-size: 0.75rem;
@@ -782,7 +917,7 @@
     font-size: 0.625rem;
   }
 
-  /* ✅ NavBar - burger sirf yahan dikhao */
+  /* NavBar - burger sirf yahan dikhao */
   .navBar {
     display: block;
     background: var(--color-primary-800);
@@ -794,12 +929,10 @@
     padding: 0 0.25rem;
   }
 
-  /* Nav links hide on mobile */
   .nav {
     display: none;
   }
 
-  /* Burger visible */
   .burger {
     display: flex;
     margin-left: auto;
@@ -840,7 +973,13 @@
     transition: none;
   }
 
-  .noticeDot {
+  .noticePulseRing,
+  .noticeArrow {
     animation: none;
+  }
+
+  .noticeLabel::after {
+    animation: none;
+    display: none;
   }
 }
