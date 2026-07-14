@@ -37,6 +37,9 @@ const resourceLinks = [
   { href: "/notices", label: "Notices", icon: <Bell size={15} /> },
   { href: "/verify-certificate", label: "Verify Certificate", icon: <ShieldCheck size={15} /> },
   { href: "/faq", label: "FAQ", icon: <HelpCircle size={15} /> },
+  { href: "/student/login", label: "Student Portal", icon: <User size={15} /> },
+  { href: "/teacher/login", label: "Teacher Portal", icon: <GraduationCap size={15} /> },
+  { href: "/admin/login", label: "Admin Portal", icon: <Lock size={15} /> },
 ];
 
 const portalLinks = [
