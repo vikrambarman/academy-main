@@ -9,12 +9,40 @@ import GalleryFilter from "./GalleryFilter";
 
 /* ─── Data (Add more photos here) ─── */
 const IMAGES = [
-  { src: "/images/gallery/classrooms/classroom1.jpeg", category: "classrooms", alt: "Computer lab classroom at Shivshakti Academy", size: "normal" },
-  { src: "/images/gallery/classrooms/classroom2.jpeg", category: "classrooms", alt: "Students in practical training session", size: "tall" },
-  { src: "/images/gallery/classrooms/classroom3.jpeg", category: "classrooms", alt: "Students working on computers", size: "normal" },
-  { src: "/images/gallery/classrooms/classroom4.jpeg", category: "classrooms", alt: "Computer lab with modern systems", size: "wide" },
-  { src: "/images/gallery/classrooms/classroom5.jpeg", category: "classrooms", alt: "Students in practical training session", size: "normal" },
-  { src: "/images/gallery/classrooms/classroom6.jpeg", category: "classrooms", alt: "Academy's Corridor at Shivshakti Academy", size: "normal" },
+
+  // Annual Day 7th July 2026
+  { src: "/images/gallery/events/event17.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event18.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event19.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event20.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event21.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event22.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event23.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event24.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event25.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event26.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event27.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event28.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event29.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event30.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event31.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event32.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event33.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event34.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event35.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event36.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event37.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event38.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event39.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event40.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event41.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event42.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event43.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event44.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+  { src: "/images/gallery/events/event45.jpg", category: "events", alt: "First Annual Day 7th July 2026", size: "normal" },
+
+
+  // First Picnic December 2025
   { src: "/images/gallery/events/event1.jpeg", category: "events", alt: "Annual Day Celebration 2025", size: "wide" },
   { src: "/images/gallery/events/event2.jpeg", category: "events", alt: "Students performing on stage", size: "tall" },
   { src: "/images/gallery/events/event3.jpeg", category: "events", alt: "Annual Day function", size: "normal" },
@@ -31,11 +59,24 @@ const IMAGES = [
   { src: "/images/gallery/events/event14.jpeg", category: "events", alt: "Reception Area", size: "normal" },
   { src: "/images/gallery/events/event15.jpeg", category: "events", alt: "Saraswati Pooja 2026", size: "tall" },
   { src: "/images/gallery/events/event16.jpeg", category: "events", alt: "Students photo shoot", size: "normal" },
+
+  // Classrooms 
+  { src: "/images/gallery/classrooms/classroom1.jpeg", category: "classrooms", alt: "Computer lab classroom at Shivshakti Academy", size: "normal" },
+  { src: "/images/gallery/classrooms/classroom2.jpeg", category: "classrooms", alt: "Students during annual day", size: "tall" },
+  { src: "/images/gallery/classrooms/classroom3.jpeg", category: "classrooms", alt: "Students working on computers", size: "normal" },
+  { src: "/images/gallery/classrooms/classroom4.jpeg", category: "classrooms", alt: "Computer lab with modern systems", size: "wide" },
+  { src: "/images/gallery/classrooms/classroom5.jpeg", category: "classrooms", alt: "Students in exam time", size: "normal" },
+  { src: "/images/gallery/classrooms/classroom6.jpeg", category: "classrooms", alt: "Students group photos after exam", size: "normal" },
+  { src: "/images/gallery/classrooms/classroom7.jpeg", category: "classrooms", alt: "Students group photos after exam", size: "normal" },
+  { src: "/images/gallery/classrooms/classroom8.jpeg", category: "classrooms", alt: "Students group photos after exam", size: "normal" },
+  { src: "/images/gallery/classrooms/classroom9.jpeg", category: "classrooms", alt: "Students group photos after exam", size: "normal" },
+
+
   { src: "/images/gallery/certificates/certificate1.jpeg", category: "certificates", alt: "Student receiving verified certificate", size: "normal" },
-  { src: "/images/gallery/certificates/certificate2.jpeg", category: "certificates", alt: "Certificate distribution ceremony", size: "wide" },
+  // { src: "/images/gallery/certificates/certificate2.jpeg", category: "certificates", alt: "Certificate distribution ceremony", size: "wide" },
   { src: "/images/gallery/exams/exam1.jpeg", category: "exams", alt: "Examination hall", size: "normal" },
-  { src: "/images/gallery/exams/exam2.jpeg", category: "exams", alt: "Students taking exam", size: "tall" },
-  { src: "/images/gallery/exams/exam3.jpeg", category: "exams", alt: "Exam center", size: "normal" },
+  // { src: "/images/gallery/exams/exam2.jpeg", category: "exams", alt: "Students taking exam", size: "tall" },
+  // { src: "/images/gallery/exams/exam3.jpeg", category: "exams", alt: "Exam center", size: "normal" },
 ];
 
 const CATEGORIES = ["all", "classrooms", "events", "certificates", "exams"];

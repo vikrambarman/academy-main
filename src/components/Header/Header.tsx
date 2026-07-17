@@ -336,6 +336,10 @@ export default function Header({ latestNotice, notices = [] }: HeaderProps) {
                   Courses
                 </Link>
 
+                <Link href="/gallery" className={styles.navLink}>
+                  Moments
+                </Link>
+
                 {/* Academy Dropdown */}
                 <div
                   className={styles.navItem}
