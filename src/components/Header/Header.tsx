@@ -502,6 +502,13 @@ export default function Header({ latestNotice, notices = [] }: HeaderProps) {
               >
                 Courses
               </Link>
+              <Link
+                href="/gallery"
+                onClick={closeMobile}
+                className={styles.mobileLink}
+              >
+                Moments
+              </Link>
 
               {/* Academy Accordion */}
               <div className={styles.mobileGroup}>
