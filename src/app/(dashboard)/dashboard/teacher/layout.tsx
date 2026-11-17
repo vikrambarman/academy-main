@@ -1,66 +1,28 @@
-"use client";
+import { redirect } from "next/navigation";
+import { getServerSession } from "@/lib/server/session";
+import { connectDB } from "@/lib/db";
+import Teacher from "@/models/Teacher";
+import { TeacherShellClient } from "./teacher-shell";
 
-import { useState, useEffect } from "react";
-import { fetchWithAuth } from "@/lib/fetchWithAuth";
-import {
-  LayoutDashboard,
-  CalendarCheck,
-  Clock,
-  BookOpen,
-  Key,
-} from "lucide-react";
-import { PortalShell, NavSection } from "@/components/layout";
-
-const NAV_SECTIONS: NavSection[] = [
-  {
-    title: "Main",
-    items: [
-      { name: "Dashboard", href: "/dashboard/teacher", icon: LayoutDashboard },
-    ],
-  },
-  {
-    title: "Academic",
-    items: [
-      { name: "Attendance", href: "/dashboard/teacher/attendance", icon: CalendarCheck },
-      { name: "Hourly Code", href: "/dashboard/teacher/attendance/hourly-code", icon: Key },
-      { name: "Timetable", href: "/dashboard/teacher/timetable", icon: Clock },
-    ],
-  },
-  {
-    title: "Learning",
-    items: [
-      { name: "Study Notes", href: "/dashboard/teacher/notes", icon: BookOpen },
-    ],
-  },
-];
-
-export default function TeacherLayout({
+export default async function TeacherLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [teacher, setTeacher] = useState<{
-    name: string;
-    employeeId: string;
-  } | null>(null);
+  const session = await getServerSession();
+  if (!session || session.role !== "teacher") redirect("/teacher/login");
+  if (session.isFirstLogin) redirect("/change-password?forced=true");
 
-  useEffect(() => {
-    fetchWithAuth("/api/teacher/me")
-      .then((r) => r.json())
-      .then((d) => setTeacher(d.teacher))
-      .catch(() => {});
-  }, []);
+  await connectDB();
+  const teacher = await Teacher.findOne({ user: session.id })
+    .select("name employeeId")
+    .lean();
+
+  if (!teacher) redirect("/teacher/login");
 
   return (
-    <PortalShell
-      role="teacher"
-      navSections={NAV_SECTIONS}
-      userName={teacher?.name ?? "Teacher"}
-      userId={teacher?.employeeId}
-      userSubtitle="Teacher"
-      storageKey="teacher-portal-theme"
-    >
+    <TeacherShellClient teacher={JSON.parse(JSON.stringify(teacher))}>
       {children}
-    </PortalShell>
+    </TeacherShellClient>
   );
 }

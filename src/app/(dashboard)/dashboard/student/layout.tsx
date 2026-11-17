@@ -1,88 +1,28 @@
-"use client";
+import { redirect } from "next/navigation";
+import { getServerSession } from "@/lib/server/session";
+import { connectDB } from "@/lib/db";
+import Student from "@/models/Student";
+import { StudentShellClient } from "./student-shell";
 
-import { useState, useEffect } from "react";
-import { fetchWithAuth } from "@/lib/fetchWithAuth";
-import {
-  LayoutDashboard,
-  User,
-  FileText,
-  BookOpen,
-  GraduationCap,
-  Wallet,
-  Lock,
-  CalendarDays,
-  Clock,
-} from "lucide-react";
-import { PortalShell, NavSection } from "@/components/layout";
-
-const NAV_SECTIONS: NavSection[] = [
-  {
-    title: "Academic",
-    items: [
-      { name: "Dashboard", href: "/dashboard/student", icon: LayoutDashboard },
-      { name: "Profile", href: "/dashboard/student/profile", icon: User },
-      { name: "Notices", href: "/dashboard/student/notices", icon: FileText },
-      { name: "Attendance", href: "/dashboard/student/attendance", icon: CalendarDays },
-      { name: "Schedule", href: "/dashboard/student/schedule", icon: Clock },
-    ],
-  },
-  {
-    title: "Finance & Certs",
-    items: [
-      { name: "Fee Ledger", href: "/dashboard/student/fees", icon: Wallet },
-      { name: "Certificates", href: "/dashboard/student/certificates", icon: GraduationCap },
-    ],
-  },
-  {
-    title: "Learning",
-    items: [
-      { name: "Notes", href: "/dashboard/student/notes", icon: BookOpen },
-      { name: "Exams", icon: FileText, disabled: true, badge: "Soon" },
-    ],
-  },
-  {
-    title: "Account",
-    items: [
-      { name: "Change Password", href: "/dashboard/student/change-password", icon: Lock },
-    ],
-  },
-];
-
-interface StudentData {
-  student: {
-    name: string;
-    studentId: string;
-    profileImage?: string;
-  };
-}
-
-export default function StudentLayout({
+export default async function StudentLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [studentData, setStudentData] = useState<StudentData | null>(null);
+  const session = await getServerSession();
+  if (!session || session.role !== "student") redirect("/student/login");
+  if (session.isFirstLogin) redirect("/change-password?forced=true");
 
-  useEffect(() => {
-    fetchWithAuth("/api/student/profile")
-      .then((r) => r.json())
-      .then(setStudentData)
-      .catch(() => {});
-  }, []);
+  await connectDB();
+  const student = await Student.findOne({ user: session.id })
+    .select("name studentId profileImage isActive")
+    .lean();
 
-  const student = studentData?.student;
+  if (!student || !student.isActive) redirect("/student/login");
 
   return (
-    <PortalShell
-      role="student"
-      navSections={NAV_SECTIONS}
-      userName={student?.name ?? "Student"}
-      userId={student?.studentId}
-      userImage={student?.profileImage}
-      userSubtitle={`ID: ${student?.studentId ?? "—"}`}
-      storageKey="student-portal-theme"
-    >
+    <StudentShellClient student={JSON.parse(JSON.stringify(student))}>
       {children}
-    </PortalShell>
+    </StudentShellClient>
   );
 }
