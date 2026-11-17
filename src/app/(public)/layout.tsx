@@ -1,3 +1,5 @@
+export const revalidate = 60;   // Notices 60s tak cache — har request pe DB query nahi
+
 import { connectDB } from "@/lib/db";
 import Notice from "@/models/Notice";
 import Header from "@/components/Header/Header";
