@@ -93,6 +93,17 @@ Homepage hero    →  home/HeroSection.tsx (inline ya page-specific) */
 @import "../styles/portal/teacher-attendance.css";
 @import "@/styles/portal/teacher-notes.css"; 
 
+
+
+
+/* ═══════════════════════════════════════════════════
+   NEW DESIGN SYSTEM — Added Phase 1
+   Existing styles untouched for safety
+═══════════════════════════════════════════════════ */
+@import "../styles/design-system/index.css";
+
+
+
 /* ==========================================
    CUSTOM SCROLLBAR (Global)
    ========================================== */

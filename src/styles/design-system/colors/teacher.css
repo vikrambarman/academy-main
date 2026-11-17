@@ -1,0 +1,52 @@
+/* ═══════════════════════════════════════════════════
+   TEACHER PORTAL THEME — Purple (expertise feel)
+═══════════════════════════════════════════════════ */
+
+[data-portal="teacher"] {
+  --portal-bg: #13111C;
+  --portal-surface: #1E1B3A;
+  --portal-surface-2: #2D2460;
+  --portal-surface-hover: #3730A3;
+  --portal-border: #2D2460;
+  --portal-border-2: #4338CA;
+
+  --portal-accent: #8B5CF6;
+  --portal-accent-hover: #7C3AED;
+  --portal-accent-dim: #6D28D9;
+  --portal-accent-glow: rgba(139, 92, 246, 0.12);
+  --portal-accent-glow-2: rgba(139, 92, 246, 0.06);
+
+  --portal-text: #F5F3FF;
+  --portal-text-secondary: #C4B5FD;
+  --portal-text-muted: #A78BFA;
+  --portal-text-inverse: #1E1B4B;
+
+  --sidebar-bg: #1E1B3A;
+  --sidebar-text: #C4B5FD;
+  --sidebar-text-active: #F5F3FF;
+  --sidebar-icon: #A78BFA;
+
+  --topbar-bg: #1E1B3A;
+  --topbar-border: #2D2460;
+
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+  --color-info: #3B82F6;
+}
+
+[data-portal="teacher"][data-theme="light"] {
+  --portal-bg: #F5F3FF;
+  --portal-surface: #FFFFFF;
+  --portal-surface-2: #EDE9FE;
+  --portal-surface-hover: #DDD6FE;
+  --portal-border: #DDD6FE;
+  --portal-border-2: #C4B5FD;
+
+  --portal-text: #1E1B4B;
+  --portal-text-secondary: #4C1D95;
+  --portal-text-muted: #6D28D9;
+
+  --sidebar-bg: #FFFFFF;
+  --topbar-bg: #FFFFFF;
+}
