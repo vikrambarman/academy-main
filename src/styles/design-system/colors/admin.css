@@ -1,0 +1,60 @@
+/* ═══════════════════════════════════════════════════
+   ADMIN PORTAL THEME — Deep slate (authority feel)
+   Applied via [data-portal="admin"]
+═══════════════════════════════════════════════════ */
+
+[data-portal="admin"] {
+  /* Layout */
+  --portal-bg: #0F172A;
+  --portal-surface: #1E293B;
+  --portal-surface-2: #273548;
+  --portal-surface-hover: #334155;
+  --portal-border: #334155;
+  --portal-border-2: #3E506B;
+
+  /* Accent — Blue */
+  --portal-accent: #3B82F6;
+  --portal-accent-hover: #2563EB;
+  --portal-accent-dim: #1E40AF;
+  --portal-accent-glow: rgba(59, 130, 246, 0.12);
+  --portal-accent-glow-2: rgba(59, 130, 246, 0.06);
+
+  /* Text */
+  --portal-text: #F1F5F9;
+  --portal-text-secondary: #94A3B8;
+  --portal-text-muted: #64748B;
+  --portal-text-inverse: #0F172A;
+
+  /* Sidebar */
+  --sidebar-bg: #1E293B;
+  --sidebar-text: #94A3B8;
+  --sidebar-text-active: #F8FAFC;
+  --sidebar-icon: #64748B;
+
+  /* Topbar */
+  --topbar-bg: #1E293B;
+  --topbar-border: #334155;
+
+  /* Semantic mapping */
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+  --color-info: #3B82F6;
+}
+
+/* Light mode for admin */
+[data-portal="admin"][data-theme="light"] {
+  --portal-bg: #F8FAFC;
+  --portal-surface: #FFFFFF;
+  --portal-surface-2: #F1F5F9;
+  --portal-surface-hover: #E2E8F0;
+  --portal-border: #E2E8F0;
+  --portal-border-2: #CBD5E1;
+
+  --portal-text: #0F172A;
+  --portal-text-secondary: #475569;
+  --portal-text-muted: #94A3B8;
+
+  --sidebar-bg: #FFFFFF;
+  --topbar-bg: #FFFFFF;
+}

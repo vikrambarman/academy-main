@@ -1,0 +1,22 @@
+/* ═══════════════════════════════════════════════════
+   PUBLIC SITE THEME — Trustworthy blue
+═══════════════════════════════════════════════════ */
+
+[data-portal="public"] {
+  --portal-bg: #FFFFFF;
+  --portal-surface: #FFFFFF;
+  --portal-surface-2: #F8FAFC;
+  --portal-surface-hover: #F1F5F9;
+  --portal-border: #E2E8F0;
+  --portal-border-2: #CBD5E1;
+
+  --portal-accent: #2563EB;
+  --portal-accent-hover: #1D4ED8;
+  --portal-accent-dim: #1E40AF;
+  --portal-accent-glow: rgba(37, 99, 235, 0.12);
+
+  --portal-text: #0F172A;
+  --portal-text-secondary: #475569;
+  --portal-text-muted: #94A3B8;
+  --portal-text-inverse: #FFFFFF;
+}

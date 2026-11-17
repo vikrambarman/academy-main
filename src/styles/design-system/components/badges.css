@@ -1,0 +1,81 @@
+/* ═══════════════════════════════════════════════════
+   BADGE COMPONENT
+═══════════════════════════════════════════════════ */
+
+.ds-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px 10px;
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  line-height: 1.5;
+}
+
+.ds-badge--success {
+  background: var(--success-50);
+  color: var(--success-700);
+  border: 1px solid var(--success-100);
+}
+
+.ds-badge--warning {
+  background: var(--warning-50);
+  color: var(--warning-700);
+  border: 1px solid var(--warning-100);
+}
+
+.ds-badge--error {
+  background: var(--error-50);
+  color: var(--error-700);
+  border: 1px solid var(--error-100);
+}
+
+.ds-badge--info {
+  background: var(--info-50);
+  color: var(--info-700);
+  border: 1px solid var(--info-100);
+}
+
+.ds-badge--neutral {
+  background: var(--portal-surface-2);
+  color: var(--portal-text-secondary);
+  border: 1px solid var(--portal-border);
+}
+
+.ds-badge--accent {
+  background: var(--portal-accent-glow);
+  color: var(--portal-accent);
+  border: 1px solid color-mix(in srgb, var(--portal-accent) 25%, transparent);
+}
+
+.ds-badge__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* Dark mode adjustments for badges */
+[data-theme="dark"] .ds-badge--success {
+  background: rgba(16, 185, 129, 0.15);
+  color: #6EE7B7;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+[data-theme="dark"] .ds-badge--warning {
+  background: rgba(245, 158, 11, 0.15);
+  color: #FCD34D;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+[data-theme="dark"] .ds-badge--error {
+  background: rgba(239, 68, 68, 0.15);
+  color: #FCA5A5;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+[data-theme="dark"] .ds-badge--info {
+  background: rgba(59, 130, 246, 0.15);
+  color: #93C5FD;
+  border-color: rgba(59, 130, 246, 0.3);
+}

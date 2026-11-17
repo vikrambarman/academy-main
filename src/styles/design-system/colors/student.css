@@ -1,0 +1,52 @@
+/* ═══════════════════════════════════════════════════
+   STUDENT PORTAL THEME — Teal/Green (growth feel)
+═══════════════════════════════════════════════════ */
+
+[data-portal="student"] {
+  --portal-bg: #0C1A16;
+  --portal-surface: #14532D;
+  --portal-surface-2: #166534;
+  --portal-surface-hover: #15803D;
+  --portal-border: #166534;
+  --portal-border-2: #22C55E;
+
+  --portal-accent: #10B981;
+  --portal-accent-hover: #059669;
+  --portal-accent-dim: #047857;
+  --portal-accent-glow: rgba(16, 185, 129, 0.12);
+  --portal-accent-glow-2: rgba(16, 185, 129, 0.06);
+
+  --portal-text: #F0FDF4;
+  --portal-text-secondary: #A7F3D0;
+  --portal-text-muted: #6EE7B7;
+  --portal-text-inverse: #052E16;
+
+  --sidebar-bg: #14532D;
+  --sidebar-text: #A7F3D0;
+  --sidebar-text-active: #F0FDF4;
+  --sidebar-icon: #6EE7B7;
+
+  --topbar-bg: #14532D;
+  --topbar-border: #166534;
+
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+  --color-info: #3B82F6;
+}
+
+[data-portal="student"][data-theme="light"] {
+  --portal-bg: #F0FDF4;
+  --portal-surface: #FFFFFF;
+  --portal-surface-2: #ECFDF5;
+  --portal-surface-hover: #D1FAE5;
+  --portal-border: #D1FAE5;
+  --portal-border-2: #A7F3D0;
+
+  --portal-text: #052E16;
+  --portal-text-secondary: #065F46;
+  --portal-text-muted: #047857;
+
+  --sidebar-bg: #FFFFFF;
+  --topbar-bg: #FFFFFF;
+}
