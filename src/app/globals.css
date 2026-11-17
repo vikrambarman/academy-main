@@ -69,8 +69,6 @@ Homepage hero    →  home/HeroSection.tsx (inline ya page-specific) */
 
 
 /* Portal Styles */
-@import "../styles/portal/portal-variables.css";
-@import "../styles/portal/portal-layout.css";
 @import "../styles/portal/portal-components.css";
 @import "../styles/portal/portal-utilities.css";
 
@@ -101,6 +99,12 @@ Homepage hero    →  home/HeroSection.tsx (inline ya page-specific) */
    Existing styles untouched for safety
 ═══════════════════════════════════════════════════ */
 @import "../styles/design-system/index.css";
+
+
+/* ═══════════════════════════════════════════════════
+   PHASE 2: New Layout System
+═══════════════════════════════════════════════════ */
+@import "../styles/layout/index.css";
 
 
 

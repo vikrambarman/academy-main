@@ -69,8 +69,6 @@ export function ThemeToggle() {
     );
 }
 
-// components/ThemeToggle.tsx — PortalThemeToggle function update
-
 export function PortalThemeToggle({
     rootClass = "cp-root",
     storageKey = "portal-theme",
@@ -81,6 +79,15 @@ export function PortalThemeToggle({
     const [portalTheme, setPortalThemeState] = useState<"light" | "dark">("dark");
     const [mounted, setMounted] = useState(false);
 
+    // ✅ FIX: class + data-theme dono set karo
+    const applyTheme = (theme: "light" | "dark") => {
+        document.querySelectorAll(`.${rootClass}`).forEach(el => {
+            el.classList.toggle("dark", theme === "dark");
+            el.classList.toggle("light", theme === "light");
+            el.setAttribute("data-theme", theme);   // ← NEW LINE
+        });
+    };
+
     useEffect(() => {
         setMounted(true);
         const saved = localStorage.getItem(storageKey) as "light" | "dark" | null;
@@ -90,18 +97,12 @@ export function PortalThemeToggle({
     const setPortalTheme = (theme: "light" | "dark") => {
         setPortalThemeState(theme);
         localStorage.setItem(storageKey, theme);
-        document.querySelectorAll(`.${rootClass}`).forEach(el => {
-            el.classList.toggle("dark",  theme === "dark");
-            el.classList.toggle("light", theme === "light");
-        });
+        applyTheme(theme);
     };
 
     useEffect(() => {
         if (!mounted) return;
-        document.querySelectorAll(`.${rootClass}`).forEach(el => {
-            el.classList.toggle("dark",  portalTheme === "dark");
-            el.classList.toggle("light", portalTheme === "light");
-        });
+        applyTheme(portalTheme);
     }, [mounted, portalTheme, rootClass]);
 
     if (!mounted) return null;
@@ -112,26 +113,8 @@ export function PortalThemeToggle({
         <button
             onClick={() => setPortalTheme(isDark ? "light" : "dark")}
             aria-label="Toggle theme"
-            style={{
-                display:"flex", alignItems:"center", gap:6,
-                padding:"5px 10px", borderRadius:8,
-                border:"1px solid var(--sp-border, var(--cp-border2))",
-                background:"transparent", cursor:"pointer",
-                color:"var(--sp-subtext, var(--cp-subtext))",
-                fontSize:12, fontWeight:500,
-                transition:"all 0.15s",
-                fontFamily:"'Plus Jakarta Sans', sans-serif",
-            }}
-            onMouseEnter={e => {
-                const el = e.currentTarget as HTMLElement;
-                el.style.background = "var(--sp-hover, var(--cp-accent-glow))";
-                el.style.color = "var(--sp-accent, var(--cp-accent))";
-            }}
-            onMouseLeave={e => {
-                const el = e.currentTarget as HTMLElement;
-                el.style.background = "transparent";
-                el.style.color = "var(--sp-subtext, var(--cp-subtext))";
-            }}
+            className="portal-topbar__icon-btn"
+            style={{ width: "auto", padding: "5px 10px", gap: 6, fontSize: 12, fontWeight: 500 }}
         >
             {isDark ? (
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
