@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
     try {
         await connectDB();
         const user: any = await verifyUser();
-        
+
         if (!user || !["student", "admin"].includes(user.role)) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
@@ -52,10 +52,11 @@ export async function POST(req: NextRequest) {
                     customer_id: (enrollment.student as any).studentId,
                     customer_name: (enrollment.student as any).name,
                     customer_email: (enrollment.student as any).email || user.email || "student@academy.com",
-                    customer_phone: (enrollment.student as any).phone || "9999999999", 
+                    customer_phone: (enrollment.student as any).phone || "9999999999",
                 },
                 order_meta: {
-                    return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/student/fees?order_id=${orderId}`,
+                    // Specific student page ki jagah generic dashboard ya homepage rakhein
+                    return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
                     notify_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/cashfree`,
                 },
                 order_note: `Fee payment for ${(enrollment.course as any).name}`,
@@ -70,7 +71,7 @@ export async function POST(req: NextRequest) {
         }
 
         // ✅ CORRECT: Cashfree Hosted Checkout URL (Real Payment Gateway)
-        const checkoutUrl = isProduction 
+        const checkoutUrl = isProduction
             ? `https://payments.cashfree.com/orders/${orderId}/${data.payment_session_id}`
             : `https://sandbox.cashfree.com/checkout/${data.payment_session_id}`;
 
