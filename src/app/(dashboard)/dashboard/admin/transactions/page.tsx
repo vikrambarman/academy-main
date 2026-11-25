@@ -30,6 +30,7 @@ interface Transaction {
     franchiseCode?: string | null;
     franchiseName?: string | null;
     franchiseIsOwn?: boolean;
+    receiptPdfUrl?: string; // NEW: Official PDF from Cloudinary
 }
 
 interface Summary {
@@ -43,7 +44,7 @@ interface Course { _id: string; name: string; }
 /* ══════════════════════════════════════════════════
    HELPERS
 ══════════════════════════════════════════════════ */
-const fmt     = (n: number) => `₹${n.toLocaleString("en-IN")}`;
+const fmt = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 const fmtDate = (d: string) =>
     new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 
@@ -130,19 +131,19 @@ function downloadReceipt(t: Transaction, academyName = "Shivshakti Computer Acad
 const LIMIT = 20;
 
 export default function AdminTransactionsPage() {
-    const [txns,       setTxns]       = useState<Transaction[]>([]);
-    const [summary,    setSummary]    = useState<Summary | null>(null);
-    const [courses,    setCourses]    = useState<Course[]>([]);
-    const [loading,    setLoading]    = useState(true);
-    const [page,       setPage]       = useState(1);
-    const [toast,      setToast]      = useState<{ msg: string; type: "success" | "error" } | null>(null);
-    const [search,     setSearch]     = useState("");
-    const [course,     setCourse]     = useState("");
-    const [dateFrom,   setDateFrom]   = useState("");
-    const [dateTo,     setDateTo]     = useState("");
-    const [status,     setStatus]     = useState("all");
+    const [txns, setTxns] = useState<Transaction[]>([]);
+    const [summary, setSummary] = useState<Summary | null>(null);
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+    const [search, setSearch] = useState("");
+    const [course, setCourse] = useState("");
+    const [dateFrom, setDateFrom] = useState("");
+    const [dateTo, setDateTo] = useState("");
+    const [status, setStatus] = useState("all");
     const [showFilter, setShowFilter] = useState(false);
-    const [preview,    setPreview]    = useState<Transaction | null>(null);
+    const [preview, setPreview] = useState<Transaction | null>(null);
 
     const showToast = (msg: string, type: "success" | "error") => {
         setToast({ msg, type });
@@ -153,16 +154,16 @@ export default function AdminTransactionsPage() {
         setLoading(true);
         try {
             const params = new URLSearchParams();
-            if (search)           params.set("search",   search);
-            if (course)           params.set("course",   course);
-            if (dateFrom)         params.set("dateFrom", dateFrom);
-            if (dateTo)           params.set("dateTo",   dateTo);
-            if (status !== "all") params.set("status",   status);
+            if (search) params.set("search", search);
+            if (course) params.set("course", course);
+            if (dateFrom) params.set("dateFrom", dateFrom);
+            if (dateTo) params.set("dateTo", dateTo);
+            if (status !== "all") params.set("status", status);
 
-            const res  = await fetchWithAuth(`/api/admin/transactions?${params}`);
+            const res = await fetchWithAuth(`/api/admin/transactions?${params}`);
             const data = await res.json();
             setTxns(data.transactions || []);
-            setSummary(data.summary   || null);
+            setSummary(data.summary || null);
             setPage(1);
         } catch {
             showToast("Load failed", "error");
@@ -177,11 +178,11 @@ export default function AdminTransactionsPage() {
         fetchWithAuth("/api/admin/courses")
             .then(r => r.json())
             .then(d => setCourses(Array.isArray(d) ? d : []))
-            .catch(() => {});
+            .catch(() => { });
     }, []);
 
     const totalPages = Math.ceil(txns.length / LIMIT) || 1;
-    const paginated  = txns.slice((page - 1) * LIMIT, page * LIMIT);
+    const paginated = txns.slice((page - 1) * LIMIT, page * LIMIT);
     const hasFilters = !!(search || course || dateFrom || dateTo || status !== "all");
 
     return (
@@ -334,12 +335,12 @@ export default function AdminTransactionsPage() {
                                         </td>
                                     </tr>
                                 ) : paginated.map(t => {
-                                    const pctPaid     = t.feesTotal > 0 ? Math.round((t.feesPaid / t.feesTotal) * 100) : 100;
-                                    const isPaid      = t.feesPending === 0;
-                                    const isPartial   = t.feesPaid > 0 && t.feesPending > 0;
+                                    const pctPaid = t.feesTotal > 0 ? Math.round((t.feesPaid / t.feesTotal) * 100) : 100;
+                                    const isPaid = t.feesPending === 0;
+                                    const isPartial = t.feesPaid > 0 && t.feesPending > 0;
                                     const statusLabel = isPaid ? "Paid" : isPartial ? "Partial" : "Unpaid";
                                     const statusColor = isPaid ? "#22c55e" : isPartial ? "#f59e0b" : "#ef4444";
-                                    const statusBg    = isPaid ? "rgba(34,197,94,.1)" : isPartial ? "rgba(245,158,11,.1)" : "rgba(239,68,68,.1)";
+                                    const statusBg = isPaid ? "rgba(34,197,94,.1)" : isPartial ? "rgba(245,158,11,.1)" : "rgba(239,68,68,.1)";
                                     const franchiseColor = t.franchiseIsOwn ? "#F59E0B" : "var(--cp-accent)";
 
                                     return (
@@ -500,9 +501,21 @@ export default function AdminTransactionsPage() {
                             </div>
                             <div className="tx-modal-footer">
                                 <button className="tx-ghost-btn" onClick={() => setPreview(null)}>Cancel</button>
-                                <button className="tx-amber-btn" onClick={() => downloadReceipt(preview)}>
-                                    <Download size={13} /> Download / Print PDF
-                                </button>
+                                {preview.receiptPdfUrl ? (
+                                    <a
+                                        href={preview.receiptPdfUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="tx-amber-btn"
+                                        style={{ textDecoration: "none" }}
+                                    >
+                                        <Download size={13} /> View Official PDF
+                                    </a>
+                                ) : (
+                                    <button className="tx-amber-btn" onClick={() => downloadReceipt(preview)}>
+                                        <Download size={13} /> Generate & Print Receipt
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>
