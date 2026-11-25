@@ -49,27 +49,39 @@ function normalizePayload(payload: any) {
 }
 
 export async function POST(req: NextRequest) {
-    try {
-        await connectDB();
+    console.log("🔔 [WEBHOOK] Request received at:", new Date().toISOString());
 
-        // 1. Raw body (signature HMAC ke liye JSON parse se pehle zaroori)
+    try {
         const rawBody = await req.text();
+        console.log("📦 [WEBHOOK] Raw Body Length:", rawBody.length);
+
         const signature = req.headers.get("x-webhook-signature");
+        console.log("🔑 [WEBHOOK] Signature Header Present:", !!signature);
 
         if (!signature) {
             return NextResponse.json({ message: "Missing signature" }, { status: 401 });
         }
 
-        // 2. Signature verify (doni versions me same header + HMAC sha256 base64)
-        const expected = crypto
-            .createHmac("sha256", (process.env.CASHFREE_SECRET_KEY || "").trim())
-            .update(rawBody)
-            .digest("base64");
+        const secretKey = (process.env.CASHFREE_SECRET_KEY || "").trim();
 
-        if (signature !== expected) {
-            console.error("❌ Webhook Signature Mismatch");
+        // ✅ NEW DEBUG LOG: Secret Key ka pehla aur aakhri character check karne ke liye
+        if (secretKey.length > 10) {
+            console.log("🔍 [WEBHOOK] Secret Key being used starts with:", secretKey.substring(0, 4) + "..." + secretKey.substring(secretKey.length - 4));
+        } else {
+            console.log("⚠️ [WEBHOOK] Secret Key is too short or missing! Length:", secretKey.length);
+        }
+
+        const expected = crypto.createHmac("sha256", secretKey).update(rawBody).digest("base64");
+
+        const isMatch = signature === expected;
+        console.log("✅ [WEBHOOK] Signature Match:", isMatch);
+
+        if (!isMatch) {
+            console.error("❌ [WEBHOOK] Signature Mismatch.");
+            // Cashfree ko 401 dena zaroori hai taaki wo retry kare ya log me fail dikhaye
             return NextResponse.json({ message: "Invalid signature" }, { status: 401 });
         }
+
 
         // 3. Parse + Normalize (version-agnostic)
         let payload;
