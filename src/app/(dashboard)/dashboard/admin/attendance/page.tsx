@@ -1,4 +1,3 @@
-// src/app/(dashboard)/dashboard/admin/attendance/page.tsx
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
@@ -7,11 +6,11 @@ import {
     CalendarDays, ChevronLeft, ChevronRight, Search,
     CheckCircle2, XCircle, Clock, Coffee, Save,
     Users, TrendingUp, AlertTriangle, Umbrella,
-    QrCode, BookOpen,
+    QrCode, BookOpen, RefreshCw,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-type AttStatus = "present" | "absent" | "late" | "holiday" | "leave";
+type AttStatus = "pending" | "present" | "absent" | "late" | "holiday" | "leave";
 
 interface StudentRow {
     enrollmentId: string;
@@ -41,7 +40,6 @@ interface AttDoc {
     records: any[];
 }
 
-// ✅ NEW
 interface DailyStat {
     date: string;
     present: number;
@@ -62,7 +60,19 @@ interface CourseDailyStat {
 interface Course { _id: string; name: string; }
 interface CourseSummary { _id: string; name: string; studentCount: number; }
 
+// ── NEW: Pending Record Interface ──
+interface PendingRecord {
+    attendanceId: string;
+    studentName: string;
+    studentId: string;
+    courseName: string;
+    inTime: string;
+    outTime: string | null;
+    duration: string | null;
+}
+
 const STATUS_CFG: Record<AttStatus, { label: string; icon: React.ReactNode; color: string; bg: string; border: string }> = {
+    pending: { label: "Pending", icon: <Clock size={10} />, color: "var(--cp-warning)", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.3)" },
     present: { label: "Present", icon: <CheckCircle2 size={10} />, color: "var(--cp-success)", bg: "rgba(34,197,94,0.08)", border: "rgba(34,197,94,0.3)" },
     absent: { label: "Absent", icon: <XCircle size={10} />, color: "var(--cp-danger)", bg: "rgba(239,68,68,0.08)", border: "rgba(239,68,68,0.3)" },
     late: { label: "Late", icon: <Clock size={10} />, color: "var(--cp-warning)", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.3)" },
@@ -96,21 +106,26 @@ export default function AdminAttendancePage() {
     const [courseSummary, setCourseSummary] = useState<CourseSummary[]>([]);
 
     const [allDocs, setAllDocs] = useState<AttDoc[]>([]);
-    const [tab, setTab] = useState<"mark" | "overview" | "daily">("mark");
+    const [tab, setTab] = useState<"verify" | "mark" | "overview" | "daily">("verify"); // Default to verify tab
     const [ovSearch, setOvSearch] = useState("");
     const [ovPage, setOvPage] = useState(1);
     const OV_LIMIT = 12;
 
     const [ovCourseFilter, setOvCourseFilter] = useState("all");
-    const [ovStatusFilter, setOvStatusFilter] = useState("all"); // all|good|warning|danger
+    const [ovStatusFilter, setOvStatusFilter] = useState("all");
     const [expandedStudent, setExpandedStudent] = useState<string | null>(null);
 
-    // ✅ NEW - Daily states
     const [dailyStats, setDailyStats] = useState<DailyStat[]>([]);
     const [courseDailyStats, setCourseDailyStats] = useState<CourseDailyStat[]>([]);
     const [dailyFilterCourse, setDailyFilterCourse] = useState("all");
     const [dailyPage, setDailyPage] = useState(1);
     const DAILY_LIMIT = 15;
+
+    const [pendingCount, setPendingCount] = useState(0);
+    // ── NEW: Pending records state ──
+    const [pendingRecords, setPendingRecords] = useState<PendingRecord[]>([]);
+    const [verifyingId, setVerifyingId] = useState<string | null>(null);
+    const [bulkVerifying, setBulkVerifying] = useState(false);
 
     const router = useRouter();
 
@@ -130,8 +145,25 @@ export default function AdminAttendancePage() {
         const d = await res.json();
         setAllDocs(d.attendance || []);
         setCourseSummary(d.courseSummary || []);
-        setDailyStats(d.dailyStats || []);           // ✅ NEW
-        setCourseDailyStats(d.courseDailyStats || []); // ✅ NEW
+        setDailyStats(d.dailyStats || []);
+        setCourseDailyStats(d.courseDailyStats || []);
+    }, []);
+
+    // ── NEW: Fetch pending records every 10 seconds ──
+    useEffect(() => {
+        const fetchPending = async () => {
+            try {
+                const res = await fetchWithAuth("/api/admin/attendance/pending");
+                const data = await res.json();
+                setPendingRecords(data.students || []);
+                setPendingCount(data.count || 0);
+            } catch (err) {
+                console.error("Failed to fetch pending", err);
+            }
+        };
+        fetchPending();
+        const interval = setInterval(fetchPending, 10000);
+        return () => clearInterval(interval);
     }, []);
 
     useEffect(() => { loadOverview(); }, [loadOverview]);
@@ -166,7 +198,7 @@ export default function AdminAttendancePage() {
                     courseId: typeof e.course === "string" ? e.course : e.course?._id,
                     name: e.student?.name ?? "—",
                     courseName: typeof e.course === "string" ? "" : (e.course?.name ?? ""),
-                    status: existing?.status ?? "present",
+                    status: (existing?.status as AttStatus) ?? "present",
                     remark: existing?.remark ?? "",
                     alreadyMarked: existing !== null,
                     inTime: existing?.inTime ?? null,
@@ -215,7 +247,51 @@ export default function AdminAttendancePage() {
         finally { setSaving(false); }
     };
 
-    // ── Computed ──────────────────────────────────────────────────────────────
+    // ── NEW: Verify Handlers ──
+    const handleVerify = async (attendanceId: string, action: "verify" | "reject") => {
+        setVerifyingId(attendanceId);
+        try {
+            const res = await fetchWithAuth("/api/admin/attendance/verify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ attendanceId, action }),
+            });
+            if (res.ok) {
+                setPendingRecords(prev => prev.filter(r => r.attendanceId !== attendanceId));
+                setPendingCount(prev => Math.max(0, prev - 1));
+                showToast(action === "verify" ? "✅ Verified!" : "❌ Rejected", "success");
+                loadOverview();
+            }
+        } catch (err) {
+            showToast("Action failed", "error");
+        } finally {
+            setVerifyingId(null);
+        }
+    };
+
+    const handleBulkVerify = async () => {
+        if (pendingRecords.length === 0) return;
+        setBulkVerifying(true);
+        try {
+            const attendanceIds = pendingRecords.map(r => r.attendanceId);
+            const res = await fetchWithAuth("/api/admin/attendance/bulk-verify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ attendanceIds, action: "verify" }),
+            });
+            if (res.ok) {
+                setPendingRecords([]);
+                setPendingCount(0);
+                showToast(`✅ ${attendanceIds.length} records verified!`, "success");
+                loadOverview();
+            }
+        } catch (err) {
+            showToast("Bulk verify failed", "error");
+        } finally {
+            setBulkVerifying(false);
+        }
+    };
+
     const filtered = rows.filter(r =>
         r.name.toLowerCase().includes(search.toLowerCase()) ||
         r.studentCode.toLowerCase().includes(search.toLowerCase())
@@ -238,7 +314,6 @@ export default function AdminAttendancePage() {
     const lateCount = rows.filter(r => r.status === "late").length;
     const leaveCount = rows.filter(r => r.status === "leave").length;
 
-    // ✅ Daily tab computed
     const activeDailyData = dailyFilterCourse === "all"
         ? dailyStats
         : (courseDailyStats.find(c => c.courseId === dailyFilterCourse)?.daily ?? []);
@@ -253,7 +328,6 @@ export default function AdminAttendancePage() {
         ? courseSummary.reduce((s, c) => s + c.studentCount, 0)
         : (courseDailyStats.find(c => c.courseId === dailyFilterCourse)?.totalStudents ?? 0);
 
-    // ── Render ────────────────────────────────────────────────────────────────
     return (
         <>
             <style>{styles}</style>
@@ -262,15 +336,20 @@ export default function AdminAttendancePage() {
             )}
 
             <div className="att-root">
-
-                {/* Header */}
                 <div className="att-header">
                     <div>
                         <h1 className="att-title">Attendance</h1>
-                        <p className="att-sub">Date-wise bulk attendance manage karo</p>
+                        <p className="att-sub">Date-wise bulk attendance & verification manage karo</p>
                     </div>
                     <div className="att-header-actions">
                         <div className="att-tabs">
+                            <button
+                                className={`att-tab${tab === "verify" ? " att-tab--active" : ""}`}
+                                onClick={() => setTab("verify")}
+                            >
+                                <CheckCircle2 size={13} /> Verify
+                                {pendingCount > 0 && <span className="att-tab-badge">{pendingCount}</span>}
+                            </button>
                             <button
                                 className={`att-tab${tab === "mark" ? " att-tab--active" : ""}`}
                                 onClick={() => setTab("mark")}
@@ -299,6 +378,91 @@ export default function AdminAttendancePage() {
                         </button>
                     </div>
                 </div>
+
+                {/* ═══ VERIFY TAB (NEW) ═══ */}
+                {tab === "verify" && (
+                    <>
+                        <div className="att-verify-header">
+                            <div>
+                                <h2 className="att-verify-title">Pending Verification</h2>
+                                <p className="att-verify-sub">{pendingRecords.length} students waiting for approval</p>
+                            </div>
+                            {pendingRecords.length > 0 && (
+                                <button
+                                    className="att-save-btn att-save-btn--bulk"
+                                    onClick={handleBulkVerify}
+                                    disabled={bulkVerifying}
+                                >
+                                    {bulkVerifying ? <RefreshCw size={13} className="spin" /> : <CheckCircle2 size={13} />}
+                                    {bulkVerifying ? "Verifying..." : `Bulk Verify All (${pendingRecords.length})`}
+                                </button>
+                            )}
+                        </div>
+
+                        {pendingRecords.length === 0 ? (
+                            <div className="att-empty">
+                                <CheckCircle2 size={32} style={{ opacity: .3, marginBottom: 12, color: "var(--cp-success)" }} />
+                                <div>All attendance records are verified!</div>
+                                <div style={{ fontSize: 12, color: "var(--cp-muted)", marginTop: 4 }}>
+                                    No pending requests at the moment.
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="att-verify-list">
+                                {pendingRecords.map(record => (
+                                    <div key={record.attendanceId} className="att-verify-card">
+                                        <div className="att-verify-left">
+                                            <div className="att-avatar" style={{ background: "rgba(245,158,11,0.1)", color: "var(--cp-warning)" }}>
+                                                {record.studentName.charAt(0).toUpperCase()}
+                                            </div>
+                                            <div className="att-verify-info">
+                                                <div className="att-row-name">{record.studentName}</div>
+                                                <div className="att-row-id">{record.studentId}</div>
+                                                <div className="att-row-course">{record.courseName}</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="att-verify-center">
+                                            <div className="att-verify-time">
+                                                <span className="att-time-badge att-time-badge--in">🕐 IN: {record.inTime}</span>
+                                                {record.outTime ? (
+                                                    <span className="att-time-badge att-time-badge--out">🚪 OUT: {record.outTime}</span>
+                                                ) : (
+                                                    <span className="att-time-pending">Waiting for OUT scan</span>
+                                                )}
+                                            </div>
+                                            {record.duration && (
+                                                <div className="att-verify-duration">Duration: {record.duration}</div>
+                                            )}
+                                        </div>
+
+                                        <div className="att-verify-actions">
+                                            <button
+                                                className="att-btn-verify att-btn-verify--reject"
+                                                onClick={() => handleVerify(record.attendanceId, "reject")}
+                                                disabled={verifyingId === record.attendanceId}
+                                            >
+                                                <XCircle size={14} /> Reject
+                                            </button>
+                                            <button
+                                                className="att-btn-verify att-btn-verify--approve"
+                                                onClick={() => handleVerify(record.attendanceId, "verify")}
+                                                disabled={verifyingId === record.attendanceId}
+                                            >
+                                                {verifyingId === record.attendanceId ? (
+                                                    <RefreshCw size={14} className="spin" />
+                                                ) : (
+                                                    <CheckCircle2 size={14} />
+                                                )}
+                                                Verify
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </>
+                )}
 
                 {/* ═══ MARK TAB ═══ */}
                 {tab === "mark" && (
@@ -355,7 +519,7 @@ export default function AdminAttendancePage() {
                                     ))}
                                     <div style={{ flex: 1 }} />
                                     <span className="att-bulk-label">Mark All:</span>
-                                    {(Object.keys(STATUS_CFG) as AttStatus[]).map(s => (
+                                    {(Object.keys(STATUS_CFG).filter(k => k !== "pending") as AttStatus[]).map(s => (
                                         <button
                                             key={s}
                                             className="att-bulk-btn"
@@ -419,7 +583,7 @@ export default function AdminAttendancePage() {
                                                         )}
                                                     </div>
                                                     <div className="att-status-btns">
-                                                        {(Object.keys(STATUS_CFG) as AttStatus[]).map(s => (
+                                                        {(Object.keys(STATUS_CFG).filter(k => k !== "pending") as AttStatus[]).map(s => (
                                                             <button
                                                                 key={s}
                                                                 className={`att-status-btn${row.status === s ? " att-status-btn--active" : ""}`}
@@ -494,7 +658,6 @@ export default function AdminAttendancePage() {
                 {/* ═══ DAILY REGISTER TAB ═══ */}
                 {tab === "daily" && (
                     <>
-                        {/* KPI Cards - Today's summary */}
                         {(() => {
                             const todayData = activeDailyData.find(d => d.date === isoToday());
                             const todayPresent = todayData?.present ?? 0;
@@ -533,7 +696,6 @@ export default function AdminAttendancePage() {
                             );
                         })()}
 
-                        {/* Course Filter */}
                         <div className="att-daily-filter">
                             <span className="att-strip-label">Filter by Course:</span>
                             <div className="att-daily-chips">
@@ -557,7 +719,6 @@ export default function AdminAttendancePage() {
                             </div>
                         </div>
 
-                        {/* Daily Register Table */}
                         {activeDailyData.length === 0 ? (
                             <div className="att-empty">
                                 <BookOpen size={28} style={{ opacity: .2, marginBottom: 8 }} />
@@ -568,7 +729,6 @@ export default function AdminAttendancePage() {
                             </div>
                         ) : (
                             <div className="att-table-wrap">
-                                {/* Table Header */}
                                 <div className="att-daily-head">
                                     <span>Date</span>
                                     <span style={{ textAlign: "center" }}>Total</span>
@@ -596,7 +756,6 @@ export default function AdminAttendancePage() {
                                             key={day.date}
                                             className={`att-daily-row${isToday ? " att-daily-row--today" : ""}`}
                                         >
-                                            {/* Date */}
                                             <div className="att-daily-date">
                                                 <span className="att-daily-date-main">
                                                     {fmtDateShort(day.date)}
@@ -605,94 +764,39 @@ export default function AdminAttendancePage() {
                                                     <span className="att-today-badge">Today</span>
                                                 )}
                                             </div>
-
-                                            {/* Total */}
                                             <div className="att-daily-cell att-daily-cell--total">
                                                 <span className="att-daily-num">{day.total}</span>
                                             </div>
-
-                                            {/* Present */}
                                             <div className="att-daily-cell">
-                                                <span
-                                                    className="att-daily-badge"
-                                                    style={{
-                                                        background: "rgba(34,197,94,0.1)",
-                                                        color: "var(--cp-success)",
-                                                        border: "1px solid rgba(34,197,94,0.25)"
-                                                    }}
-                                                >
+                                                <span className="att-daily-badge" style={{ background: "rgba(34,197,94,0.1)", color: "var(--cp-success)", border: "1px solid rgba(34,197,94,0.25)" }}>
                                                     {day.present}
                                                 </span>
                                             </div>
-
-                                            {/* Absent */}
                                             <div className="att-daily-cell">
-                                                <span
-                                                    className="att-daily-badge"
-                                                    style={{
-                                                        background: "rgba(239,68,68,0.1)",
-                                                        color: "var(--cp-danger)",
-                                                        border: "1px solid rgba(239,68,68,0.25)"
-                                                    }}
-                                                >
+                                                <span className="att-daily-badge" style={{ background: "rgba(239,68,68,0.1)", color: "var(--cp-danger)", border: "1px solid rgba(239,68,68,0.25)" }}>
                                                     {day.absent}
                                                 </span>
                                             </div>
-
-                                            {/* Late */}
                                             <div className="att-daily-cell">
-                                                <span
-                                                    className="att-daily-badge"
-                                                    style={{
-                                                        background: "rgba(245,158,11,0.1)",
-                                                        color: "var(--cp-warning)",
-                                                        border: "1px solid rgba(245,158,11,0.25)"
-                                                    }}
-                                                >
+                                                <span className="att-daily-badge" style={{ background: "rgba(245,158,11,0.1)", color: "var(--cp-warning)", border: "1px solid rgba(245,158,11,0.25)" }}>
                                                     {day.late}
                                                 </span>
                                             </div>
-
-                                            {/* Holiday */}
                                             <div className="att-daily-cell">
-                                                <span
-                                                    className="att-daily-badge"
-                                                    style={{
-                                                        background: "rgba(96,165,250,0.1)",
-                                                        color: "#60a5fa",
-                                                        border: "1px solid rgba(96,165,250,0.25)"
-                                                    }}
-                                                >
+                                                <span className="att-daily-badge" style={{ background: "rgba(96,165,250,0.1)", color: "#60a5fa", border: "1px solid rgba(96,165,250,0.25)" }}>
                                                     {day.holiday}
                                                 </span>
                                             </div>
-
-                                            {/* Leave */}
                                             <div className="att-daily-cell">
-                                                <span
-                                                    className="att-daily-badge"
-                                                    style={{
-                                                        background: "rgba(167,139,250,0.1)",
-                                                        color: "#a78bfa",
-                                                        border: "1px solid rgba(167,139,250,0.25)"
-                                                    }}
-                                                >
+                                                <span className="att-daily-badge" style={{ background: "rgba(167,139,250,0.1)", color: "#a78bfa", border: "1px solid rgba(167,139,250,0.25)" }}>
                                                     {day.leave}
                                                 </span>
                                             </div>
-
-                                            {/* Percentage Bar */}
                                             <div className="att-daily-pct">
                                                 <div className="att-daily-bar-wrap">
-                                                    <div
-                                                        className="att-daily-bar"
-                                                        style={{ width: `${pct}%`, background: pctColor }}
-                                                    />
+                                                    <div className="att-daily-bar" style={{ width: `${pct}%`, background: pctColor }} />
                                                 </div>
-                                                <span
-                                                    className="att-daily-pct-label"
-                                                    style={{ color: pctColor }}
-                                                >
+                                                <span className="att-daily-pct-label" style={{ color: pctColor }}>
                                                     {pct}%
                                                 </span>
                                             </div>
@@ -700,14 +804,9 @@ export default function AdminAttendancePage() {
                                     );
                                 })}
 
-                                {/* Pagination */}
                                 {dailyTotalPages > 1 && (
                                     <div className="att-daily-pag">
-                                        <button
-                                            className="att-pag-btn"
-                                            disabled={dailyPage === 1}
-                                            onClick={() => setDailyPage(p => p - 1)}
-                                        >
+                                        <button className="att-pag-btn" disabled={dailyPage === 1} onClick={() => setDailyPage(p => p - 1)}>
                                             <ChevronLeft size={13} /> Prev
                                         </button>
                                         <span className="att-pag-info">
@@ -716,11 +815,7 @@ export default function AdminAttendancePage() {
                                                 ({activeDailyData.length} days)
                                             </span>
                                         </span>
-                                        <button
-                                            className="att-pag-btn"
-                                            disabled={dailyPage === dailyTotalPages}
-                                            onClick={() => setDailyPage(p => p + 1)}
-                                        >
+                                        <button className="att-pag-btn" disabled={dailyPage === dailyTotalPages} onClick={() => setDailyPage(p => p + 1)}>
                                             Next <ChevronRight size={13} />
                                         </button>
                                     </div>
@@ -733,7 +828,6 @@ export default function AdminAttendancePage() {
                 {/* ═══ OVERVIEW TAB ═══ */}
                 {tab === "overview" && (
                     <>
-                        {/* KPI Cards */}
                         <div className="att-kpi-row">
                             <div className="att-kpi att-kpi--accent">
                                 <div className="att-kpi-label"><Users size={11} /> Total Students</div>
@@ -752,9 +846,7 @@ export default function AdminAttendancePage() {
                             </div>
                         </div>
 
-                        {/* Filters Row */}
                         <div className="ov-filter-row">
-                            {/* Search */}
                             <div className="att-search-wrap" style={{ maxWidth: 260, flex: 1 }}>
                                 <Search size={13} className="att-search-icon" />
                                 <input
@@ -764,27 +856,13 @@ export default function AdminAttendancePage() {
                                     onChange={e => { setOvSearch(e.target.value); setOvPage(1); }}
                                 />
                             </div>
-
-                            {/* Course Filter */}
-                            <select
-                                className="att-select ov-select"
-                                value={ovCourseFilter}
-                                onChange={e => { setOvCourseFilter(e.target.value); setOvPage(1); }}
-                            >
+                            <select className="att-select ov-select" value={ovCourseFilter} onChange={e => { setOvCourseFilter(e.target.value); setOvPage(1); }}>
                                 <option value="all">All Courses</option>
                                 {courseSummary.map(c => (
-                                    <option key={String(c._id)} value={String(c._id)}>
-                                        {c.name}
-                                    </option>
+                                    <option key={String(c._id)} value={String(c._id)}>{c.name}</option>
                                 ))}
                             </select>
-
-                            {/* Status Filter */}
-                            <select
-                                className="att-select ov-select"
-                                value={ovStatusFilter}
-                                onChange={e => { setOvStatusFilter(e.target.value); setOvPage(1); }}
-                            >
+                            <select className="att-select ov-select" value={ovStatusFilter} onChange={e => { setOvStatusFilter(e.target.value); setOvPage(1); }}>
                                 <option value="all">All Status</option>
                                 <option value="good">Good (≥75%)</option>
                                 <option value="warning">Warning (50-74%)</option>
@@ -793,27 +871,17 @@ export default function AdminAttendancePage() {
                             </select>
                         </div>
 
-                        {/* Table */}
                         {(() => {
-                            // Apply filters
                             const filtered = allDocs.filter(doc => {
-                                const nameMatch =
-                                    doc.student?.name?.toLowerCase().includes(ovSearch.toLowerCase()) ||
-                                    doc.student?.studentId?.toLowerCase().includes(ovSearch.toLowerCase());
-
-                                const courseMatch =
-                                    ovCourseFilter === "all" ||
-                                    String(doc.course?._id) === ovCourseFilter;
-
+                                const nameMatch = doc.student?.name?.toLowerCase().includes(ovSearch.toLowerCase()) || doc.student?.studentId?.toLowerCase().includes(ovSearch.toLowerCase());
+                                const courseMatch = ovCourseFilter === "all" || String(doc.course?._id) === ovCourseFilter;
                                 const pct = doc.stats?.percentage ?? 0;
                                 const hasAtt = doc.hasAttendance && doc.stats.total > 0;
-                                const statusMatch =
-                                    ovStatusFilter === "all" ? true :
-                                        ovStatusFilter === "good" ? pct >= 75 :
-                                            ovStatusFilter === "warning" ? (pct >= 50 && pct < 75) :
-                                                ovStatusFilter === "danger" ? (hasAtt && pct < 50) :
-                                                    ovStatusFilter === "none" ? !hasAtt : true;
-
+                                const statusMatch = ovStatusFilter === "all" ? true :
+                                    ovStatusFilter === "good" ? pct >= 75 :
+                                        ovStatusFilter === "warning" ? (pct >= 50 && pct < 75) :
+                                            ovStatusFilter === "danger" ? (hasAtt && pct < 50) :
+                                                ovStatusFilter === "none" ? !hasAtt : true;
                                 return nameMatch && courseMatch && statusMatch;
                             });
 
@@ -822,7 +890,6 @@ export default function AdminAttendancePage() {
 
                             return (
                                 <>
-                                    {/* Count info */}
                                     <div className="ov-count-info">
                                         Showing <strong>{filtered.length}</strong> of <strong>{allDocs.length}</strong> students
                                     </div>
@@ -831,13 +898,10 @@ export default function AdminAttendancePage() {
                                         <div className="att-empty">
                                             <Users size={28} style={{ opacity: .2, marginBottom: 8 }} />
                                             <div>Koi student nahi mila</div>
-                                            <div style={{ fontSize: 12, color: "var(--cp-muted)", marginTop: 4 }}>
-                                                Filter change karo
-                                            </div>
+                                            <div style={{ fontSize: 12, color: "var(--cp-muted)", marginTop: 4 }}>Filter change karo</div>
                                         </div>
                                     ) : (
                                         <div className="att-table-wrap">
-                                            {/* Table Header */}
                                             <div className="ov-table-head">
                                                 <span>#</span>
                                                 <span>Student</span>
@@ -851,44 +915,20 @@ export default function AdminAttendancePage() {
 
                                             {paged.map((doc, i) => {
                                                 const pct = doc.stats?.percentage ?? 0;
-                                                const color = pct >= 75
-                                                    ? "var(--cp-success)"
-                                                    : pct >= 50
-                                                        ? "var(--cp-warning)"
-                                                        : "var(--cp-danger)";
+                                                const color = pct >= 75 ? "var(--cp-success)" : pct >= 50 ? "var(--cp-warning)" : "var(--cp-danger)";
                                                 const hasAtt = doc.hasAttendance && doc.stats.total > 0;
                                                 const isExpanded = expandedStudent === doc.enrollmentId;
-
-                                                // Recent records for expanded view
-                                                const recentRecords = [...(doc.records ?? [])]
-                                                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                                                    .slice(0, 10);
+                                                const recentRecords = [...(doc.records ?? [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 10);
 
                                                 return (
                                                     <div key={doc.enrollmentId ?? String(doc._id)}>
-                                                        {/* Main Row */}
                                                         <div
                                                             className={`ov-table-row${isExpanded ? " ov-table-row--expanded" : ""}${!hasAtt ? " ov-table-row--noatt" : ""}`}
-                                                            onClick={() => setExpandedStudent(
-                                                                isExpanded ? null : (doc.enrollmentId ?? String(doc._id))
-                                                            )}
+                                                            onClick={() => setExpandedStudent(isExpanded ? null : (doc.enrollmentId ?? String(doc._id)))}
                                                         >
-                                                            {/* # */}
-                                                            <span className="att-row-num">
-                                                                {(ovPage - 1) * OV_LIMIT + i + 1}
-                                                            </span>
-
-                                                            {/* Student */}
+                                                            <span className="att-row-num">{(ovPage - 1) * OV_LIMIT + i + 1}</span>
                                                             <div className="att-row-student">
-                                                                <div
-                                                                    className="att-avatar"
-                                                                    style={{
-                                                                        background: hasAtt
-                                                                            ? `color-mix(in srgb,${color} 15%,transparent)`
-                                                                            : "var(--cp-border)",
-                                                                        color: hasAtt ? color : "var(--cp-muted)"
-                                                                    }}
-                                                                >
+                                                                <div className="att-avatar" style={{ background: hasAtt ? `color-mix(in srgb,${color} 15%,transparent)` : "var(--cp-border)", color: hasAtt ? color : "var(--cp-muted)" }}>
                                                                     {doc.student?.name?.charAt(0).toUpperCase()}
                                                                 </div>
                                                                 <div>
@@ -896,64 +936,19 @@ export default function AdminAttendancePage() {
                                                                     <div className="att-row-id">{doc.student?.studentId}</div>
                                                                 </div>
                                                             </div>
-
-                                                            {/* Course */}
-                                                            <div className="ov-course-cell">
-                                                                {doc.course?.name}
-                                                            </div>
-
-                                                            {/* Total */}
-                                                            <div className="ov-num-cell">
-                                                                {hasAtt ? (
-                                                                    <span className="ov-total-badge">{doc.stats.total}</span>
-                                                                ) : (
-                                                                    <span className="ov-no-att">—</span>
-                                                                )}
-                                                            </div>
-
-                                                            {/* Present */}
-                                                            <div className="ov-num-cell">
-                                                                {hasAtt ? (
-                                                                    <span className="ov-stat-badge ov-stat-badge--present">
-                                                                        {doc.stats.present}
-                                                                    </span>
-                                                                ) : <span className="ov-no-att">—</span>}
-                                                            </div>
-
-                                                            {/* Absent */}
-                                                            <div className="ov-num-cell">
-                                                                {hasAtt ? (
-                                                                    <span className="ov-stat-badge ov-stat-badge--absent">
-                                                                        {doc.stats.absent}
-                                                                    </span>
-                                                                ) : <span className="ov-no-att">—</span>}
-                                                            </div>
-
-                                                            {/* Late */}
-                                                            <div className="ov-num-cell">
-                                                                {hasAtt ? (
-                                                                    <span className="ov-stat-badge ov-stat-badge--late">
-                                                                        {doc.stats.late}
-                                                                    </span>
-                                                                ) : <span className="ov-no-att">—</span>}
-                                                            </div>
-
-                                                            {/* Percentage */}
+                                                            <div className="ov-course-cell">{doc.course?.name}</div>
+                                                            <div className="ov-num-cell">{hasAtt ? <span className="ov-total-badge">{doc.stats.total}</span> : <span className="ov-no-att">—</span>}</div>
+                                                            <div className="ov-num-cell">{hasAtt ? <span className="ov-stat-badge ov-stat-badge--present">{doc.stats.present}</span> : <span className="ov-no-att">—</span>}</div>
+                                                            <div className="ov-num-cell">{hasAtt ? <span className="ov-stat-badge ov-stat-badge--absent">{doc.stats.absent}</span> : <span className="ov-no-att">—</span>}</div>
+                                                            <div className="ov-num-cell">{hasAtt ? <span className="ov-stat-badge ov-stat-badge--late">{doc.stats.late}</span> : <span className="ov-no-att">—</span>}</div>
                                                             <div className="ov-pct-cell">
                                                                 {hasAtt ? (
                                                                     <>
                                                                         <div className="att-pct-track" style={{ flex: 1 }}>
-                                                                            <div
-                                                                                className="att-pct-fill"
-                                                                                style={{ width: `${pct}%`, background: color }}
-                                                                            />
+                                                                            <div className="att-pct-fill" style={{ width: `${pct}%`, background: color }} />
                                                                         </div>
-                                                                        <span style={{ color, fontWeight: 700, fontSize: 12, minWidth: 34 }}>
-                                                                            {pct}%
-                                                                        </span>
-                                                                        {pct < 75 && (
-                                                                            <AlertTriangle size={11} color="var(--cp-danger)" />
-                                                                        )}
+                                                                        <span style={{ color, fontWeight: 700, fontSize: 12, minWidth: 34 }}>{pct}%</span>
+                                                                        {pct < 75 && <AlertTriangle size={11} color="var(--cp-danger)" />}
                                                                     </>
                                                                 ) : (
                                                                     <span className="ov-no-att-badge">No Record</span>
@@ -961,60 +956,35 @@ export default function AdminAttendancePage() {
                                                             </div>
                                                         </div>
 
-                                                        {/* Expanded - Recent Records */}
                                                         {isExpanded && (
                                                             <div className="ov-expanded">
                                                                 <div className="ov-exp-header">
                                                                     <span>📅 Recent Attendance Records</span>
-                                                                    <button
-                                                                        className="ov-detail-btn"
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            router.push(`/dashboard/admin/attendance/student/${doc.enrollmentId}`);
-                                                                        }}
-                                                                    >
+                                                                    <button className="ov-detail-btn" onClick={(e) => { e.stopPropagation(); router.push(`/dashboard/admin/attendance/student/${doc.enrollmentId}`); }}>
                                                                         View Full Details →
                                                                     </button>
                                                                 </div>
                                                                 {recentRecords.length === 0 ? (
-                                                                    <div className="ov-exp-empty">
-                                                                        Koi attendance record nahi
-                                                                    </div>
+                                                                    <div className="ov-exp-empty">Koi attendance record nahi</div>
                                                                 ) : (
                                                                     <div className="ov-rec-list">
                                                                         {recentRecords.map((rec: any, ri: number) => {
                                                                             const cfg = STATUS_CFG[rec.status as AttStatus];
                                                                             return (
                                                                                 <div key={ri} className="ov-rec-row">
-                                                                                    <span className="ov-rec-date">
-                                                                                        {fmtDate(rec.date)}
-                                                                                    </span>
-                                                                                    <span
-                                                                                        className="ov-rec-status"
-                                                                                        style={{
-                                                                                            color: cfg?.color,
-                                                                                            background: cfg?.bg,
-                                                                                            borderColor: cfg?.border
-                                                                                        }}
-                                                                                    >
+                                                                                    <span className="ov-rec-date">{fmtDate(rec.date)}</span>
+                                                                                    <span className="ov-rec-status" style={{ color: cfg?.color, background: cfg?.bg, borderColor: cfg?.border }}>
                                                                                         {cfg?.icon} {cfg?.label}
                                                                                     </span>
                                                                                     {rec.inTime && (
                                                                                         <span className="ov-rec-time">
-                                                                                            🕐 {rec.inTime}
-                                                                                            {rec.outTime ? ` → ${rec.outTime}` : ""}
+                                                                                            🕐 {rec.inTime}{rec.outTime ? ` → ${rec.outTime}` : ""}
                                                                                         </span>
                                                                                     )}
                                                                                     {rec.markedVia && (
-                                                                                        <span className="ov-rec-via">
-                                                                                            {rec.markedVia === "qr" ? "📱 QR" : "✏️ Manual"}
-                                                                                        </span>
+                                                                                        <span className="ov-rec-via">{rec.markedVia === "qr" ? "📱 QR" : "✏️ Manual"}</span>
                                                                                     )}
-                                                                                    {rec.remark && (
-                                                                                        <span className="ov-rec-remark">
-                                                                                            {rec.remark}
-                                                                                        </span>
-                                                                                    )}
+                                                                                    {rec.remark && <span className="ov-rec-remark">{rec.remark}</span>}
                                                                                 </div>
                                                                             );
                                                                         })}
@@ -1028,24 +998,13 @@ export default function AdminAttendancePage() {
                                         </div>
                                     )}
 
-                                    {/* Pagination */}
                                     {totalPages > 1 && (
                                         <div className="att-pag">
-                                            <button
-                                                className="att-pag-btn"
-                                                disabled={ovPage === 1}
-                                                onClick={() => setOvPage(p => p - 1)}
-                                            >
+                                            <button className="att-pag-btn" disabled={ovPage === 1} onClick={() => setOvPage(p => p - 1)}>
                                                 <ChevronLeft size={13} /> Prev
                                             </button>
-                                            <span className="att-pag-info">
-                                                Page {ovPage} of {totalPages}
-                                            </span>
-                                            <button
-                                                className="att-pag-btn"
-                                                disabled={ovPage === totalPages}
-                                                onClick={() => setOvPage(p => p + 1)}
-                                            >
+                                            <span className="att-pag-info">Page {ovPage} of {totalPages}</span>
+                                            <button className="att-pag-btn" disabled={ovPage === totalPages} onClick={() => setOvPage(p => p + 1)}>
                                                 Next <ChevronRight size={13} />
                                             </button>
                                         </div>
@@ -1079,9 +1038,37 @@ const styles = `
 .att-tab    { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:7px; border:none; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; font-size:12px; font-weight:600; color:var(--cp-muted); background:transparent; transition:all .15s; }
 .att-tab--active { background:var(--cp-surface); color:var(--cp-accent); box-shadow:0 1px 4px rgba(0,0,0,.15); }
 .att-tab:hover:not(.att-tab--active) { color:var(--cp-subtext); }
+.att-tab-badge { background:var(--cp-danger); color:white; font-size:9px; font-weight:800; padding:1px 5px; border-radius:100px; margin-left:4px; }
 
 .att-qr-print-btn { display:inline-flex; align-items:center; gap:7px; padding:8px 18px; border-radius:10px; border:1px solid rgba(99,102,241,0.3); background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(139,92,246,0.08)); color:var(--cp-accent); font-size:12px; font-weight:700; font-family:'Plus Jakarta Sans',sans-serif; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
 .att-qr-print-btn:hover { border-color:var(--cp-accent); transform:translateY(-1px); }
+
+/* ── VERIFY TAB STYLES ── */
+.att-verify-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px; }
+.att-verify-title { font-size:1.2rem; font-weight:700; color:var(--cp-text); margin:0; }
+.att-verify-sub { font-size:12px; color:var(--cp-muted); margin-top:2px; }
+.att-save-btn--bulk { background:var(--cp-success); }
+.att-verify-list { display:flex; flex-direction:column; gap:10px; }
+.att-verify-card { display:flex; align-items:center; gap:16px; padding:14px 16px; background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:12px; transition:all 0.2s; }
+.att-verify-card:hover { border-color:var(--cp-accent); box-shadow:0 2px 8px rgba(0,0,0,0.05); }
+.att-verify-left { display:flex; align-items:center; gap:12px; flex:1; }
+.att-verify-info { flex:1; }
+.att-row-course { font-size:11px; color:var(--cp-accent); margin-top:2px; font-weight:600; }
+.att-verify-center { display:flex; flex-direction:column; gap:6px; align-items:flex-start; }
+.att-verify-time { display:flex; gap:8px; flex-wrap:wrap; }
+.att-verify-duration { font-size:11px; color:var(--cp-success); font-weight:700; }
+.att-verify-actions { display:flex; gap:8px; margin-left:auto; }
+.att-btn-verify { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:8px; border:1px solid; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.15s; font-family:inherit; }
+.att-btn-verify:disabled { opacity:0.5; cursor:not-allowed; }
+.att-btn-verify--approve { background:var(--cp-success); color:white; border-color:var(--cp-success); }
+.att-btn-verify--approve:hover:not(:disabled) { opacity:0.9; }
+.att-btn-verify--reject { background:var(--cp-bg); color:var(--cp-danger); border-color:var(--cp-danger); }
+.att-btn-verify--reject:hover:not(:disabled) { background:rgba(239,68,68,0.05); }
+@media(max-width:768px) {
+    .att-verify-card { flex-direction:column; align-items:flex-start; }
+    .att-verify-actions { width:100%; margin-left:0; }
+    .att-btn-verify { flex:1; justify-content:center; }
+}
 
 .att-course-strip { display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:12px 16px; background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:12px; }
 .att-strip-label  { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--cp-muted); white-space:nowrap; }
@@ -1157,7 +1144,6 @@ const styles = `
 .att-save-btn:hover    { opacity:.88; }
 .att-save-btn:disabled { opacity:.5; cursor:not-allowed; }
 
-/* KPI */
 .att-kpi-row { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
 .att-kpi-row--4 { grid-template-columns:repeat(4,1fr); }
 @media(max-width:700px){
@@ -1172,7 +1158,6 @@ const styles = `
 .att-kpi-val   { font-family:'DM Serif Display',serif; font-size:1.3rem; color:var(--cp-text); line-height:1; margin-bottom:3px; }
 .att-kpi-sub   { font-size:10px; color:var(--cp-muted); }
 
-/* ── DAILY REGISTER ── */
 .att-daily-filter { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
 .att-daily-chips  { display:flex; gap:6px; flex-wrap:wrap; }
 
@@ -1241,7 +1226,6 @@ const styles = `
 .att-today-badge { font-size:9px; font-weight:800; padding:1px 6px; border-radius:100px; background:rgba(99,102,241,0.12); color:var(--cp-accent); border:1px solid rgba(99,102,241,0.2); width:fit-content; }
 
 .att-daily-cell { display:flex; align-items:center; justify-content:center; }
-.att-daily-cell--total { }
 .att-daily-num  { font-size:13px; font-weight:700; color:var(--cp-text); }
 .att-daily-badge { font-size:11px; font-weight:700; padding:3px 10px; border-radius:100px; min-width:32px; text-align:center; display:inline-block; }
 
@@ -1252,7 +1236,6 @@ const styles = `
 
 .att-daily-pag { display:flex; align-items:center; justify-content:center; gap:10px; padding:12px; border-top:1px solid var(--cp-border); }
 
-/* Overview */
 .att-ov-card { background:var(--cp-surface); border:1px solid var(--cp-border); border-radius:12px; padding:13px 18px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
 .att-ov-card:hover { border-color:var(--cp-border2,var(--cp-accent)); }
 .att-ov-left  { display:flex; align-items:center; gap:10px; }
@@ -1263,24 +1246,9 @@ const styles = `
 .att-pct-track { width:80px; height:4px; background:var(--cp-border); border-radius:100px; overflow:hidden; }
 .att-pct-fill  { height:100%; border-radius:100px; }
 
-/* ── OVERVIEW TABLE ── */
-.ov-filter-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.ov-select {
-  max-width: 200px;
-  flex: 1;
-  min-width: 140px;
-  padding: 9px 12px !important;
-}
-.ov-count-info {
-  font-size: 11px;
-  color: var(--cp-muted);
-  padding: 2px 0;
-}
+.ov-filter-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ov-select { max-width: 200px; flex: 1; min-width: 140px; padding: 9px 12px !important; }
+.ov-count-info { font-size: 11px; color: var(--cp-muted); padding: 2px 0; }
 .ov-count-info strong { color: var(--cp-text); }
 
 .ov-table-head {
@@ -1312,146 +1280,32 @@ const styles = `
 .ov-table-row--noatt { opacity: 0.7; }
 
 @media(max-width: 900px) {
-  .ov-table-head,
-  .ov-table-row {
-    grid-template-columns: 28px 1fr 80px 1fr;
-  }
-  .ov-table-head span:nth-child(4),
-  .ov-table-head span:nth-child(5),
-  .ov-table-head span:nth-child(6),
-  .ov-table-head span:nth-child(7),
-  .ov-table-row .ov-num-cell:nth-child(4),
-  .ov-table-row .ov-num-cell:nth-child(5),
-  .ov-table-row .ov-num-cell:nth-child(6) { display: none; }
+  .ov-table-head, .ov-table-row { grid-template-columns: 28px 1fr 80px 1fr; }
+  .ov-table-head span:nth-child(4), .ov-table-head span:nth-child(5), .ov-table-head span:nth-child(6), .ov-table-head span:nth-child(7),
+  .ov-table-row .ov-num-cell:nth-child(4), .ov-table-row .ov-num-cell:nth-child(5), .ov-table-row .ov-num-cell:nth-child(6) { display: none; }
 }
 
-.ov-course-cell {
-  font-size: 11px;
-  color: var(--cp-subtext);
-  font-weight: 600;
-  line-height: 1.4;
-}
-.ov-num-cell {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.ov-total-badge {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--cp-text);
-}
-.ov-stat-badge {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 3px 9px;
-  border-radius: 100px;
-  border: 1px solid;
-  min-width: 28px;
-  text-align: center;
-  display: inline-block;
-}
-.ov-stat-badge--present {
-  background: rgba(34,197,94,0.1);
-  color: var(--cp-success);
-  border-color: rgba(34,197,94,0.25);
-}
-.ov-stat-badge--absent {
-  background: rgba(239,68,68,0.1);
-  color: var(--cp-danger);
-  border-color: rgba(239,68,68,0.25);
-}
-.ov-stat-badge--late {
-  background: rgba(245,158,11,0.1);
-  color: var(--cp-warning);
-  border-color: rgba(245,158,11,0.25);
-}
-.ov-pct-cell {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
+.ov-course-cell { font-size: 11px; color: var(--cp-subtext); font-weight: 600; line-height: 1.4; }
+.ov-num-cell { display: flex; align-items: center; justify-content: center; }
+.ov-total-badge { font-size: 13px; font-weight: 700; color: var(--cp-text); }
+.ov-stat-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 100px; border: 1px solid; min-width: 28px; text-align: center; display: inline-block; }
+.ov-stat-badge--present { background: rgba(34,197,94,0.1); color: var(--cp-success); border-color: rgba(34,197,94,0.25); }
+.ov-stat-badge--absent { background: rgba(239,68,68,0.1); color: var(--cp-danger); border-color: rgba(239,68,68,0.25); }
+.ov-stat-badge--late { background: rgba(245,158,11,0.1); color: var(--cp-warning); border-color: rgba(245,158,11,0.25); }
+.ov-pct-cell { display: flex; align-items: center; gap: 6px; }
 .ov-no-att { font-size: 12px; color: var(--cp-muted); }
-.ov-no-att-badge {
-  font-size: 9px;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 6px;
-  background: var(--cp-border);
-  color: var(--cp-muted);
-}
+.ov-no-att-badge { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 6px; background: var(--cp-border); color: var(--cp-muted); }
 
-/* Expanded Row */
-.ov-expanded {
-  background: var(--cp-bg);
-  border-top: 1px solid var(--cp-border);
-  border-bottom: 1px solid var(--cp-border);
-  padding: 14px 16px 14px 60px;
-}
-.ov-exp-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--cp-text);
-  margin-bottom: 10px;
-}
-.ov-exp-empty {
-  font-size: 12px;
-  color: var(--cp-muted);
-  padding: 8px 0;
-}
-.ov-rec-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.ov-rec-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 10px;
-  background: var(--cp-surface);
-  border: 1px solid var(--cp-border);
-  border-radius: 8px;
-  flex-wrap: wrap;
-}
-.ov-rec-date {
-  font-size: 11px;
-  color: var(--cp-subtext);
-  font-weight: 600;
-  min-width: 130px;
-}
-.ov-rec-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 100px;
-  border: 1px solid;
-}
-.ov-rec-time {
-  font-size: 10px;
-  color: var(--cp-muted);
-  font-family: 'Courier New', monospace;
-}
-.ov-rec-via {
-  font-size: 9px;
-  color: var(--cp-muted);
-  font-weight: 600;
-  padding: 2px 6px;
-  background: var(--cp-border);
-  border-radius: 4px;
-}
-.ov-rec-remark {
-  font-size: 10px;
-  color: var(--cp-muted);
-  font-style: italic;
-  margin-left: auto;
-}
+.ov-expanded { background: var(--cp-bg); border-top: 1px solid var(--cp-border); border-bottom: 1px solid var(--cp-border); padding: 14px 16px 14px 60px; }
+.ov-exp-header { display: flex; align-items: center; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--cp-text); margin-bottom: 10px; }
+.ov-exp-empty { font-size: 12px; color: var(--cp-muted); padding: 8px 0; }
+.ov-rec-list { display: flex; flex-direction: column; gap: 6px; }
+.ov-rec-row { display: flex; align-items: center; gap: 10px; padding: 6px 10px; background: var(--cp-surface); border: 1px solid var(--cp-border); border-radius: 8px; flex-wrap: wrap; }
+.ov-rec-date { font-size: 11px; color: var(--cp-subtext); font-weight: 600; min-width: 130px; }
+.ov-rec-status { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 100px; border: 1px solid; }
+.ov-rec-time { font-size: 10px; color: var(--cp-muted); font-family: 'Courier New', monospace; }
+.ov-rec-via { font-size: 9px; color: var(--cp-muted); font-weight: 600; padding: 2px 6px; background: var(--cp-border); border-radius: 4px; }
+.ov-rec-remark { font-size: 10px; color: var(--cp-muted); font-style: italic; margin-left: auto; }
 
 .att-pag     { display:flex; align-items:center; justify-content:center; gap:10px; }
 .att-pag-btn { display:flex; align-items:center; gap:4px; padding:6px 14px; border-radius:8px; border:1px solid var(--cp-border); background:var(--cp-surface); color:var(--cp-subtext); font-size:12px; font-weight:500; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; }
@@ -1462,6 +1316,7 @@ const styles = `
 .att-loading { display:flex; align-items:center; gap:10px; padding:32px; color:var(--cp-muted); font-size:13px; }
 .att-spinner { width:18px; height:18px; border:2px solid var(--cp-border); border-top-color:var(--cp-accent); border-radius:50%; animation:attSpin .7s linear infinite; }
 @keyframes attSpin { to{transform:rotate(360deg)} }
+.spin { animation: attSpin .7s linear infinite; }
 
 .att-empty { background:var(--cp-surface); border:1px dashed var(--cp-border); border-radius:12px; padding:48px; text-align:center; color:var(--cp-muted); font-size:13px; display:flex; flex-direction:column; align-items:center; }
 

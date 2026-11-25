@@ -9,6 +9,7 @@ import {
   GraduationCap, LogOut, Menu, Bell, ChevronRight,
   IndianRupee, BookMarked, Award, Wallet, Lock,
   CalendarDays, Clock,
+  KeyRound,
 } from "lucide-react";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import AuthGuard from "@/components/AuthGaurd";
@@ -45,25 +46,25 @@ const menuSections: { title: string; items: MenuItem[] }[] = [
   {
     title: "Academic",
     items: [
-      { name: "Dashboard",  href: "/dashboard/student",             icon: LayoutDashboard },
-      { name: "Profile",    href: "/dashboard/student/profile",     icon: User            },
-      { name: "Notices",    href: "/dashboard/student/notices",     icon: FileText        },
-      { name: "Attendance", href: "/dashboard/student/attendance",  icon: CalendarDays    },
-      { name: "Schedule",   href: "/dashboard/student/schedule",    icon: Clock           },
+      { name: "Dashboard", href: "/dashboard/student", icon: LayoutDashboard },
+      { name: "Profile", href: "/dashboard/student/profile", icon: User },
+      { name: "Notices", href: "/dashboard/student/notices", icon: FileText },
+      { name: "Attendance", href: "/dashboard/student/attendance", icon: CalendarDays },
+      { name: "Schedule", href: "/dashboard/student/schedule", icon: Clock },
     ],
   },
   {
     title: "Finance & Certs",
     items: [
-      { name: "Fee Ledger",   href: "/dashboard/student/fees",         icon: Wallet        },
+      { name: "Fee Ledger", href: "/dashboard/student/fees", icon: Wallet },
       { name: "Certificates", href: "/dashboard/student/certificates", icon: GraduationCap },
     ],
   },
   {
     title: "Learning",
     items: [
-      { name: "Notes", href: "/dashboard/student/notes", icon: BookOpen  },
-      { name: "Exams", icon: FileText, disabled: true, badge: "Soon"     },
+      { name: "Notes", href: "/dashboard/student/notes", icon: BookOpen },
+      { name: "Exams", icon: FileText, disabled: true, badge: "Soon" },
     ],
   },
   {
@@ -120,11 +121,11 @@ export default function StudentLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const router   = useRouter();
+  const router = useRouter();
   const pathname = usePathname() ?? "";
 
-  const [collapsed,   setCollapsed]   = useState(false);
-  const [mobileOpen,  setMobileOpen]  = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [studentData, setStudentData] = useState<StudentData | null>(null);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -134,7 +135,7 @@ export default function StudentLayout({
     fetchWithAuth("/api/student/profile")
       .then((r) => r.json())
       .then(setStudentData)
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // Close profile dropdown on outside click
@@ -152,13 +153,13 @@ export default function StudentLayout({
   }, []);
 
   // Derived data
-  const student     = studentData?.student;
+  const student = studentData?.student;
   const enrollments = studentData?.enrollments ?? [];
-  const totalFees   = enrollments.reduce((s, e) => s + (e.feesTotal ?? 0), 0);
-  const totalPaid   = enrollments.reduce((s, e) => s + (e.feesPaid  ?? 0), 0);
-  const feesDue     = totalFees - totalPaid;
-  const courses     = enrollments.map((e) => e.course?.name).filter(Boolean);
-  const certCount   = enrollments.filter(
+  const totalFees = enrollments.reduce((s, e) => s + (e.feesTotal ?? 0), 0);
+  const totalPaid = enrollments.reduce((s, e) => s + (e.feesPaid ?? 0), 0);
+  const feesDue = totalFees - totalPaid;
+  const courses = enrollments.map((e) => e.course?.name).filter(Boolean);
+  const certCount = enrollments.filter(
     (e) => e.certificateStatus === "issued"
   ).length;
 
@@ -197,8 +198,8 @@ export default function StudentLayout({
         <aside
           className={[
             "sp-sidebar",
-            collapsed  ? "collapsed"    : "",
-            mobileOpen ? "mobile-open"  : "",
+            collapsed ? "collapsed" : "",
+            mobileOpen ? "mobile-open" : "",
           ].join(" ")}
         >
           {/* Brand */}
@@ -243,10 +244,10 @@ export default function StudentLayout({
                 </div>
 
                 {section.items.map((item) => {
-                  const Icon   = item.icon;
+                  const Icon = item.icon;
                   const active = item.href
                     ? pathname === item.href ||
-                      pathname.startsWith(item.href + "/")
+                    pathname.startsWith(item.href + "/")
                     : false;
 
                   if (item.disabled) {
@@ -403,9 +404,8 @@ export default function StudentLayout({
                 <IndianRupee size={14} className="sp-info-chip-icon" />
                 Fees Due&nbsp;
                 <span
-                  className={`sp-info-chip-val ${
-                    feesDue > 0 ? "danger" : "success"
-                  }`}
+                  className={`sp-info-chip-val ${feesDue > 0 ? "danger" : "success"
+                    }`}
                 >
                   ₹{feesDue.toLocaleString("en-IN")}
                 </span>

@@ -1,13 +1,11 @@
-// src/models/Attendance.ts
-// ONLY inTime, outTime, markedVia ADD kiye hain
-// Baaki sab SAME hai - kuch break nahi hoga
-
 import mongoose, { Schema, Document, Model } from "mongoose";
 
 export type AttendanceStatus =
+  | "pending"
   | "present"
   | "absent"
-  | "late"
+  | "late"        // ← YE ADD KARNA HAI
+  | "rejected"
   | "holiday"
   | "leave";
 
@@ -15,10 +13,14 @@ export interface IAttendanceRecord {
   date: Date;
   status: AttendanceStatus;
   remark?: string;
-  // ── NEW FIELDS (backward compatible) ──
-  inTime?: string;   // "HH:MM" format, e.g. "10:30"
-  outTime?: string;  // "HH:MM" format, e.g. "13:30"
-  markedVia?: "qr" | "manual"; // kaise mark hua
+  inTime?: string;
+  outTime?: string;
+  markedVia?: "qr" | "manual" | "cron";
+  
+  // ── Verification fields ──
+  verifiedBy?: mongoose.Types.ObjectId;
+  verifiedAt?: Date;
+  rejectedReason?: string;
 }
 
 export interface IAttendance extends Document {
@@ -35,34 +37,38 @@ const attendanceRecordSchema = new Schema<IAttendanceRecord>(
     date: { type: Date, required: true },
     status: {
       type: String,
-      enum: ["present", "absent", "late", "holiday", "leave"],
+      enum: ["pending", "present", "absent", "late", "rejected", "holiday", "leave"],
       required: true,
+      default: "pending",
     },
-    remark:    { type: String, trim: true },
-    // ── NEW (optional, so old records safe hain) ──
-    inTime:    { type: String, trim: true },  // "10:30"
-    outTime:   { type: String, trim: true },  // "13:30"
+    remark: { type: String, trim: true },
+    inTime: { type: String, trim: true },
+    outTime: { type: String, trim: true },
     markedVia: {
       type: String,
-      enum: ["qr", "manual"],
+      enum: ["qr", "manual", "cron"],
       default: "manual",
     },
+    verifiedBy: { type: Schema.Types.ObjectId, ref: "User" },
+    verifiedAt: { type: Date },
+    rejectedReason: { type: String, trim: true },
   },
   { _id: false }
 );
 
 const attendanceSchema = new Schema<IAttendance>(
   {
-    student:    { type: Schema.Types.ObjectId, ref: "Student",    required: true },
+    student: { type: Schema.Types.ObjectId, ref: "Student", required: true },
     enrollment: { type: Schema.Types.ObjectId, ref: "Enrollment", required: true },
-    course:     { type: Schema.Types.ObjectId, ref: "Course",     required: true },
-    records:    { type: [attendanceRecordSchema], default: [] },
+    course: { type: Schema.Types.ObjectId, ref: "Course", required: true },
+    records: { type: [attendanceRecordSchema], default: [] },
   },
   { timestamps: true }
 );
 
-// Existing index same rakha
 attendanceSchema.index({ student: 1, enrollment: 1 }, { unique: true });
+attendanceSchema.index({ "records.date": 1 });
+attendanceSchema.index({ "records.status": 1 });
 
 const Attendance: Model<IAttendance> =
   mongoose.models.Attendance ||

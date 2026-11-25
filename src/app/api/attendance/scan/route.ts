@@ -1,6 +1,4 @@
 // src/app/api/attendance/scan/route.ts
-// UPDATED VERSION - No late auto-detection
-
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Student from "@/models/Student";
@@ -9,27 +7,22 @@ import Attendance from "@/models/Attendance";
 import { verifyCode } from "@/lib/generateHourlyCodes";
 import "@/models/Course";
 
-// ── Rate Limiter (same) ────────────────────────────────────────
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
   const windowMs = 60 * 1000;
   const maxReqs = 30;
-
   const entry = rateLimitMap.get(ip);
-
   if (!entry || now > entry.resetAt) {
     rateLimitMap.set(ip, { count: 1, resetAt: now + windowMs });
     return true;
   }
-
   if (entry.count >= maxReqs) return false;
   entry.count++;
   return true;
 }
 
-// ── Helpers (same) ─────────────────────────────────────────────
 function getCurrentTime(): string {
   return new Date().toLocaleTimeString("en-IN", {
     hour: "2-digit",
@@ -55,9 +48,7 @@ function findTodayRecord(records: any[]) {
   });
 }
 
-// ════════════════════════════════════════════════════════════════
-// GET → Student info (same)
-// ════════════════════════════════════════════════════════════════
+// GET → Student info with ALL active enrollments
 export async function GET(req: NextRequest) {
   try {
     const ip = req.headers.get("x-forwarded-for") ?? "unknown";
@@ -83,59 +74,64 @@ export async function GET(req: NextRequest) {
     const student = await Student.findOne({
       studentId,
       isActive: true,
+      courseStatus: "active",
     })
-      .select("name studentId courseStatus profileImage _id")
+      .select("name studentId courseStatus")
       .lean() as any;
 
     if (!student) {
       return NextResponse.json(
-        { message: "Student nahi mila. ID check karo." },
+        { message: "Student nahi mila ya active nahi hai." },
         { status: 404 }
       );
     }
 
-    if (student.courseStatus !== "active") {
-      return NextResponse.json(
-        { message: "Student active nahi hai." },
-        { status: 403 }
-      );
-    }
-
-    const enrollment = await Enrollment.findOne({
+    const enrollments = await Enrollment.find({
       student: student._id,
       isActive: true,
     })
-      .populate("course", "name")
-      .lean() as any;
+      .populate("course", "name slug")
+      .lean() as any[];
 
-    if (!enrollment) {
+    if (enrollments.length === 0) {
       return NextResponse.json(
         { message: "Koi active enrollment nahi mili." },
         { status: 404 }
       );
     }
 
-    const attDoc = await Attendance.findOne({
-      student: student._id,
-      enrollment: enrollment._id,
-    }).lean() as any;
+    const enrollmentList = await Promise.all(
+      enrollments.map(async (enrollment) => {
+        const attDoc = await Attendance.findOne({
+          student: student._id,
+          enrollment: enrollment._id,
+        }).lean() as any;
 
-    const todayRecord = attDoc ? findTodayRecord(attDoc.records) : null;
+        const todayRecord = attDoc ? findTodayRecord(attDoc.records) : null;
+
+        return {
+          _id: enrollment._id,
+          courseId: (enrollment.course as any)?._id,
+          courseName: (enrollment.course as any)?.name ?? "—",
+          today: {
+            hasInTime: !!todayRecord?.inTime,
+            hasOutTime: !!todayRecord?.outTime,
+            inTime: todayRecord?.inTime ?? null,
+            outTime: todayRecord?.outTime ?? null,
+            status: todayRecord?.status ?? null,
+            verifiedAt: todayRecord?.verifiedAt ?? null,
+          },
+        };
+      })
+    );
 
     return NextResponse.json({
       success: true,
       student: {
         name: student.name,
         studentId: student.studentId,
-        courseName: (enrollment.course as any)?.name ?? "—",
       },
-      today: {
-        hasInTime: !!todayRecord?.inTime,
-        hasOutTime: !!todayRecord?.outTime,
-        inTime: todayRecord?.inTime ?? null,
-        outTime: todayRecord?.outTime ?? null,
-        status: todayRecord?.status ?? null,
-      },
+      enrollments: enrollmentList,
     });
   } catch (error) {
     console.error("[GET /api/attendance/scan]", error);
@@ -143,9 +139,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// ════════════════════════════════════════════════════════════════
-// POST → IN/OUT mark (UPDATED - no late detection)
-// ════════════════════════════════════════════════════════════════
+// POST → IN/OUT mark with enrollment selection (NO PIN)
 export async function POST(req: NextRequest) {
   try {
     const ip = req.headers.get("x-forwarded-for") ?? "unknown";
@@ -157,13 +151,14 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { studentId, action, code } = body as {
+    const { studentId, enrollmentId, action, code } = body as {
       studentId: string;
+      enrollmentId: string;
       action: "in" | "out";
-      code: string; // ← NEW
+      code: string;
     };
 
-    // ── NEW: Verify Hourly Code ───────────────────────────────
+    // Verify Hourly Code
     if (!code || code.trim().length !== 4) {
       return NextResponse.json(
         { message: "4-digit code required hai. Staff se pucho." },
@@ -183,9 +178,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!studentId || !action || !["in", "out"].includes(action)) {
+    if (!studentId || !enrollmentId || !action || !["in", "out"].includes(action)) {
       return NextResponse.json(
-        { message: "studentId aur action (in/out) required hain" },
+        { message: "studentId, enrollmentId aur action (in/out) required hain" },
         { status: 400 }
       );
     }
@@ -205,6 +200,7 @@ export async function POST(req: NextRequest) {
     }
 
     const enrollment = await Enrollment.findOne({
+      _id: enrollmentId,
       student: student._id,
       isActive: true,
     })
@@ -213,7 +209,7 @@ export async function POST(req: NextRequest) {
 
     if (!enrollment) {
       return NextResponse.json(
-        { message: "Active enrollment nahi mili" },
+        { message: "Enrollment nahi mili ya aapki nahi hai" },
         { status: 404 }
       );
     }
@@ -222,7 +218,6 @@ export async function POST(req: NextRequest) {
     const today = getTodayDate();
     const courseId = (enrollment.course as any)?._id;
 
-    // ── Upsert attendance doc ──────────────────────────────────
     await Attendance.findOneAndUpdate(
       { student: student._id, enrollment: enrollment._id },
       {
@@ -254,11 +249,22 @@ export async function POST(req: NextRequest) {
       return d.getTime() === today.getTime();
     });
 
-    // ── IN Action ──────────────────────────────────────────────
     if (action === "in") {
       if (todayIdx >= 0) {
         const existing = attDoc.records[todayIdx];
-        if (existing.inTime) {
+
+        // ✅ NEW FIX: Agar pehle se REJECTED hai, toh dobara IN mark karne do (Reset to pending)
+        if (existing.status === "rejected") {
+          existing.inTime = currentTime;
+          existing.outTime = undefined; // Purana out time clear karo
+          existing.status = "pending";  // Wapas verification ke liye bhejo
+          existing.verifiedBy = undefined;
+          existing.verifiedAt = undefined;
+          existing.rejectedReason = undefined;
+          existing.markedVia = "qr";
+        }
+        // ❌ Agar pehle se IN ya Present hai, toh rok do
+        else if (existing.inTime) {
           return NextResponse.json({
             success: false,
             message: `Aap pehle se IN mark ho chuke ho (${existing.inTime})`,
@@ -266,16 +272,17 @@ export async function POST(req: NextRequest) {
             inTime: existing.inTime,
           });
         }
-        // Record hai but inTime nahi - update
-        attDoc.records[todayIdx].inTime = currentTime;
-        attDoc.records[todayIdx].markedVia = "qr";
-        // Status already set hoga (manual se) - don't change
+        // Agar record hai par inTime nahi hai (edge case), toh update karo
+        else {
+          existing.inTime = currentTime;
+          existing.markedVia = "qr";
+          existing.status = "pending";
+        }
       } else {
-        // ── CHANGE: Default status = "present" ────────────────
-        // Admin/Teacher baad me late/absent kar sakta hai
+        // Aaj ka koi record nahi hai, naya banao
         attDoc.records.push({
           date: today,
-          status: "present", // ← Always present on QR scan
+          status: "pending",
           inTime: currentTime,
           markedVia: "qr",
         } as any);
@@ -288,15 +295,17 @@ export async function POST(req: NextRequest) {
         success: true,
         action: "in",
         time: currentTime,
-        message: `✅ Welcome ${student.name}! IN time: ${currentTime}`,
+        message: `✅ IN mark ho gaya! Teacher verify karega.`,
         student: {
           name: student.name,
           studentId: student.studentId,
         },
+        course: {
+          name: (enrollment.course as any)?.name,
+        },
       });
     }
 
-    // ── OUT Action ─────────────────────────────────────────────
     if (action === "out") {
       if (todayIdx === -1 || !attDoc.records[todayIdx].inTime) {
         return NextResponse.json({
@@ -320,7 +329,6 @@ export async function POST(req: NextRequest) {
       attDoc.markModified("records");
       await attDoc.save();
 
-      // Duration calculate
       const inParts = existing.inTime!.split(":").map(Number);
       const outParts = currentTime.split(":").map(Number);
       const inMins = inParts[0] * 60 + inParts[1];
@@ -334,10 +342,13 @@ export async function POST(req: NextRequest) {
         action: "out",
         time: currentTime,
         duration: `${hours}h ${mins}m`,
-        message: `👋 Goodbye ${student.name}! Duration: ${hours}h ${mins}m`,
+        message: `✅ OUT mark ho gaya! Teacher verify karega.`,
         student: {
           name: student.name,
           studentId: student.studentId,
+        },
+        course: {
+          name: (enrollment.course as any)?.name,
         },
       });
     }
