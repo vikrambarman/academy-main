@@ -50,11 +50,14 @@ function normalizePayload(payload: any) {
 
 export async function POST(req: NextRequest) {
     console.log("🔔 [WEBHOOK] Request received at:", new Date().toISOString());
-
+    
     try {
-        const rawBody = await req.text();
+        // ✅ FIX: arrayBuffer use karein taaki exact raw bytes milein (no hidden characters)
+        const arrayBuffer = await req.arrayBuffer();
+        const rawBody = Buffer.from(arrayBuffer);
+        
         console.log("📦 [WEBHOOK] Raw Body Length:", rawBody.length);
-
+        
         const signature = req.headers.get("x-webhook-signature");
         console.log("🔑 [WEBHOOK] Signature Header Present:", !!signature);
 
@@ -63,31 +66,35 @@ export async function POST(req: NextRequest) {
         }
 
         const secretKey = (process.env.CASHFREE_SECRET_KEY || "").trim();
-
-        // ✅ NEW DEBUG LOG: Secret Key ka pehla aur aakhri character check karne ke liye
+        
+        // Debug log (aap confirm kar sakte hain ki key sahi hai)
         if (secretKey.length > 10) {
-            console.log("🔍 [WEBHOOK] Secret Key being used starts with:", secretKey.substring(0, 4) + "..." + secretKey.substring(secretKey.length - 4));
-        } else {
-            console.log("⚠️ [WEBHOOK] Secret Key is too short or missing! Length:", secretKey.length);
+            console.log("🔍 [WEBHOOK] Secret Key ends with:", secretKey.substring(secretKey.length - 4));
         }
 
-        const expected = crypto.createHmac("sha256", secretKey).update(rawBody).digest("base64");
-
+        // ✅ FIX: Buffer directly pass karein HMAC ko
+        const expected = crypto
+            .createHmac("sha256", secretKey)
+            .update(rawBody) // <-- Yahan ab exact bytes ja rahe hain
+            .digest("base64");
+        
         const isMatch = signature === expected;
         console.log("✅ [WEBHOOK] Signature Match:", isMatch);
 
         if (!isMatch) {
             console.error("❌ [WEBHOOK] Signature Mismatch.");
-            // Cashfree ko 401 dena zaroori hai taaki wo retry kare ya log me fail dikhaye
+            // Debug: First 10 chars of both signatures compare karne ke liye
+            console.log("Expected (first 10):", expected.substring(0, 10));
+            console.log("Received (first 10):", signature.substring(0, 10));
             return NextResponse.json({ message: "Invalid signature" }, { status: 401 });
         }
 
-
-        // 3. Parse + Normalize (version-agnostic)
+        // Baaki ka code same rahega (JSON parse wala part)
         let payload;
         try {
-            payload = JSON.parse(rawBody);
-        } catch {
+            payload = JSON.parse(rawBody.toString('utf-8')); // Buffer ko string me convert karke parse karein
+        } catch (e) {
+            console.error("❌ [WEBHOOK] JSON Parse Error:", e);
             return NextResponse.json({ message: "Malformed JSON" }, { status: 400 });
         }
 
