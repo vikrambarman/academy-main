@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Enrollment from "@/models/Enrollment";
-import Student from "@/models/Student";
-import Course from "@/models/Course";
+import "@/models/Student";
+import "@/models/Course";
 import { generateReceiptBuffer } from "@/lib/pdf/receiptGenerator";
 import { v2 as cloudinary } from "cloudinary";
 import crypto from "crypto";
+import Student from "@/models/Student";
+import Course from "@/models/Course";
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,

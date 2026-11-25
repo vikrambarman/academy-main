@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { verifyUser } from "@/lib/verifyUser";
 import Enrollment from "@/models/Enrollment";
+import "@/models/Student"; 
+import "@/models/Course"; 
 
 export async function POST(req: NextRequest) {
     try {
