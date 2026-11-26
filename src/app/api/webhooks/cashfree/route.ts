@@ -29,6 +29,20 @@ const uploadBufferToCloudinary = (
     });
 };
 
+function extractPaymentMethod(method: any): string {
+    if (!method) return "online";
+    if (typeof method === "string") return method;
+    if (typeof method === "object") {
+        const keys = Object.keys(method);
+        if (keys.length > 0) {
+            const primary = keys[0];
+            const detail = method[primary];
+            return detail?.channel ? `${primary} (${detail.channel})` : primary;
+        }
+    }
+    return "online";
+}
+
 function normalizePayload(payload: any) {
     const d = payload?.data || {};
     const payment = d.payment || {};
@@ -36,7 +50,9 @@ function normalizePayload(payload: any) {
 
     return {
         paymentStatus: payment.payment_status || d.payment_status,
-        paymentMethod: payment.payment_method || d.payment_method || "online",
+        paymentMethod: extractPaymentMethod(
+            payment.payment_method || d.payment_method
+        ),
         paymentTime: payment.payment_time || d.payment_time,
         cfPaymentId:
             payment.cf_payment_id || d.cf_payment_id || d.payment_id || null,
@@ -69,7 +85,6 @@ export async function POST(req: NextRequest) {
         const timestamp = req.headers.get("x-webhook-timestamp");
 
         if (!signature || !timestamp) {
-            console.error("❌ [WEBHOOK] Missing signature or timestamp header");
             return NextResponse.json(
                 { message: "Missing signature or timestamp" },
                 { status: 401 }
@@ -78,7 +93,6 @@ export async function POST(req: NextRequest) {
 
         const secretKey = (process.env.CASHFREE_SECRET_KEY || "").trim();
         if (!secretKey) {
-            console.error("❌ [WEBHOOK] CASHFREE_SECRET_KEY is not configured");
             return NextResponse.json(
                 { message: "Server configuration error" },
                 { status: 500 }
@@ -97,10 +111,6 @@ export async function POST(req: NextRequest) {
             sigBuf.length === expBuf.length && crypto.timingSafeEqual(sigBuf, expBuf);
 
         if (!isMatch) {
-            console.error("❌ [WEBHOOK] Signature Mismatch.", {
-                expectedPrefix: expected.substring(0, 10),
-                receivedPrefix: signature.substring(0, 10),
-            });
             return NextResponse.json(
                 { message: "Invalid signature" },
                 { status: 401 }
@@ -110,16 +120,20 @@ export async function POST(req: NextRequest) {
         let payload: any;
         try {
             payload = JSON.parse(rawText);
-        } catch (e) {
-            console.error("❌ [WEBHOOK] JSON Parse Error:", e);
+        } catch {
             return NextResponse.json({ message: "Malformed JSON" }, { status: 400 });
         }
 
         const p = normalizePayload(payload);
 
+        // Ignore non-success or charges/TDR webhooks
+        if (p.event === "PAYMENT_CHARGES_WEBHOOK") {
+            return NextResponse.json({ message: "Charges event ignored" }, { status: 200 });
+        }
+
         const isSuccess =
             p.paymentStatus === "SUCCESS" ||
-            p.event.includes("PAYMENT_SUCCESS") ||
+            p.event === "PAYMENT_SUCCESS_WEBHOOK" ||
             p.event.includes("payment.succeeded");
 
         if (!isSuccess) {
@@ -144,35 +158,64 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const enrollment = await Enrollment.findById(enrollmentId);
-        if (!enrollment) {
-            return NextResponse.json(
-                { message: "Enrollment not found" },
-                { status: 404 }
-            );
-        }
+        const txRef = String(p.cfPaymentId || p.orderId).trim();
+        const orderIdStr = String(p.orderId).trim();
+        const escapedOrderId = orderIdStr.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const paidAmount = Number(p.amount);
+        const receiptNo = `RCPT-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`;
 
-        const txRef = p.cfPaymentId || p.orderId;
-        const alreadyProcessed = enrollment.payments.some(
-            (pay: any) =>
-                pay.transactionId === txRef || pay.remark?.includes(p.orderId)
+        const paymentEntry = {
+            amount: paidAmount,
+            date: new Date(p.paymentTime || Date.now()),
+            receiptNo,
+            remark: `Online via ${p.paymentMethod} (Txn: ${txRef}, Order: ${orderIdStr})`,
+            paymentMode: "online",
+            transactionId: txRef,
+            receiptPdfUrl: null as string | null,
+        };
+
+        // 1. Atomic insert BEFORE slow PDF/Cloudinary calls so concurrent webhooks are blocked immediately
+        const lockedEnrollment = await Enrollment.findOneAndUpdate(
+            {
+                _id: enrollmentId,
+                payments: {
+                    $not: {
+                        $elemMatch: {
+                            $or: [
+                                { transactionId: txRef },
+                                { remark: { $regex: escapedOrderId } },
+                            ],
+                        },
+                    },
+                },
+            },
+            {
+                $push: { payments: paymentEntry },
+            },
+            { new: true }
         );
-        if (alreadyProcessed) {
-            console.log(`ℹ️ Webhook already processed for ${txRef}`);
+
+        if (!lockedEnrollment) {
+            console.log(`ℹ️ Already processed / locked for ${txRef} (${orderIdStr})`);
             return NextResponse.json(
                 { message: "Already processed" },
                 { status: 200 }
             );
         }
 
-        const student = await Student.findById(enrollment.student);
-        const course = await Course.findById(enrollment.course);
+        // 2. Recalculate exact feesPaid from payments array (avoids 4x subtraction or double counting)
+        const exactFeesPaid = (lockedEnrollment.payments || []).reduce(
+            (sum: number, item: any) => sum + Number(item?.amount || 0),
+            0
+        );
+        lockedEnrollment.feesPaid = exactFeesPaid;
+        await lockedEnrollment.save();
 
-        const receiptNo = `RCPT-${Date.now()}`;
-        let receiptPdfUrl: string | null = null;
-        const paidAmount = Number(p.amount);
-
+        // 3. Generate PDF receipt & attach URL to the already-inserted payment entry
         try {
+            const student = await Student.findById(lockedEnrollment.student);
+            const course = await Course.findById(lockedEnrollment.course);
+
             const pdfBuffer = await generateReceiptBuffer({
                 receiptNo,
                 date: new Date(p.paymentTime || Date.now()).toLocaleDateString("en-IN"),
@@ -183,33 +226,23 @@ export async function POST(req: NextRequest) {
                 paymentMode: p.paymentMethod,
                 academyName: "Shivshakti Computer Academy",
             });
+
             const uploaded = await uploadBufferToCloudinary(
                 pdfBuffer,
                 "receipts",
                 receiptNo
             );
-            receiptPdfUrl = uploaded.secure_url;
-        } catch (pdfErr) {
-            console.error(
-                "⚠️ PDF generation failed (payment still recorded):",
-                pdfErr
+
+            await Enrollment.updateOne(
+                { _id: enrollmentId, "payments.receiptNo": receiptNo },
+                { $set: { "payments.$.receiptPdfUrl": uploaded.secure_url } }
             );
+        } catch (pdfErr) {
+            console.error("⚠️ PDF generation failed (payment recorded safely):", pdfErr);
         }
 
-        enrollment.payments.push({
-            amount: paidAmount,
-            date: new Date(p.paymentTime || Date.now()),
-            receiptNo,
-            remark: `Online via ${p.paymentMethod} (Txn: ${txRef})`,
-            paymentMode: "online",
-            transactionId: txRef,
-            receiptPdfUrl,
-        });
-
-        await enrollment.save();
-
         console.log(
-            `✅ Payment recorded for Enrollment ${enrollmentId} | Txn ${txRef}`
+            `✅ Payment recorded once for Enrollment ${enrollmentId} | Txn ${txRef} | Total Paid: ${exactFeesPaid}`
         );
         return NextResponse.json(
             { message: "Webhook processed successfully" },
