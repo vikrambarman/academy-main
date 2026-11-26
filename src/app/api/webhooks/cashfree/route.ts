@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Enrollment from "@/models/Enrollment";
-import "@/models/Student";
-import "@/models/Course";
+import Student from "@/models/Student";
+import Course from "@/models/Course";
 import { generateReceiptBuffer } from "@/lib/pdf/receiptGenerator";
 import { v2 as cloudinary } from "cloudinary";
 import crypto from "crypto";
-import Student from "@/models/Student";
-import Course from "@/models/Course";
+
+export const runtime = "nodejs";
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -15,7 +15,11 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const uploadBufferToCloudinary = (buffer: Buffer, folder: string, filename: string): Promise<any> => {
+const uploadBufferToCloudinary = (
+    buffer: Buffer,
+    folder: string,
+    filename: string
+): Promise<any> => {
     return new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
             { resource_type: "raw", folder, public_id: filename },
@@ -25,17 +29,12 @@ const uploadBufferToCloudinary = (buffer: Buffer, folder: string, filename: stri
     });
 };
 
-/**
- * Dono webhook versions (2022-09-01 flat + 2023-08-01 nested) ko
- * ek normalized shape me convert karta hai.
- */
 function normalizePayload(payload: any) {
     const d = payload?.data || {};
-    const payment = d.payment || {};   // 2023 nested
-    const order = d.order || {};        // 2023 nested
+    const payment = d.payment || {};
+    const order = d.order || {};
 
     return {
-        // 2023: data.payment.* | 2022: data.* (flat)
         paymentStatus: payment.payment_status || d.payment_status,
         paymentMethod: payment.payment_method || d.payment_method || "online",
         paymentTime: payment.payment_time || d.payment_time,
@@ -44,55 +43,73 @@ function normalizePayload(payload: any) {
         orderId: order.order_id || d.order_id,
         amount:
             payment.order_amount || order.order_amount || d.order_amount || d.amount,
-        event: payload?.event || payload?.type || "",
+        event: payload?.type || payload?.event || payload?.event_type || "",
     };
+}
+
+function extractEnrollmentId(orderId: string): string | null {
+    const match = String(orderId).trim().match(/^ORD[-_]([a-zA-Z0-9]+)[-_]\d+$/);
+    if (match?.[1]) return match[1];
+
+    const parts = String(orderId).trim().split(/[-_]/);
+    return parts[1] || null;
 }
 
 export async function POST(req: NextRequest) {
     console.log("🔔 [WEBHOOK] Request received at:", new Date().toISOString());
-    
+
     try {
-        // ✅ FIX: arrayBuffer use karein taaki exact raw bytes milein (no hidden characters)
+        await connectDB();
+
         const arrayBuffer = await req.arrayBuffer();
         const rawBody = Buffer.from(arrayBuffer);
-        
-        console.log("📦 [WEBHOOK] Raw Body Length:", rawBody.length);
-        
-        const signature = req.headers.get("x-webhook-signature");
-        console.log("🔑 [WEBHOOK] Signature Header Present:", !!signature);
+        const rawText = rawBody.toString("utf-8");
 
-        if (!signature) {
-            return NextResponse.json({ message: "Missing signature" }, { status: 401 });
+        const signature = req.headers.get("x-webhook-signature");
+        const timestamp = req.headers.get("x-webhook-timestamp");
+
+        if (!signature || !timestamp) {
+            console.error("❌ [WEBHOOK] Missing signature or timestamp header");
+            return NextResponse.json(
+                { message: "Missing signature or timestamp" },
+                { status: 401 }
+            );
         }
 
         const secretKey = (process.env.CASHFREE_SECRET_KEY || "").trim();
-        
-        // Debug log (aap confirm kar sakte hain ki key sahi hai)
-        if (secretKey.length > 10) {
-            console.log("🔍 [WEBHOOK] Secret Key ends with:", secretKey.substring(secretKey.length - 4));
+        if (!secretKey) {
+            console.error("❌ [WEBHOOK] CASHFREE_SECRET_KEY is not configured");
+            return NextResponse.json(
+                { message: "Server configuration error" },
+                { status: 500 }
+            );
         }
 
-        // ✅ FIX: Buffer directly pass karein HMAC ko
+        const signedPayload = `${timestamp}${rawText}`;
         const expected = crypto
             .createHmac("sha256", secretKey)
-            .update(rawBody) // <-- Yahan ab exact bytes ja rahe hain
+            .update(signedPayload)
             .digest("base64");
-        
-        const isMatch = signature === expected;
-        console.log("✅ [WEBHOOK] Signature Match:", isMatch);
+
+        const sigBuf = Buffer.from(signature);
+        const expBuf = Buffer.from(expected);
+        const isMatch =
+            sigBuf.length === expBuf.length && crypto.timingSafeEqual(sigBuf, expBuf);
 
         if (!isMatch) {
-            console.error("❌ [WEBHOOK] Signature Mismatch.");
-            // Debug: First 10 chars of both signatures compare karne ke liye
-            console.log("Expected (first 10):", expected.substring(0, 10));
-            console.log("Received (first 10):", signature.substring(0, 10));
-            return NextResponse.json({ message: "Invalid signature" }, { status: 401 });
+            console.error("❌ [WEBHOOK] Signature Mismatch.", {
+                expectedPrefix: expected.substring(0, 10),
+                receivedPrefix: signature.substring(0, 10),
+            });
+            return NextResponse.json(
+                { message: "Invalid signature" },
+                { status: 401 }
+            );
         }
 
-        // Baaki ka code same rahega (JSON parse wala part)
-        let payload;
+        let payload: any;
         try {
-            payload = JSON.parse(rawBody.toString('utf-8')); // Buffer ko string me convert karke parse karein
+            payload = JSON.parse(rawText);
         } catch (e) {
             console.error("❌ [WEBHOOK] JSON Parse Error:", e);
             return NextResponse.json({ message: "Malformed JSON" }, { status: 400 });
@@ -100,48 +117,60 @@ export async function POST(req: NextRequest) {
 
         const p = normalizePayload(payload);
 
-        // 4. Sirf successful events process karo
         const isSuccess =
             p.paymentStatus === "SUCCESS" ||
             p.event.includes("PAYMENT_SUCCESS") ||
             p.event.includes("payment.succeeded");
 
         if (!isSuccess) {
-            // Failed/Pending events — acknowledge karo, DB mat chhedo
-            return NextResponse.json({ message: "Non-success event ignored" }, { status: 200 });
+            return NextResponse.json(
+                { message: "Non-success event ignored" },
+                { status: 200 }
+            );
         }
 
         if (!p.orderId || !p.amount) {
-            return NextResponse.json({ message: "Missing orderId/amount in payload" }, { status: 400 });
+            return NextResponse.json(
+                { message: "Missing orderId/amount in payload" },
+                { status: 400 }
+            );
         }
 
-        // 5. Enrollment ID extract (format: ORD-{enrollmentId}-{timestamp})
-        const enrollmentId = p.orderId.split("-")[1];
+        const enrollmentId = extractEnrollmentId(p.orderId);
         if (!enrollmentId) {
-            return NextResponse.json({ message: "Invalid order ID format" }, { status: 400 });
+            return NextResponse.json(
+                { message: "Invalid order ID format" },
+                { status: 400 }
+            );
         }
 
         const enrollment = await Enrollment.findById(enrollmentId);
         if (!enrollment) {
-            return NextResponse.json({ message: "Enrollment not found" }, { status: 404 });
+            return NextResponse.json(
+                { message: "Enrollment not found" },
+                { status: 404 }
+            );
         }
 
-        // 6. IDEMPOTENCY — duplicate webhook se bachao
         const txRef = p.cfPaymentId || p.orderId;
         const alreadyProcessed = enrollment.payments.some(
-            (pay: any) => pay.transactionId === txRef || pay.remark?.includes(p.orderId)
+            (pay: any) =>
+                pay.transactionId === txRef || pay.remark?.includes(p.orderId)
         );
         if (alreadyProcessed) {
             console.log(`ℹ️ Webhook already processed for ${txRef}`);
-            return NextResponse.json({ message: "Already processed" }, { status: 200 });
+            return NextResponse.json(
+                { message: "Already processed" },
+                { status: 200 }
+            );
         }
 
-        // 7. PDF Receipt generate
         const student = await Student.findById(enrollment.student);
         const course = await Course.findById(enrollment.course);
 
         const receiptNo = `RCPT-${Date.now()}`;
         let receiptPdfUrl: string | null = null;
+        const paidAmount = Number(p.amount);
 
         try {
             const pdfBuffer = await generateReceiptBuffer({
@@ -150,19 +179,25 @@ export async function POST(req: NextRequest) {
                 studentName: student?.name || "Student",
                 studentId: student?.studentId || "N/A",
                 courseName: course?.name || "Course",
-                amount: p.amount,
+                amount: paidAmount,
                 paymentMode: p.paymentMethod,
                 academyName: "Shivshakti Computer Academy",
             });
-            const uploaded = await uploadBufferToCloudinary(pdfBuffer, "receipts", receiptNo);
+            const uploaded = await uploadBufferToCloudinary(
+                pdfBuffer,
+                "receipts",
+                receiptNo
+            );
             receiptPdfUrl = uploaded.secure_url;
         } catch (pdfErr) {
-            console.error("⚠️ PDF generation failed (payment still recorded):", pdfErr);
+            console.error(
+                "⚠️ PDF generation failed (payment still recorded):",
+                pdfErr
+            );
         }
 
-        // 8. DB update (atomic push + save)
         enrollment.payments.push({
-            amount: p.amount,
+            amount: paidAmount,
             date: new Date(p.paymentTime || Date.now()),
             receiptNo,
             remark: `Online via ${p.paymentMethod} (Txn: ${txRef})`,
@@ -170,14 +205,21 @@ export async function POST(req: NextRequest) {
             transactionId: txRef,
             receiptPdfUrl,
         });
+
         await enrollment.save();
 
-        console.log(`✅ Payment recorded for Enrollment ${enrollmentId} | Txn ${txRef}`);
-        return NextResponse.json({ message: "Webhook processed successfully" }, { status: 200 });
-
+        console.log(
+            `✅ Payment recorded for Enrollment ${enrollmentId} | Txn ${txRef}`
+        );
+        return NextResponse.json(
+            { message: "Webhook processed successfully" },
+            { status: 200 }
+        );
     } catch (error: any) {
         console.error("💥 CASHFREE WEBHOOK ERROR:", error);
-        // 200 return karo taaki Cashfree retry spam na kare; error log me dikhega
-        return NextResponse.json({ message: "Acknowledged with error" }, { status: 200 });
+        return NextResponse.json(
+            { message: "Acknowledged with error" },
+            { status: 200 }
+        );
     }
 }
